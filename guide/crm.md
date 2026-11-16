@@ -34,6 +34,8 @@ Mã chỉ dùng được trong 10 phút. Vào được rồi thì **ngày nào b
 
 > **Máy báo "Email này chưa được cấp quyền"?** Nhắn anh Sơn thêm **đúng email** của bạn (anh thêm ở Cài đặt → Nhân sự).
 
+> **Anh Sơn xem được màn hình CRM của bạn** (nút 👁 Xem như) để hướng dẫn, sửa chỗ khó dùng mà không cần xin mã email của bạn. Lúc đó anh chỉ **xem**, không lưu hay gửi được gì dưới tên bạn, và mỗi lần xem đều ghi vào Nhật ký.
+
 > **Mất điện thoại, hoặc nghi người khác dùng tài khoản của bạn?** Báo anh Sơn ngay. Anh bấm **Đăng xuất mọi máy** ở dòng của bạn (Cài đặt → Nhân sự), mọi máy đang vào bằng email của bạn sẽ bị thoát ra.
 
 **Đưa CRM ra màn hình điện thoại** (để mở nhanh như một ứng dụng). Trong CRM có sẵn hướng dẫn **có hình từng bước**: ở màn đăng nhập bấm **📲 Cài CRM ra màn hình điện thoại**; đã vào CRM thì bấm **••• Thêm** → **Cài ra màn hình điện thoại**. Tóm tắt:

@@ -319,7 +319,7 @@ export async function unifyNames(x, ren) {
   return n;
 }
 export async function crmUser(x, email) { email = String(email || '').trim().toLowerCase(); return (await crmUsers(x)).find(u => u.email === email && u.active) || null; }
-function publicUser(u) { return { email: u.email, name: u.name, role: u.role, level: u.level, web: !!u.web || u.level >= 3, ask: askAllowed(u), tg: !!u.tg, prefix: u.prefix || codePre(u.name), mkv: !!u.mkv, zb: !!u.zb, kho: !!u.kho, gv: !!u.gv }; }
+function publicUser(u) { return { email: u.email, name: u.name, role: u.role, level: u.level, web: !!u.web || u.level >= 3, ask: askAllowed(u), va: u.viewAs || '', tg: !!u.tg, prefix: u.prefix || codePre(u.name), mkv: !!u.mkv, zb: !!u.zb, kho: !!u.kho, gv: !!u.gv }; }
 async function userSet(x, email, field, value) {
   const r = await run(x.db, `UPDATE users SET ${field} = ? WHERE email = ?`, value, email);
   if (!r.meta.changes && email === SUPER_ADMIN) { await run(x.db, "INSERT INTO users (email, name, role, active, recv, ord) VALUES (?, 'Thái Sơn', 'Quản trị', 1, 'Không', -1)", SUPER_ADMIN); await run(x.db, `UPDATE users SET ${field} = ? WHERE email = ?`, value, email); }
@@ -1260,14 +1260,40 @@ export async function userByToken(x, token) { return crmSession(x, token); }
 export async function adminByToken(x, token) { const u = await crmSession(x, token); return u && u.level >= 3 ? u : null; }
 async function crmSession(x, token) {
   if (!/^[a-f0-9]{64}$/.test(String(token || ''))) return null;
-  const [sr, ur] = await x.db.batch([x.db.prepare('SELECT email, exp, seen FROM sessions WHERE token = ?').bind(token), x.db.prepare(USERS_SQL)]); // 1 lượt hỏi thay vì 2
+  const [sr, ur] = await x.db.batch([x.db.prepare('SELECT email, exp, seen, ua FROM sessions WHERE token = ?').bind(token), x.db.prepare(USERS_SQL)]); // 1 lượt hỏi thay vì 2
   const s = (sr.results || [])[0]; if (!s) return null;
   if (!x._users) usersFrom(x, ur.results || []);
   if (s.exp < Date.now()) { await run(x.db, 'DELETE FROM sessions WHERE token = ?', token); return null; }
   const u = await crmUser(x, s.email); if (!u) { await run(x.db, 'DELETE FROM sessions WHERE token = ?', token); return null; }
+  if (VA_UA.test(s.ua || '')) return Object.assign({}, u, { viewAs: String(s.ua).replace(VA_UA, '').trim() || 'Quản trị' }); // 👁 Quản trị đang xem như người này: không gia hạn, không ghi "lần cuối vào CRM"
   const now = Date.now(); // 16/11/2026: đang dùng thì tự gia hạn 30 ngày (không phải nhập mã lại giữa chừng), bỏ 30 ngày không vào mới phải đăng nhập lại; ghi lần cuối vào (tối đa 1 lần / giờ)
   if (!s.seen || now - s.seen > 3600e3) { try { await run(x.db, 'UPDATE sessions SET seen = ?, exp = ? WHERE token = ?', now, Math.max(s.exp, now + SESSION_DAYS * DAY), token); } catch (e) { } }
   return u;
+}
+/* ================================================================ 👁 Xem như (16/11/2026)
+ * Quản trị bấm 👁 Xem như cạnh tên 1 nhân sự → mở tab riêng đúng giao diện người đó (đúng vai trò, đúng dữ liệu người đó thấy) mà không cần xin mã email.
+ * Phiên xem thử: 8 tiếng, ghi ở sessions.ua = "👁 <tên Quản trị>", CHỈ XEM: mọi thao tác lưu / gửi bị chặn ở crmApi (vaOk), để không ghi nhầm dưới tên nhân sự. */
+const VA_UA = /^👁\s*/, VA_HOURS = 8;
+const VA_READ = { load: 1, race: 1, sales_all: 1, cust_orders: 1, check_phone: 1, wb_order: 1, mktv: 1, mkt: 1, san: 1, ga: 1, camp_view: 1, aiteam: 1, guide_me: 1, guide_ask_list: 1, vh_today: 1, vh_admin: 1, tb_list: 1, bt_feed: 1, gv_list: 1, pm_view: 1, merge_suggest: 1, dups: 1, kho_load: 1, kho_find: 1, kt_kho: 1, kt_bl: 1, kt_shp: 1, kt_chi: 1, kt_fetch: 1, offers: 1, link_list: 1, fb_list: 1, fb_img: 1, ai_usage: 1, mcp_list: 1, sess_list: 1, voucher_list: 1, partner_list: 1, partner_orders: 1, ref_tiers: 1, ref_find: 1, spf_list: 1, san_list: 1, san_people: 1, mkt_list: 1, mkt_kpi: 1, snh: 1, ht: 1, hr: 1, kt_luong: 1, kt_kpi: 1, kt_ncc: 1, own: 1 };
+const VA_OP = { list: 1, me: 1, st_list: 1, cv: 1, ct_doc: 1, st_doc_get: 1, proof_get: 1 }; // hr / ht / kt_luong / snh… dùng chung 1 lệnh: chỉ cho các "op" đọc
+const VA_KEYS = { type: 1, action: 1, token: 1, part: 1, since: 1, lr: 1, adV: 1, o: 1, l: 1, from: 1, to: 1, pf: 1, pt: 1, sfb: 1, fresh: 1, month: 1, q: 1, phone: 1, id: 1, all: 1, op: 1, act: 1, combos: 1, email: 1 };
+function vaOk(a, d) {
+  if (/_(view|list|hist|logmore|stats|sview|thread)$/.test(a) || VA_READ[a]) {
+    const op = d.op || d.act; if (op && !VA_OP[op]) return false;
+    return Object.keys(d).every(k => VA_KEYS[k]);
+  }
+  return false;
+}
+async function crmAsOpen(x, u, d) {
+  if (u.level < 3 || u.viewAs) return { ok: false, error: 'Chỉ Quản trị dùng được 👁 Xem như.' };
+  const email = String(d.email || '').trim().toLowerCase(), t = await crmUser(x, email);
+  if (!t) return { ok: false, error: 'Không thấy nhân sự này (hoặc đang tạm khoá).' };
+  if (t.email === u.email) return { ok: false, error: 'Đây là tài khoản của anh rồi.' };
+  await run(x.db, 'DELETE FROM sessions WHERE exp < ?', Date.now());
+  const token = randHex(32), now = Date.now();
+  await run(x.db, 'INSERT INTO sessions (token, email, exp, seen, at, ua) VALUES (?, ?, ?, ?, ?, ?)', token, t.email, now + VA_HOURS * 3600e3, now, now, '👁 ' + u.name);
+  await crmLog(x, u, 'Nhân sự', '-', t.name, '👁 Xem như ' + t.name + ' (' + t.role + ')', 'chỉ xem, ' + VA_HOURS + ' tiếng');
+  return { ok: true, token, url: ROLE_URL(t.role), name: t.name, role: t.role };
 }
 /** Tên máy dễ hiểu từ User-Agent: "iPhone · Safari", "Máy tính Windows · Chrome"… */
 function uaName(ua) {
@@ -1286,7 +1312,7 @@ async function crmSess(x, u, d) {
   }
   await run(x.db, 'DELETE FROM sessions WHERE exp < ?', Date.now());
   const rows = await all(x.db, 'SELECT email, seen, at, ua FROM sessions ORDER BY coalesce(seen, at, 0) DESC'), out = {};
-  rows.forEach(r => { const e = String(r.email || '').toLowerCase(), o = out[e] || (out[e] = { n: 0, seen: 0, dev: [] }); o.n++; o.seen = Math.max(o.seen, Number(r.seen || r.at) || 0); if (r.ua && o.dev.indexOf(r.ua) < 0) o.dev.push(r.ua); });
+  rows.forEach(r => { if (VA_UA.test(r.ua || '')) return; const e = String(r.email || '').toLowerCase(), o = out[e] || (out[e] = { n: 0, seen: 0, dev: [] }); o.n++; o.seen = Math.max(o.seen, Number(r.seen || r.at) || 0); if (r.ua && o.dev.indexOf(r.ua) < 0) o.dev.push(r.ua); });
   return { ok: true, sess: out };
 }
 
@@ -2626,6 +2652,11 @@ export async function crmApi(x, d, sync, mgr) {
   if (!u) return { ok: false, auth: true, error: 'Phiên đăng nhập đã hết. Vui lòng đăng nhập lại.' };
   x.user = u;
   if (a === 'logout') { await run(x.db, 'DELETE FROM sessions WHERE token = ?', d.token); return { ok: true }; }
+  if (u.viewAs) { // 👁 Quản trị đang xem như nhân sự: chỉ đọc
+    if (a === 'perf' || a === 'usage' || a === 'prefs' || a === 'vh_ack') return { ok: true, va: 1 }; // đo tốc độ / lượt dùng / ẩn gợi ý / đã đọc quy tắc: bỏ qua im lặng, không tính vào số liệu của nhân sự
+    if (!vaOk(a, d)) return { ok: false, va: 1, error: '👁 Anh đang xem như ' + u.name + ' nên chỉ xem được, không lưu / gửi được gì. Muốn sửa thì làm ở tài khoản của anh.' };
+  }
+  if (a === 'as_open') return crmAsOpen(x, u, d); // 👁 Xem như (Quản trị)
   if (/^gv_/.test(a)) return u.gv ? crmGv(x, u, d) : { ok: false, error: 'Việc tuần chưa bật cho bạn. Anh Sơn bật ở Cài đặt → Nhân sự (ô ✅ Việc tuần).' }; // ✅ Giao việc (giaoviec.js, 14/11/2026): 16/11/2026 chỉ người được bật ở Cài đặt → Nhân sự, quyền chi tiết kiểm trong giaoviec.js
   if (a === 'sess_list' || a === 'sess_kill') return crmSess(x, u, d); // 🔐 lần cuối vào CRM, đăng xuất mọi máy (Quản trị)
   if (a === 'camp_view') return crmCamp(x, u); // 📊 Đợt phát động mở rộng khách (camp.js, 15/11/2026): chỉ Quản lý / Quản trị

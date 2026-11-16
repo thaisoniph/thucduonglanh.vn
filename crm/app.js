@@ -4,7 +4,10 @@
   'use strict';
   var CFG = window.CRM_CONFIG || {};
   var DAY = 864e5;
-  var S = { token: store('crm_token'), user: null, d: null, loading: false, loadedAt: 0, who: store('crm_who') || '', f: {}, units: null };
+  /* 👁 Xem như (16/11/2026): Quản trị bấm 👁 Xem như → tab mới mở địa chỉ vai trò với #as=<phiên xem thử>. Phiên này chỉ sống trong tab đó (sessionStorage),
+   * không đụng phiên đăng nhập / dữ liệu lưu trên máy của anh (localStorage, IndexedDB). Máy chủ chặn mọi thao tác lưu (crmApi → vaOk). Đóng tab là xong. */
+  var VA_TK = (function () { try { var m = location.hash.match(/[#&]as=([a-f0-9]{64})/); if (m) { sessionStorage.setItem('crm_as', m[1]); history.replaceState(null, '', location.pathname + location.search); } return sessionStorage.getItem('crm_as') || ''; } catch (e) { return ''; } })();
+  var S = { token: VA_TK || store('crm_token'), user: null, d: null, loading: false, loadedAt: 0, who: store('crm_who') || '', f: {}, units: null };
 
   var TASKS = {
     callback: { icon: '📞', title: 'Hẹn gọi lại', tip: 'khách đã hẹn đến hôm nay', tpl: '' },
@@ -129,7 +132,7 @@
     el.addEventListener('input', function () { store(k, el.value.trim() ? JSON.stringify({ v: el.value, t: Date.now() }) : null); });
   }
   function store(k, v) {
-    try { if (v === undefined) return localStorage.getItem(k); if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) { }
+    try { var ls = VA_TK ? sessionStorage : localStorage; if (v === undefined) return ls.getItem(k); if (v === null) ls.removeItem(k); else ls.setItem(k, v); } catch (e) { } // 👁 xem như: nhớ tạm trong tab, không ghi đè máy của anh
     return null;
   }
   function money(n) { return (Number(n) || 0).toLocaleString('vi-VN') + 'đ'; }
@@ -438,6 +441,7 @@
     }
   }
   function logout(expired) {
+    if (VA_TK) { if (!expired) api('logout').catch(function () { }); try { sessionStorage.clear(); } catch (e) { } $('#app').innerHTML = '<div class="login"><div class="login-box"><h1>👁 Đã thoát chế độ xem</h1><p class="sub">' + (expired ? 'Phiên xem thử đã hết (8 tiếng). ' : '') + 'Anh đóng tab này là xong. Tài khoản của anh ở tab kia không bị ảnh hưởng.</p><button class="btn pri block" onclick="window.close()">Đóng tab</button></div></div>'; try { window.close(); } catch (e) { } return; }
     if (!expired && S.token) api('logout').catch(function () { });
     S.token = null; S.user = null; S.d = null; store('crm_token', null); closeModal(true);
     idb('del', 'data'); S.outbox = []; saveOutbox(); // xoá dữ liệu khách lưu trên máy này
@@ -622,6 +626,7 @@
   /* ---------- lưu dữ liệu trên máy (IndexedDB): mở CRM thấy ngay, không phải chờ máy chủ. Đăng xuất là xoá. */
   var IDB = null;
   function idb(op, key, val) {
+    if (VA_TK) return Promise.resolve(null); // 👁 xem như: không lưu / đọc dữ liệu trên máy (để không lẫn với dữ liệu của anh)
     return new Promise(function (ok) {
       setTimeout(function () { ok(null); }, 2500); // trình duyệt chặn / treo bộ nhớ máy → bỏ qua, tải bình thường
       try {
@@ -961,15 +966,44 @@
       (isMkt() || isKho() || isKt() ? '' : '<button class="icon-btn" id="gsBtn" title="Tìm ở mọi tab: khách đã mua, đơn hàng, khách hỏi" aria-label="Tìm ở mọi tab">' + I.search + '</button>') +
       '<a class="icon-btn top-help" href="/huong-dan/' + (isMkt() ? 'marketing' : isKho() ? 'kho' : isKt() ? 'ke-toan' : 'crm') + '/" target="_blank" rel="noopener" title="Hướng dẫn sử dụng: cần trợ giúp thì bấm đây" aria-label="Hướng dẫn sử dụng">' + I.help + '</a>' +
       (S.user && S.user.gv ? '<a class="icon-btn top-gv" href="#giao-viec" title="✅ Việc tuần của tôi" aria-label="Việc tuần">' + I.task + '<em class="gv-bdg" id="gvBdg" hidden></em></a>' : '') + // 16/11/2026 anh Sơn: Việc tuần mở 1 chạm ở mọi màn hình
+      (lvl() >= 3 && !VA_TK ? '<button class="icon-btn va-btn" id="vaBtn" title="👁 Xem như: xem giao diện của từng người / vai trò, không cần xin mã" aria-label="Xem như nhân sự">👁<span class="va-lbl">Xem như</span></button>' : '') +
       '<a class="icon-btn top-set" href="#cai-dat" title="Cài đặt" aria-label="Cài đặt">' + I.gear + '</a>' +
       '<button class="icon-btn" id="refresh" title="Tải lại dữ liệu" aria-label="Tải lại dữ liệu">' + I.refresh + '</button>' +
-      '</div></header>' + hostTip() + instTip() + '<main id="view"></main>';
+      '</div></header>' + vaBar() + hostTip() + instTip() + '<main id="view"></main>';
     var ht = $('#hostTip'); if (ht) $('[data-ht]', ht).onclick = function () { store('crm_hosttip', S.user.role); ht.remove(); };
     bindInstTip(); instAuto();
     $('#refresh').onclick = function () { load(); };
     $('#fbBtn').onclick = function () { openFeedback(); };
     if ($('#gsBtn')) $('#gsBtn').onclick = function () { openGlobalSearch(); };
+    if ($('#vaBtn')) $('#vaBtn').onclick = function () { openViewAs(); };
+    if ($('#vaOut')) $('#vaOut').onclick = function () { logout(); };
     navBadges(); pendingBadge(); gvBadge();
+  }
+  /** 👁 Xem như (16/11/2026, anh Sơn: "mỗi lần cần xem vai trò gì lại phải nhắn người đó gửi mã email"): Quản trị chọn 1 người → tab mới đúng giao diện người đó, chỉ xem. */
+  function vaBar() {
+    if (!VA_TK || !S.user) return '';
+    return '<div class="va-bar"><span>👁 Đang xem như <b>' + esc(S.user.name) + '</b> (' + esc(S.user.role) + ') · chỉ xem</span><button class="btn sm" id="vaOut">Thoát</button></div>';
+  }
+  function openViewAs() {
+    var us = (S.d && S.d.users || []).filter(function (u) { return u.active && u.email && u.email !== S.user.email; });
+    var ORD = ['Sale & CSKH', 'Quản lý', 'Marketing', 'Kho', 'Kế toán', 'Quản trị'], g = {};
+    us.forEach(function (u) { (g[u.role] = g[u.role] || []).push(u); });
+    var roles = ORD.filter(function (r) { return g[r]; }).concat(Object.keys(g).filter(function (r) { return ORD.indexOf(r) < 0; }));
+    var body = '<p class="small muted">Bấm vào 1 người → mở <b>tab mới</b> đúng màn hình người đó đang thấy (đúng vai trò, đúng khách, đúng số liệu). Không cần xin mã email.<br>Chỉ để <b>xem</b>: không lưu, không gửi được gì dưới tên họ. Tài khoản của anh ở tab này vẫn giữ nguyên. Đóng tab là xong (tự hết sau 8 tiếng).</p>' +
+      (roles.length ? roles.map(function (r) {
+        return '<h3 class="va-h">' + esc(r) + ' <small class="muted">(' + g[r].length + ')</small></h3><div class="va-list">' + g[r].map(function (u) { return '<button type="button" class="va-it" data-va="' + esc(u.email) + '"><b>' + esc(u.name) + '</b><span>' + esc(u.email) + '</span></button>'; }).join('') + '</div>';
+      }).join('') : '<p class="muted">Chưa có nhân sự nào đang hoạt động. Thêm ở Cài đặt → Nhân sự.</p>');
+    var m = modal('👁 Xem như nhân sự', body, '');
+    Array.prototype.forEach.call(m.querySelectorAll('[data-va]'), function (b) {
+      b.onclick = function () {
+        var w = window.open('', '_blank'); // mở tab ngay lúc bấm (trình duyệt không chặn), có địa chỉ thì chuyển tới
+        b.disabled = true;
+        api('as_open', { email: b.getAttribute('data-va') }).then(function (j) {
+          b.disabled = false; var url = (/thucduonglanh\.vn$/.test(location.hostname) ? j.url : location.origin) + '/#as=' + j.token; // bản thử trên máy: mở cùng địa chỉ
+          if (w) w.location.href = url; else location.href = url;
+        }, function (e) { b.disabled = false; if (w) w.close(); toast(e.message, true); });
+      };
+    });
   }
   /** 🔍 Tìm nhanh trên mọi tab (Đợt 2, 16/10/2026): gõ SĐT / tên / mã đơn → khách đã mua, đơn hàng, khách hỏi; bấm là mở. Chỉ tìm trong dữ liệu người dùng được xem (máy chủ đã lọc).
    *  20/10/2026: gom theo người (số điện thoại) → mỗi người 1 dòng; đã mua thì mở hồ sơ khách (có cả lịch sử hỏi + đơn), chưa mua thì mở lượt hỏi gần nhất.
