@@ -96,9 +96,18 @@ export async function crmSaleMkt(x, u, d) {
     const tm = T.team || blank(), prod = {};
     Object.keys(tm.prod || {}).forEach(k => { const p = tm.prod[k]; prod[k] = { n: p.n, won: p.won, junk: p.junk }; });
     const team = { n: tm.n, won: tm.won, junk: tm.junk, lost: tm.lost, open: tm.open, same: tm.same, next: tm.next, late: tm.late, none: tm.none, wait: tm.wait, cost: 0, rev: 0, roi: tm.cost ? Math.round(tm.rev / tm.cost * 10) / 10 : null, prod };
-    return { ok: true, at: T.at, team, me, best: T.best || null, offers: await offersLive(x), mine: 1 };
+    return { ok: true, at: T.at, team, me, best: T.best || null, offers: await offersLive(x), mine: 1, be: await kvJson(x.db, 'be_vr', null) };
   }
-  return { ok: true, at: T.at, spend: T.spend, n: T.n, cpl: T.cpl, cplBy: T.cplBy, cplRest: T.cplRest, team: T.team, me, best: T.best || null, offers: await offersLive(x), people: T.people };
+  return { ok: true, be: await kvJson(x.db, 'be_vr', null), at: T.at, spend: T.spend, n: T.n, cpl: T.cpl, cplBy: T.cplBy, cplRest: T.cplRest, team: T.team, me, best: T.best || null, offers: await offersLive(x), people: T.people };
+}
+
+/** ⚖️ Hoà vốn số quảng cáo (16/11/2026 anh Sơn): Quản trị mở Tổng quan → CRM gửi 1 tỷ lệ gộp (giá vốn + ship + VAT trên 1đ doanh số).
+ *  Sale chỉ nhận tỷ lệ gộp này để tính "cần bán bao nhiêu từ số của mình thì công ty hoà vốn", không thấy giá nhập hay từng khoản. */
+export async function crmBeVrSet(x, u, d) {
+  if (u.level < 3) return { ok: false, error: 'Chỉ Quản trị.' };
+  const r = Number(d.r); if (!(r > 0 && r < 0.9)) return { ok: false, error: 'Tỷ lệ chưa đúng.' };
+  await kvSet(x.db, 'be_vr', JSON.stringify({ r: Math.round(r * 1000) / 1000, at: Date.now() }));
+  return { ok: true };
 }
 
 /* ---------- Ưu đãi / thông điệp quảng cáo đang chạy: Marketing + Quản trị ghi, mọi người đọc (kv mkt_offers) */

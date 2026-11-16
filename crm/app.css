@@ -3502,3 +3502,13 @@ details.top-fold[open] > summary::after { transform: rotate(180deg); }
 .tf-chip.hot { background: #fff4e5; border-color: #f0c27a; color: #8a4b00; font-weight: 600; }
 .tf-body { padding: 0 12px 12px; }
 .tf-body > * { margin-top: 10px; }
+
+/* ⚖️ Số của bạn đã đủ hoà vốn chưa (tab Hôm nay sale, 16/11/2026) */
+.be-sale { background: var(--card, #fff); border: 1px solid var(--line); border-left: 6px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+.be-sale.ok { border-left-color: var(--primary); } .be-sale.mid { border-left-color: var(--mid); } .be-sale.bad { border-left-color: var(--red); }
+.be-sale p { margin: 6px 0 0; font-size: 15px; line-height: 1.45; }
+.be-sale .be-sale-h { margin: 0; font-size: 16px; } .be-sale-h b { font-size: 19px; } .be-sale-h small { color: var(--muted); font-size: 13px; }
+.be-sale-bar { height: 10px; border-radius: 6px; background: var(--line); margin: 10px 0 2px; overflow: hidden; }
+.be-sale-bar i { display: block; height: 100%; background: var(--red); border-radius: 6px; }
+.be-sale.mid .be-sale-bar i { background: var(--mid); } .be-sale.ok .be-sale-bar i { background: var(--primary); }
+.be-sale-left { font-weight: 500; } .be-sale-none { color: var(--red); }

@@ -147,6 +147,17 @@ Không có nút nào hợp? Bấm **Kết quả khác / tự chọn ngày hẹn*
 - Biểu tượng **Zalo** cạnh tên khách: bạn đã kết bạn Zalo với khách. Nên nhắn Zalo trước. Chưa kết bạn thì gọi trước, rồi xin kết bạn.
 - Trên máy tính: đang gõ ghi chú mà kéo xuống chọn nút thì ô **Khách nói gì?** tự ghim ở trên cùng, bạn vẫn thấy chữ vừa gõ. Cứ bấm nút như bình thường.
 
+### 💸 Số của bạn đã đủ hoà vốn chưa?
+
+Mỗi số điện thoại khách hỏi từ quảng cáo là **tiền thật công ty đã trả**. Đầu tab **Hôm nay** có khung **💸 Tháng này công ty đã chi … quảng cáo cho … số giao cho bạn**:
+
+- **Mỗi số khoảng bao nhiêu tiền**: tiền quảng cáo chia cho số khách hỏi.
+- **Bạn đã bán được bao nhiêu** từ chính các số đó, và **cần bao nhiêu để công ty hoà vốn**. Hoà vốn tức là đủ trả tiền quảng cáo, tiền hàng, phí ship, thuế và hoa hồng của bạn (chưa tính lương cứng, văn phòng).
+- Thanh màu: 🔴 còn xa, 🟠 sắp tới, 🟢 đã qua mức hoà vốn, từ đó mỗi đơn là công ty có lãi.
+- **📵 Còn N số chưa gọi = … tiền công ty đã trả**: gọi ngay, khách vừa để số còn nhớ quảng cáo nên dễ chốt nhất.
+
+Muốn xem theo từng sản phẩm thì bấm **Xem chi tiết ›** (tab Hiệu quả → 📣 Từ quảng cáo).
+
 ### 📦 Kho hôm nay: nên tư vấn sản phẩm gì?
 
 Trong tab **Hôm nay** có khung **📦 Kho hôm nay**. Dòng đầu đã nói gọn: **💚 Nên tư vấn** sản phẩm nào, **🔴 Sắp hết** sản phẩm nào. Bấm vào khung để xem số hộp còn lại.

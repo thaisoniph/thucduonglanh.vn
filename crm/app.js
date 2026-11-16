@@ -1884,6 +1884,7 @@
     // 16/11/2026 anh Sơn: không hiện "còn 81 việc" + danh sách dài nữa. Màn chính = khung giờ đang làm + lượt 5 khách (tdsHero/tdsBatch).
     var h = tdsHero(items, q, growOn, gn);
     h += '<section class="section tds-more">' + todayGoalLine() + '<div class="td-jump"><button type="button" data-gopen="tdgoal"' + raceHeroAttr() + '>' + raceHero() + '</button>' + (growOn ? '<button type="button" data-gopen="grow">🌱 Mở rộng khách ' + gn + '/5 ›</button>' : '') + '</div></section>';
+    h += beSaleBlock(); // ⚖️ số của bạn đã đủ hoà vốn chưa (16/11/2026)
     h += khoSaleBlock(); // 📦 Kho hôm nay (16/11/2026)
     h += tdsPlan();
     if (items.length) {
@@ -6316,6 +6317,7 @@
   /** Hoàn trên đơn văn phòng đã gửi (n không gồm đơn huỷ; c = số đơn huỷ). */
   function voidStats(R) { var n = 0, v = 0, vr = 0, l = 0, c = 0; S.d.orders.forEach(function (o) { if (o.time >= R[0] && o.time < R[1]) { if (isCancel(o.status)) { c++; return; } n++; if (isBack(o.status)) { v++; vr += o.total || 0; l += backFee(o); } } }); return { n: n, v: v, vr: vr, l: l, c: c, pct: n ? Math.round(v * 100 / n) : null }; }
   function viewDash() {
+    beRatePush(); // ⚖️ gửi tỷ lệ gộp giá vốn + ship + VAT cho khung hoà vốn của sale
     var f = S.f.g || (S.f.g = {}); if (!f.p || f.p.k === 'all') f.p = { k: 'month' }; if (f.sfb === undefined) f.sfb = store('dash_sfb') === '1'; // mặc định TẮT (16/10/2026): đơn chưa rõ nguồn không tự tính cho Facebook
     if (!f.open) { try { f.open = JSON.parse(store('dash_open') || '{}') || {}; } catch (e) { f.open = {}; } }
     var R = perRange(f.p), P = cmpRange(f.p), b = bizStats(R), bp = bizStats(P), key = gaKey(R, P), gj = GA.cache[key], g = gj && gj.ga, noGaCmp = f.p.k === 'today';
@@ -12848,6 +12850,47 @@
     } else h += '<p><b>' + b.n + ' số</b> khách hỏi từ quảng cáo. Chưa có số chi phí quảng cáo trong kỳ (marketing chưa nhập) nên chưa tính được tiền mỗi số.</p>';
     if (sp !== null) h += '<p>📞 Gọi ngay trong ngày nhận số: <b>' + sp + '%</b> ' + (DASH_LV[spLv] || '') + (b !== T && tsp !== null ? ' <small class="muted">(cả nhóm ' + tsp + '%)</small>' : '') + (b.none ? ' · <b class="bad-line">' + b.none + ' số chưa gọi</b>' : '') + '</p>';
     return h + '<button class="link" data-rgo="mkt">Xem theo từng sản phẩm, ưu đãi đang chạy →</button></div>';
+  }
+  /* ---------- ⚖️ Số của bạn đã đủ hoà vốn chưa (16/11/2026 anh Sơn): đầu tab Hôm nay của sale, để sale trân trọng từng số điện thoại.
+   * Tiền quảng cáo trên số được giao tháng này (máy chủ tính, lệnh sale_mkt) so với tiền bán được từ các số đó.
+   * Cần bán để hoà vốn = tiền quảng cáo ÷ (1 − tỷ lệ gộp giá vốn + ship + VAT − % hoa hồng khách mới của bạn). Chưa tính lương cứng, văn phòng (anh chọn).
+   * Tỷ lệ gộp: Quản trị mở Tổng quan → beRatePush gửi 1 con số lên máy chủ (kv be_vr); sale không thấy giá nhập hay từng khoản. */
+  function beRatePush() {
+    if (lvl() < 3 || S.beSent || !costCfg()) return;
+    var t = today(), g = gpOf(bizStats([t - 90 * DAY, t + DAY])); if (!g || !(g.r > 0)) return;
+    var km = finKtMonths()[0], sh = km ? (km.k.groups || []).reduce(function (a, x) { return /vận chuyển|giao hàng|\bship/i.test(x[0]) ? a + (x[1] || 0) : a; }, 0) / km.k.dt : 0.05, v = nsvVat() / 100;
+    S.beSent = 1; api('be_vr_set', { r: g.r + Math.min(0.2, sh) + v / (1 + v) }).then(function () { }, function () { });
+  }
+  function beGet() {
+    var t = today(), R = monthRange(monthOf(t)), k = 'be|' + isoDate(R[0]), C = S.smk || (S.smk = {}), c = C[k];
+    if ((!c || Date.now() - c.at > 600e3) && !c0busy(k)) {
+      S.smkBusy = S.smkBusy || {}; S.smkBusy[k] = 1;
+      api('sale_mkt', { from: isoDate(R[0]), to: isoDate(t), name: '' }).then(function (j) { C[k] = { at: Date.now(), d: j && j.ok ? j : null }; }, function () { C[k] = { at: Date.now(), d: null }; })
+        .then(function () { delete S.smkBusy[k]; if (route().view === 'hom-nay') softRender(true); });
+    }
+    return c ? c.d : undefined;
+  }
+  /** % hoa hồng khách mới của sale này (Phụ lục 01): bậc hiện tại, chưa vào bậc thì lấy bậc đầu. */
+  function beComm() {
+    var P = (S.d.rules && S.d.rules.payplan) || {}; if (!P.tiers || !P.tiers.length) return 0;
+    var p = payOf(S.user.name, monthOf(Date.now())); if (p && p.tier) return (p.rt[1] || 0) / 100;
+    return (((P.tiers[0][3] || [])[p ? p.si : 0] || [0, 0])[1] || 0) / 100;
+  }
+  function beSaleBlock() {
+    var d = beGet(), b = d && d.me; if (!b || !b.n || !b.cost) return '';
+    var vr = d.be && d.be.r, mg = vr ? 1 - vr - beComm() : null, need = mg && mg > 0.05 ? Math.round(b.cost / mg) : null, rev = b.rev || 0, cpl = b.cost / b.n;
+    var lv = need ? (rev >= need ? 'ok' : rev >= need * 0.6 ? 'mid' : 'bad') : adsLv(b.cost, rev), left = need ? Math.max(0, need - rev) : 0;
+    var avg = perf(S.user.name, monthRange(monthOf(Date.now()))).avg || 0, nO = left && avg ? Math.ceil(left / avg) : 0, p = need ? Math.min(100, Math.round(rev * 100 / need)) : 0;
+    var h = '<section class="section be-sale ' + lv + '"><p class="be-sale-h">💸 Tháng này công ty đã chi <b>' + moneyShort(b.cost) + '</b> quảng cáo <span style="white-space:nowrap">cho <b>' + b.n + ' số</b> giao cho bạn</span> <small>(mỗi số khoảng ' + moneyShort(Math.round(cpl / 1000) * 1000) + ')</small></p>';
+    if (need) {
+      h += '<div class="be-sale-bar"><i style="width:' + p + '%"></i></div>' +
+        '<p>Bạn đã bán được <b>' + moneyShort(rev) + '</b> từ các số này · cần <b>' + moneyShort(need) + '</b> để công ty hoà vốn</p>' +
+        (left ? '<p class="be-sale-left">' + DASH_LV[lv] + ' Còn thiếu <b>' + moneyShort(left) + '</b>' + (nO ? ', khoảng <b>' + nO + ' đơn</b>' : '') + ' nữa. Mỗi số là tiền thật của công ty, tư vấn hết sức nhé!</p>'
+          : '<p class="be-sale-left">🎉 Đã qua mức hoà vốn! Từ đây mỗi đơn bạn chốt là công ty có lãi. Cảm ơn bạn 💚</p>');
+    } else h += '<p>Bạn đã bán được <b>' + moneyShort(rev) + '</b> từ các số này' + (rev ? ' → cứ 1đ công ty chi, bạn mang về <b>' + oneDec(rev / b.cost) + 'đ</b> ' + (DASH_LV[lv] || '') : '') + '.</p>';
+    if (b.none) h += '<p class="be-sale-none">📵 Còn <b>' + b.none + ' số chưa gọi</b> = <b>' + moneyShort(Math.round(b.none * cpl)) + '</b> tiền công ty đã trả. Gọi ngay để khách còn nhớ!</p>';
+    else if (b.open) h += '<p class="small muted" style="margin:6px 0 0">Còn ' + b.open + ' số chưa có kết quả (≈ ' + moneyShort(Math.round(b.open * cpl)) + '), chăm tiếp để ra đơn.</p>';
+    return h + '<p class="small muted" style="margin:6px 0 0">' + (need ? 'Hoà vốn = đủ trả tiền quảng cáo, tiền hàng, phí ship, thuế và hoa hồng của bạn (chưa tính lương cứng, văn phòng). ' : '') + 'Tính các số quảng cáo bạn nhận từ đầu tháng, cập nhật khoảng 30 phút một lần. <a href="#bao-cao">Xem chi tiết ›</a></p></section>';
   }
   /** Mục chi tiết 📣 Từ quảng cáo: từng sản phẩm (của người này so với cả nhóm), tốc độ gọi lại, ưu đãi đang chạy. */
   function smkDetail(d, b) {
