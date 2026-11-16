@@ -81,7 +81,7 @@ Trên màn hình:
 - Dưới nút là dòng **Hôm nay đã gọi N khách**.
 - Có khách hỏi chờ tư vấn thì có nút **🙋 Tư vấn khách hỏi ›**.
 - **Đơn giao chậm / chưa giao được** không hiện ở đây nữa (khách cũ, bạn tự theo dõi, tránh gọi nhiều làm phiền khách). Xem ở tab **Đơn hàng** (nút 🚚).
-- **Giờ nghỉ** CRM hiện màn **🍵 Giải lao tới 10:15** và cho biết quay lại thì làm gì. Có việc gấp thì bấm **Làm tiếp luôn ›**.
+- **Giờ nghỉ** là giờ của riêng bạn. CRM hiện màn **🍵 Giải lao một chút nhé** (trưa là **🍱 Nghỉ trưa thôi**) với 3 việc nhỏ cho mình: uống nước, vươn vai, cho mắt nghỉ… Bấm vào việc đã làm để đánh dấu ✓ (chỉ mình bạn thấy). Bấm **🌿 Thở cùng mình 1 phút** rồi hít vào khi vòng tròn to ra, thở ra khi vòng tròn nhỏ lại. Có việc gấp thì bấm **Làm tiếp luôn ›** ở góc dưới.
 - Muốn xem hết khách của hôm nay: bấm **📞 Xem tất cả việc gọi hôm nay** (đã thu gọn). Trong đó lọc được: **Tất cả · 🧾 Đơn mới · 🔥 Vừa hỏi · 💚 Chăm sóc · 🙋 Khách hỏi**.
 - Cạnh tên mỗi khách có **nhãn màu ghi lý do gọi**, ví dụ **🧾 Xác nhận đơn**, **🔥 Vừa hỏi**, **📦 Hỏi nhận hàng**, **⏰ Sắp hết hàng**.
 - Ngay dưới lời chào là **🌿 điều văn hoá hôm nay**: bấm **💚 Mình cùng giữ** ngay trên dòng đó.

@@ -3356,3 +3356,44 @@ details.dash-grp[open] > summary::after { transform: rotate(180deg); }
 .va-it:hover { border-color: #1f5f3a; background: #f0f7f1; }
 .va-it span { font-size: 12px; color: #6b6b6b; word-break: break-all; }
 .va-it:disabled { opacity: .5; cursor: wait; }
+/* 16/11/2026 màn NGHỈ (giải lao / nghỉ trưa): chăm sóc chị em, không nhắc việc */
+.tbk { text-align: center; background: linear-gradient(160deg, #eef8f0 0%, #fbf8ef 100%); border: 1px solid #dcefe0; padding: 18px 16px 14px; }
+.tbk-noon, .tbk-wake { background: linear-gradient(160deg, #fff6e8 0%, #f3faf3 100%); border-color: #f1e4c8; }
+.tbk-top { position: relative; }
+.tbk-ic { display: inline-block; font-size: 42px; line-height: 1; animation: tbkFloat 4s ease-in-out infinite; }
+.tbk-left { position: absolute; right: 0; top: 0; font-size: 12.5px; color: var(--muted); background: rgba(255,255,255,.7); border-radius: 99px; padding: 3px 10px; }
+.tbk-t { display: block; font-size: 22px; margin: 8px 0 4px; color: var(--ink); }
+.tbk-lead { margin: 0 auto 6px; max-width: 520px; font-size: 15px; color: var(--ink); }
+.tbk-thx { margin: 0 0 12px; font-size: 14px; color: var(--primary); }
+.tbk-h { font-size: 13px; font-weight: 700; color: var(--ink); margin: 6px 0 8px; }
+.tbk-h span { font-weight: 400; color: var(--muted); }
+.tbk-acts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; max-width: 620px; margin: 0 auto; }
+.tbk-a { display: flex; flex-direction: column; align-items: center; gap: 2px; background: #fff; border: 1.5px solid #e3ece4; border-radius: 14px; padding: 10px 8px; cursor: pointer; font: inherit; color: var(--ink); transition: transform .15s, border-color .15s, background .15s; }
+.tbk-a:hover { transform: translateY(-2px); border-color: #b9dcc0; }
+.tbk-a-ic { font-size: 24px; line-height: 1.2; }
+.tbk-a b { font-size: 14px; }
+.tbk-a small { font-size: 12px; color: var(--muted); line-height: 1.3; }
+.tbk-a.on { background: #e5f4e8; border-color: #7fbf8c; }
+.tbk-a.on .tbk-a-ic { color: #2e7d3e; font-weight: 800; }
+.tbk-done { margin: 10px 0 0; color: #2e7d3e; font-weight: 600; font-size: 14px; }
+.tbk-brb { margin: 14px auto 0; background: #fff; border-radius: 99px; }
+.tbk-br { margin: 14px 0 0; }
+.tbk-br small { display: block; font-size: 12.5px; color: var(--muted); max-width: 360px; margin: 8px auto 0; }
+.tbk-ring { position: relative; width: 130px; height: 130px; margin: 0 auto; display: grid; place-items: center; }
+.tbk-ring i { position: absolute; inset: 0; border-radius: 50%; background: radial-gradient(circle, #bfe3c6 0%, #8fcb9b 70%); opacity: .75; animation: tbkBreath 10s ease-in-out 6 forwards; }
+.tbk-ring span { position: absolute; font-weight: 700; color: #1f5a2b; font-size: 15px; opacity: 0; }
+.tbk-ring .in { animation: tbkIn 10s linear 6; }
+.tbk-ring .out { animation: tbkOut 10s linear 6; }
+.tbk-ring .end { animation: tbkEnd .6s ease 60s forwards; }
+.tbk-say { margin: 14px auto 0; max-width: 460px; font-style: italic; color: #5b6b5e; font-size: 14px; }
+.tbk-ur { margin: 10px 0 0; font-size: 13px; color: #a1460b; }
+.tbk-foot { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 14px; padding-top: 10px; border-top: 1px dashed #d6e3d8; font-size: 13px; color: var(--muted); }
+.tbk-go { background: none; border: 0; font: inherit; font-size: 13px; color: var(--primary); cursor: pointer; padding: 4px 0; }
+.tbk-go:hover { text-decoration: underline; }
+@keyframes tbkFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+@keyframes tbkBreath { 0% { transform: scale(.55); } 40% { transform: scale(1); } 100% { transform: scale(.55); } }
+@keyframes tbkIn { 0%, 38% { opacity: 1; } 40%, 100% { opacity: 0; } }
+@keyframes tbkOut { 0%, 39% { opacity: 0; } 41%, 98% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes tbkEnd { to { opacity: 1; } }
+@media (max-width: 560px) { .tbk-acts { grid-template-columns: 1fr; } .tbk-a { flex-direction: row; text-align: left; gap: 10px; } .tbk-a small { margin-left: auto; text-align: right; max-width: 45%; } }
+@media (prefers-reduced-motion: reduce) { .tbk-ic { animation: none; } }
