@@ -5285,6 +5285,8 @@
   /** % chi phí cơ hội trên doanh số (15/11/2026, góp ý của Ý); cho phép 0. */
   /** % thuế VAT đã gồm trong doanh số CRM (16/11/2026 anh Sơn: doanh số CRM gồm VAT xuất cho khách); mặc định 8%, cho phép 0. */
   function nsvVat() { var v = store('nsv_v'); return v === null || v === '' || isNaN(+v) ? 8 : Math.max(0, +v); }
+  /** ☑️ Ô tích trừ thêm (16/11/2026 anh Sơn): f = chi phí cố định, b = lương back office, o = chi phí cơ hội. Lưu trên máy người xem; mặc định tích cả 3. */
+  function nsvTick() { var v = store('nsv_t'); v = v === null ? 'fbo' : String(v); return { f: v.indexOf('f') >= 0, b: v.indexOf('b') >= 0, o: v.indexOf('o') >= 0, s: v }; }
   function nsvOpp() { var v = store('nsv_o'); return v === null || v === '' || isNaN(+v) ? 5 : Math.max(0, +v); }
   function nsvLoad() {
     var mo = shiftMonth(monthOf(Date.now()), -1);
@@ -5295,7 +5297,7 @@
   function nsvLv(r, x) { return r === null ? '' : r >= x ? 'ok' : r >= 1 ? 'mid' : 'bad'; }
   function nsvData(n) {
     var ms = rpmMonths(n), D = NSV.d || { staff: [], cfg: {} }, std = (D.cfg && D.cfg.std) || 26, staff = (D.staff || []).filter(function (p) { return p.on !== false; }), users = S.d.users || [];
-    var ck = n + '|' + S.d.orders.length + '|' + (S.d.adRows || []).length + '|' + NSV.at + '|' + COST_MEMO.at + '|' + store('nsv_x') + store('nsv_kho') + store('nsv_kt') + '|' + store('nsv_o') + '|' + store('nsv_v');
+    var ck = n + '|' + S.d.orders.length + '|' + (S.d.adRows || []).length + '|' + NSV.at + '|' + COST_MEMO.at + '|' + store('nsv_x') + store('nsv_kho') + store('nsv_kt') + '|' + store('nsv_o') + '|' + store('nsv_v') + '|' + store('nsv_t') + '|' + JSON.stringify(((NSV.d || {}).staff || []).length);
     if (NSV_C.k === ck) return NSV_C.v;
     // 16/11/2026 anh Sơn: chỉ tính người có tên trong Nhân sự đang làm (bỏ tên lạ như "Bỏ", người đã nghỉ, CTV, Quản trị)
     var uOf = function (nm) { return users.filter(function (z) { return z.name === nm && z.active !== false && !z.ctv; })[0] || null; };
@@ -5313,13 +5315,14 @@
       // 16/11/2026 anh Sơn muốn luôn trừ chi phí văn phòng: tháng chưa có file kế toán → mượn chi phí cố định của tháng gần nhất có file (±3 tháng)
       var KB = kOk(K) ? K : null;
       for (var j = 1; !KB && j <= 3; j++) [shiftMonth(m, -j), shiftMonth(m, j)].forEach(function (k2) { var y = !KB && opexMonth(k2); if (y && kOk(y.kt)) { KB = y.kt; kFrom = k2; } });
-      if (KB) (KB.groups || []).forEach(function (g) { if (RPM_VAR.test(g[0])) vv += g[1] || 0; if (/vận chuyển|giao hàng|\bship/i.test(g[0])) sp += g[1] || 0; });
+      var stK = 0, STF = /nhân viên|nhân sự|lương|bhxh|bảo hiểm/i;
+      if (KB) (KB.groups || []).forEach(function (g) { if (RPM_VAR.test(g[0])) vv += g[1] || 0; if (/vận chuyển|giao hàng|\bship/i.test(g[0])) sp += g[1] || 0; if (STF.test(g[0]) && !RPM_VAR.test(g[0])) stK += g[1] || 0; });
       // không có file kế toán nào gần → bảng ✏️ Nhập chi phí (bỏ dòng lương sale, ship, quảng cáo vì đã trừ riêng từng sale)
-      var man = null; if (!KB) { var xo = x && x.tot ? x : (opexEst(m) || {}).x; if (xo && xo.tot) man = xo.items.reduce(function (a, r) { return a + (/sale|ship|vận chuyển|giao hàng|quảng cáo/i.test(r[0]) ? 0 : r[1] || 0); }, 0); }
+      var man = null; if (!KB) { var xo = x && x.tot ? x : (opexEst(m) || {}).x; if (xo && xo.tot) man = xo.items.reduce(function (a, r) { var no = /sale|ship|vận chuyển|giao hàng|quảng cáo/i.test(r[0]); if (!no && STF.test(r[0])) stK += r[1] || 0; return a + (no ? 0 : r[1] || 0); }, 0); }
       (S.d.adRows || []).forEach(function (a) { if (a[0] >= R[0] && a[0] < R[1]) ph[normPhone(a[1])] = 1; });
       var np = Object.keys(ph).length, gm = gpOf(bizStats(R));
       // back office (15/11/2026, Ý): chi phí cố định tháng = tổng chi phí − chi phí biến đổi (quảng cáo, sàn, vận chuyển) trong file kế toán
-      return { m: m, R: R, ad: ad, np: np, cpl: ad && np ? ad / np : sdt0, est: !(ad && np), nwGp: gm ? gm.nw : 0, sent: 0, kFrom: kFrom, man: man !== null,
+      return { m: m, R: R, ad: ad, np: np, cpl: ad && np ? ad / np : sdt0, est: !(ad && np), nwGp: gm ? gm.nw : 0, sent: 0, kFrom: kFrom, man: man !== null, stK: stK,
         fix: KB ? KB.cost - vv : man, vr: KB ? Math.min(0.95, ((KB.cogs || 0) + vv) / KB.dt) : man !== null ? Math.min(0.95, r0 + 0.1) : null, shipR: KB ? sp / KB.dt : 0, shop: KB && !kFrom ? KB.shopee || 0 : 0, sk: KB && !kFrom ? KB.sale || (KB.dt - (KB.shopee || 0)) : 0, crm: 0, sPay: 0, nS: 0 };
     });
     // đơn theo SĐT để biết số quảng cáo nào đã ra đơn
@@ -5351,7 +5354,7 @@
     });
     // sale văn phòng hiện có nhưng chưa bán gì cũng phải hiện (đang tốn lương)
     users.forEach(function (u) { if (u.role === 'Sale & CSKH' && !u.ctv && u.active !== false) get(u.name); });
-    var now = Date.now(), sales = [], tot = { v: 0, c: 0, nData: 0, won: 0 };
+    var now = Date.now(), sales = [], mgrs = [], tot = { v: 0, c: 0, nData: 0, won: 0 };
     Object.keys(P).forEach(function (nm) {
       var p = P[nm], u = uOf(nm), st = stOf(nm), jt = ppJoinTs(u && u.joined); if (!u) return; p.u = u; p.st = st; p.role = u.role; p.mgr = mgr(u);
       p.isNew = !!jt && now - jt < 61 * DAY; p.left = false;
@@ -5371,36 +5374,42 @@
       p.ratio = p.cost > 0 ? p.val / p.cost : null; p.net = p.val - p.cost; p.cr = p.nData ? p.won / p.nData : null;
       p.lv = p.isNew ? 'new' : !(p.cost > 0) ? 'nocost' : p.mgr ? 'mgr' : nsvLv(p.ratio, X);
       if (!p.aM && !p.isNew) return;
+      if (p.mgr) { mgrs.push(p); return; } // 16/11/2026: Quản lý tính ở mục vị trí khác
       tot.v += p.val; tot.c += p.cost; tot.nData += p.nData; tot.won += p.won;
       sales.push(p);
     });
-    /* 🏢 Back office + chi phí cơ hội (15/11/2026, góp ý của Ý): tính điểm hoà vốn, chia đều phần chi phí cố định không do sale tạo ra
-     * (thuê nhà, điện nước, lương kế toán / kho / quản lý / marketing…) cho từng sale, rồi trừ thêm chi phí cơ hội (% doanh số, mặc định 5%).
-     * Back office tháng = chi phí cố định (file kế toán) − lương + phụ cấp các sale − phần Shopee + kênh khác (CTV, web…) đã gánh (doanh thu × tỷ lệ lãi sau giá vốn và chi phí biến đổi).
-     * Chia đều cho sale đang làm tháng đó (không tính Quản lý có tự bán: lương quản lý nằm trong back office). Thiếu file kế toán tháng nào → dùng lại cách cũ (gấp X lần). */
-    var O = nsvOpp() / 100, hasBo = M.every(function (Mi) { return Mi.fix !== null; }) && sales.some(function (p) { return !p.mgr; });
+    /* 🧩 Vị trí không trực tiếp bán (16/11/2026 anh Sơn): Quản lý, Kế toán, Kho, Marketing lấy từ Nhân sự CRM; lương lấy ở 👥 Bảng lương (luong_staff), chưa có thì nhập ngay ở đây. */
+    var sup = [], KIND = { 'Quản lý': 'mgr', 'Kế toán': 'kt', 'Kho': 'kho', 'Marketing': 'mkt' };
+    users.forEach(function (u) {
+      if (u.active === false || u.ctv || !KIND[u.role]) return; var st = stOf(u.name) || staff.filter(function (q) { return q.name === u.full; })[0] || null;
+      sup.push({ name: u.name, crm: u.name, u: u, k: KIND[u.role], st: st, cost: extra(st, false), isNew: !!ppJoinTs(u.joined) && now - ppJoinTs(u.joined) < 61 * DAY });
+    });
+    var supAll = sup.length && sup.every(function (z) { return z.cost > 0; }), BOP = supAll ? sup.reduce(function (a, z) { return a + z.cost; }, 0) : null;
+    /* 🏢 Chia chi phí chung cho sale (15/11 góp ý của Ý, 16/11 anh Sơn tách 2 ô tích):
+     * chi phí cố định = chi phí cố định file kế toán (đã bỏ quảng cáo, sàn, vận chuyển) − lương + BH cả công ty (thuê nhà, điện, điện thoại, khấu hao, ngân hàng…);
+     * lương back office = lương Quản lý + Kế toán + Kho + Marketing ở 👥 Bảng lương; chưa nhập đủ → (lương + BH trong file kế toán − lương sale CRM tính).
+     * Trừ phần Shopee + kênh khác (CTV, web…) tự gánh (doanh thu × tỷ lệ lãi sau giá vốn và chi phí biến đổi), còn lại chia đều cho sale đang làm tháng đó. */
+    var O = nsvOpp() / 100, TK = nsvTick(), hasBo = M.every(function (Mi) { return Mi.fix !== null; }) && sales.length > 0;
     M.forEach(function (Mi, i) {
       Mi.share = null; if (Mi.fix === null || !Mi.nS) return;
       var off = 0, vat = Mi.sk > 0 ? Math.min(1.3, Math.max(1, Mi.crm / Mi.sk)) : 1.08, m1 = 1 - Mi.vr;
-      sales.forEach(function (p) { if (!p.mgr && p.mo[i] && p.mi.indexOf(i) >= 0) off += p.mo[i].rev; });
-      Mi.bo = Math.max(0, Mi.fix - (Mi.man ? 0 : Mi.sPay)); Mi.oth = Math.max(0, (Mi.shop + Math.max(0, Mi.crm - off) / vat) * m1);
-      Mi.share = Math.max(0, Mi.bo - Mi.oth) / Mi.nS;
+      sales.forEach(function (p) { if (p.mo[i] && p.mi.indexOf(i) >= 0) off += p.mo[i].rev; });
+      Mi.fixNS = Math.max(0, Mi.fix - Mi.stK); Mi.payBO = BOP !== null ? BOP : Math.max(0, Mi.stK - (Mi.man ? 0 : Mi.sPay));
+      Mi.bo = Mi.fixNS + Mi.payBO; Mi.oth = Math.min(Mi.bo, Math.max(0, (Mi.shop + Math.max(0, Mi.crm - off) / vat) * m1));
+      var keep = Mi.bo > 0 ? (Mi.bo - Mi.oth) / Mi.bo : 0;
+      Mi.fxS = Mi.fixNS * keep / Mi.nS; Mi.bpS = Mi.payBO * keep / Mi.nS; Mi.share = Mi.fxS + Mi.bpS;
     });
-    if (hasBo) sales.forEach(function (p) {
-      if (p.mgr) return; var k = p.aM || 1, b = 0, o = 0;
-      p.mi.forEach(function (i) { b += M[i].share || 0; o += (p.mo[i] ? p.mo[i].rev : 0) * O; });
-      p.bo = b / k; p.opp = o / k; p.full = p.cost + p.bo + p.opp; p.net = p.val - p.full;
-      if (!p.isNew && p.cost > 0) p.lv = p.val >= p.full ? 'ok' : p.val >= p.cost ? 'mid' : 'bad';
+    sales.forEach(function (p) {
+      var k = p.aM || 1, f = 0, b = 0, o = 0;
+      p.mi.forEach(function (i) { if (hasBo) { f += M[i].fxS || 0; b += M[i].bpS || 0; } o += (p.mo[i] ? p.mo[i].rev : 0) * O; });
+      p.fx = TK.f && hasBo ? f / k : 0; p.bp = TK.b && hasBo ? b / k : 0; p.opp = TK.o ? o / k : 0; p.bo = p.fx + p.bp;
+      p.full = p.cost + p.fx + p.bp + p.opp; p.net = p.val - p.full;
+      if (!p.isNew && p.cost > 0) p.lv = p.net >= 0 ? 'ok' : p.val >= p.cost ? 'mid' : 'bad';
     });
     var teamCr = tot.nData ? tot.won / tot.nData : null;
     sales.forEach(function (p) { p.why = nsvWhy(p, teamCr, X, O); });
     sales.sort(function (a, b) { return (b.lv === 'new' || b.mgr ? -1e12 : b.net) - (a.lv === 'new' || a.mgr ? -1e12 : a.net); });
-    // bộ phận không bán hàng: lấy từ 👥 Bảng lương (Kế toán), người nào là sale thì đã tính ở trên
-    var sup = [], kind = function (p, u) { var t = norm((p.dept || '') + ' ' + (u ? u.role : '')); return /kho/.test(t) ? 'kho' : /ke toan/.test(t) || p.kind === 'kpi' ? 'kt' : /marketing|mkt/.test(t) ? 'mkt' : 'other'; };
-    staff.forEach(function (p) {
-      var cn = payCrmName(p.name) || p.name, u = uOf(cn); if (p.kind === 'sale' || P[cn]) return;
-      sup.push({ name: p.name, crm: cn, u: u, k: kind(p, u), cost: extra(p, false), isNew: !!ppJoinTs(u && u.joined) && now - ppJoinTs(u.joined) < 61 * DAY });
-    });
+    var teamBase = sales.reduce(function (a, q) { return a + (q.isNew ? 0 : q.val - q.cost); }, 0);
     var nK = function (k) { return sup.filter(function (s) { return s.k === k; }).length || 1; };
     var sent = M.reduce(function (a, x) { return a + x.sent; }, 0) / n, adM = M.reduce(function (a, x) { return a + x.ad; }, 0) / n, nwM = M.reduce(function (a, x) { return a + x.nwGp; }, 0) / n, adKnown = M.every(function (x) { return x.ad > 0; });
     var mktCost = sup.filter(function (s) { return s.k === 'mkt'; }).reduce(function (a, s) { return a + s.cost; }, 0);
@@ -5408,12 +5417,14 @@
       if (s.k === 'kho') { s.val = sent * kho1 / nK('kho'); s.how = 'Làm ' + Math.round(sent / nK('kho')).toLocaleString('vi-VN') + ' đơn gửi / tháng × ' + moneyShort(kho1) + ' (giá thuê kho ngoài)'; }
       else if (s.k === 'kt') { s.val = kt1 / nK('kt'); s.how = 'Thuê dịch vụ kế toán ngoài ≈ ' + moneyShort(kt1) + ' / tháng'; }
       else if (s.k === 'mkt') { s.val = adKnown && mktCost ? (nwM - adM) * s.cost / mktCost : null; s.how = adKnown ? 'Cả đội marketing: lãi gộp khách mới ' + moneyShort(nwM) + ' − quảng cáo ' + moneyShort(adM) + ' / tháng, chia theo lương' : 'Chưa đủ số quảng cáo của kế toán các tháng này'; }
-      else { s.val = null; s.how = 'Quản lý / việc chung: xem theo kết quả cả nhóm'; }
+      else if (s.k === 'mgr') { var me = mgrs.filter(function (q) { return q.name === s.name; })[0]; s.team = teamBase; s.own = me ? me.val : 0; s.val = s.team; s.pct = s.team > 0 && s.cost > 0 ? s.cost * 100 / s.team : null;
+        s.how = 'Nhóm ' + sales.filter(function (q) { return !q.isNew; }).length + ' sale làm ra ' + moneyShort(s.team) + ' / tháng (đã trừ giá vốn, quảng cáo, lương sale)' + (s.pct !== null ? '; lương quản lý = ' + Math.round(s.pct) + '% số đó' : '') + (me && me.revM ? '. Tự bán thêm ' + moneyShort(me.revM) + ' doanh số, lãi ' + nsvSign(me.val) + ' / tháng' : '') + '.'; }
+      else { s.val = null; s.how = 'Việc chung: xem theo kết quả cả nhóm'; }
       s.ratio = s.val !== null && s.cost > 0 ? s.val / s.cost : null; s.net = s.val !== null ? s.val - s.cost : null;
-      s.lv = s.isNew ? 'new' : !s.cost ? 'nocost' : s.ratio === null ? '' : s.k === 'mkt' ? nsvLv(s.ratio, X) : s.ratio >= 1 ? 'ok' : s.ratio >= 0.7 ? 'mid' : 'bad';
+      s.lv = s.isNew ? 'new' : !s.cost ? 'nocost' : s.k === 'mgr' ? (s.pct === null ? 'bad' : s.pct <= 10 ? 'ok' : s.pct <= 20 ? 'mid' : 'bad') : s.ratio === null ? '' : s.k === 'mkt' ? nsvLv(s.ratio, X) : s.ratio >= 1 ? 'ok' : s.ratio >= 0.7 ? 'mid' : 'bad';
     });
-    var bo = { fix: 0, pay: 0, oth: 0, share: 0, nS: 0 }; if (hasBo) M.forEach(function (Mi) { bo.fix += Mi.fix / n; bo.pay += Mi.sPay / n; bo.oth += Math.min(Mi.oth || 0, Mi.bo || 0) / n; bo.share += (Mi.share || 0) / n; bo.nS += Mi.nS / n; });
-    var res = { VT: VT, boEst: M.filter(function (x) { return x.kFrom || x.man; }).map(function (x) { return rpmTh(x.m) + (x.kFrom ? ' lấy ' + rpmTh(x.kFrom) : ' theo ✏️ chi phí nhập tay'); }), hasBo: hasBo, bo: bo, O: O, skip: skip, n: n, ms: ms, M: M, sales: sales, sup: sup, tot: tot, teamCr: teamCr, X: X, kho1: kho1, kt1: kt1, est: M.some(function (x) { return x.est; }), noStaff: !staff.length, err: !!D.err, adKnown: adKnown };
+    var bo = { fix: 0, pay: 0, oth: 0, share: 0, nS: 0, fx: 0, bp: 0, fxS: 0, bpS: 0, src: BOP !== null ? 'bl' : 'kt' }; if (hasBo) M.forEach(function (Mi) { bo.fix += Mi.fix / n; bo.pay += Mi.sPay / n; bo.oth += (Mi.oth || 0) / n; bo.share += (Mi.share || 0) / n; bo.nS += Mi.nS / n; bo.fx += (Mi.fixNS || 0) / n; bo.bp += (Mi.payBO || 0) / n; bo.fxS += (Mi.fxS || 0) / n; bo.bpS += (Mi.bpS || 0) / n; });
+    var res = { TK: TK, mgrs: mgrs, VT: VT, boEst: M.filter(function (x) { return x.kFrom || x.man; }).map(function (x) { return rpmTh(x.m) + (x.kFrom ? ' lấy ' + rpmTh(x.kFrom) : ' theo ✏️ chi phí nhập tay'); }), hasBo: hasBo, bo: bo, O: O, skip: skip, n: n, ms: ms, M: M, sales: sales, sup: sup, tot: tot, teamCr: teamCr, X: X, kho1: kho1, kt1: kt1, est: M.some(function (x) { return x.est; }), noStaff: !staff.length, err: !!D.err, adKnown: adKnown };
     NSV_C = { k: ck, v: res }; return res;
   }
   /** 1 câu vì sao + nên làm gì cho 1 sale. */
@@ -5421,12 +5432,12 @@
     if (p.isNew) return '🌱 Mới vào làm, 2 tháng đầu chưa xếp đèn. Kèm 1 người giỏi trong nhóm.';
     if (!p.cost) return p.mgr ? 'Quản lý: lương theo bảng lương, không theo Phụ lục 01 của sale. Chờ kế toán nhập mức lương ở 💼 Kế toán → 👥 Bảng lương.' : 'Chưa có lương: nhập mức lương ở 💼 Kế toán → 👥 Bảng lương.';
     if (p.mgr) return '🧭 Quản lý: việc chính là dẫn nhóm sale nên không xếp đèn. Phần tự bán làm ra ' + nsvSign(p.val) + ' / tháng, bù được ' + Math.max(0, Math.round(p.val * 100 / p.cost)) + '% lương. Kết quả cả nhóm xem ở mục 📊 Báo cáo.';
-    var m = p.revM ? p.val / p.revM : 0, bo = p.full !== undefined, need = bo ? (m > O ? (p.cost + p.bo) / (m - O) : 0) : m > 0 ? X * p.cost / m : 0, a = [];
+    var m = p.revM ? p.val / p.revM : 0, bo = (p.bo || 0) + (p.opp || 0) > 0, O = p.opp ? O : 0, need = bo ? (m > O ? (p.cost + p.bo) / (m - O) : 0) : m > 0 ? X * p.cost / m : 0, a = [];
     if (p.cr !== null && teamCr && p.nData >= 10 && p.cr < teamCr * 0.7) a.push('chốt được ' + Math.round(p.cr * 100) + '% số quảng cáo nhận (cả nhóm ' + Math.round(teamCr * 100) + '%) → kèm khâu gọi lại và chốt, hoặc tạm chia ít số hơn');
     if (p.gp > 0 && p.data > p.gp * 0.6) a.push((p.data > p.gp ? 'tiền data quảng cáo còn lớn hơn cả lãi gộp' : 'tiền data quảng cáo ăn ' + Math.round(p.data * 100 / p.gp) + '% lãi gộp') + ' → ưu tiên chăm khách cũ, khách tự tìm');
     if (p.rev && p.back > p.rev * 0.03) a.push('mất ' + moneyShort(p.back / (p.aM || 1)) + ' / tháng phí ship đơn hoàn (' + p.backN + ' đơn) → gọi xác nhận trước khi gửi');
-    if (p.lv === 'ok' && bo) return '👍 Trừ hết giá vốn, quảng cáo, lương và phần văn phòng, công ty còn lãi ' + moneyShort(p.net) + ' / tháng. Giữ và nhân rộng cách làm.' + (a.length ? ' Còn có thể tốt hơn: ' + a[0] + '.' : '');
-    if (p.lv === 'mid' && bo) a.unshift('đủ trả lương mình nhưng còn thiếu ' + moneyShort(-p.net) + ' / tháng phần văn phòng & bộ máy chung');
+    if (p.lv === 'ok' && bo) return '👍 Trừ hết các khoản đang tích, công ty còn lãi ' + moneyShort(p.net) + ' / tháng. Giữ và nhân rộng cách làm.' + (a.length ? ' Còn có thể tốt hơn: ' + a[0] + '.' : '');
+    if (p.lv === 'mid' && bo) a.unshift('đủ trả lương mình nhưng còn thiếu ' + moneyShort(-p.net) + ' / tháng phần chi phí chung');
     if (p.lv === 'ok') return '👍 Nuôi được mình và góp thêm ' + moneyShort(p.net) + ' / tháng cho công ty. Giữ và nhân rộng cách làm.' + (a.length ? ' Còn có thể tốt hơn: ' + a[0] + '.' : '');
     if (need && need <= p.revM * 3) a.push((a.length ? 'cần' : 'doanh số TB ' + moneyShort(p.revM) + ' / tháng, cần') + ' khoảng ' + moneyShort(need) + ' / tháng' + (bo ? ' (điểm hoà vốn của riêng người này)' : '') + ' để lên 🟢');
     else if (a.length) a.push('sửa các khâu trên trước, bán thêm số quảng cáo lúc này chưa có lời');
@@ -5437,9 +5448,9 @@
   function nsvSign(v) { return v === null ? '–' : (v < 0 ? '−' : '') + moneyShort(Math.abs(v)); }
   function nsvX(r) { return r === null ? '–' : (r < 0 ? '−' : '') + oneDec(Math.abs(r)) + ' lần'; }
   /** 1 thẻ sale (16/11/2026 anh Sơn: "trực quan, dễ hiểu"): doanh số trừ dần từng khoản → lãi ròng, kèm thanh màu chia 100đ doanh số. */
-  var D_O = 0.05, D_V = 0.08, NSV_SEG = [['vat', 'Thuế VAT', '#7d8590'], ['cogs', 'Giá vốn hàng', '#b9a184'], ['ad', 'Quảng cáo', '#ff7a90'], ['ship', 'Vận chuyển', '#8fb3e8'], ['pay', 'Lương, hoa hồng, BH', '#f2b544'], ['bo', 'Văn phòng & bộ máy chung', '#a9a3d6'], ['opp', 'Chi phí cơ hội', '#c7c7cc']];
+  var D_O = 0.05, D_V = 0.08, NSV_SEG = [['vat', 'Thuế VAT', '#7d8590'], ['cogs', 'Giá vốn hàng', '#b9a184'], ['ad', 'Quảng cáo', '#ff7a90'], ['ship', 'Vận chuyển', '#8fb3e8'], ['pay', 'Lương, hoa hồng, BH', '#f2b544'], ['fx', 'Chi phí cố định', '#a9a3d6'], ['bp', 'Lương back office', '#d39bd6'], ['opp', 'Chi phí cơ hội', '#c7c7cc']];
   function nsvParts(p) {
-    var k = p.aM || 1, rev = p.revM || 0, v = { vat: (p.vat || 0) / k, cogs: p.cogs / k, ad: p.data / k, ship: (p.ship + p.back) / k, pay: p.cost, bo: p.bo || 0, opp: p.opp || 0 };
+    var k = p.aM || 1, rev = p.revM || 0, v = { vat: (p.vat || 0) / k, cogs: p.cogs / k, ad: p.data / k, ship: (p.ship + p.back) / k, pay: p.cost, fx: p.fx || 0, bp: p.bp || 0, opp: p.opp || 0 };
     var used = NSV_SEG.reduce(function (a, g) { return a + v[g[0]]; }, 0);
     return { k: k, rev: rev, v: v, used: used, net: rev - used, per: rev > 0 ? Math.round((rev - used) * 100 / rev) : null };
   }
@@ -5448,7 +5459,7 @@
     var L = list.filter(function (p) { return !p.isNew && !p.mgr && p.cost > 0; }).map(function (p) { return { p: p, x: nsvParts(p) }; });
     if (!L.length) return '';
     var mx = Math.max.apply(null, L.map(function (r) { return Math.abs(r.x.net); })) || 1;
-    return '<div class="nsv-rank"><div class="nsv-rank-h"><b>🏆 Mỗi sale đem về cho công ty bao nhiêu / tháng</b><small>đã trừ hết: thuế, giá vốn, quảng cáo, vận chuyển, lương, văn phòng</small></div>' + L.map(function (r, i) {
+    return '<div class="nsv-rank"><div class="nsv-rank-h"><b>🏆 Mỗi sale đem về cho công ty bao nhiêu / tháng</b><small>đã trừ: ' + nsvTickTxt() + '</small></div>' + L.map(function (r, i) {
       var n = r.x.net, w = Math.max(2, Math.abs(n) * 100 / mx);
       return '<div class="nsv-rk"><span class="nm">' + (i + 1) + '. ' + esc(r.p.name) + '</span><span class="tr"><i class="' + (n < 0 ? 'bad' : 'ok') + '" style="width:' + w.toFixed(1) + '%"></i></span><b class="' + (n < 0 ? 'bad' : 'ok') + '">' + (n < 0 ? '−' : '+') + moneyShort(Math.abs(n)) + '</b></div>';
     }).join('') + '<p class="small muted" style="margin:6px 0 0">Thanh càng dài càng nhiều lãi. Màu đỏ: công ty đang phải bù tiền cho người đó.</p></div>';
@@ -5460,8 +5471,8 @@
       (net > 0 ? '<i class="pf" style="width:' + (net * 100 / base).toFixed(2) + '%" title="Lãi ' + moneyShort(net) + '"></i>' : '');
     var nd = Math.round(p.nData / k), L = '<tr class="rev"><td>Doanh số giữ được <small>(đã trừ đơn hoàn, huỷ, có VAT)</small></td><td>' + moneyShort(rev) + '</td><td>100đ</td></tr>';
     NSV_SEG.forEach(function (g) {
-      var x = v[g[0]]; if (g[0] === 'bo' && p.bo === undefined || (g[0] === 'opp' || g[0] === 'vat') && !(x > 0)) return;
-      var note = g[0] === 'vat' ? oneDec(D_V * 100) + '% đã gồm trong giá bán, nộp nhà nước' : g[0] === 'ad' ? (nd ? nd + ' số × ' + moneyShort(nd ? x / nd : 0) : 'không nhận số quảng cáo') : g[0] === 'ship' ? (p.backN ? 'gồm ship ' + p.backN + ' đơn hoàn' : '') : g[0] === 'pay' ? (p.low ? 'dưới bậc đầu, tính mức hỗ trợ' : '') : g[0] === 'bo' ? 'thuê nhà, điện nước, kế toán, kho, quản lý… chia đều' : g[0] === 'opp' ? oneDec(D_O * 100) + '% doanh số' : '';
+      var x = v[g[0]]; if (/^(fx|bp|opp|vat)$/.test(g[0]) && !(x > 0)) return;
+      var note = g[0] === 'vat' ? oneDec(D_V * 100) + '% đã gồm trong giá bán, nộp nhà nước' : g[0] === 'ad' ? (nd ? nd + ' số × ' + moneyShort(nd ? x / nd : 0) : 'không nhận số quảng cáo') : g[0] === 'ship' ? (p.backN ? 'gồm ship ' + p.backN + ' đơn hoàn' : '') : g[0] === 'pay' ? (p.low ? 'dưới bậc đầu, tính mức hỗ trợ' : '') : g[0] === 'fx' ? 'thuê nhà, điện, điện thoại, khấu hao… chia đều' : g[0] === 'bp' ? 'quản lý, kế toán, kho, marketing… chia đều' : g[0] === 'opp' ? oneDec(D_O * 100) + '% doanh số' : '';
       L += '<tr><td><span class="nsv-dot" style="background:' + g[2] + '"></span>− ' + g[1] + (note ? ' <small>' + note + '</small>' : '') + '</td><td>' + moneyShort(x) + '</td><td>' + (rev > 0 ? Math.round(x * 100 / rev) + 'đ' : '') + '</td></tr>';
     });
     L += '<tr class="end ' + (net < 0 ? 'bad' : 'ok') + '"><td>= ' + (net >= 0 ? 'Lãi ròng cho công ty' : 'Công ty phải bù') + '</td><td>' + moneyShort(Math.abs(net)) + '</td><td>' + (per !== null ? Math.abs(per) + 'đ' : '') + '</td></tr>';
@@ -5478,6 +5489,26 @@
       '<p class="nsv-w">' + (/^(👍|🌱|🧭)/.test(p.why) ? '' : '👉 ') + esc(p.why) + '</p>' +
       '<details class="nsv-wd"><summary>Xem từng khoản trừ</summary><table class="nsv-wf"><tbody>' + L + '</tbody></table></details></div>';
   }
+  function nsvTickTxt() { var T = nsvTick(); return 'thuế, giá vốn, quảng cáo, vận chuyển, lương sale' + (T.f ? ', chi phí cố định' : '') + (T.b ? ', lương back office' : '') + (T.o ? ', chi phí cơ hội' : ''); }
+  function nsvTickHtml(D) {
+    var T = D.TK, B = D.bo, it = function (c, on, t, sub) { return '<label class="nsv-tk' + (on ? ' on' : '') + '"><input type="checkbox" data-nsvt="' + c + '"' + (on ? ' checked' : '') + (D.hasBo || c === 'o' ? '' : ' disabled') + '><span><b>' + t + '</b><small>' + sub + '</small></span></label>'; };
+    return '<div class="nsv-tks"><div class="nsv-tk base"><span>✅</span><span><b>Luôn trừ: thuế VAT, giá vốn, quảng cáo, vận chuyển, lương + hoa hồng của chính sale đó</b><small>= sale tự nuôi được mình chưa</small></span></div>' +
+      it('f', T.f, '➕ Trừ thêm chi phí cố định' + (D.hasBo ? ': ' + moneyShort(B.fxS) + ' / sale' : ''), D.hasBo ? 'thuê nhà, điện, điện thoại, khấu hao, ngân hàng… cả công ty ' + moneyShort(B.fx) + ' / tháng, chia đều ' + oneDec(B.nS) + ' sale' : 'cần file kế toán ở 💼 Kế toán') +
+      it('b', T.b, '➕ Trừ thêm lương back office' + (D.hasBo ? ': ' + moneyShort(B.bpS) + ' / sale' : ''), D.hasBo ? 'quản lý, kế toán, kho, marketing ' + moneyShort(B.bp) + ' / tháng' + (B.src === 'bl' ? ' (👥 Bảng lương)' : ' (ước từ file kế toán: lương cả công ty − lương sale)') + ', chia đều' : 'cần file kế toán ở 💼 Kế toán') +
+      it('o', T.o, '➕ Trừ thêm chi phí cơ hội ' + oneDec(D.O * 100) + '% doanh số', 'tiền vốn bỏ vào người này đáng lẽ sinh lời ở chỗ khác') +
+      (D.hasBo && B.oth ? '<p class="small muted" style="margin:4px 0 0">Shopee và kênh khác (web, CTV…) đã tự gánh ' + moneyShort(B.oth) + ' / tháng chi phí chung nên không chia cho sale.' + (D.boEst.length ? ' Tháng chưa có file kế toán: ' + D.boEst.join(', ') + '.' : '') + '</p>' : '') + '</div>';
+  }
+  var NSV_K = { mgr: '🧭 Quản lý', kt: '🧾 Kế toán', kho: '📦 Kho', mkt: '📣 Marketing' };
+  function nsvSupCard(s) {
+    var top = s.k === 'mgr' ? ['Nhóm sale làm ra', nsvSign(s.team), 'Lương quản lý', 'Chiếm', s.pct === null ? '–' : Math.round(s.pct) + '%']
+      : [s.k === 'kho' || s.k === 'kt' ? 'Thuê ngoài mất' : 'Làm ra', nsvSign(s.val), 'Chi phí', s.net === null ? 'Chênh' : s.net >= 0 ? 'Công ty lợi' : 'Công ty bù', s.net === null ? '–' : moneyShort(Math.abs(s.net))];
+    var good = s.k === 'mgr' ? s.lv === 'ok' : s.net !== null && s.net >= 0;
+    var lab = s.lv === 'nocost' ? 'Chưa có lương' : s.lv === 'new' ? NSV_TXT['new'] : s.k === 'mgr' ? (s.lv === 'ok' ? 'Nhóm gánh tốt lương quản lý' : s.lv === 'mid' ? 'Tạm ổn' : 'Lương quản lý cao so với kết quả nhóm') : s.k === 'mkt' ? NSV_TXT[s.lv] || '' : s.lv === 'ok' ? 'Rẻ hơn thuê ngoài' : s.lv === 'bad' ? 'Đắt hơn thuê ngoài' : 'Gần bằng thuê ngoài';
+    var inp = !(s.cost > 0) ? '<div class="nsv-pay"><label>Lương 1 tháng của ' + esc(s.name) + ' (gồm phụ cấp, BH công ty đóng)<input type="text" inputmode="numeric" placeholder="vd 8.000.000" data-nsvpay="' + esc(s.name) + '"></label><button class="btn sm pri" data-nsvpaysave="' + esc(s.name) + '">Lưu</button></div><p class="small muted" style="margin:2px 0 0">Lưu vào 👥 Bảng lương (kế toán sửa lại được).</p>' : '';
+    return '<div class="nsv-r ' + s.lv + '"><div class="nsv-t"><b>' + NSV_ICO[s.lv] + ' ' + esc(s.name) + ' <small>(' + NSV_K[s.k] + ')</small></b><span>' + lab + '</span></div>' +
+      '<div class="nsv-big"><span>' + top[0] + '<b>' + top[1] + '</b></span><span>' + top[2] + '<b>' + (s.cost > 0 ? moneyShort(s.cost) : '–') + '</b></span><span class="' + (s.cost > 0 ? good ? 'ok' : 'bad' : '') + '">' + top[3] + '<b>' + (s.cost > 0 ? top[4] : '–') + '</b></span></div>' +
+      '<p class="nsv-w">' + esc(s.how) + '</p>' + inp + '</div>';
+  }
   function nsvHtml() {
     nsvLoad();
     if (!NSV.d) return '<p class="muted">⏳ Đang lấy mức lương từ 👥 Bảng lương…</p>';
@@ -5488,12 +5519,11 @@
     var h = '<p class="nsv-lead"><b>Tiền sale bán ra − mọi chi phí cho người đó = công ty lãi hay phải bù.</b> Chỉ Quản trị xem được.</p>';
     h += '<div class="per-q rpm-chips" role="group" aria-label="Khoảng thời gian">' + [[1, 'Tháng trước'], [3, '3 tháng'], [6, '6 tháng']].map(function (c) { return '<button class="chip' + (c[0] === n ? ' on' : '') + '" data-dash="nsvn" data-n="' + c[0] + '">' + c[1] + '</button>'; }).join('') + '</div>';
     h += '<p class="small muted" style="margin:6px 0 10px">' + (n > 1 ? from + ' → ' + to + ', số trung bình 1 tháng' : 'Cả ' + to) + ' (tháng này chưa hết nên chưa tính).</p>';
+    h += nsvTickHtml(D);
     h += nsvRank(D.sales);
-    h += D.hasBo ? '<div class="nsv-lg"><span><b>🟢 ' + cnt.ok + '</b> đem lại lợi nhuận<small>trừ hết chi phí vẫn còn lãi</small></span><span><b>🟡 ' + cnt.mid + '</b> đủ nuôi mình<small>đủ lương mình, chưa đủ phần văn phòng</small></span><span><b>🔴 ' + cnt.bad + '</b> chưa đủ lương<small>công ty đang bù</small></span></div>'
-      : '<div class="nsv-lg"><span><b>🟢 ' + cnt.ok + '</b> đem lại lợi nhuận<small>làm ra ≥ ' + X + ' lần chi phí</small></span><span><b>🟡 ' + cnt.mid + '</b> đủ nuôi mình<small>1 – ' + X + ' lần</small></span><span><b>🔴 ' + cnt.bad + '</b> chưa đủ lương<small>công ty đang bù</small></span></div>';
-    if (D.hasBo) { var B = D.bo; h += '<div class="nsv-bo"><b>🏢 Mỗi sale gánh ' + moneyShort(B.share) + ' / tháng tiền văn phòng & bộ máy chung</b><span>Chi phí cố định cả công ty ' + moneyShort(B.fix) + (B.pay ? ' − lương sale ' + moneyShort(B.pay) + ' (đã trừ riêng từng người)' : '') + (B.oth ? ' − phần Shopee, kênh khác tự gánh ' + moneyShort(B.oth) : '') + ', còn lại chia đều ' + oneDec(B.nS) + ' sale.' + (D.boEst.length ? ' Tháng chưa có file kế toán: ' + D.boEst.join(', ') + '.' : '') + '</span></div>'; }
-    else h += '<p class="notice small">⚠️ Chưa đủ file kế toán ' + (n > 1 ? 'các tháng này' : 'tháng này') + ' nên chưa chia được chi phí back office: tạm so “làm ra gấp ' + X + ' lần chi phí”. Tải file kế toán ở 💼 Kế toán để có số đúng.</p>';
-    if (D.noStaff) h += '<p class="notice small">⚠️ Chưa có mức lương từng người: kế toán nhập ở <b>💼 Kế toán → 👥 Bảng lương → ⚙️ Nhân sự &amp; mức lương</b>. Tạm thời sale chỉ tính lương + hoa hồng theo Phụ lục 01, bộ phận khác chưa hiện.</p>';
+    h += '<div class="nsv-lg"><span><b>🟢 ' + cnt.ok + '</b> đem lại lợi nhuận<small>trừ hết các khoản đang tích vẫn còn lãi</small></span><span><b>🟡 ' + cnt.mid + '</b> đủ nuôi mình<small>đủ lương mình, chưa gánh đủ chi phí chung</small></span><span><b>🔴 ' + cnt.bad + '</b> chưa đủ lương<small>công ty đang bù</small></span></div>';
+    if (!D.hasBo) h += '<p class="notice small">⚠️ Chưa có file kế toán ' + (n > 1 ? 'các tháng này' : 'tháng này') + ' nên chưa trừ được chi phí cố định và lương back office. Tải file ở 💼 Kế toán.</p>';
+    if (D.noStaff) h += '<p class="notice small">⚠️ Chưa có mức lương từng người: kế toán nhập ở <b>💼 Kế toán → 👥 Bảng lương → ⚙️ Nhân sự &amp; mức lương</b>. Tạm thời sale tính lương + hoa hồng theo Phụ lục 01; lương Quản lý, Kế toán, Kho, Marketing nhập nhanh ở mục 🧩 bên dưới.</p>';
     if (D.est) h += '<p class="notice small">⚠️ Có tháng chưa có số quảng cáo của kế toán: tiền data tạm tính ' + moneyShort(Number((((S.d.rules || {}).dash || {}).kpi || {}).sdt) || 300000) + ' / số điện thoại.</p>';
     // sale
     h += '<h3 class="rpm-h">👤 Từng sale <small>(lãi cho công ty từ cao xuống thấp)</small></h3><p class="nsv-key">Thanh màu = 100đ bán ra chia đi đâu: ' + NSV_SEG.map(function (g) { return '<span><span class="nsv-dot" style="background:' + g[2] + '"></span>' + g[1] + '</span>'; }).join('') + '<span><span class="nsv-dot" style="background:#2e9d57"></span><b>Lãi</b></span></p><div class="nsv-list">' + D.sales.map(nsvCard).join('') + '</div>';
@@ -5501,19 +5531,15 @@
     h += '<details class="nsv-d"><summary>🔍 Cách tính từng sale (số 1 tháng)</summary><div class="bcdt-wrap pnl-wrap"><table class="pnl-t"><thead><tr><th>Sale</th><th>Doanh số giữ được</th><th>− VAT</th><th>− Giá vốn</th><th>− Ship đơn hoàn</th><th>− Data quảng cáo</th><th>− Ship</th><th>= Làm ra</th><th>Lương + hoa hồng</th><th>Phụ cấp, BH</th>' + (D.hasBo ? '<th>Văn phòng</th><th>Cơ hội</th><th>= Còn lại</th>' : '') + '<th>Số quảng cáo nhận → ra đơn</th></tr></thead><tbody>' +
       D.sales.map(function (p) { var k = p.aM || 1; return '<tr><td>' + esc(p.name) + '</td><td>' + moneyShort(p.revM) + '</td><td>' + moneyShort((p.vat || 0) / k) + '</td><td>' + moneyShort(p.cogs / k) + '</td><td>' + moneyShort(p.back / k) + '</td><td>' + moneyShort(p.data / k) + '</td><td>' + moneyShort(p.ship / k) + '</td><td><b>' + nsvSign(p.val) + '</b></td><td>' + moneyShort(p.pay / k) + (p.low ? ' <small>*</small>' : '') + '</td><td>' + moneyShort(p.ex / k) + '</td>' + (D.hasBo ? p.full !== undefined ? '<td>' + moneyShort(p.bo) + '</td><td>' + moneyShort(p.opp) + '</td><td><b>' + nsvSign(p.net) + '</b></td>' : '<td>–</td><td>–</td><td>–</td>' : '') + '<td>' + Math.round(p.nData / k) + ' → ' + (p.cr === null ? '–' : Math.round(p.cr * 100) + '%') + '</td></tr>'; }).join('') +
       '</tbody></table></div><p class="small muted">Data quảng cáo = số điện thoại quảng cáo được chia × giá 1 số tháng đó (' + D.M.map(function (x) { return rpmTh(x.m) + ': ' + moneyShort(Math.round(x.cpl / 1000) * 1000) + (x.est ? ' ước' : ''); }).join(', ') + '). Ship = phí vận chuyển công ty trả, theo % doanh thu trong file kế toán. Văn phòng = chi phí cố định (thuê nhà, điện nước, lương kế toán, kho, quản lý…) không do sale tạo ra, chia đều cho sale. Cơ hội = ' + oneDec(D.O * 100) + '% doanh số: số tiền vốn hàng + lương bỏ vào người này đáng lẽ sinh lời ở chỗ khác. Hoa hồng tạm tính theo Phụ lục 01. * Doanh thu dưới bậc đầu: tính mức hỗ trợ ' + moneyShort(rpmL()) + ' (chưa nhập mức riêng ở 👥 Bảng lương).</p></details>';
-    // bộ phận khác
-    if (D.sup.length) h += '<h3 class="rpm-h">🧩 Bộ phận không trực tiếp bán hàng <small>(so với thuê ngoài)</small></h3><div class="nsv-list">' + D.sup.map(function (s) {
-      return '<div class="nsv-r ' + s.lv + '"><div class="nsv-t"><b>' + NSV_ICO[s.lv] + ' ' + esc(s.name) + ' <small>(' + ({ kho: 'Kho', kt: 'Kế toán', mkt: 'Marketing', other: s.u ? esc(s.u.role) : 'Khác' })[s.k] + ')</small></b><span>' + (s.lv === 'ok' && s.k !== 'mkt' ? 'Rẻ hơn thuê ngoài' : s.lv === 'bad' && s.k !== 'mkt' ? 'Đắt hơn thuê ngoài' : NSV_TXT[s.lv]) + '</span></div>' +
-        '<div class="nsv-n"><span>' + (s.k === 'kho' || s.k === 'kt' ? 'Thuê ngoài mất' : 'Làm ra') + '<b>' + nsvSign(s.val) + '</b></span><span>Chi phí<b>' + moneyShort(s.cost) + '</b></span><span>' + (s.net === null ? 'Chênh' : s.net >= 0 ? 'Công ty lợi' : 'Công ty bù') + '<b class="' + (s.net !== null && s.net < 0 ? 'bad' : 'ok') + '">' + (s.net === null ? '–' : moneyShort(Math.abs(s.net))) + '</b></span></div><p class="nsv-w">' + esc(s.how) + '</p></div>';
-    }).join('') + '</div>';
+    // 🧩 vị trí không trực tiếp bán
+    if (D.sup.length) h += '<h3 class="rpm-h">🧩 Quản lý, kế toán, kho, marketing</h3><div class="nsv-list">' + D.sup.map(nsvSupCard).join('') + '</div>';
     h += '<details class="nsv-d"><summary>⚙️ Mức so sánh</summary><div class="nsv-set">' +
       '<label class="f"><span>Mức 🟢 (làm ra gấp bao nhiêu lần chi phí)</span><input type="text" inputmode="decimal" id="nsvX" value="' + X + '"></label>' +
       '<label class="f"><span>Thuê kho ngoài (đ / đơn)</span><input type="text" inputmode="numeric" id="nsvKho" value="' + D.kho1.toLocaleString('vi-VN') + '"></label>' +
       '<label class="f"><span>Thuê dịch vụ kế toán (đ / tháng)</span><input type="text" inputmode="numeric" id="nsvKt" value="' + D.kt1.toLocaleString('vi-VN') + '"></label>' +
       '<label class="f"><span>Chi phí cơ hội (% doanh số)</span><input type="text" inputmode="decimal" id="nsvO" value="' + oneDec(D.O * 100) + '"></label>' +
       '<label class="f"><span>Thuế VAT gồm trong doanh số (%)</span><input type="text" inputmode="decimal" id="nsvV" value="' + oneDec(D.VT * 100) + '"></label></div>' +
-      '<p class="small muted">Có file kế toán: 🟢 = làm ra đủ lương + phần back office + chi phí cơ hội. Chưa có file kế toán: tạm dùng mức “gấp ' + X + ' lần”.</p>' +
-      '<p class="small muted">Vì sao gấp 3 lần: tiền 1 người làm ra còn phải trả thuê nhà, điện, kho, kế toán, quản lý và để công ty có lãi. Đủ 1 lần mới chỉ nuôi được chính người đó.</p></details>';
+      '<p class="small muted">Sale: 🟢 = trừ hết các khoản đang tích vẫn còn lãi. Kế toán, kho: so với thuê ngoài. Marketing: lãi gộp khách mới − quảng cáo, 🟢 khi gấp ' + X + ' lần lương. Quản lý: 🟢 khi lương quản lý ≤ 10% số nhóm sale làm ra, 🟡 ≤ 20%.</p></details>';
     return h + '<p class="small muted">Bản thử: lương lấy từ 👥 Bảng lương (kế toán nhập), hoa hồng CRM tạm tính. Xem trung bình nhiều tháng, đừng quyết chỉ vì 1 tháng. Sale và marketing cùng làm ra 1 đơn: bảng sale đã trừ tiền quảng cáo, bảng marketing xem quảng cáo có lời không, nên không cộng 2 bảng.</p>';
   }
   function nsvLine() {
@@ -12185,6 +12211,14 @@
   function bindDash() {
     [['#nsvX', 'x'], ['#nsvKho', 'kho'], ['#nsvKt', 'kt']].forEach(function (z) { var e = $(z[0]); if (e) e.onchange = function () { var v = z[1] === 'x' ? lgtF(e.value) : lgtNum(e.value); store('nsv_' + z[1], v > 0 ? String(v) : null); NSV_C = {}; S.f.g.open.nsv = 1; render(); }; });
     var nvt = $('#nsvV'); if (nvt) nvt.onchange = function () { var v = lgtF(nvt.value); store('nsv_v', v >= 0 && v < 100 ? String(v) : null); NSV_C = {}; S.f.g.open.nsv = 1; render(); };
+    $$('[data-nsvt]').forEach(function (c) { c.onchange = function () { var T = nsvTick(), v = (T.f ? 'f' : '') + (T.b ? 'b' : '') + (T.o ? 'o' : ''), k = c.getAttribute('data-nsvt'); v = c.checked ? v + k : v.replace(k, ''); store('nsv_t', v || '-'); NSV_C = {}; S.f.g.open.nsv = 1; render(); }; });
+    $$('[data-nsvpaysave]').forEach(function (b) { b.onclick = function () {
+      var nm = b.getAttribute('data-nsvpaysave'), f = $$('[data-nsvpay]').filter(function (x) { return x.getAttribute('data-nsvpay') === nm; })[0], v = +String(f ? f.value : '').replace(/\D/g, '');
+      if (!(v >= 100000)) { toast('Nhập lương 1 tháng, ví dụ 8.000.000', true); return; }
+      var u = (S.d.users || []).filter(function (z) { return z.name === nm; })[0] || {}, L = ((NSV.d || {}).staff || []).slice();
+      L.push({ name: nm, dept: u.role || '', kind: 'fix', base: v, bh: 0, cc: 0, pa: [0, 0, 0], other: 0, on: true }); b.disabled = true;
+      api('kt_luong', { op: 'staff', list: L }).then(function (j) { NSV.d = j; NSV_C = {}; S.f.g.open.nsv = 1; toast('Đã lưu lương ' + nm + ' ✓'); render(); }, function (er) { b.disabled = false; toast(er.message, true); });
+    }; });
     var no = $('#nsvO'); if (no) no.onchange = function () { var v = lgtF(no.value); store('nsv_o', v >= 0 && v < 100 ? String(v) : null); NSV_C = {}; S.f.g.open.nsv = 1; render(); };
     var rl = $('#rpmL'); if (rl) rl.onchange = function () { var v = +String(rl.value).replace(/[^\d]/g, ''); store('rpm_L', v > 0 ? String(v) : null); RPM_C = {}; render(); };
     $$('[data-dash]').forEach(function (el) {
