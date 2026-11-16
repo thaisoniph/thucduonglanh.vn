@@ -880,7 +880,7 @@
   var VIEW_TINT = { 'doi-ai': '#7d4cdb', 'tong-quan': '#1f5f3a', 'hom-nay': '#34a853', 'tiem-nang': '#ff9500', 'khach-hang': '#007aff', 'don-hang': '#a2845e', 'bao-cao': '#5856d6', marketing: '#ff2d55', 'link-qr': '#636366', 'tro-ly-zalo': '#0068ff', 'zalo-sale': '#0b63c4', fanpage: '#1877f2', 'bai-web': '#24805b', 'noi-dung': '#d9480f', san: '#ee4d2d', kho: '#8e5a2b', 'ke-toan': '#0a7d5a', 'cai-dat': '#8e8e93', 'hoi-so-lieu': '#af52de', 'giao-viec': '#0a84ff', 'tuyen-dung': '#2f7d5b', 'nhan-su': '#3a7bd5' };
   function viewMore() {
     var main = navMain(), n = navCounts(), info = navInfo();
-    var rest = myViews().filter(function (v) { return main.indexOf(v.id) < 0 && v.id !== 'cai-dat'; });
+    var rest = myViews().filter(function (v) { return main.indexOf(v.id) < 0 && v.id !== 'cai-dat' && v.id !== 'giao-viec'; }), gvV = main.indexOf('giao-viec') < 0 && myViews().filter(function (v) { return v.id === 'giao-viec'; })[0]; // ✅ Việc tuần lên đầu màn Thêm (16/11/2026)
     var badge = function (k) { return k ? '<em class="mr-n">' + (k > 99 ? '99+' : k) + '</em>' : ''; };
     var row = function (open, icon, tint, label, desc, k, x) { return open + '<i class="mr-ic" style="background:' + tint + '">' + icon + '</i><span class="mr-t"><b>' + label + '</b>' + (desc ? '<small>' + desc + '</small>' : '') + '</span>' + (x ? navKpi(x) : '') + badge(k) + '<span class="mr-chev" aria-hidden="true">›</span>'; };
     var vrow = function (v) { return row('<a class="mr-row" href="#' + v.id + '">', I[v.icon], VIEW_TINT[v.id] || '#8e8e93', v.label, VIEW_DESC[v.id], n[v.id], info[v.id]) + '</a>'; };
@@ -889,6 +889,7 @@
     var h = '<div class="mr"><div class="page-head"><h1>Thêm</h1></div>' +
       '<div class="mr-me"><span class="mr-av">' + esc((S.user.name || '?').trim().split(/\s+/).pop().charAt(0).toUpperCase()) + '</span><span class="mr-t"><b>' + esc(S.user.name) + '</b><small>' + esc(S.user.role || '') + ' · ' + esc(S.user.email || '') + '</small></span></div>' +
       (isMkt() || isKho() || isKt() ? '' : '<button type="button" class="mr-search" data-mr="search">' + I.search + '<span>Tìm khách, số điện thoại, mã đơn</span></button>') +
+      (gvV ? group('Việc của tôi', vrow(gvV)) : '') +
       (isCeo() ? moreCeo(rest, vrow, row, group) : // Quản trị (11/11/2026, PA A): chia 4 nhóm theo việc
       group('', rest.filter(function (v) { return v.ask; }).map(vrow).join('')) +
       group('Bán hàng', rest.filter(function (v) { return !isCh(v) && !v.ask; }).map(vrow).join('')) +
@@ -959,6 +960,7 @@
       '<button class="icon-btn fb-btn" id="fbBtn" title="Góp ý: báo lỗi, chỗ khó dùng, ý tưởng" aria-label="Góp ý">💡<span class="fb-lbl">Góp ý</span></button>' +
       (isMkt() || isKho() || isKt() ? '' : '<button class="icon-btn" id="gsBtn" title="Tìm ở mọi tab: khách đã mua, đơn hàng, khách hỏi" aria-label="Tìm ở mọi tab">' + I.search + '</button>') +
       '<a class="icon-btn top-help" href="/huong-dan/' + (isMkt() ? 'marketing' : isKho() ? 'kho' : isKt() ? 'ke-toan' : 'crm') + '/" target="_blank" rel="noopener" title="Hướng dẫn sử dụng: cần trợ giúp thì bấm đây" aria-label="Hướng dẫn sử dụng">' + I.help + '</a>' +
+      (S.user && S.user.gv ? '<a class="icon-btn top-gv" href="#giao-viec" title="✅ Việc tuần của tôi" aria-label="Việc tuần">' + I.task + '<em class="gv-bdg" id="gvBdg" hidden></em></a>' : '') + // 16/11/2026 anh Sơn: Việc tuần mở 1 chạm ở mọi màn hình
       '<a class="icon-btn top-set" href="#cai-dat" title="Cài đặt" aria-label="Cài đặt">' + I.gear + '</a>' +
       '<button class="icon-btn" id="refresh" title="Tải lại dữ liệu" aria-label="Tải lại dữ liệu">' + I.refresh + '</button>' +
       '</div></header>' + hostTip() + instTip() + '<main id="view"></main>';
@@ -967,7 +969,7 @@
     $('#refresh').onclick = function () { load(); };
     $('#fbBtn').onclick = function () { openFeedback(); };
     if ($('#gsBtn')) $('#gsBtn').onclick = function () { openGlobalSearch(); };
-    navBadges(); pendingBadge();
+    navBadges(); pendingBadge(); gvBadge();
   }
   /** 🔍 Tìm nhanh trên mọi tab (Đợt 2, 16/10/2026): gõ SĐT / tên / mã đơn → khách đã mua, đơn hàng, khách hỏi; bấm là mở. Chỉ tìm trong dữ liệu người dùng được xem (máy chủ đã lọc).
    *  20/10/2026: gom theo người (số điện thoại) → mỗi người 1 dòng; đã mua thì mở hồ sơ khách (có cả lịch sử hỏi + đơn), chưa mua thì mở lượt hỏi gần nhất.
@@ -1136,7 +1138,7 @@
     var el = $('#view');
     var focusId = document.activeElement && document.activeElement.id, selStart = document.activeElement && document.activeElement.selectionStart;
     el.innerHTML = ({ 'hom-nay': viewToday, 'khach-hang': viewCustomers, 'don-hang': viewOrders, 'tiem-nang': viewLeads, 'bao-cao': viewReport, 'cai-dat': viewSettings, 'tong-quan': viewDash, san: viewSan, marketing: viewMkt, 'link-qr': viewLinks, 'tro-ly-zalo': viewZbot, 'zalo-sale': viewZsale, fanpage: viewFp, 'bai-web': viewBlog, 'noi-dung': viewIns, 'hoi-so-lieu': viewAsk, kho: viewKho, 'ke-toan': viewKtab, 'giao-viec': viewGv, 'tuyen-dung': viewTuy, 'nhan-su': viewHso, 'doi-ai': viewAit, them: viewMore })[v]();
-    if (v === homeView()) { btMount(el); htMount(el); snhMount(el); tbMount(el); vhMount(el); hiwMount(el); goalNag(); } // ☀️ lời chào + lời chúc trên cùng, ngay dưới là 🌿 điều văn hoá hôm nay (16/11/2026 liền mạch với lời chào), rồi 📢 Thông báo
+    if (v === homeView()) { btMount(el); htMount(el); snhMount(el); tbMount(el); vhMount(el); hiwMount(el); gvHomeMount(el); goalNag(); } // ☀️ lời chào + lời chúc trên cùng, ngay dưới là 🌿 điều văn hoá hôm nay (16/11/2026 liền mạch với lời chào), rồi 📢 Thông báo
     el.insertAdjacentHTML('beforeend', updatedLine());
     if (focusId && $('#' + focusId)) { var f = $('#' + focusId); f.focus(); try { f.setSelectionRange(selStart, selStart); } catch (e) { } }
     if (keepScroll) window.scrollTo(0, y); else window.scrollTo(0, 0);
@@ -15294,10 +15296,37 @@
   var GV = { d: null, err: '', busy: 0, at: 0, tab: '', who: '', rep: null, repW: 0, repBusy: 0, repErr: '' };
   function gvFetch() {
     if (GV.busy) return; GV.busy = 1;
-    api('gv_list', {}).then(function (j) { GV.busy = 0; GV.d = j.gv; GV.err = ''; GV.at = Date.now(); if (route().view === 'giao-viec') render(); },
+    api('gv_list', {}).then(function (j) { GV.busy = 0; GV.d = j.gv; GV.err = ''; GV.at = Date.now(); gvBadge(); if (route().view === 'giao-viec') render(); },
       function (e) { GV.busy = 0; GV.err = /Không rõ thao tác/.test(e.message) ? 'Máy chủ đang cập nhật bản mới, thử lại sau 2 phút.' : e.message; if (route().view === 'giao-viec') render(); });
   }
-  function gvSetD(j) { if (j && j.gv) { GV.d = j.gv; GV.at = Date.now(); GV.rep = null; } }
+  function gvSetD(j) { if (j && j.gv) { GV.d = j.gv; GV.at = Date.now(); GV.rep = null; gvBadge(); } }
+  /** Đếm việc của tôi cần làm ngay (chưa nhận, quá hạn, đến lúc cập nhật / ghi kết quả) + việc nhóm mình theo dõi bị trễ / cần hỗ trợ. */
+  function gvSum() {
+    var D = GV.d; if (!D) return null;
+    var mine = D.tasks.filter(function (t) { return gvOpen(t) && (t.whoE === D.me || t.helpers.indexOf(D.me) >= 0); });
+    var act = mine.filter(function (t) { return !!gvNextStep(t); }), team = D.lead ? D.tasks.filter(function (t) { return gvOpen(t) && t.whoE !== D.me && (D.all || (D.see || []).indexOf(t.whoE) >= 0); }) : [];
+    return { mine: mine.length, act: act.length, newN: mine.filter(function (t) { return t.st === 'Mới' && t.whoE === D.me; }).length, late: mine.filter(function (t) { return t.late; }).length,
+      tLate: team.filter(function (t) { return t.late; }).length, tHelp: team.filter(function (t) { return t.pace === 'help' || t.pace === 'risk' || t.block; }).length, tt: gvMyTT().length, max: D.max };
+  }
+  function gvBadge() {
+    if (!S.user || !S.user.gv) return;
+    if (!GV.d && !GV.busy && !GV.err) { gvFetch(); return; }
+    var b = $('#gvBdg'), x = gvSum(); if (!b || !x) return;
+    var n = x.act + x.tLate + x.tHelp; b.hidden = !n; b.textContent = n > 99 ? '99+' : n;
+    var bx = $('#gvHome'); if (bx) bx.innerHTML = gvHomeLine();
+  }
+  /** Dòng ✅ Việc tuần ở màn hình đầu (1 dòng, bấm là mở). */
+  function gvHomeLine() {
+    var x = gvSum(); if (!x) return '';
+    var bits = [];
+    if (x.newN) bits.push('👉 <b>' + x.newN + '</b> việc mới cần nhận');
+    if (x.late) bits.push('⏰ <b>' + x.late + '</b> việc quá hạn');
+    if (x.act - x.newN - x.late > 0) bits.push('📍 <b>' + (x.act - x.newN - x.late) + '</b> việc cần cập nhật');
+    if (x.tLate || x.tHelp) bits.push('👀 Nhóm: ' + [x.tLate ? x.tLate + ' trễ' : '', x.tHelp ? x.tHelp + ' cần hỗ trợ' : ''].filter(Boolean).join(', '));
+    if (!bits.length) bits.push(x.mine ? x.mine + ' việc đang làm, chưa có gì gấp 🌿' : (x.tt ? 'Không còn việc nào đang mở 🌿' : 'Chưa chốt việc trọng tâm tuần này: bấm để chốt'));
+    return '<a class="gv-home' + (x.act || x.tLate || x.tHelp || !x.tt ? ' hot' : '') + '" href="#giao-viec"><span class="gv-home-ic">✅</span><span class="gv-home-t"><span><b>Việc tuần</b> · ⭐ ' + x.tt + '/' + x.max + ' việc trọng tâm</span><small>' + bits.join(' · ') + '</small></span><span class="mr-chev" aria-hidden="true">›</span></a>';
+  }
+  function gvHomeMount(el) { if (!S.user || !S.user.gv) return; el.insertAdjacentHTML('afterbegin', '<div id="gvHome">' + gvHomeLine() + '</div>'); if (!GV.d) gvBadge(); }
   function gvRepFetch(w) {
     GV.repBusy = 1; GV.repErr = '';
     api('gv_rep', { week: w || 0 }).then(function (j) { GV.repBusy = 0; GV.rep = j; GV.repW = j.rep.week; if (route().view === 'giao-viec') render(); },

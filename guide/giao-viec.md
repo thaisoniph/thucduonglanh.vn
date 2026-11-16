@@ -16,6 +16,12 @@ description: Mỗi tuần mỗi người chốt tối đa 3 việc trọng tâm,
 
 **Anh Sơn bật / tắt cho từng người:** ⚙ **Cài đặt → 👥 Nhân sự → 🧑‍💼 Ai được vào CRM** → ở dòng của người đó tích ô **✅ Việc tuần** → **Lưu nhân sự**. Hoặc ở **✅ Việc tuần → ⚙️ Cài đặt việc tuần → Ai dùng Việc tuần?**. Người chưa bật: không thấy tab, không nhận việc, không nhận lời nhắc Telegram, không có trong báo cáo thứ Hai.
 
+## Mở Việc tuần ở đâu?
+
+- **Nút ✅ trên đầu màn hình** (cạnh 🔍 ❓ ⚙), màn nào cũng có. **Số đỏ** = số việc đang chờ bạn: việc mới cần nhận, việc quá hạn, việc đến lúc cập nhật, việc trong nhóm bạn theo dõi bị trễ hoặc cần hỗ trợ.
+- **Dòng ✅ Việc tuần** ở đầu màn hình đầu tiên: nói luôn việc gì cần làm. Bấm là mở.
+- Màn **Thêm** → mục **Việc của tôi** (đầu danh sách).
+
 ## Ai xem được việc của ai
 
 | Ai | Thấy việc của |

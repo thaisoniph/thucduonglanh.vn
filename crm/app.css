@@ -3320,3 +3320,13 @@ details.dash-grp[open] > summary::after { transform: rotate(180deg); }
 .gv-resd:not([open]) > summary .gv-h3::after { content: ' ›'; color: var(--muted); }
 .edit-row.usr .usr-see > summary { cursor: pointer; font-size: 13px; padding: 4px 0; }
 .edit-row.usr .usr-see-l { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 4px; }
+
+/* 16/11/2026 ✅ Việc tuần dễ thấy: nút trên đầu có số, dòng ở màn hình đầu */
+.icon-btn.top-gv { position: relative; }
+.gv-bdg { position: absolute; top: -3px; right: -3px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: var(--red, #e5484d); color: #fff; font-size: 11px; font-style: normal; font-weight: 700; line-height: 18px; text-align: center; box-shadow: 0 0 0 2px #fff; }
+.gv-bdg[hidden] { display: none; }
+.gv-home { display: flex; align-items: center; gap: 12px; padding: 12px 14px; margin: 0 0 14px; background: #fff; border: 1px solid var(--line); border-radius: var(--radius, 14px); color: inherit; text-decoration: none; }
+.gv-home.hot { border-color: var(--primary); background: var(--primary-soft); }
+.gv-home-ic { font-size: 22px; }
+.gv-home-t { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.gv-home-t small { font-size: 13px; color: var(--text); }
