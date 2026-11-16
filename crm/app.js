@@ -1684,7 +1684,7 @@
    * (đơn mới → khách vừa hỏi → đơn đang giao cần gọi → chăm sóc → khách hỏi), lọc bằng nút. Mỗi dòng có nhãn lý do gọi.
    * 🌱 Mở rộng khách (gồm Mời Đại sứ, Kho chung, Không mua) gập 1 khung. Mục tiêu & thi đua vẫn ở cuối tab (anh Sơn giữ ở Hôm nay). Quản lý dùng viewToday cũ. */
   var TD_SHORT = { callback: 'Hẹn gọi lại', d1: 'Hỏi nhận hàng', runout: 'Sắp hết hàng', d7: 'Hỏi thăm 1 tuần', d14: 'Xin cảm nhận', d30: 'Gợi ý sản phẩm', winback: 'Mời quay lại', old: 'Lâu chưa gọi' };
-  var TD_F = [['all', 'Tất cả'], ['order', '🧾 Đơn mới'], ['hot', '🔥 Vừa hỏi'], ['ship', '🚚 Đơn đang giao'], ['care', '💚 Chăm sóc'], ['lead', '🙋 Khách hỏi']];
+  var TD_F = [['all', 'Tất cả'], ['order', '🧾 Đơn mới'], ['hot', '🔥 Vừa hỏi'], ['care', '💚 Chăm sóc'], ['lead', '🙋 Khách hỏi']];
   function tdTag(cls, t) { return '<span class="td-tag ' + cls + '">' + t + '</span>'; }
   function tdItems(o) { var L = String(o.items || '').split('\n').filter(Boolean), f = (L[0] || '').replace(/\s*=\s*[\d.,]+\s*₫?$/, ''); return esc(f) + (L.length > 1 ? ' +' + (L.length - 1) : ''); }
   function tdOrderRow(x) {
@@ -1722,8 +1722,7 @@
   /* ---------- 16/11/2026 anh Sơn: Hôm nay của sale theo KHUNG GIỜ + LƯỢT 5 KHÁCH. Mở ra không thấy "còn 81 việc" (dễ nản) mà thấy:
    * khung giờ đang làm (vd 🔥 Giờ vàng 8:15–10:00) → lượt 5 khách (thanh 5 ô) → nút "Gọi tiếp: tên khách". Xong 5 khách → khen + mở lượt sau.
    * Giờ làm: 8:00–16:45, giải lao 10:00–10:15 và 15:00–15:15, nghỉ trưa 11:45–13:30 (giờ nghỉ hiện màn nghỉ, có nút "Làm tiếp luôn").
-   * Đơn mới + khách vừa hỏi luôn chen lên đầu lượt ở mọi khung. Khung hết việc thì lấy việc khung sau. Lượt nhớ trong máy (td_b, theo ngày).
-   * "Để sau" = đẩy khách xuống cuối; đơn đang giao không tự mất khỏi danh sách nên có nút "✓ Đã gọi". */
+   * 16/11 chiều (sale góp ý): bỏ lượt 5 khách, quay về 1 nút "Bắt đầu gọi" → gọi lần lượt từng khách (startFlow); đơn mới + khách vừa hỏi ở khung ⚡ Làm trước. */
   // 16/11/2026 anh Sơn: đây là LỊCH GỢI Ý (mỗi sale có cách riêng), dựng theo cách làm của sale bán tốt nhất (Thu Phương, số liệu 30 ngày tới 16/11):
   // vào việc từ 8:00, ~70% cuộc gọi dồn buổi sáng, 9h là giờ chốt nhiều đơn nhất, 14h là đỉnh thứ hai; buổi sáng chủ yếu "Gọi lại theo hẹn"
   // (cuộc gọi chưa chốt nào cũng hẹn giờ gọi lại → sáng hôm sau có sẵn danh sách). Sale khác thường dồn gọi lúc 16h, khi khách ít mua hơn.
@@ -1731,7 +1730,7 @@
   var TD_MODEL = 'Thu Phương';
   var TD_SLOTS = [
     { s: 480, e: 495, ic: '☀️', t: 'Khởi động', d: 'xác nhận đơn mới, gọi khách vừa hỏi, xem danh sách hẹn gọi lại hôm nay', g: ['order', 'hot'], tip: 'Vào việc ngay từ 8:00, buổi sáng khách dễ nghe máy và dễ chốt nhất.' },
-    { s: 495, e: 600, ic: '🔥', t: 'Giờ vàng sáng', d: 'gọi khách hẹn gọi lại, giữ đơn đang giao, gọi khách cũ', g: ['order', 'hot', 'cb', 'ship', 'care'], by: 1, tip: '9h là giờ chốt được nhiều đơn nhất trong ngày. Gọi dồn trong khung này, đừng để dành tới chiều.' },
+    { s: 495, e: 600, ic: '🔥', t: 'Giờ vàng sáng', d: 'gọi khách hẹn gọi lại, gọi khách cũ', g: ['order', 'hot', 'cb', 'care'], by: 1, tip: '9h là giờ chốt được nhiều đơn nhất trong ngày. Gọi dồn trong khung này, đừng để dành tới chiều.' },
     { s: 600, e: 615, brk: 'Giải lao', say: 'Uống nước, đứng dậy vươn vai nhé.' },
     { s: 615, e: 705, ic: '💚', t: 'Chăm sóc khách cũ', d: 'hỏi nhận hàng, sắp hết hàng, hỏi thăm, mời đặt lại', g: ['cb', 'care'], tip: 'Khách chưa nghe máy thì nhắn Zalo 1 câu ngắn và hẹn giờ gọi lại.' },
     { s: 705, e: 810, brk: 'Nghỉ trưa', say: 'Ăn trưa ngon miệng, nghỉ ngơi cho chiều thêm sức.' },
@@ -1743,40 +1742,11 @@
   ];
   // 16/11/2026 anh Sơn: sau 16:45 và Chủ nhật KHÔNG báo "hết giờ" (như nhắc nhân sự về). Tinh thần VitaGreen: làm hết việc, không phải hết giờ;
   // tối và Chủ nhật có người trực khách quảng cáo → hiện "🌙 Ca trực", ưu tiên đơn mới + khách vừa hỏi.
-  var TD_BATCH = 5;
   function tdsMin() { var d = vnDate(Date.now()); return d.h * 60 + d.mi; }
   function tdsSun() { return new Date(Date.now() + 7 * 3600e3).getUTCDay() === 0; }
   function tdsIx(m) { if (tdsSun()) return TD_SLOTS.length - 1; for (var i = 0; i < TD_SLOTS.length; i++) if (m >= TD_SLOTS[i].s && m < TD_SLOTS[i].e) return i; return m < TD_SLOTS[0].s ? -1 : 99; }
   function tdsHm(m) { return Math.floor(m / 60) + ':' + pad(m % 60); }
-  function tdsKey(x) { return x.k + ':' + (x.k === 'care' ? x.c.phone : x.l ? x.l.id : x.o.id); }
-  function tdsGrp(x) { return x.k === 'care' && taskKey(x.c) === 'callback' ? 'cb' : x.k; }
-  function tdsName(x) { return (x.c && x.c.name) || (x.l && x.l.name) || (x.o && x.o.name) || 'Khách'; }
-  function tdsWhy(x) { return x.k === 'care' ? TD_SHORT[taskKey(x.c)] : x.k === 'hot' ? 'khách vừa hỏi' : x.k === 'lead' ? 'tư vấn khách hỏi' : x.k === 'order' ? 'xác nhận đơn' : String(x.g || 'gọi giữ đơn').replace(/^\W+\s*/, ''); }
-  function tdsState() {
-    var s = S.tdB, day = vhDay();
-    if (!s || s.day !== day) { try { s = JSON.parse(store('td_b') || 'null'); } catch (e) { s = null; } if (!s || s.day !== day || !s.ids) s = { day: day, ids: [], nm: {}, n: 0, ok: {}, skip: {}, fin: 0 }; S.tdB = s; }
-    return s;
-  }
-  function tdsSave() { store('td_b', JSON.stringify(S.tdB)); }
   function tdsSlot() { var ix = tdsIx(tdsMin()); return TD_SLOTS[ix] && !TD_SLOTS[ix].brk ? TD_SLOTS[ix] : null; }
-  /** Chọn lượt mới: chưa "để sau" trước; đơn mới / khách vừa hỏi trước; rồi việc đúng khung giờ; rồi việc khung khác (khung hết việc thì làm sớm việc sau). */
-  function tdsPick(items) {
-    var st = tdsState(), sl = tdsSlot(), g = sl ? sl.g : ['all'];
-    var inS = function (x) { return g[0] === 'all' || g.indexOf(tdsGrp(x)) >= 0; };
-    var rank = function (x) { return (st.skip[tdsKey(x)] ? 4 : 0) + (x.k === 'order' || x.k === 'hot' ? 0 : inS(x) ? 1 : 2); };
-    var free = items.map(function (x, i) { return { x: x, i: i, r: rank(x) }; }).filter(function (o) { return !st.ok[tdsKey(o.x)]; }).sort(function (a, b) { return a.r - b.r || a.i - b.i; }).slice(0, TD_BATCH);
-    st.ids = free.map(function (o) { return tdsKey(o.x); }); st.nm = {};
-    free.forEach(function (o) { var k = tdsKey(o.x); st.nm[k] = tdsName(o.x); delete st.skip[k]; });
-    if (st.ids.length) st.n++;
-    tdsSave();
-  }
-  function tdsAct(x, k) { return '<div class="tds-act">' + (x.k === 'ship' ? '<button type="button" class="btn sm" data-tddone="' + esc(k) + '">✓ Đã gọi xong</button>' : '') + '<button type="button" class="btn sm ghost" data-tdskip="' + esc(k) + '">⏭ Để sau</button></div>'; }
-  function tdsGo(x, first) {
-    var lb = '<span>' + (first ? '▶ Bắt đầu: ' : '▶ Gọi tiếp: ') + '<b>' + esc(tdsName(x)) + '</b> · ' + esc(tdsWhy(x)) + '</span>';
-    if (x.k === 'care') return '<button class="btn pri lg block" data-care="' + x.c.phone + '" data-task="' + taskKey(x.c) + '">' + lb + '</button>';
-    if (x.k === 'hot' || x.k === 'lead') return '<button class="btn pri lg block" data-consult="' + esc(x.l.id) + '">' + lb + '</button>';
-    return '<button class="btn pri lg block" data-order="' + esc(x.o.id) + '">' + lb + '</button>';
-  }
   /** Đầu tab: khung giờ (hoặc màn nghỉ / ngoài giờ) + lượt 5 khách. */
   function tdsHero(items, q, growOn, gn) {
     var m = tdsMin(), ix = tdsIx(m), sl = TD_SLOTS[ix], sun = tdsSun(), day = vhDay(), urgent = items.filter(function (x) { return x.k === 'order' || x.k === 'hot'; }).length;
@@ -1800,13 +1770,10 @@
       head = sl.ic + ' ' + sl.t; sub = tdsHm(sl.s) + ' – ' + tdsHm(sl.e) + ' · ' + sl.d + (nx && !nx.duty ? ' · còn ' + left + ' phút ' + (nb ? 'rồi ' + nb.brk.toLowerCase() : 'sang ' + nx.ic + ' ' + nx.t) : '');
       hi += 'Gợi ý lúc này';
     }
-    var st = tdsState(), by = {};
-    items.forEach(function (x) { by[tdsKey(x)] = x; });
-    // đơn mới / khách vừa hỏi luôn chen vào lượt đang làm
-    items.forEach(function (x) { var k = tdsKey(x); if ((x.k === 'order' || x.k === 'hot') && st.ids.length && st.ids.indexOf(k) < 0 && !st.ok[k] && !st.skip[k]) { st.ids.unshift(k); st.nm[k] = tdsName(x); tdsSave(); } });
-    var isDone = function (k) { return !by[k] || st.ok[k]; };
-    if (!st.ids.length && items.length) tdsPick(items);
-    var live = st.ids.filter(function (k) { return !isDone(k) && !st.skip[k]; }), dn = st.ids.filter(function (k) { return isDone(k) && !st.skip[k]; }).length;
+    // 16/11/2026 (chiều) chị em sale góp ý: lượt 5 khách + nút ✓ / ⏭ trên từng dòng khó dùng hơn bản cũ. Quay về GỌI LẦN LƯỢT:
+    // bấm 1 nút → hiện thông tin 1 khách → gọi → bấm kết quả → tự sang khách tiếp (startFlow). Đơn giao chậm / chưa giao được sale tự lo
+    // (khách cũ, gọi nhiều khách phiền) nên không đưa vào đây nữa, vẫn xem ở tab Đơn hàng.
+    var urg = items.filter(function (x) { return x.k === 'order' || x.k === 'hot'; }), lds = items.filter(function (x) { return x.k === 'lead'; }), cq = q.list;
     var h = '<section class="hero td-hero tds-hero"><div class="tds-hi">' + hi.replace(/ · $/, '') + '</div><b class="tds-t">' + head + '</b><div class="tds-sub">' + sub + '</div>' + (sl && sl.tip ? '<div class="tds-tip">💡 ' + (sl.by && S.user.name !== TD_MODEL ? 'Mẹo hay từ ' + esc(TD_MODEL) + ': ' : '') + sl.tip + '</div>' : '');
     var growBtn = growOn && gn < 5 ? '<button type="button" class="btn ' + (sl && sl.t === 'Mở rộng khách' ? 'pri lg block' : '') + '" data-gopen="grow">🌱 Mở rộng khách: còn ' + (5 - gn) + ' việc ›</button>' : '';
     if (!items.length) {
@@ -1814,21 +1781,14 @@
       return h;
     }
     if (sl && sl.t === 'Mở rộng khách' && growBtn) h += '<div class="tds-grow">' + growBtn + '</div>';
-    if (!live.length) { // xong lượt
-      h += '<div class="tds-dots">' + st.ids.map(function (k) { return '<i class="' + (st.skip[k] ? 'sk' : 'ok') + '"></i>'; }).join('') + '</div>' +
-        '<p class="cheer-t cheer-ok">🎉 Xong lượt ' + st.n + '! ' + (dn ? 'Bạn vừa giúp ' + dn + ' khách được quan tâm.' : '') + ' Hít một hơi rồi làm tiếp nhé.</p>' +
-        '<button class="btn pri lg block" data-tdnext>▶ Mở lượt ' + (st.n + 1) + ' (' + Math.min(TD_BATCH, items.filter(function (x) { return !st.ok[tdsKey(x)]; }).length) + ' khách)</button>';
-    } else {
-      var cur = live[0];
-      h += '<div class="tds-dots">' + st.ids.map(function (k) { return '<i class="' + (st.skip[k] ? 'sk' : isDone(k) ? 'ok' : k === cur ? 'now' : '') + '"></i>'; }).join('') + '</div>' +
-        '<div class="tds-cnt">Lượt ' + st.n + ' · xong <b>' + dn + '/' + st.ids.length + '</b> khách' + (dn ? '' : ' · làm xong lượt này mới mở lượt sau') + '</div>' +
-        tdsGo(by[cur], !dn && st.n === 1) +
-        '<div class="tds-list">' + st.ids.map(function (k) {
-          if (isDone(k)) return '<div class="tds-ok">✓ ' + esc(st.nm[k] || 'Khách') + '</div>';
-          if (st.skip[k]) return '<div class="tds-sk">⏭ ' + esc(st.nm[k] || 'Khách') + ' · để sau</div>';
-          return '<div class="tds-it' + (k === cur ? ' now' : '') + '">' + tdRow(by[k]) + tdsAct(by[k], k) + '</div>';
-        }).join('') + '</div>';
-    }
+    if (urg.length) h += '<div class="tds-ur"><div class="tds-ur-h">⚡ Làm trước · ' + urg.length + ' việc mới</div><div class="rows">' + capRows(urg, tdRow, 3) + '</div></div>';
+    if (cq.length) {
+      var c0 = cq[0], pc = Math.round(q.done * 100 / (q.done + cq.length));
+      h += '<button type="button" class="btn pri lg block tds-go" data-flow><span>' + (q.done ? '▶ Gọi tiếp' : '▶ Bắt đầu gọi') + '</span><small>' + esc(c0.name || 'Khách') + ' · ' + TD_SHORT[taskKey(c0)] + (cq.length > 1 ? ' · rồi tới ' + esc(cq[1].name || 'Khách') + (cq.length > 2 ? '…' : '') : '') + '</small></button>' +
+        '<div class="tds-how">Mỗi lần hiện 1 khách: gọi xong bấm kết quả là tự sang khách tiếp.</div>' +
+        '<div class="tds-prog"><div class="bar"><i style="width:' + pc + '%"></i></div><span>Hôm nay đã gọi <b>' + q.done + '</b> khách</span></div>';
+    } else if (!urg.length) h += '<p class="cheer-t cheer-ok">🎉 Xong hết khách cũ cần gọi hôm nay!</p>';
+    if (lds.length) h += '<a class="btn block tds-lead" href="#tiem-nang">🙋 Tư vấn khách hỏi · ' + lds.length + ' khách ›</a>';
     if (sl && sl.t === 'Chốt ngày') h += '<div class="tds-foot"><button class="btn" data-daily="' + esc(S.user.name) + '">📋 Báo cáo cuối ngày</button></div>';
     return h + '</section>';
   }
@@ -1840,7 +1800,7 @@
       TD_SLOTS.map(function (s) {
         var st = sun ? (s.duty ? 'now' : '') : m >= s.e ? 'past' : m >= s.s ? 'now' : '';
         return '<div class="tds-p ' + st + (s.brk ? ' brk' : '') + '"><span class="tds-p-h">' + tdsHm(s.s) + '</span><span>' + (st === 'past' ? '✓ ' : st === 'now' ? '👉 ' : '') + (s.brk ? (s.brk === 'Nghỉ trưa' ? '🍱 ' : '🍵 ') + s.brk + ' tới ' + tdsHm(s.e) : s.ic + ' <b>' + (s.duty ? 'Ca trực tối và Chủ nhật' : s.t) + '</b> · ' + s.d) + '</span></div>';
-      }).join('') + '' + (S.user.name === TD_MODEL ? '<p class="tds-thx">💚 Lịch gợi ý này học từ chính cách làm của bạn: vào việc từ 8:00, gọi dồn buổi sáng, khách nào chưa chốt cũng hẹn giờ gọi lại. Cảm ơn bạn đã truyền lửa cho cả nhóm!</p>' : '<p class="tds-thx">🌟 Lịch gợi ý này học từ cách làm hay của <b>' + esc(TD_MODEL) + '</b>: vào việc từ 8:00, gọi dồn buổi sáng (9h và 14h là lúc chốt được nhiều đơn), khách nào chưa chốt cũng hẹn giờ gọi lại để sáng hôm sau gọi. Cảm ơn ' + esc(TD_MODEL) + ' đã chia sẻ!</p>') + '<p class="small muted" style="margin:8px 0 0">Mỗi người một cách, mỗi ngày tốt hơn hôm qua một chút là được. Bạn có mẹo hay thì bấm <b>💡 Góp ý</b> để cả nhóm cùng học. Đơn mới và khách vừa hỏi luôn được đưa lên đầu; khung nào hết việc thì máy lấy sẵn việc của khung sau. Người VitaGreen làm hết việc, không phải hết giờ.</p></div></details></section>';
+      }).join('') + '' + (S.user.name === TD_MODEL ? '<p class="tds-thx">💚 Lịch gợi ý này học từ chính cách làm của bạn: vào việc từ 8:00, gọi dồn buổi sáng, khách nào chưa chốt cũng hẹn giờ gọi lại. Cảm ơn bạn đã truyền lửa cho cả nhóm!</p>' : '<p class="tds-thx">🌟 Lịch gợi ý này học từ cách làm hay của <b>' + esc(TD_MODEL) + '</b>: vào việc từ 8:00, gọi dồn buổi sáng (9h và 14h là lúc chốt được nhiều đơn), khách nào chưa chốt cũng hẹn giờ gọi lại để sáng hôm sau gọi. Cảm ơn ' + esc(TD_MODEL) + ' đã chia sẻ!</p>') + '<p class="small muted" style="margin:8px 0 0">Mỗi người một cách, mỗi ngày tốt hơn hôm qua một chút là được. Bạn có mẹo hay thì bấm <b>💡 Góp ý</b> để cả nhóm cùng học. Đơn mới và khách vừa hỏi luôn ở khung ⚡ Làm trước; bấm <b>▶ Bắt đầu gọi</b> là máy đưa lần lượt từng khách theo thứ tự nên gọi trước. Người VitaGreen làm hết việc, không phải hết giờ.</p></div></details></section>';
   }
   // Sang khung giờ mới (vd 10:00 giải lao) thì tab Hôm nay của sale tự đổi, không cần tải lại
   setInterval(function () { if (!S.d || document.hidden || $('.modal') || lvl() >= 2 || S.tdIx === undefined) return; var rv = route().view; if (rv && rv !== 'hom-nay') return; if (tdsIx(tdsMin()) !== S.tdIx) render(); }, 30e3);
@@ -1848,9 +1808,8 @@
     var no = newOrders().sort(function (a, b) { return b.time - a.time; }), ld = sortLeads(leadsDue()), hot = ld.filter(isHotLead);
     ld = ld.filter(function (l) { return !isHotLead(l); });
     var up = unpaidOrders().filter(function (o) { return o.status !== 'Mới'; }).sort(function (a, b) { return a.time - b.time; });
-    var ship = []; orderTodo().forEach(function (g) { if (g.k === 'fail' || g.k === 'late') g.list.forEach(function (o) { ship.push({ k: 'ship', o: o, g: g.t }); }); });
     var q = dayQueue(), t0 = today();
-    var items = no.map(function (o) { return { k: 'order', o: o }; }).concat(hot.map(function (l) { return { k: 'hot', l: l }; }), ship, q.list.map(function (c) { return { k: 'care', c: c }; }), ld.map(function (l) { return { k: 'lead', l: l }; }));
+    var items = no.map(function (o) { return { k: 'order', o: o }; }).concat(hot.map(function (l) { return { k: 'hot', l: l }; }), q.list.map(function (c) { return { k: 'care', c: c }; }), ld.map(function (l) { return { k: 'lead', l: l }; }));
     var cnt = { all: items.length }; items.forEach(function (x) { cnt[x.k] = (cnt[x.k] || 0) + 1; });
     var f = S.f.tdf && cnt[S.f.tdf] ? S.f.tdf : 'all', shown = f === 'all' ? items : items.filter(function (x) { return x.k === f; });
     var done = q.done, pc = items.length + done ? Math.round(done * 100 / (items.length + done)) : 100;
@@ -2757,10 +2716,18 @@
       '<div class="f"><span style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:var(--ink)">Kết quả</span><div class="radios">' + RESULTS.map(function (r, i) { return '<label><input type="radio" name="kRes" value="' + esc(r) + '"' + '><span>' + esc(r) + '</span></label>'; }).join('') + '</div></div>' +
       '<label class="f" id="kCbWrap"><span>Hẹn gọi lại ngày (nếu có)</span><input type="date" id="kCb" min="' + isoDate(Date.now()) + '"></label>' +
       '<button class="btn pri" id="kSave" style="width:100%">' + (opt.flow ? 'Lưu & sang khách tiếp' : 'Lưu kết quả') + '</button></div></details><p class="err" id="kErr"></p></div>';
+    // 16/11/2026 sale góp ý "gọi lần lượt phải nhanh": khi gọi lần lượt, đưa nút 📞 Gọi + ô ghi kết quả lên ngay dưới thông tin khách
+    // (không phải kéo qua Lên đơn, tin nhắn, kịch bản); phần tin nhắn Zalo + kịch bản để xuống dưới.
+    if (opt.flow) {
+      var i2 = body.indexOf('<div class="box"><h3>Bước 2'), ib = body.indexOf('<div class="box k-buy">');
+      if (i2 > ib && ib > 0) body = body.slice(0, ib) + '<div class="k-go flow-go"><a class="btn pri" href="tel:' + c.phone + '">📞 Gọi ' + esc(String(c.name || '').split(' ').pop()) + '</a><button type="button" class="btn zalo" data-kzalo>💬 Nhắn Zalo</button></div>' +
+        body.slice(i2).replace('<h3>Bước 2 · Ghi lại kết quả</h3>', '<h3>Gọi xong · bấm kết quả</h3>') + body.slice(ib, i2).replace('<h3>Bước 1 · Gọi hoặc nhắn cho khách</h3>', '<h3>💬 Tin nhắn Zalo & kịch bản gọi</h3>').replace('<div class="k-go">', '<div class="k-go" style="display:none">');
+    }
     var m = modal((opt.flow ? '📞 ' : 'Chăm sóc: ') + esc(c.name), body, opt.flow ? '<button class="btn" id="kSkip">⏭ Để sau, sang khách tiếp</button>' : '<button class="btn" data-close>Để sau</button>');
     if (opt.flow) {
       m.addEventListener('click', function (e) { if (e.target === m || e.target.closest('[data-close]')) S.flow = null; }, true); // bấm ✕ = dừng gọi lần lượt
       $('#kSkip', m).onclick = function () { if (S.flow) S.flow.skip[c.phone] = 1; closeModal(true); nextFlow(); };
+      var kz2 = $('[data-kzalo]', m); if (kz2) kz2.onclick = function () { $('#kZalo', m).click(); };
     }
     var drawSum = function (more) { var b = $('#kSum', m); if (!b) return; b.innerHTML = careSum(c, all, more); var x = $('[data-kmore]', b); if (x) x.onclick = function () { drawSum(true); }; };
     drawSum(false);
@@ -2806,7 +2773,7 @@
     var list = (all || ordersOf(c.phone)).slice().sort(function (a, b) { return (b.time || 0) - (a.time || 0); }), st = custStats(c, list), r = replyOf(c), pv = provOf(c);
     var health = noteExtras(c.note).filter(function (l) { return /^Sức khoẻ:/.test(l.trim()); }).map(function (l) { return l.replace(/^\s*Sức khoẻ:\s*/, ''); }).join('; ');
     var sg = suggestFor(c), max = more ? list.length : 2;
-    return '<div class="k-val"><span><b>' + moneyShort(c.spent) + '</b> tổng chi</span><span><b>' + c.orders + '</b> đơn</span>' + (c.orders ? '<span><b>' + moneyShort(c.spent / c.orders) + '</b> TB/đơn</span>' : '') + (c.first ? '<span>khách từ <b>' + fDate(c.first).replace(/^\d+\//, '') + '</b></span>' : '') + '</div>' +
+    return '<div class="k-val"><span><b>' + moneyShort(c.spent) + '</b> tổng chi</span><span><b>' + c.orders + '</b> đơn</span>' + (c.orders ? '<span><b>' + moneyShort(Math.round(c.spent / c.orders)) + '</b> TB/đơn</span>' : '') + (c.first ? '<span>khách từ <b>' + fDate(c.first).replace(/^\d+\//, '') + '</b></span>' : '') + '</div>' +
       '<div class="k-lines">' +
       (st.top ? '<div>🧺 Hay mua: <b>' + esc(st.top) + '</b>' + (st.topN > 1 ? ' (' + st.topN + ' lần)' : '') + (st.gap ? ' · 🔁 ~' + st.gap + ' ngày mua lại' : '') + '</div>' : '') +
       (c.runout ? '<div>⏰ Dự kiến hết hàng: <b>' + fDate(c.runout).slice(0, 5) + '</b> (' + daysAgo(c.runout) + ')</div>' : '') +
@@ -16987,16 +16954,13 @@
   document.addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('[data-gmore]'); if (!b) return; var r = b.previousElementSibling; if (r) r.hidden = false; b.remove(); });
   document.addEventListener('toggle', function (e) { var d = e.target; if (d && d.matches && d.matches('details[data-grp]')) { S.f.gopen = S.f.gopen || {}; S.f.gopen[d.getAttribute('data-grp')] = d.open; } }, true);
   document.addEventListener('click', function (e) {
-    var t = e.target.closest('[data-fbpool],[data-gopen],[data-recon],[data-otab],[data-per],[data-pq],[data-promo],[data-occ],[data-rf],[data-vipgo],[data-stopgo],[data-stop],[data-taghelp],[data-consent],[data-daily],[data-usage],[data-flow],[data-tdf],[data-tdnext],[data-tdskip],[data-tddone],[data-tdbrk],[data-zalo],[data-quick],[data-care],[data-next],[data-neworder],[data-cf],[data-os],[data-och],[data-tf],[data-cat],[data-addtag],[data-deltag],[data-claim],[data-bcdt],[data-srcadd],[data-srcedit],[data-srcsync],[data-srcdel],[data-adsedit],[data-adssync],[data-who],[data-target],[data-race],[data-offer],[data-myold],[data-more],[data-add],[data-rm],[data-consult],[data-leadorder],[data-newlead],[data-commpick],[data-editlead],[data-leaddel],[data-cust],[data-order],[data-lead]');
+    var t = e.target.closest('[data-fbpool],[data-gopen],[data-recon],[data-otab],[data-per],[data-pq],[data-promo],[data-occ],[data-rf],[data-vipgo],[data-stopgo],[data-stop],[data-taghelp],[data-consent],[data-daily],[data-usage],[data-flow],[data-tdf],[data-tdbrk],[data-zalo],[data-quick],[data-care],[data-next],[data-neworder],[data-cf],[data-os],[data-och],[data-tf],[data-cat],[data-addtag],[data-deltag],[data-claim],[data-bcdt],[data-srcadd],[data-srcedit],[data-srcsync],[data-srcdel],[data-adsedit],[data-adssync],[data-who],[data-target],[data-race],[data-offer],[data-myold],[data-more],[data-add],[data-rm],[data-consult],[data-leadorder],[data-newlead],[data-commpick],[data-editlead],[data-leaddel],[data-cust],[data-order],[data-lead]');
     if (!t || !S.d) return;
     if (e.target.closest('a[href]') && !t.hasAttribute('data-myold')) return; // nút gọi / Zalo bên trong thẻ
     if (e.target.closest('select[data-oassign]')) return; // ô “Giao cho…” trên dòng đơn: không mở hộp đơn
     var a = function (k) { return t.getAttribute(k); };
     if (t.hasAttribute('data-flow')) { startFlow(); return; }
     if (t.hasAttribute('data-tdf')) { S.f.tdf = a('data-tdf'); render(); return; }
-    if (t.hasAttribute('data-tdnext')) { var tb = tdsState(); tb.ids = []; tdsSave(); render(); return; } // 16/11/2026 mở lượt 5 khách tiếp theo
-    if (t.hasAttribute('data-tdskip')) { e.stopPropagation(); var tb2 = tdsState(); tb2.skip[a('data-tdskip')] = 1; tdsSave(); render(); return; }
-    if (t.hasAttribute('data-tddone')) { e.stopPropagation(); var tb3 = tdsState(); tb3.ok[a('data-tddone')] = 1; tdsSave(); render(); return; }
     if (t.hasAttribute('data-tdbrk')) { S.tdGo = vhDay() + ':' + a('data-tdbrk'); render(); return; }
     if (t.hasAttribute('data-taghelp')) { openTagHelp(); return; }
     if (t.hasAttribute('data-promo')) { openPromo(); return; }

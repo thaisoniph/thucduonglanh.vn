@@ -52,14 +52,14 @@ Mã chỉ dùng được trong 10 phút. Vào được rồi thì **ngày nào b
 
 ## Việc 1: Mỗi sáng gọi khách (tab Hôm nay)
 
-Tab **Hôm nay** chia ngày làm việc thành **từng khung giờ**, mỗi lần chỉ đưa bạn **5 khách** (1 lượt). Không cần nhìn cả danh sách dài, cứ làm hết lượt này rồi mở lượt sau.
+Tab **Hôm nay** có **1 nút ▶ Bắt đầu gọi**. Bấm là CRM hiện **từng khách một**: gọi xong bấm kết quả, CRM tự lưu và mở khách tiếp theo. Không cần nhìn danh sách dài.
 
-> **Câu dễ nhớ:** *Nhìn khung giờ → gọi 5 khách → mở lượt tiếp.*
+> **Câu dễ nhớ:** *Bấm Bắt đầu gọi → gọi → bấm kết quả → tự sang khách tiếp.*
 
 **Lịch làm việc gợi ý** (bấm **🗓 Lịch làm việc gợi ý** để xem). Lịch này học từ cách làm hay của **Thu Phương**, cảm ơn Phương đã chia sẻ. Đây chỉ là khung tham khảo: mỗi người một cách, mỗi ngày tốt hơn hôm qua một chút là được. Bạn có mẹo hay thì bấm **💡 Góp ý** để cả nhóm cùng học.
 
 - **8:00 ☀️ Khởi động:** xác nhận đơn mới, gọi khách vừa hỏi, xem danh sách hẹn gọi lại hôm nay.
-- **8:15 🔥 Giờ vàng sáng:** gọi khách hẹn gọi lại, giữ đơn đang giao, gọi khách cũ. **9h là giờ chốt được nhiều đơn nhất trong ngày.**
+- **8:15 🔥 Giờ vàng sáng:** gọi khách hẹn gọi lại, gọi khách cũ. **9h là giờ chốt được nhiều đơn nhất trong ngày.**
 - 10:00 🍵 Giải lao 15 phút.
 - **10:15 💚 Chăm sóc khách cũ:** hỏi nhận hàng, sắp hết hàng, hỏi thăm, mời đặt lại.
 - 11:45 🍱 Nghỉ trưa tới 13:30.
@@ -76,14 +76,11 @@ Tab **Hôm nay** chia ngày làm việc thành **từng khung giờ**, mỗi l�
 Trên màn hình:
 
 - Ô trên cùng ghi **Gợi ý lúc này** và khung giờ (ví dụ **🔥 Giờ vàng sáng · 8:15 – 10:00 · còn 40 phút rồi giải lao**), kèm 1 dòng **💡 mẹo** cho khung đó.
-- **Thanh 5 ô** = 5 khách của lượt này. Gọi xong 1 khách thì 1 ô chuyển xanh.
-- Nút xanh to **▶ Gọi tiếp: tên khách · lý do gọi**. Bấm là mở đúng khách đó.
-- Dưới nút là 5 khách của lượt. Khách đã xong có dấu **✓**.
-- Chưa gọi được khách nào (máy bận, khách hẹn giờ khác) thì bấm **⏭ Để sau**. Khách đó sẽ quay lại ở lượt sau.
-- Với **đơn đang giao**: gọi xong thì bấm **✓ Đã gọi xong**.
-- Xong 5 khách thì CRM khen **🎉 Xong lượt** và hiện nút **▶ Mở lượt tiếp**.
-- **Đơn mới và khách vừa hỏi luôn được chen lên đầu lượt**, ở khung giờ nào cũng vậy.
-- Khung giờ nào hết việc thì máy tự lấy việc của khung sau. Bạn lúc nào cũng có việc để làm.
+- **⚡ Làm trước**: đơn mới cần xác nhận và khách vừa hỏi (nếu có). Làm mấy việc này trước.
+- Nút xanh to **▶ Bắt đầu gọi** (đã gọi rồi thì là **▶ Gọi tiếp**), ghi tên khách đầu tiên và lý do gọi. Bấm là vào chế độ gọi lần lượt.
+- Dưới nút là dòng **Hôm nay đã gọi N khách**.
+- Có khách hỏi chờ tư vấn thì có nút **🙋 Tư vấn khách hỏi ›**.
+- **Đơn giao chậm / chưa giao được** không hiện ở đây nữa (khách cũ, bạn tự theo dõi, tránh gọi nhiều làm phiền khách). Xem ở tab **Đơn hàng** (nút 🚚).
 - **Giờ nghỉ** CRM hiện màn **🍵 Giải lao tới 10:15** và cho biết quay lại thì làm gì. Có việc gấp thì bấm **Làm tiếp luôn ›**.
 - Muốn xem hết khách của hôm nay: bấm **📞 Xem tất cả việc gọi hôm nay** (đã thu gọn). Trong đó lọc được: **Tất cả · 🧾 Đơn mới · 🔥 Vừa hỏi · 💚 Chăm sóc · 🙋 Khách hỏi**.
 - Cạnh tên mỗi khách có **nhãn màu ghi lý do gọi**, ví dụ **🧾 Xác nhận đơn**, **🔥 Vừa hỏi**, **📦 Hỏi nhận hàng**, **⏰ Sắp hết hàng**.
@@ -95,16 +92,16 @@ Trên màn hình:
 [[steps:goi-khach]]
 
 1. Mở tab **Hôm nay**.
-2. Bấm nút xanh **▶ Bắt đầu** (hoặc **▶ Gọi tiếp**) ở ô trên cùng. CRM mở đúng khách đầu tiên của lượt. Xong quay lại, nút tự chuyển sang khách tiếp theo.
+2. Bấm nút xanh **▶ Bắt đầu gọi** (hoặc **▶ Gọi tiếp**). CRM mở khách đầu tiên. Trên cùng ghi **Khách 1 / N**.
 3. Đọc nhanh thông tin khách: khách mua gì, lần trước nói gì.
-4. Bấm **📞 Gọi**. Hoặc bấm **💬 Nhắn Zalo**: CRM chép sẵn tin nhắn và mở Zalo, bạn chỉ cần dán rồi gửi.
-   Chưa biết nói gì? Đọc mục **💬 Kịch bản gọi** ngay bên dưới: có câu nói mẫu, cách dùng sản phẩm, khách nói gì thì làm gì. Xem trang [Kịch bản gọi](/huong-dan/kich-ban/).
+4. Bấm **📞 Gọi** ngay dưới thông tin khách. Hoặc bấm **💬 Nhắn Zalo**: CRM chép sẵn tin nhắn và mở Zalo, bạn chỉ cần dán rồi gửi.
+   Chưa biết nói gì? Kéo xuống mục **💬 Tin nhắn Zalo & kịch bản gọi**: có câu nói mẫu, cách dùng sản phẩm, khách nói gì thì làm gì. Xem trang [Kịch bản gọi](/huong-dan/kich-ban/).
    Muốn xem hoặc sửa tin nhắn trước khi gửi thì bấm **✏️ Xem / sửa tin nhắn** (bình thường thu gọn cho đỡ dài).
-5. **Bước 2 · Ghi lại kết quả.** Khách nói gì thì gõ vài chữ vào ô **✍️ Khách nói gì?**. Ví dụ: *"chị bảo ngủ ngon hơn"*. Không có gì thì bỏ qua. Gõ xong, ô viền xanh và hiện dòng **✅ Đã có ghi chú**: ghi chú **chưa lưu** cho tới khi bạn bấm 1 nút ở bước 6.
+5. **Gọi xong · bấm kết quả** (ngay dưới nút Gọi). Khách nói gì thì gõ vài chữ vào ô **✍️ Khách nói gì?**. Ví dụ: *"chị bảo ngủ ngon hơn"*. Không có gì thì bỏ qua. Gõ xong, ô viền xanh và hiện dòng **✅ Đã có ghi chú**: ghi chú **chưa lưu** cho tới khi bạn bấm 1 nút ở bước 6.
 6. Bấm **1 nút kết quả** (xem bảng dưới). CRM lưu kết quả **cùng ghi chú bạn vừa gõ**, báo lại nội dung đã lưu, rồi tự mở khách tiếp theo.
-   **Khách muốn mua luôn?** Không cần kéo xuống. Ngay dưới thông tin khách có khung **Khách muốn mua?**: bấm nút xanh **🛒 Lên đơn ngay**. Form tạo đơn mở ra, **đã điền sẵn như đơn trước** (sản phẩm, số tiền, cách trả tiền). Sửa chỗ khách đổi rồi bấm **Lưu đơn**. CRM tự ghi "Đã đặt lại" và mở khách tiếp theo. Bấm nhầm thì bấm **✕**, CRM quay lại đúng khách đang gọi.
+   **Khách muốn mua luôn?** Bấm **🛒 Khách mua** trong các nút kết quả, hoặc nút xanh **🛒 Lên đơn ngay** ở khung **Khách muốn mua?** ngay dưới. Form tạo đơn mở ra, **đã điền sẵn như đơn trước** (sản phẩm, số tiền, cách trả tiền). Sửa chỗ khách đổi rồi bấm **Lưu đơn**. CRM tự ghi "Đã đặt lại" và mở khách tiếp theo. Bấm nhầm thì bấm **✕**, CRM quay lại đúng khách đang gọi.
    Nút bên cạnh **🔗 Gửi link cho khách tự đặt** là gửi link để **khách tự đặt trên web**, bạn không lên đơn. Chỉ bấm nút này khi khách muốn tự đặt.
-7. Xong 5 khách thì bấm **▶ Mở lượt tiếp**. Cứ thế theo khung giờ tới 16:45.
+7. Chưa gọi được khách này (máy bận, để lát nữa) thì bấm **⏭ Để sau, sang khách tiếp** ở dưới cùng. Muốn nghỉ thì bấm **✕**, lúc nào bấm **▶ Gọi tiếp** là gọi tiếp từ khách còn lại.
 
 ![Cửa sổ gọi lần lượt: thông tin khách và Bước 1 gọi hoặc nhắn](/huong-dan/img/crm-care.webp)
 
