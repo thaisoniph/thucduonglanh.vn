@@ -2435,6 +2435,8 @@ b.csx-c-ok { color: var(--primary-2); } b.csx-c-sua { color: var(--orange); } b.
 .bt-pf { background: #fff; border: 1px solid #f0d58f; border-radius: 10px; padding: 10px; margin-top: 8px; }
 .bt-pf2 { display: flex; gap: 6px; margin-bottom: 6px; flex-wrap: wrap; }
 .bt-pf2 input { flex: 1 1 130px; min-width: 0; }
+.bt-hide { display: flex; align-items: center; gap: 6px; margin-top: 10px; font-size: 14px; cursor: pointer; flex-wrap: wrap; }
+.bt-hide input { width: 18px; height: 18px; margin: 0; }
 .bt-pf textarea { width: 100%; box-sizing: border-box; margin-bottom: 6px; }
 
 /* ☀️ Lời chào + lời chúc mỗi ngày (14/11/2026) */

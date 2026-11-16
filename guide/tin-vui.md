@@ -4,11 +4,13 @@ nav: Tin vui
 group: chung
 short: Tin vui đồng đội, lời chào mỗi ngày
 order: 1.7
-updated: 2026-11-15
+updated: 2026-11-16
 description: Dòng 📣 Tin vui ở đầu CRM, nút 👏 Chúc mừng, ghi lời khen của khách, lời chào và câu động viên ở tab Hôm nay. Đọc trang này khoảng 2 phút.
 ---
 
-**Mở CRM là thấy ngay tin vui của cả nhóm.** Ai vừa chốt đơn, ai đã chăm sóc xong hết khách trong ngày, máy tự báo cho mọi người. Bạn không cần nhập gì.
+**Mở CRM là thấy ngay tin vui của cả nhóm.** Cả nhà hôm nay chốt được bao nhiêu đơn, ai vừa chạm mốc mục tiêu của mình, ai đã chăm sóc xong hết khách, máy tự báo cho mọi người. Bạn không cần nhập gì.
+
+> **Không ai biết người khác chốt mấy đơn.** Tin về đơn chỉ ghi số chung của cả nhóm, không ghi tên ai. Mỗi người chỉ được nhắc tên khi chạm mốc mục tiêu **của chính mình**.
 
 > **Mỗi ngày chỉ cần:** lướt dòng **📣 Tin vui** đầu CRM, bấm **👏 Chúc mừng** đồng đội. Khách khen thì tích ô **⭐ Đây là lời khen của khách** khi ghi chăm sóc.
 
@@ -26,12 +28,17 @@ Tin tự lên khi:
 
 | Tin | Khi nào |
 | --- | --- |
-| 🎉 *Lan vừa chốt đơn Trà DILVANG* | Có đơn mới ghi tên người bán (đơn huỷ, hoàn thì không hiện) |
+| 🎉 *Hôm nay cả nhà mình đã chốt 9 đơn, cùng cố lên nhé!* | Số đơn chung cả nhóm trong ngày, **không ghi tên ai** (sáng sớm chưa có đơn thì hiện số hôm qua) |
+| 🤝 *Cả nhóm đã đi được 62% mục tiêu tháng 11* | Cả nhóm cùng tiến về mục tiêu tháng |
+| 🌱 🔥 🏆 *Hoa đã đạt 50% / 80% / 100% mục tiêu tháng của mình* | Một bạn chạm mốc **mục tiêu riêng** của mình. Bạn mới có mục tiêu nhỏ vẫn được khen như mọi người |
 | 🏁 *Huy đã chăm sóc xong hết 12 khách hôm nay* | Một người làm xong hết danh sách chăm sóc trong ngày |
-
 | 💬 *Cô Hoa (Nghệ An): "Uống trà 2 tuần thấy ngủ ngon hơn" · cảm ơn Lan* | Bạn ghi lời khen của khách (xem cách ghi ở dưới) |
 
-> Tin **không ghi số tiền**. Ai cũng được chúc mừng như nhau, đơn to hay nhỏ đều đáng vui.
+> Tin **không ghi số tiền** và **không ghi ai chốt đơn nào**. Chưa tới mốc thì không có tin gì, nên không ai bị so.
+
+## 🙈 Không muốn hiện tên?
+
+Bấm **Xem cả … tin**, tích ô **🙈 Ẩn tên mình trên Tin vui**. Từ đó mọi tin về bạn ghi *"Một bạn trong nhóm"*: đạt mốc, xong hết khách, lời khen của khách. Chỉ bạn thấy chữ *"Bạn"*. Đồng đội vẫn bấm 👏 chúc mừng được. Muốn hiện tên lại thì bỏ tích.
 
 ## 💬 Ghi lời khen của khách
 

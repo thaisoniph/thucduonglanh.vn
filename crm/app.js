@@ -13809,7 +13809,8 @@
   /* ================================================================ ☀️ Lời chào + động viên + 📣 Bảng tin vui đồng đội (14/11/2026, api bangtin.js)
    * Tab Hôm nay: lời chào theo buổi, 1 câu động viên theo tiến độ chăm sóc, xong hết khách thì pháo giấy (1 lần/ngày) và tự báo Bảng tin.
    * Bảng tin: 1 dòng nằm yên ở đầu màn hình đầu tiên của mọi người, 7 giây đổi tin (mờ dần, không chữ chạy), rê chuột / chạm thì dừng.
-   * Tin tự lấy: ai vừa chốt đơn (tên sản phẩm, KHÔNG ghi tiền), ai đã chăm sóc xong hết khách hôm nay. Nút 👏 Chúc mừng. */
+   * Tin tự lấy (16/11/2026 Phương án A): số đơn chung cả nhóm (không tên), % mục tiêu tháng cả nhóm, ai đạt mốc 50/80/100% mục tiêu riêng,
+   * ai đã chăm sóc xong hết khách hôm nay, lời khen khách. Nút 👏 Chúc mừng. 🙈 Ẩn tên mình (bt_hide) → người khác thấy "Một bạn trong nhóm". */
   /* ☀️ Lời chào + lời chúc mỗi ngày (14/11/2026, anh Sơn): trên cùng màn hình đầu tiên của MỌI vai trò. Câu chúc do máy chủ chọn (api loichuc.js, gửi kèm vh_today),
    * cả công ty cùng 1 câu / ngày, ngày lễ có câu riêng. Máy chủ cũ / chưa tải xong → chỉ hiện lời chào. Quản trị sửa câu ở Cài đặt → 👥 Nhân sự → 🌿 Văn hoá. */
   function hiwText() { var w = S.vh && S.vh.day === vhDay() && S.vh.wish; return w && w.t ? w.t : ''; }
@@ -13882,7 +13883,8 @@
         return '<div class="bt-it"><p>' + x.ic + ' ' + esc(btMe(x)) + ' <small>· ' + btAgo(x.at) + '</small>' +
           (x.me && x.by && x.by.length ? '<br><small class="bt-by">👏 ' + esc(x.by.join(', ')) + ' đã chúc mừng bạn</small>' : '') + (x.pr && x.del ? ' <button class="bt-pdel" data-bt="pdel" data-id="' + x.id + '">Ẩn</button>' : '') + '</p>' + btClapBtn(x) + '</div>';
       }).join('') + (S.btPf ? btPfHtml() : '<button class="bt-more bt-padd" data-bt="padd">💬 Ghi lời khen của khách</button>') +
-      '<p class="hint" style="margin:6px 0 0">Tin tự lên khi có người chốt đơn, chăm sóc xong hết khách trong ngày, hoặc ghi lời khen của khách (tích ⭐ khi ghi chăm sóc). Không ghi số tiền.</p></section>';
+      '<label class="bt-hide"><input type="checkbox" data-bt="hide"' + (S.bt.hide ? ' checked' : '') + '> 🙈 Ẩn tên mình trên Tin vui <small class="muted">(mọi người sẽ thấy "Một bạn trong nhóm")</small></label>' +
+      '<p class="hint" style="margin:6px 0 0">Tin tự lên: số đơn chung cả nhóm (không ghi tên ai), khi một bạn đạt 50%, 80%, 100% mục tiêu tháng của mình, chăm sóc xong hết khách trong ngày, hoặc được khách khen. Không ghi số tiền, không ai biết người khác chốt mấy đơn.</p></section>';
     return '<div class="bt-line"><span class="bt-txt" id="btTxt"><b class="bt-lb">📣 Tin vui</b> ' + i.ic + ' ' + esc(btMe(i)) + ' <small>· ' + btAgo(i.at) + '</small></span>' +
       '<span class="bt-acts" id="btAct">' + btClapBtn(i) + '<button class="bt-more" data-bt="open">' + (L.length > 1 ? 'Xem cả ' + L.length + ' tin' : 'Xem thêm') + '</button>' + '</span></div>';
   }
@@ -13917,10 +13919,14 @@
           b.disabled = true;
           return api(k === 'psave' ? 'bt_praise' : 'bt_pdel', pp).then(function (j) { S.bt = j.bt; S.btPf = 0; btPaint(); toast(k === 'pdel' ? 'Đã ẩn lời khen' : '⭐ Đã lưu lời khen, cả công ty thấy ở 📣 Tin vui'); }, function (e) { b.disabled = false; toast(e.message, true); });
         }
+        if (k === 'hide') {
+          b.disabled = true;
+          return api('bt_hide', { on: b.checked ? 1 : 0 }).then(function (j) { if (j && j.bt) { S.bt = j.bt; btPaint(); } toast(b.checked ? '🙈 Đã ẩn tên bạn. Mọi người thấy "Một bạn trong nhóm"' : 'Tên bạn hiện lại trên Tin vui'); }, function (e) { b.disabled = false; b.checked = !b.checked; toast(e.message, true); });
+        }
         if (k === 'clap') {
           var key = b.getAttribute('data-k'), it = S.bt.items.filter(function (x) { return x.k === key; })[0];
           b.disabled = true;
-          api('bt_clap', { k: key, who: it ? it.who : '' }).then(function (j) { if (j && j.bt) { S.bt = j.bt; S.btI = Math.max(0, S.bt.items.map(function (x) { return x.k; }).indexOf(key)); btPaint(); } toast('👏 Đã gửi lời chúc mừng' + (it ? ' tới ' + it.who : '')); }, function (e) { b.disabled = false; toast(e.message, true); });
+          api('bt_clap', { k: key, who: it ? it.who : '' }).then(function (j) { if (j && j.bt) { S.bt = j.bt; S.btI = Math.max(0, S.bt.items.map(function (x) { return x.k; }).indexOf(key)); btPaint(); } toast('👏 Đã gửi lời chúc mừng' + (it && it.who ? ' tới ' + it.who : '')); }, function (e) { b.disabled = false; toast(e.message, true); });
         }
       };
     });
