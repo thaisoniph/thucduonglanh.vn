@@ -60,6 +60,30 @@
   ],
   "proofs": [
     {
+      "title": "Bản tự công bố sản phẩm",
+      "org": "Công ty TNHH Hương Sắc Vegan",
+      "number": "02/2026/HS-VEGAN",
+      "date": "28/09/2026",
+      "scope": "Ruốc chay rong biển trộn cơm – thành phần: rong biển, sườn non chay, mè (vừng), lá chanh, dầu thực vật, gia vị thuần chay. Hạn dùng 4 tháng kể từ ngày sản xuất",
+      "file": "/assets/uploads/ho-so/ruoc-ban-tu-cong-bo-02-2026.webp"
+    },
+    {
+      "title": "Phiếu kết quả kiểm nghiệm (dinh dưỡng, kim loại nặng, độc tố)",
+      "org": "Công ty CP Techlab Global (VILAS 217)",
+      "number": "TL260908025(a)",
+      "date": "21/09/2026",
+      "scope": "Trong 100g: 562 kcal, đạm 36,6g, béo 39,7g, carbohydrat 14,6g, natri 1.553mg. Không phát hiện Aflatoxin B1, Aflatoxin tổng; chì 0,090 và cadimi 0,032 mg/kg",
+      "file": "/assets/uploads/ho-so/ruoc-techlab-hoa-ly.webp"
+    },
+    {
+      "title": "Phiếu kết quả kiểm nghiệm vi sinh",
+      "org": "Công ty CP Techlab Global (VILAS 217)",
+      "number": "TL260908025(a)",
+      "date": "21/09/2026",
+      "scope": "Không phát hiện Salmonella; Coliforms, E. coli, nấm men – mốc, Bacillus cereus, Staphylococcus aureus, Clostridium perfringens đều dưới 10 CFU/g",
+      "file": "/assets/uploads/ho-so/ruoc-techlab-vi-sinh.webp"
+    },
+    {
       "title": "Phiếu kết quả kiểm nghiệm",
       "org": "Trung tâm Kiểm nghiệm và Tư vấn UDKH AVATEK (ISO/IEC 17025)",
       "number": "BEG6250800186-1",
@@ -73,7 +97,7 @@
       "number": "250840.FMS.CN25",
       "date": "06/10/2025 – hiệu lực đến 05/10/2028",
       "scope": "Công ty TNHH Hương Sắc Vegan (Hải Phòng): sản xuất và kinh doanh thực phẩm chay",
-      "file": ""
+      "file": "/assets/uploads/ho-so/huong-sac-vegan-iso-22000.webp"
     }
   ],
   "needs": [
@@ -126,14 +150,14 @@
       "rows": []
     },
     {
-      "title": "Giá trị dinh dưỡng (trong 100g)",
+      "title": "Giá trị dinh dưỡng (trong 100g, theo bản tự công bố)",
       "style": "table",
       "text": "",
       "items": [],
       "rows": [
         {
           "label": "Năng lượng",
-          "value": "350–500 kcal"
+          "value": "450–650 kcal"
         },
         {
           "label": "Chất đạm",
@@ -141,19 +165,15 @@
         },
         {
           "label": "Chất béo",
-          "value": "25–35 g"
+          "value": "32–36 g"
         },
         {
-          "label": "Carbohydrate",
-          "value": "4,0–5,5 g"
-        },
-        {
-          "label": "Đường",
-          "value": "2,5–3,5 g"
+          "label": "Carbohydrat",
+          "value": "12–16 g"
         },
         {
           "label": "Natri",
-          "value": "1.200–1.800 mg"
+          "value": "1.250–1.750 mg"
         }
       ]
     },
@@ -170,7 +190,9 @@
       "text": "",
       "items": [
         "Nơi khô ráo, thoáng mát, tránh ánh nắng.",
-        "Đậy kín sau khi dùng; ngon nhất trong 7 ngày sau khi mở."
+        "Đậy kín nắp sau khi dùng; ngon nhất trong 7 ngày sau khi mở.",
+        "Bỏ gói hút ẩm khi dùng, để xa tầm tay trẻ nhỏ.",
+        "Hạn sử dụng: 4 tháng kể từ ngày sản xuất (xem trên bao bì)."
       ],
       "rows": []
     }
@@ -180,7 +202,7 @@
     "xi-dau-2s-do-den-nguu-bang"
   ],
   "disclaimer": "",
-  "manufacturer": "",
+  "manufacturer": "Công ty TNHH Hương Sắc Vegan (Mao Điền, Hải Phòng)",
   "faq": [
     {
       "q": "Ruốc rong biển vị sườn non có phải đồ chay không?",
@@ -192,7 +214,7 @@
     },
     {
       "q": "Trẻ em ăn được không? Ruốc có mặn không?",
-      "a": "Ruốc phù hợp cả gia đình, gồm học sinh, người lớn tuổi và người ăn chay. Hàm lượng natri 1.200–1.800mg trong 100g, nên dùng lượng vừa phải như một món ăn kèm."
+      "a": "Ruốc phù hợp cả gia đình, gồm học sinh, người lớn tuổi và người ăn chay. Hàm lượng natri 1.250–1.750mg trong 100g, nên dùng lượng vừa phải như một món ăn kèm."
     },
     {
       "q": "Có những loại hũ nào?",

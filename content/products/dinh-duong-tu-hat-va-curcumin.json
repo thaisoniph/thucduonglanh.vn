@@ -52,6 +52,7 @@
   "pitch": "15 loại hạt + Curcumin Viện Hóa học, ngọt dịu cỏ ngọt",
   "badges": [
     "Kiểm nghiệm tại QUATEST 3 (11/2025)",
+    "QUATEST 3 đo trên thành phẩm: 619mg curcumin trong 100g (05/2026)",
     "Không phát hiện kim loại nặng, Aflatoxin",
     "Curcuminoid Viện Hóa học – NIFC đo 95,6%",
     "Nhà máy đạt ISO 22000:2018 và GMP",
@@ -60,6 +61,30 @@
   "test_cert_img": "",
   "label_imgs": [],
   "proofs": [
+    {
+      "title": "Bản tự công bố sản phẩm",
+      "org": "Công ty CP Dinh dưỡng Xanh Vitanuts",
+      "number": "01/VITANUTS/2026",
+      "date": "",
+      "scope": "Dinh dưỡng từ hạt và Curcumin – thành phần, quy cách, hạn dùng 24 tháng",
+      "file": "/assets/uploads/ho-so/curcumin-ban-tu-cong-bo-2026.webp"
+    },
+    {
+      "title": "Phiếu kết quả thử nghiệm thành phẩm (lô 2026)",
+      "org": "Trung tâm Kỹ thuật Tiêu chuẩn Đo lường Chất lượng 3 (QUATEST 3)",
+      "number": "Q326A051264",
+      "date": "18/05/2026",
+      "scope": "Mẫu NSX 17/04/2026. Trong 100g: curcumin 619mg, 459 kcal, đạm 14,9g, chất béo 17,9g, carbohydrat 59,6g, natri 263mg",
+      "file": "/assets/uploads/ho-so/curcumin-quatest3-2026-trang-2.webp"
+    },
+    {
+      "title": "Phiếu thử nghiệm QUATEST 3 lô 2026 (trang thông tin mẫu)",
+      "org": "QUATEST 3",
+      "number": "Q326A051264",
+      "date": "18/05/2026",
+      "scope": "",
+      "file": "/assets/uploads/ho-so/curcumin-quatest3-2026-trang-1.webp"
+    },
     {
       "title": "Phiếu kết quả thử nghiệm thành phẩm",
       "org": "Trung tâm Kỹ thuật Tiêu chuẩn Đo lường Chất lượng 3 (QUATEST 3)",
@@ -222,7 +247,7 @@
     "bua-an-dinh-duong-vitagreen"
   ],
   "disclaimer": "Sản phẩm này không phải là thuốc và không có tác dụng thay thế thuốc chữa bệnh.",
-  "manufacturer": "",
+  "manufacturer": "Công ty Cổ phần Dinh dưỡng Xanh Vitanuts",
   "faq": [
     {
       "q": "Dinh Dưỡng Từ Hạt và Curcumin là gì?",

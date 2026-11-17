@@ -54,6 +54,38 @@
   "label_imgs": [],
   "proofs": [
     {
+      "title": "Bản tự công bố sản phẩm",
+      "org": "HTX Bảo tồn và Phát triển Dược liệu Sóc Sơn",
+      "number": "01/HTX BT&PT DLSS/2023",
+      "date": "09/11/2023 – Phòng Kinh tế huyện Sóc Sơn tiếp nhận 22/11/2023",
+      "scope": "Xì dầu 2S (Đỗ đen – Ngưu bàng): nước, đỗ đen (200g/l), ngưu bàng (60g/l), muối, đường thốt nốt, trà hoa vàng. Hạn dùng 12 tháng. Cơ sở đủ điều kiện ATTP số 22/2023/NNPTNT-HAN",
+      "file": "/assets/uploads/ho-so/xi-dau-ban-tu-cong-bo-2023.webp"
+    },
+    {
+      "title": "Phiếu kết quả kiểm nghiệm thành phẩm",
+      "org": "Viện Kiểm nghiệm ATVSTP Quốc gia (NIFC) – Bộ Y tế",
+      "number": "41424/PKN-VKNQG",
+      "date": "05/06/2026",
+      "scope": "Mẫu lô 11/05/2026: không phát hiện 3-MCPD, Aflatoxin B1 và tổng, Arsen, Cadmi, Thủy ngân; Salmonella âm tính; vi sinh dưới 1 CFU/mL. Trong 100ml: 40,7 kcal, đạm 2,3g",
+      "file": "/assets/uploads/ho-so/xi-dau-nifc-41424-trang-1.webp"
+    },
+    {
+      "title": "Phiếu kiểm nghiệm thành phẩm (trang 2)",
+      "org": "NIFC – Bộ Y tế",
+      "number": "41424/PKN-VKNQG",
+      "date": "05/06/2026",
+      "scope": "",
+      "file": "/assets/uploads/ho-so/xi-dau-nifc-41424-trang-2.webp"
+    },
+    {
+      "title": "Cơ sở sản xuất đạt HACCP (TCVN 5603:2023)",
+      "org": "NHONHO Technology Company Limited",
+      "number": "30/CN-TĐC-HT-01-0034",
+      "date": "24/12/2024 – hiệu lực đến 23/12/2027",
+      "scope": "HTX Bảo tồn và Phát triển Dược liệu Sóc Sơn: sản xuất xì dầu",
+      "file": "/assets/uploads/ho-so/xi-dau-haccp.webp"
+    },
+    {
       "title": "Phiếu kiểm nghiệm nguyên liệu hạt đỗ đen và củ ngưu bàng",
       "org": "Viện Kiểm nghiệm ATVSTP Quốc gia (NIFC) – Bộ Y tế",
       "number": "75771/PKN-VKNQG (đỗ đen) · 24577/PKN-VKNQG (ngưu bàng)",

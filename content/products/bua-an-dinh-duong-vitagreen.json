@@ -70,6 +70,14 @@
   "label_imgs": [],
   "proofs": [
     {
+      "title": "Bản tự công bố sản phẩm",
+      "org": "Công ty TNHH Tập đoàn VitaGreen",
+      "number": "01/VITAGREEN/2025",
+      "date": "01/10/2025",
+      "scope": "Thực phẩm bổ sung Bữa Ăn Dinh Dưỡng VitaGreen, sản xuất tại Công ty CP Dinh dưỡng Xanh Vitanuts theo TCCS/012/VITANUTS/2025. Hạn dùng 24 tháng",
+      "file": "/assets/uploads/ho-so/bua-an-ban-tu-cong-bo-2025.webp"
+    },
+    {
       "title": "Phiếu kiểm nghiệm an toàn (vi sinh, độc tố, kim loại nặng)",
       "org": "Viện Kiểm nghiệm ATVSTP Quốc gia (NIFC) – Bộ Y tế",
       "number": "58635/PKN-VKNQG",
@@ -84,6 +92,22 @@
       "date": "26/06/2025",
       "scope": "Trong 100g: 436 kcal, đạm 11,2g, chất xơ 2,79g (FOS 1,20g), natri 171mg",
       "file": "/assets/uploads/ho-so/bua-an-nifc-33332-dinh-duong.webp"
+    },
+    {
+      "title": "Phiếu kết quả thử nghiệm dinh dưỡng (lô 2026)",
+      "org": "Trung tâm Kỹ thuật Tiêu chuẩn Đo lường Chất lượng 3 (QUATEST 3)",
+      "number": "Q326A047510",
+      "date": "08/05/2026",
+      "scope": "Mẫu NSX 11/04/2026. Trong 100g: 431 kcal, đạm 16,1g, chất béo 13,5g, carbohydrat 61,2g, natri 161mg",
+      "file": "/assets/uploads/ho-so/bua-an-quatest3-2026-trang-2.webp"
+    },
+    {
+      "title": "Phiếu thử nghiệm QUATEST 3 (trang thông tin mẫu)",
+      "org": "QUATEST 3",
+      "number": "Q326A047510",
+      "date": "08/05/2026",
+      "scope": "",
+      "file": "/assets/uploads/ho-so/bua-an-quatest3-2026-trang-1.webp"
     },
     {
       "title": "Nhà máy đạt ISO 22000:2018 (quản lý an toàn thực phẩm)",
