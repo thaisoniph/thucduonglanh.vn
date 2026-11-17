@@ -15863,7 +15863,7 @@
         '<p><button class="btn" data-zs="re">🔄 Tải lại</button></p></div></div>';
     }
     // 👁 công tắc xem nội dung (Quản trị, 18/11/2026): tắt = như Quản lý; bật = xem tin nhắn, tự tắt sau 24 giờ. Sale thấy trạng thái này.
-    if (D.admin) h += '<label class="zs-read' + (D.read ? ' on' : '') + '"><input type="checkbox" id="zsRead"' + (D.read ? ' checked' : '') + '><span><b>👁 Xem nội dung tin nhắn</b>' +
+    if (D.admin && D.canRead) h += '<label class="zs-read' + (D.read ? ' on' : '') + '"><input type="checkbox" id="zsRead"' + (D.read ? ' checked' : '') + '><span><b>👁 Xem nội dung tin nhắn</b>' +
       (D.read ? ' – đang bật, tự tắt lúc <b>' + esc(fDateTime(D.readUntil)) + '</b>. Bỏ tích để tắt ngay.' : ' – đang tắt. Tích khi cần (khách khiếu nại, tìm câu trả lời hay), tự tắt sau 24 giờ.') +
       '<small>Chị em sale thấy trên màn hình của mình lúc nào đang bật / tắt.</small></span></label>';
     if (D.admin) h += '<div class="zs-top"><button class="btn pri" data-zs="add">➕ Kết nối Zalo của 1 sale</button>' +
@@ -15953,7 +15953,7 @@
   /** 🔒 / 👁 dòng trạng thái cho sale: hiện có ai khác đang được xem nội dung tin nhắn không (công tắc của Quản trị, 18/11/2026). */
   function zsReadLine(D) {
     return D.read ? '<span class="zs-rl on">👁 Quản trị đang mở xem nội dung để hỗ trợ khách, tự tắt lúc ' + esc(fDateTime(D.readUntil)) + '.</span>'
-      : '<span class="zs-rl">🔒 Hiện không ai khác đọc tin nhắn của bạn. Quản lý chỉ thấy con số.</span>';
+      : '<span class="zs-rl">🔒 Không ai khác đọc tin nhắn của bạn, kể cả Quản lý và Quản trị. Mọi người chỉ thấy con số.</span>';
   }
   /** 📲 Thẻ mời sale tự nối Zalo (17/11/2026 anh Sơn: chị em chủ động, yên tâm). Nói rõ được gì + an tâm gì + ô đồng ý. "Để sau" ẩn 7 ngày. */
   function zsJoinCard(D) {
@@ -15963,7 +15963,7 @@
       '<div class="zs-actrow"><button type="button" class="btn pri" data-zsj="qr">📲 Hiện mã QR</button><button type="button" class="btn" data-zsj="off">Huỷ</button></div></section>';
     return '<section class="section zs-mine zs-join"><div class="section-h"><h2>📲 Nối Zalo của bạn với CRM</h2><span class="tip">1 lần, mất 1 phút</span></div>' +
       '<div class="zs-jg"><div><h3>Bạn được gì</h3><ul><li>⏰ CRM <b>nhắc khi khách nhắn mà bạn chưa trả lời</b>, không bỏ sót khách nào</li><li>🛒 Khách hỏi giá, hỏi ship → hiện ngay để <b>lên đơn 1 chạm</b></li><li>✨ <b>Gợi ý câu trả lời và cách chăm sóc</b> từng khách, dựa trên khách đã mua gì</li><li>📇 Tin Zalo <b>tự vào hồ sơ khách</b>, không cần chép lại</li></ul></div>' +
-      '<div><h3>Bạn yên tâm</h3><ul><li>CRM <b>chỉ đọc</b>, không bao giờ gửi tin thay bạn. Bạn vẫn dùng Zalo như cũ</li><li>Chỉ lưu tin chữ nhắn riêng với khách. Không lưu nhóm, ảnh, cuộc gọi</li><li>Người thân, bạn bè: bấm 🔒 là xoá hẳn</li><li>Quản lý chỉ thấy con số. <b>Nội dung tin nhắn chỉ bạn xem</b>. Quản trị chỉ mở khi cần hỗ trợ khách (khiếu nại), tự tắt sau 24 giờ, và bạn thấy ngay trên màn hình này</li><li><b>Bạn tự ngắt được</b> bất cứ lúc nào</li></ul></div></div>' +
+      '<div><h3>Bạn yên tâm</h3><ul><li>CRM <b>chỉ đọc</b>, không bao giờ gửi tin thay bạn. Bạn vẫn dùng Zalo như cũ</li><li>Chỉ lưu tin chữ nhắn riêng với khách. Không lưu nhóm, ảnh, cuộc gọi</li><li>Người thân, bạn bè: bấm 🔒 là xoá hẳn</li><li><b>Nội dung tin nhắn chỉ bạn xem.</b> Quản lý và Quản trị chỉ thấy con số (bao nhiêu khách nhắn, trả lời sau bao lâu)</li><li><b>Bạn tự ngắt được</b> bất cứ lúc nào</li></ul></div></div>' +
       '<label class="zs-agree"><input type="checkbox" id="zsAgree"' + (D.agreed ? ' checked' : '') + '> Tôi đồng ý cho CRM lưu tin nhắn công việc trên Zalo công ty cấp để chăm sóc khách (tự xoá sau 12 tháng).</label>' +
       '<div class="zs-actrow"><button type="button" class="btn pri" data-zsj="go">📲 Nối Zalo của tôi</button><button type="button" class="btn" data-zsj="later">Để sau</button></div>' +
       '<p class="zs-mfoot">Nên mở CRM trên <b>máy tính</b> để hiện mã, rồi quét bằng Zalo trên điện thoại. <a href="/huong-dan/zalo-sale/" target="_blank" rel="noopener">Xem hướng dẫn</a></p></section>';

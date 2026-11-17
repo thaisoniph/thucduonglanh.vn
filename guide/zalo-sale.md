@@ -20,9 +20,9 @@ roles: [sale, ql]
 | **Bạn sale** | Zalo **của chính mình**: khách đang chờ, khách muốn mua, lịch sử tin nhắn trong hồ sơ khách |
 | **Quản lý, Quản trị** | **Chỉ con số** (bao nhiêu khách nhắn, trả lời sau bao lâu) + **gợi ý để hỗ trợ** bạn. **Không** thấy nội dung tin nhắn |
 
-- **Nội dung tin nhắn chỉ bạn xem.** Tin nhắn được lưu để CRM nhắc khách chờ, gợi ý cách trả lời và đưa lịch sử vào hồ sơ khách.
-- Chỉ khi cần hỗ trợ khách (ví dụ khách khiếu nại), Quản trị mới bật xem nội dung. Công tắc **tự tắt sau 24 giờ**.
-- Cuối mục **💬 Zalo của tôi** luôn có 1 dòng cho bạn biết: **🔒 Hiện không ai khác đọc tin nhắn của bạn**, hoặc **👁 Quản trị đang mở xem…, tự tắt lúc …**.
+- **Nội dung tin nhắn chỉ bạn xem.** Không ai khác đọc, kể cả Quản lý và Quản trị.
+- Tin nhắn được lưu chỉ để CRM **hỗ trợ bạn**: nhắc khách chờ, gợi ý cách trả lời, đưa lịch sử vào hồ sơ khách.
+- Cuối mục **💬 Zalo của tôi** luôn có dòng **🔒 Không ai khác đọc tin nhắn của bạn** để bạn yên tâm.
 
 Không ai thấy Zalo của bạn khác. CRM **chỉ đọc**, **không bao giờ gửi tin thay bạn**. Bạn vẫn dùng Zalo trên điện thoại và máy tính như cũ.
 

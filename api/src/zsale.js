@@ -28,7 +28,9 @@ import { telegramUser, crmUsers } from './crm.js';
 
 const CFG0 = { on: true, replyMins: 30, readUntil: 0 };
 const READ_MS = 24 * 3600e3; // 👁 Quản trị bật xem nội dung → tự tắt sau 24 giờ (18/11/2026 anh Sơn: chỉ bật khi cần, chị em yên tâm)
-const readOn = cfg => Number(cfg.readUntil || 0) > Date.now();
+// 18/11/2026 anh Sơn: TRƯỚC MẮT không ai đọc nội dung, kể cả Quản trị (chị em yên tâm hoàn toàn). Muốn mở lại công tắc 👁 thì đổi thành true.
+const READ_ALLOWED = false;
+const readOn = cfg => READ_ALLOWED && Number(cfg.readUntil || 0) > Date.now();
 const RETAIN_DAYS = 365;
 const QR_TTL = 110e3; // mã QR sống ~110 giây rồi hết hạn (chương trình tự tạo mã mới)
 const vnHour = t => { const d = new Date(t + TZ_MS); return d.getUTCHours() + d.getUTCMinutes() / 60; };
@@ -193,7 +195,7 @@ async function custNameOwner(x, phone) {
 export async function crmZsale(x, u, d, crmLog) {
   const a = d.action, now = Date.now(), admin = u.level >= 3, mySlot = slug(u.name);
   // 👁 Quản trị chỉ đọc nội dung khi đã bật công tắc (tự tắt sau 24 giờ). Tắt = Quản trị thấy như Quản lý: con số + gợi ý.
-  const full = admin && readOn(await zsCfg(x)), OFF_MSG = 'Đang tắt xem nội dung tin nhắn. Bật ở đầu tab 👀 Zalo của sale (tự tắt sau 24 giờ).';
+  const full = admin && readOn(await zsCfg(x)), OFF_MSG = READ_ALLOWED ? 'Đang tắt xem nội dung tin nhắn. Bật ở đầu tab 👀 Zalo của sale (tự tắt sau 24 giờ).' : 'Nội dung tin nhắn chỉ sale đó xem. Quản trị và Quản lý xem con số + gợi ý ở tab 👀 Zalo của sale.';
   // ----- sale: 💬 Zalo của tôi
   if (a === 'zs_mine') return zsMine(x, u);
   if (a === 'zs_thread') {
@@ -250,6 +252,7 @@ export async function crmZsale(x, u, d, crmLog) {
     const cfg = await zsCfg(x);
     if (d.on !== undefined) cfg.on = !!d.on;
     if (d.replyMins !== undefined) cfg.replyMins = Math.max(5, Math.min(240, Number(d.replyMins) || 30));
+    if (d.read !== undefined && !READ_ALLOWED) return { ok: false, error: 'Đang khoá xem nội dung tin nhắn: không ai đọc, kể cả Quản trị.' };
     if (d.read !== undefined) { // 👁 công tắc xem nội dung: bật 24 giờ / tắt ngay. Ghi nhật ký; sale thấy trạng thái trên màn hình của mình.
       cfg.readUntil = d.read ? now + READ_MS : 0; await kvSet(x.db, 'zs_cfg', JSON.stringify(cfg));
       if (crmLog) await crmLog(x, u, d.read ? 'Bật xem nội dung Zalo sale' : 'Tắt xem nội dung Zalo sale', '-', '', d.read ? 'tự tắt ' + fmtDate(cfg.readUntil, 'HH:mm dd/MM') : '', '');
@@ -314,7 +317,7 @@ async function zsView(x, u) {
   const hostAt = Number(await kvGet(x.db, 'zs_host_at')) || 0;
   const hostOn = now - hostAt < 5 * 60e3 || Object.keys(accounts).length > 0;
   const read = readOn(cfg);
-  const out = { ok: true, admin, read, readUntil: read ? cfg.readUntil : 0, hostOn, cfg: { on: cfg.on !== false, replyMins: cfg.replyMins }, sales, perSale, tips };
+  const out = { ok: true, admin, canRead: READ_ALLOWED, read, readUntil: read ? cfg.readUntil : 0, hostOn, cfg: { on: cfg.on !== false, replyMins: cfg.replyMins }, sales, perSale, tips };
   if (!admin || !read) return out; // Quản lý, và Quản trị khi tắt 👁: chỉ con số + gợi ý (17–18/11/2026)
   const waiting = [];
   for (const w of waitRows) { const who = await custNameOwner(x, w.phone); waiting.push({ sale: w.sale, saleName: saleNm[w.sale] || w.sale, uid: w.uid, phone: w.phone, name: who.name || w.zname || 'Khách', owner: who.owner || '', mins: Math.round((now - w.last_cust) / 60e3) }); }
