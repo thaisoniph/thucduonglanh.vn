@@ -1276,7 +1276,7 @@ async function crmSession(x, token) {
  * Quản trị bấm 👁 Xem như cạnh tên 1 nhân sự → mở tab riêng đúng giao diện người đó (đúng vai trò, đúng dữ liệu người đó thấy) mà không cần xin mã email.
  * Phiên xem thử: 8 tiếng, ghi ở sessions.ua = "👁 <tên Quản trị>", CHỈ XEM: mọi thao tác lưu / gửi bị chặn ở crmApi (vaOk), để không ghi nhầm dưới tên nhân sự. */
 const VA_UA = /^👁\s*/, VA_HOURS = 8;
-const VA_READ = { load: 1, race: 1, sales_all: 1, cust_orders: 1, check_phone: 1, wb_order: 1, mktv: 1, mkt: 1, san: 1, ga: 1, camp_view: 1, aiteam: 1, guide_me: 1, guide_ask_list: 1, vh_today: 1, vh_admin: 1, tb_list: 1, bt_feed: 1, gv_list: 1, pm_view: 1, merge_suggest: 1, dups: 1, kho_load: 1, kho_find: 1, kt_kho: 1, kt_bl: 1, kt_shp: 1, kt_chi: 1, kt_fetch: 1, offers: 1, link_list: 1, fb_list: 1, fb_img: 1, ai_usage: 1, mcp_list: 1, sess_list: 1, voucher_list: 1, partner_list: 1, partner_orders: 1, ref_tiers: 1, ref_find: 1, spf_list: 1, san_list: 1, san_people: 1, mkt_list: 1, mkt_kpi: 1, snh: 1, ht: 1, hr: 1, kt_luong: 1, kt_kpi: 1, kt_ncc: 1, own: 1 };
+const VA_READ = { load: 1, zs_mine: 1, race: 1, sales_all: 1, cust_orders: 1, check_phone: 1, wb_order: 1, mktv: 1, mkt: 1, san: 1, ga: 1, camp_view: 1, aiteam: 1, guide_me: 1, guide_ask_list: 1, vh_today: 1, vh_admin: 1, tb_list: 1, bt_feed: 1, gv_list: 1, pm_view: 1, merge_suggest: 1, dups: 1, kho_load: 1, kho_find: 1, kt_kho: 1, kt_bl: 1, kt_shp: 1, kt_chi: 1, kt_fetch: 1, offers: 1, link_list: 1, fb_list: 1, fb_img: 1, ai_usage: 1, mcp_list: 1, sess_list: 1, voucher_list: 1, partner_list: 1, partner_orders: 1, ref_tiers: 1, ref_find: 1, spf_list: 1, san_list: 1, san_people: 1, mkt_list: 1, mkt_kpi: 1, snh: 1, ht: 1, hr: 1, kt_luong: 1, kt_kpi: 1, kt_ncc: 1, own: 1 };
 const VA_OP = { list: 1, me: 1, st_list: 1, cv: 1, ct_doc: 1, st_doc_get: 1, proof_get: 1 }; // hr / ht / kt_luong / snh… dùng chung 1 lệnh: chỉ cho các "op" đọc
 const VA_KEYS = { type: 1, action: 1, token: 1, part: 1, since: 1, lr: 1, adV: 1, o: 1, l: 1, from: 1, to: 1, pf: 1, pt: 1, sfb: 1, fresh: 1, month: 1, q: 1, phone: 1, id: 1, all: 1, op: 1, act: 1, combos: 1, email: 1 };
 function vaOk(a, d) {
@@ -2790,7 +2790,7 @@ export async function crmApi(x, d, sync, mgr) {
   if (a === 'merge_skip') return crmMergeSkip(x, u, d);
   if (a === 'merge') return crmMerge(x, u, d);
   if (/^zb_/.test(a)) return crmZbot(x, u, d, crmLog); // 🤖 Trợ lý Zalo An Lành (Quản lý, Quản trị, Marketing)
-  if (/^zs_/.test(a)) return crmZsale(x, u, d, crmLog); // 👀 Zalo của sale (Quản lý, Quản trị): xem sale chăm khách qua Zalo
+  if (/^zs_/.test(a)) return crmZsale(x, u, d, crmLog); // 👀 Zalo của sale: Quản trị xem hết, Quản lý chỉ số + gợi ý, sale 💬 Zalo của tôi (17/11/2026)
   if (/^bl_/.test(a)) return crmBlog(x, u, d); // 📰 Trợ lý viết bài web (Quản lý, Quản trị, người bật Sửa website)
   if (/^fp_/.test(a)) return crmFp(x, u, d, crmLog); // 📘 Trợ lý Fanpage (Quản lý, Quản trị, Marketing; kết nối: Quản trị)
   if (/^spf_/.test(a)) return crmSpf(x, u, d, crmLog); // 📣 bài viết sẵn cho sale đăng Facebook cá nhân (spost.js)

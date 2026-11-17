@@ -1912,6 +1912,7 @@
     // 16/11/2026 anh Sơn: không hiện "còn 81 việc" + danh sách dài nữa. Màn chính = khung giờ đang làm + lượt 5 khách (tdsHero/tdsBatch).
     var h = tdsHero(items, q, growOn, gn);
     h += '<section class="section tds-more">' + todayGoalLine() + '<div class="td-jump"><button type="button" data-gopen="tdgoal"' + raceHeroAttr() + '>' + raceHero() + '</button>' + (growOn ? '<button type="button" data-gopen="grow">🌱 Mở rộng khách ' + gn + '/5 ›</button>' : '') + '</div></section>';
+    h += zsMineBlock(); // 💬 Zalo của tôi: khách chờ trả lời, khách muốn mua (17/11/2026)
     h += beSaleBlock(); // ⚖️ số của bạn đã đủ hoà vốn chưa (16/11/2026)
     h += khoSaleBlock(); // 📦 Kho hôm nay (16/11/2026)
     h += tdsPlan();
@@ -15827,10 +15828,14 @@
       '<span class="zs-wt"><b>' + esc(r.name) + '</b>' + (r.wait ? ' <em class="zs-badge">chờ trả lời</em>' : '') +
       '<small>' + esc(r.saleName) + (r.owner ? ' · 👤' + esc(r.owner) : '') + ' · ' + r.n + ' tin · ' + esc(when(r.last)) + '</small></span><span class="zs-chev">›</span></button>';
   }
+  var ZS_MIN = function (m) { return m == null ? '–' : m < 60 ? m + "'" : (m / 60).toFixed(1) + 'h'; };
   function viewZsale() {
     if (!ZS.d || Date.now() - ZS.at > 60e3) zsFetch();
+    var adm = lvl() >= 3;
+    // 17/11/2026 anh Sơn (sau góp ý chị Thủy): Quản trị xem hết để đánh giá chất lượng; Quản lý chỉ con số + gợi ý hỗ trợ; sale xem Zalo của mình ở Hôm nay.
     var h = '<div class="zs-wrap"><div class="page-head"><h1>👀 Zalo của sale</h1></div>' +
-      '<p class="zs-intro">Xem sale đang nhắn Zalo chăm khách thế nào, mà sale <b>vẫn dùng Zalo như cũ</b> (điện thoại + máy tính). Một chương trình đọc tin nhắn riêng của sale với khách rồi đưa về đây. <b>Chỉ đọc, không gửi thay.</b> Chỉ Quản lý và Quản trị thấy mục này.</p>';
+      '<p class="zs-intro">' + (adm ? 'Quản trị xem được <b>cả nội dung</b> để đánh giá chất lượng chăm sóc. <b>Quản lý</b> chỉ thấy con số + gợi ý hỗ trợ. <b>Sale</b> thấy Zalo của chính mình ở tab Hôm nay → 💬 Zalo của tôi (nhắc khách chờ, khách muốn mua, lịch sử vào hồ sơ khách).'
+        : 'Con số Zalo của từng bạn sale + <b>gợi ý để hỗ trợ</b> các bạn. Nội dung tin nhắn là của sale với khách nên không hiện ở đây. Sale được CRM nhắc riêng khi có khách chờ.') + '</p>';
     if (ZS.err && !ZS.d) return h + '<div class="box"><p class="err">' + esc(ZS.err) + '</p><button class="btn" data-zs="re">🔄 Thử lại</button></div></div>';
     if (!ZS.d) return h + '<div class="box">Đang tải…</div></div>';
     var D = ZS.d;
@@ -15839,50 +15844,108 @@
       return h + '<div class="box zs-empty"><p><b>Chưa bật tính năng này.</b> Cần cài <b>1 lần</b> chương trình giữ Zalo lên máy chủ (người kỹ thuật, 1 lệnh):</p>' +
         '<p class="zs-cmd"><code>bash zalo-bot/cai-zalo-sale.sh tdl-vps</code></p>' +
         '<p class="small muted">Cài xong, quay lại đây bấm <b>➕ Kết nối</b> cho từng sale – mã QR hiện ngay trong trang này, không cần làm gì trên máy chủ nữa.</p>' +
-        '<p class="small muted">Trước khi bật: ghi nội quy + cho sale ký đồng ý lưu hội thoại công việc để kiểm tra chất lượng (Luật 91/2025). Chi tiết: <a href="/huong-dan/zalo-sale/" target="_blank" rel="noopener">hướng dẫn Zalo của sale</a>.</p>' +
+        '<p class="small muted">Trước khi bật: ghi nội quy + cho sale ký đồng ý lưu hội thoại công việc (Luật 91/2025). Chi tiết: <a href="/huong-dan/zalo-sale/" target="_blank" rel="noopener">hướng dẫn Zalo của sale</a>.</p>' +
         '<p><button class="btn" data-zs="re">🔄 Tải lại</button></p></div></div>';
     }
-    // nút kết nối sale (Quản trị)
     if (D.admin) h += '<div class="zs-top"><button class="btn pri" data-zs="add">➕ Kết nối Zalo của 1 sale</button>' +
-      '<span class="small muted">Chạy thử 1 sale trong 1–2 tuần trước khi mở rộng.</span></div>';
+      '<span class="small muted">Chỉ kết nối sale đã đồng ý (đã ký). Chạy thử 1–2 tuần trước khi mở rộng.</span></div>';
     // trạng thái từng tài khoản đã kết nối
     if (D.sales && D.sales.length) h += '<div class="zs-sales">' + D.sales.map(function (s) {
       var cls = s.online ? 'on' : s.on ? 'off' : 'wait', ic = s.online ? '🟢' : s.on ? '🔴' : '🟡';
       return '<span class="zs-sale ' + cls + '">' + ic + ' ' + esc(s.name) + (s.phone ? ' <small>' + esc(s.phone) + '</small>' : '') +
-        (s.pairing && !s.on ? ' <button type="button" class="zs-qrbtn" data-zsqr="' + esc(s.sale) + '|' + esc(s.name) + '">Hiện mã QR</button>' : '') +
+        (D.admin && s.pairing && !s.on ? ' <button type="button" class="zs-qrbtn" data-zsqr="' + esc(s.sale) + '|' + esc(s.name) + '">Hiện mã QR</button>' : '') +
         (D.admin ? '<button type="button" class="zs-x" data-zsoff="' + esc(s.sale) + '|' + esc(s.name) + '" title="Ngắt theo dõi">✕</button>' : '') + '</span>';
     }).join('') + '</div>';
-    if (D.sales && D.sales.some(function (s) { return s.on && !s.online; })) h += '<p class="zs-warn">🔴 = đang mất kết nối (máy chủ tắt / mất mạng / Zalo bắt đăng nhập lại). 🟡 = chờ sale quét mã QR. Tin trong lúc mất kết nối chưa được lưu.</p>';
-    // khách đang chờ trả lời
+    if (D.sales && D.sales.some(function (s) { return s.on && !s.online; })) h += '<p class="zs-warn">🔴 = đang mất kết nối (Zalo bắt đăng nhập lại / máy chủ mất mạng). 🟡 = chờ sale quét mã QR.</p>';
+    // 💡 gợi ý hỗ trợ (cả Quản lý và Quản trị)
+    if (D.tips && D.tips.length) h += '<section class="zs-sec"><h2>💡 Gợi ý hỗ trợ chị em</h2><div class="zs-tips">' + D.tips.map(function (t) { return '<p class="zs-tip zs-tip-' + t.k + '">' + esc(t.t) + '</p>'; }).join('') + '</div></section>';
+    // khách đang chờ trả lời (chỉ Quản trị thấy tên khách)
     if (D.waiting && D.waiting.length) h += '<section class="zs-sec"><h2>💬 Khách đang chờ trả lời (' + D.waiting.length + ')</h2><div class="zs-list">' + D.waiting.map(zsWaitRow).join('') + '</div></section>';
-    // thống kê hôm nay từng sale
-    h += '<section class="zs-sec"><h2>📊 Hôm nay từng sale</h2><div class="zs-cards">' + D.perSale.map(function (p) {
-      return '<article class="zs-card"><header>' + (p.online ? '🟢' : p.on ? '🔴' : '🟡') + ' <b>' + esc(p.name) + '</b></header>' +
-        '<div class="zs-nums"><div><b>' + p.threads + '</b><small>khách nhắn</small></div><div><b>' + p.reply + '</b><small>sale trả lời</small></div>' +
-        '<div><b>' + (p.avgMin == null ? '–' : p.avgMin < 60 ? p.avgMin + "'" : (p.avgMin / 60).toFixed(1) + 'h') + '</b><small>trả lời sau</small></div>' +
-        '<div class="' + (p.waiting ? 'zs-bad' : '') + '"><b>' + p.waiting + '</b><small>đang chờ</small></div></div></article>';
-    }).join('') + '</div><p class="small muted">"Trả lời sau" = trung bình thời gian khách nhắn đến khi sale trả lời (hôm nay).</p></section>';
-    // cuộc trò chuyện gần đây
+    // con số từng sale: hôm nay + 7 ngày
+    h += '<section class="zs-sec"><h2>📊 Con số từng sale</h2><div class="zs-cards">' + (D.perSale || []).map(function (p) {
+      var t = p.today, w = p.week;
+      return '<article class="zs-card"><header>' + (p.online ? '🟢' : p.on ? '🔴' : '🟡') + ' <b>' + esc(p.name) + '</b> <small class="muted">· hôm nay</small></header>' +
+        '<div class="zs-nums"><div><b>' + t.threads + '</b><small>khách nhắn</small></div><div><b>' + t.reply + '</b><small>trả lời</small></div>' +
+        '<div><b>' + ZS_MIN(t.avgMin) + '</b><small>trả lời sau</small></div>' +
+        '<div class="' + (p.waiting ? 'zs-bad' : '') + '"><b>' + p.waiting + '</b><small>đang chờ</small></div></div>' +
+        '<p class="zs-wk">7 ngày: <b>' + w.threads + '</b> khách · trả lời sau <b>' + ZS_MIN(w.avgMin) + '</b>' + (w.slow ? ' · <b>' + w.slow + '</b> lần khách chờ hơn 1 giờ' : '') +
+        (D.admin && D.priv && D.priv[p.sale] ? ' · 🔒 ' + D.priv[p.sale] + ' cuộc "không phải khách"' : '') + '</p></article>';
+    }).join('') + '</div><p class="small muted">"Trả lời sau" = trung bình từ lúc khách nhắn đến lúc sale trả lời, chỉ tính tin khách nhắn trong giờ làm (8h–21h).</p></section>';
+    // cuộc trò chuyện gần đây (chỉ Quản trị)
     if (D.recent && D.recent.length) h += '<section class="zs-sec"><h2>🕐 Trò chuyện gần đây</h2><div class="zs-list">' + D.recent.map(zsThreadRow).join('') + '</div></section>';
-    // cài đặt (Quản trị)
     if (D.admin) h += '<details class="zs-sec zs-cfg"><summary>⚙️ Cài đặt</summary><div class="box">' +
-      '<label class="zs-ck"><input type="checkbox" id="zsOn"' + (D.cfg.on ? ' checked' : '') + '> Bật theo dõi Zalo của sale</label>' +
-      '<label class="f"><span>Nhắc Telegram khi khách chờ quá (phút)</span><input type="number" id="zsMins" min="5" max="240" value="' + (D.cfg.replyMins || 30) + '"></label>' +
+      '<label class="zs-ck"><input type="checkbox" id="zsOn"' + (D.cfg.on ? ' checked' : '') + '> Bật Zalo của sale</label>' +
+      '<label class="f"><span>Nhắc sale (Telegram riêng) khi khách chờ quá (phút)</span><input type="number" id="zsMins" min="5" max="240" value="' + (D.cfg.replyMins || 30) + '"></label>' +
       '<button class="btn pri" data-zs="save">Lưu cài đặt</button></div></details>';
     h += '<p class="zs-foot"><button class="btn" data-zs="re">🔄 Tải lại</button> <small>Cập nhật ' + esc(when(ZS.at)) + '</small></p></div>';
     return h;
   }
+  /** 💬 Mở 1 cuộc trò chuyện. Quản trị: mọi sale. Sale: chỉ Zalo của mình (máy chủ tự lọc). Dưới cùng là việc làm tiếp: hồ sơ, lên đơn, thêm khách, gắn số, 🔒. */
   function zsOpen(sale, uid, phone, title) {
-    var m = modal('💬 ' + esc(title || 'Zalo'), '<div class="zs-conv" id="zsConv">Đang tải…</div>', '', {});
+    var m = modal('💬 ' + esc(title || 'Zalo'), '<div class="zs-conv" id="zsConv">Đang tải…</div><div class="zs-acts" id="zsActs"></div>', '', {});
     api('zs_thread', { sale: sale, uid: uid, phone: phone }).then(function (j) {
       var box = $('#zsConv', m); if (!box) return;
-      if (!j.msgs || !j.msgs.length) { box.innerHTML = '<p class="muted">Chưa có tin nào được lưu.</p>'; return; }
-      var head = (j.owner ? '<p class="zs-conv-h">👤 Phụ trách: <b>' + esc(j.owner) + '</b></p>' : '');
-      box.innerHTML = head + j.msgs.map(function (x) {
+      var head = (j.owner ? '<p class="zs-conv-h">👤 Phụ trách: <b>' + esc(j.owner) + '</b>' + (j.phone ? ' · ' + esc(j.phone) : '') + '</p>' : j.phone ? '<p class="zs-conv-h">' + esc(j.phone) + '</p>' : '');
+      box.innerHTML = !j.msgs || !j.msgs.length ? '<p class="muted">Chưa có tin nào được lưu.</p>' : head + j.msgs.map(function (x) {
         return '<div class="zs-b ' + (x.self ? 'zs-me' : 'zs-cust') + '"><div class="zs-tx">' + esc(x.text).replace(/\n/g, '<br>') + '</div><time>' + (x.self ? esc(x.saleName) + ' · ' : '') + esc(when(x.ts)) + '</time></div>';
       }).join('');
       box.scrollTop = box.scrollHeight;
+      zsActs(m, j, title);
     }, function (e) { var box = $('#zsConv', m); if (box) box.innerHTML = '<p class="err">' + esc(e.message) + '</p>'; });
+  }
+  function zsActs(m, j, title) {
+    var el = $('#zsActs', m); if (!el) return;
+    var c = j.phone ? cust(j.phone) : null, a = '';
+    if (c) a += '<button type="button" class="btn" data-zsa="prof">📇 Mở hồ sơ khách</button>';
+    if (j.phone) a += '<button type="button" class="btn pri" data-zsa="buy">🛒 Lên đơn</button>';
+    if (j.phone && !j.crm) a += '<button type="button" class="btn" data-zsa="lead">➕ Thêm vào CRM</button>';
+    var h = a ? '<div class="zs-actrow">' + a + '</div>' : '';
+    if (!j.phone) h += '<div class="zs-link"><p class="small">Zalo không cho xem số của khách này. Gõ số khách để tin Zalo vào đúng hồ sơ:</p><div class="zs-actrow"><input type="tel" inputmode="tel" id="zsPh" placeholder="Số điện thoại khách"><button type="button" class="btn" data-zsa="link">📇 Gắn số khách</button></div></div>';
+    if (lvl() < 2 && !j.crm) h += '<p class="zs-privline"><button type="button" class="zs-priv" data-zsa="priv">🔒 Đây không phải khách (người thân, bạn bè)</button> <small>xoá hẳn cuộc trò chuyện này khỏi CRM, từ nay không lưu nữa</small></p>';
+    el.innerHTML = h;
+    $$('[data-zsa]', el).forEach(function (b) { b.onclick = function () {
+      var k = b.getAttribute('data-zsa');
+      if (k === 'prof') { closeModal(true); openCustomer(j.phone); }
+      if (k === 'buy') { closeModal(true); openOrderForm(c ? { phone: j.phone } : { lead: { phone: j.phone, name: j.zname || title || '' } }); }
+      if (k === 'lead') { closeModal(true); openLeadForm(null); setTimeout(function () { var f = $('#lfForm'); if (!f) return; f.phone.value = j.phone; f.name.value = j.zname || ''; f.phone.dispatchEvent(new Event('input', { bubbles: true })); var z = $('[data-lfch="Zalo"]'); if (z) z.click(); }, 50); }
+      if (k === 'link') { var ph = ($('#zsPh', m).value || '').trim(); if (!ph) { toast('Gõ số điện thoại khách', true); return; } b.disabled = true;
+        api('zs_link', { sale: j.sale, uid: j.uid, phone: ph }).then(function (r) { toast('Đã gắn số ✓' + (r.who && r.who.name ? ' – ' + r.who.name : '')); j.phone = r.phone; j.crm = !!(r.who && r.who.name); zsActs(m, j, title); ZSM.at = 0; ZS.at = 0; }, function (e) { b.disabled = false; toast(e.message, true); }); }
+      if (k === 'priv') { if (!confirm('Xoá hẳn cuộc trò chuyện này khỏi CRM và từ nay không lưu nữa?\n(Chỉ dùng cho người thân, bạn bè – không phải khách.)')) return; b.disabled = true;
+        api('zs_private', { uid: j.uid }).then(function () { toast('Đã xoá, từ nay không lưu ✓'); closeModal(true); ZSM.at = 0; zsMineFetch(); }, function (e) { b.disabled = false; toast(e.message, true); }); }
+    }; });
+  }
+  /* ================================================================ 💬 Zalo của tôi (sale, tab Hôm nay – 17/11/2026 anh Sơn)
+   * Chỉ có lợi cho sale: không bỏ quên khách nhắn, khách muốn mua → Lên đơn 1 chạm, khách mới chưa có trong CRM → thêm 1 chạm,
+   * tin Zalo tự vào hồ sơ khách (khỏi chép lại), 🔒 người thân / bạn bè thì xoá hẳn. Ẩn hoàn toàn nếu Zalo của bạn chưa kết nối. */
+  var ZSM = { d: null, at: 0, busy: 0 };
+  function zsMineFetch() {
+    if (ZSM.busy) return; ZSM.busy = 1;
+    api('zs_mine', {}).then(function (j) { ZSM.busy = 0; ZSM.d = j; ZSM.at = Date.now(); if (j.on && route().view === 'hom-nay') render(); },
+      function () { ZSM.busy = 0; ZSM.at = Date.now(); });
+  }
+  document.addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('[data-zsm]'); if (!b) return; var p = b.getAttribute('data-zsm').split('|'); zsOpen('', p[0], p[1], p[2]); });
+  function zsMineRow(r, kind) {
+    var sub = kind === 'wait' ? (r.lastText ? '“' + esc(r.lastText) + '”' : 'khách nhắn, bạn chưa trả lời') : kind === 'buy' ? '“' + esc(r.buy) + '”' : (r.n + ' tin · ' + esc(when(r.last)));
+    return '<button type="button" class="zs-th' + (kind === 'wait' ? ' zs-th-wait' : kind === 'buy' ? ' zs-th-buy' : '') + '" data-zsm="' + esc(r.uid) + '|' + esc(r.phone || '') + '|' + esc(r.name) + '">' +
+      '<span class="zs-wt"><b>' + esc(r.name) + '</b>' + (!r.crm ? ' <em class="zs-badge zs-new">chưa có trong CRM</em>' : '') + '<small>' + sub + '</small></span>' +
+      (kind === 'wait' ? '<span class="zs-min">' + (r.mins < 60 ? r.mins + ' phút' : Math.round(r.mins / 60) + ' giờ') + '</span>' : kind === 'buy' ? '<span class="zs-min zs-buy">🛒 Lên đơn</span>' : '<span class="zs-chev">›</span>') + '</button>';
+  }
+  function zsMineBlock() {
+    if (lvl() >= 2) return '';
+    if (!ZSM.d || Date.now() - ZSM.at > 60e3) zsMineFetch();
+    var D = ZSM.d; if (!D || !D.on) return '';
+    var bought = function (r) { return r.phone && S.d.orders.some(function (o) { return o.phone === r.phone && o.time >= r.buyAt - 600e3 && !isVoid(o.status); }); };
+    var wait = D.list.filter(function (r) { return r.wait; }).sort(function (a, b) { return b.mins - a.mins; }),
+      buy = D.list.filter(function (r) { return r.buy && !r.wait && !bought(r); }), rest = D.list, fresh = rest.filter(function (r) { return !r.crm; }).length, t = D.today;
+    var h = '<section class="section zs-mine"><div class="section-h"><h2>💬 Zalo của tôi</h2><span class="tip">trợ lý nhắc bạn không bỏ sót khách nhắn Zalo</span></div>';
+    if (!D.online) h += '<p class="zs-warn">Zalo của bạn tạm chưa nối với CRM. Bạn mở Zalo trên điện thoại 1 lần là được, nếu vẫn vậy thì báo anh Sơn.</p>';
+    if (wait.length) h += '<h3 class="zs-mh">⏰ Khách đang chờ bạn trả lời (' + wait.length + ')</h3><div class="zs-list">' + wait.slice(0, 8).map(function (r) { return zsMineRow(r, 'wait'); }).join('') + '</div>';
+    if (buy.length) h += '<h3 class="zs-mh">🛒 Khách nhắn muốn mua – lên đơn ngay (' + buy.length + ')</h3><div class="zs-list">' + buy.slice(0, 6).map(function (r) { return zsMineRow(r, 'buy'); }).join('') + '</div>';
+    if (!wait.length && !buy.length) h += '<p class="zs-allok">✅ Bạn đã trả lời hết khách nhắn Zalo. Tuyệt vời!</p>';
+    if (t.threads) h += '<p class="zs-mest">🏅 Hôm nay bạn đã chăm <b>' + t.threads + '</b> khách qua Zalo' + (t.avgMin != null ? ' · trả lời trung bình sau <b>' + ZS_MIN(t.avgMin) + '</b>' + (t.avgMin <= 10 ? ' – rất nhanh 👏' : '') : '') + '</p>';
+    if (rest.length) h += '<details class="grp" data-grp="zsall"' + (S.f.gopen && S.f.gopen.zsall ? ' open' : '') + '><summary><span class="g-t">📜 Trò chuyện Zalo 30 ngày</span><span class="count">' + rest.length + '</span><span class="g-tip">' + (fresh ? fresh + ' khách chưa có trong CRM – mở ra bấm ➕ Thêm' : 'bấm để đọc lại') + '</span></summary><div class="zs-list" style="padding:10px 12px">' + rest.slice(0, 40).map(function (r) { return zsMineRow(r, ''); }).join('') + '</div></details>';
+    h += '<p class="zs-mfoot">Tin Zalo với khách tự lưu vào <b>hồ sơ khách</b>, bạn không cần chép lại. Người thân, bạn bè: mở cuộc trò chuyện → <b>🔒 Không phải khách</b> là xoá hẳn. Nội dung chỉ bạn và Quản trị (khi cần hỗ trợ khách) xem được, Quản lý chỉ thấy con số.</p></section>';
+    return h;
   }
   function bindZsale() {
     $$('[data-zs="re"]').forEach(function (b) { b.onclick = function () { ZS.at = 0; zsFetch(); }; });
@@ -15924,14 +15987,14 @@
     }
   }
   /** 💬 Khối Zalo trong hồ sơ khách: chỉ Quản lý/Quản trị, tải tin khi mở ra (không tải sẵn cho nhẹ). */
-  function zsCustBox(c) { return lvl() >= 2 ? '<details class="p-edit zs-cbox" id="zsCustBox"><summary>💬 Zalo của sale với khách này</summary><div class="zs-conv" id="zsCustBody" style="margin:8px 0 0">Bấm để xem…</div></details>' : ''; }
+  function zsCustBox(c) { return lvl() >= 3 || (lvl() < 2 && ZSM.d && ZSM.d.on) ? '<details class="p-edit zs-cbox" id="zsCustBox"><summary>💬 Zalo của sale với khách này</summary><div class="zs-conv" id="zsCustBody" style="margin:8px 0 0">Bấm để xem…</div></details>' : ''; }
   function zsCustBind(m, c) {
     var dt = $('#zsCustBox', m); if (!dt) return;
     dt.addEventListener('toggle', function () {
       if (!dt.open || dt.getAttribute('data-done')) return; dt.setAttribute('data-done', '1');
       var bd = $('#zsCustBody', m); bd.textContent = 'Đang tải…';
       api('zs_thread', { phone: c.phone }).then(function (j) {
-        if (!j.msgs || !j.msgs.length) { bd.innerHTML = '<p class="muted small">Chưa có tin Zalo nào được lưu cho khách này. (Cần đã kết nối Zalo của sale phụ trách.)</p>'; return; }
+        if (!j.msgs || !j.msgs.length) { bd.innerHTML = '<p class="muted small">Chưa có tin Zalo nào được lưu cho khách này.</p>'; return; }
         bd.innerHTML = j.msgs.map(function (x) { return '<div class="zs-b ' + (x.self ? 'zs-me' : 'zs-cust') + '"><div class="zs-tx">' + esc(x.text).replace(/\n/g, '<br>') + '</div><time>' + (x.self ? esc(x.saleName) + ' · ' : '') + esc(when(x.ts)) + '</time></div>'; }).join('');
         bd.scrollTop = bd.scrollHeight;
       }, function (e) { bd.innerHTML = '<p class="err small">' + esc(e.message) + '</p>'; });

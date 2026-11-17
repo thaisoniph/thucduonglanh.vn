@@ -2,63 +2,92 @@
 title: Zalo của sale
 nav: Zalo của sale
 group: quan-ly
-short: Xem sale chăm khách qua Zalo, báo khách chờ lâu
+short: Trợ lý Zalo nhắc khách chờ, khách muốn mua
 order: 9
-updated: 2026-11-15
-description: Xem sale đang nhắn Zalo chăm sóc khách như thế nào ngay trong CRM, mà sale vẫn dùng Zalo như cũ. Dành cho Quản lý và Quản trị.
-roles: [ql]
+updated: 2026-11-17
+description: Trợ lý nhắc sale không bỏ sót khách nhắn Zalo, khách muốn mua thì lên đơn 1 chạm. Quản lý xem con số và gợi ý hỗ trợ.
+roles: [sale, ql]
 ---
 
-Trang này dành cho **Quản lý** và **Quản trị**.
+## Câu dễ nhớ
 
-## Để làm gì?
+**Khách nhắn Zalo – CRM nhắc bạn, không để khách nào phải chờ.**
 
-Mỗi sale được công ty cấp **1 số Zalo riêng** để chăm khách. Tính năng này giúp bạn **xem sale đang nhắn Zalo với khách thế nào** ngay trong CRM, để biết sale tư vấn có tốt không, có bỏ quên khách không.
+## Ai thấy gì?
 
-Quan trọng: **sale không phải đổi thói quen**. Sale vẫn dùng Zalo trên điện thoại và máy tính như cũ. Một chương trình chạy trên máy chủ công ty **chỉ đọc** tin nhắn riêng của sale với khách rồi đưa về CRM. Chương trình **không bao giờ gửi tin thay sale**.
+| Ai | Thấy gì |
+|---|---|
+| **Bạn sale** | Zalo **của chính mình**: khách đang chờ, khách muốn mua, lịch sử tin nhắn trong hồ sơ khách |
+| **Quản lý** | **Chỉ con số** (bao nhiêu khách nhắn, trả lời sau bao lâu) + **gợi ý để hỗ trợ** bạn. **Không** thấy nội dung tin nhắn |
+| **Quản trị** | Xem được nội dung khi cần hỗ trợ khách (khách khiếu nại, học câu trả lời hay để cả đội dùng) |
 
-## Bạn xem được gì
+Không ai thấy Zalo của bạn khác. CRM **chỉ đọc**, **không bao giờ gửi tin thay bạn**. Bạn vẫn dùng Zalo trên điện thoại và máy tính như cũ.
 
-Mở tab **👀 Zalo của sale** (trong **••• Thêm**):
+## Dành cho bạn sale: 💬 Zalo của tôi
 
-- **🟢 / 🔴 từng sale**: chương trình đọc đang chạy hay mất kết nối. 🔴 nghĩa là máy tắt / mất mạng / Zalo bắt đăng nhập lại — tin trong lúc đó chưa được lưu.
-- **💬 Khách đang chờ trả lời**: khách nhắn sau cùng mà sale chưa trả lời. Bấm vào để đọc cả cuộc trò chuyện.
-- **📊 Hôm nay từng sale**: mỗi sale hôm nay có bao nhiêu khách nhắn, trả lời bao nhiêu, trung bình trả lời sau bao lâu, đang để mấy khách chờ.
-- **🕐 Trò chuyện gần đây**: danh sách các cuộc gần nhất, bấm để xem.
+Mở tab **Hôm nay**, kéo xuống mục **💬 Zalo của tôi**.
 
-Trong **hồ sơ khách** (tab Khách đã mua / Khách hỏi) cũng có mục **💬 Zalo của sale với khách này**, bấm để xem toàn bộ tin Zalo của khách đó.
+### Việc 1. Trả lời khách đang chờ
 
-## Báo Telegram
+- Mục **⏰ Khách đang chờ bạn trả lời** hiện tên khách, câu khách nhắn cuối và **đã chờ bao lâu**.
+- Mở Zalo trả lời khách. Trả lời xong, khách tự biến khỏi danh sách.
+- Khách chờ quá 30 phút (trong giờ làm), CRM **nhắn riêng** cho bạn qua Telegram. Chỉ bạn nhận tên khách.
 
-Khi khách nhắn Zalo mà **quá 30 phút chưa ai trả lời** (trong giờ làm), hệ thống nhắc vào nhóm Telegram và nhắn riêng cho sale phụ trách. Đổi số phút ở **⚙️ Cài đặt** cuối tab (chỉ Quản trị).
+### Việc 2. Khách muốn mua → lên đơn ngay
 
-## Kết nối 1 sale (bấm ngay trong CRM)
+- Mục **🛒 Khách nhắn muốn mua** hiện khách vừa hỏi giá, hỏi ship, muốn đặt, gửi địa chỉ…
+- Bấm vào khách → bấm **🛒 Lên đơn**. Form lên đơn mở sẵn số của khách.
 
-Sau khi người kỹ thuật đã **cài 1 lần** (xem dưới), mọi việc bạn làm trong CRM:
+### Việc 3. Khách mới chưa có trong CRM
+
+- Bấm vào khách → **➕ Thêm vào CRM** (số và tên điền sẵn, nguồn Zalo).
+- Zalo không cho xem số của khách? Gõ số khách vào ô rồi bấm **📇 Gắn số khách**. Từ đó tin Zalo vào đúng hồ sơ khách.
+
+### Việc 4. Người thân, bạn bè
+
+- Bấm vào cuộc trò chuyện → **🔒 Đây không phải khách**.
+- CRM **xoá hẳn** cuộc trò chuyện đó và **từ nay không lưu nữa**.
+- Khách đã có trong CRM thì không xoá được (để không mất lịch sử chăm sóc).
+
+### Lợi ích cho bạn
+
+- Không bỏ quên khách nào, kể cả lúc bận gọi điện.
+- Mở **hồ sơ khách** → mục **💬 Zalo với khách này**: đọc lại khách đã hỏi gì, mình đã tư vấn gì. Không cần chép lại.
+- 🏅 Xem mình hôm nay chăm bao nhiêu khách, trả lời nhanh cỡ nào.
+
+## Dành cho Quản lý: 👀 Zalo của sale
+
+Mở **••• Thêm → 👀 Zalo của sale**:
+
+- **💡 Gợi ý hỗ trợ chị em**: CRM tự gợi ý từ con số. Ví dụ: bạn đang có nhiều khách chờ → hỏi bạn có cần người đỡ không; bạn trả lời rất nhanh → khen bạn.
+- **📊 Con số từng sale**: hôm nay và 7 ngày (số khách nhắn, số lần trả lời, trả lời sau bao lâu, đang chờ mấy khách).
+- 🟢 = Zalo đang nối với CRM · 🔴 = mất kết nối (nhắc bạn mở Zalo trên điện thoại, hoặc báo anh Sơn).
+
+Dùng con số để **hỏi han và giúp đỡ**, không dùng để phạt.
+
+Nhóm Telegram chỉ nhận **con số** ("Lương: 3 khách"), không có tên khách hay nội dung.
+
+## Dành cho Quản trị
+
+Thấy thêm: danh sách khách đang chờ, trò chuyện gần đây, bấm vào để đọc; số cuộc sale đã đánh dấu 🔒 "không phải khách".
+
+### Kết nối 1 sale (bấm ngay trong CRM)
 
 1. Tab **👀 Zalo của sale** → bấm **➕ Kết nối Zalo của 1 sale**.
-2. Chọn / gõ **tên sale** → bấm **Kết nối**. Một **mã QR** hiện ra ngay trong trang.
-3. Đưa máy cho **sale đó**: mở Zalo trên điện thoại → biểu tượng **QR** → **Quét mã** → **Đăng nhập**.
-4. Xong. Thẻ sale chuyển 🟢. Sale **vẫn dùng Zalo điện thoại bình thường**.
+2. Chọn **đúng tên sale như trong Cài đặt → Nhân sự** → bấm **Kết nối**. Mã QR hiện ra.
+3. Sale mở Zalo trên điện thoại → biểu tượng **QR** → **Quét mã** → **Đăng nhập**.
+4. Xong, thẻ sale chuyển 🟢. Ngắt: bấm **✕** cạnh tên sale.
 
-Ngắt theo dõi 1 sale: bấm dấu **✕** cạnh tên sale.
+### Trước khi kết nối 1 bạn
 
-## Lưu ý quan trọng
+- **Nói rõ với bạn trước**: mục đích, ai thấy gì (bảng trên), quyền 🔒 người thân / bạn bè.
+- **Đúng luật (Luật 91/2025)**: Zalo công ty cấp cho công việc. Ghi vào nội quy / hợp đồng và **cho bạn ký đồng ý**.
+- Chỉ lưu **tin chữ** 1–1, không lưu nhóm, ảnh, cuộc gọi. Tin tự xoá sau 12 tháng. Chỉ lưu từ lúc kết nối trở đi.
 
-- **Chạy thử trước**: đây là tính năng mới, nên thử với **1 sale** trong 1–2 tuần rồi mới mở rộng.
-- **Đúng luật (Luật 91/2025)**: Zalo này là **của công ty cấp cho công việc**. Trước khi bật, hãy **ghi vào nội quy / hợp đồng** rằng Zalo công việc được lưu lại để kiểm tra chất lượng, và **cho sale ký đồng ý**. Chỉ dùng cho việc công ty, không dùng cho việc riêng.
-- **Chỉ Quản lý và Quản trị** thấy mục này. Sale không xem Zalo của sale khác.
-- Chỉ lưu **tin chữ** của tin nhắn riêng (1–1). Không đụng nhóm Zalo. Tin tự xoá sau 12 tháng.
-- **Chỉ lấy tin từ lúc kết nối trở đi**, không lấy được tin cũ.
-
-## Cài 1 lần lên máy chủ (người kỹ thuật, 1 lệnh)
-
-Trên máy Mac (đã vào SSH được VPS như trợ lý An Lành):
+### Cài 1 lần lên máy chủ (người kỹ thuật)
 
 ```
 bash zalo-bot/cai-zalo-sale.sh tdl-vps
 ```
 
-Chỉ cần chạy 1 lần cho cả công ty. Không phải đặt khoá mới (tự dùng lại khoá của trợ lý An Lành). Xong rồi mọi việc kết nối/ngắt từng sale làm trong CRM như trên.
-
-Chi tiết kỹ thuật ở `zalo-bot/README.md` và `HUONG-DAN.md`.
+Chạy lại đúng lệnh này khi cập nhật code. Chi tiết ở `zalo-bot/README.md` và `HUONG-DAN.md` mục 6a2.

@@ -8,7 +8,7 @@ import { readFileSync, writeFileSync, existsSync, mkdirSync, unlinkSync, readdir
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const VER = '2026-11-15a';
+const VER = '2026-11-17a';
 const DIR = dirname(fileURLToPath(import.meta.url)), CREDS = join(DIR, 'creds');
 for (const l of (existsSync(join(DIR, '.env')) ? readFileSync(join(DIR, '.env'), 'utf8') : '').split('\n')) { const m = l.match(/^\s*([A-Z_]+)\s*=\s*(.*)\s*$/); if (m && !process.env[m[1]]) process.env[m[1]] = m[2]; }
 const API = process.env.API_URL || 'https://api.thucduonglanh.vn/', KEY = process.env.ZSALE_KEY || process.env.ZBOT_KEY;
@@ -40,9 +40,10 @@ function listen(sale) {
     if (PHONE.has(uid)) return PHONE.get(uid);
     if (Date.now() - lastLookup < 4000) return '';
     lastLookup = Date.now();
-    try { const r = await api.getUserInfo(uid), info = r && r.changed_profiles && r.changed_profiles[uid];
-      if (info) { const ph = String(info.phoneNumber || info.phone_number || '').replace(/^\+?84/, '0').replace(/\D/g, ''); PHONE.set(uid, ph); return ph; } }
-    catch (e) { }
+    try { // 17/11: changed_profiles có khoá dạng "<uid>_0" chứ không phải "<uid>" → trước đây không bao giờ đọc ra số (0/11 tin khớp khách)
+      const r = await api.getUserInfo(uid), cp = (r && r.changed_profiles) || {}, info = cp[uid] || cp[uid + '_0'] || Object.values(cp)[0];
+      if (info) { const ph = String(info.phoneNumber || info.phone_number || '').replace(/^\+?84/, '0').replace(/\D/g, ''); PHONE.set(uid, ph); if (!ph) log('[' + sale + '] Zalo không cho xem số của', uid, '(sale bấm 📇 Gắn số khách trong CRM)'); return ph; } }
+    catch (e) { log('[' + sale + '] đọc số lỗi', e.message); }
     return '';
   }
   const L = api.listener;

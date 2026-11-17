@@ -3551,3 +3551,28 @@ details.top-fold[open] > summary::after { transform: rotate(180deg); }
   .top-in:has(.nav-many) .top.ceo .brand, .top.ceo .top-in .brand { font-size: 17px; gap: 10px; }
 }
 @media (min-width: 860px) and (max-width: 1099px) { .top.ceo .top-in .brand { font-size: 0; gap: 0; } .top.ceo .nav a { padding: 8px 10px; } }
+
+/* 💬 Zalo của sale theo vai trò (17/11/2026): gợi ý hỗ trợ cho Quản lý, việc làm tiếp trong cuộc trò chuyện, 💬 Zalo của tôi cho sale */
+.zs-tips{display:flex;flex-direction:column;gap:6px}
+.zs-tip{margin:0;padding:9px 12px;border-radius:10px;background:#f6f7f9;border-left:4px solid #c4c4c8;font-size:13.5px;line-height:1.45}
+.zs-tip-help{background:#fff8e6;border-left-color:#ff9500}
+.zs-tip-tech{background:#eef4ff;border-left-color:#0b63c4}
+.zs-tip-good{background:#edf8f0;border-left-color:#34a853}
+.zs-wk{margin:8px 0 0;font-size:12px;color:var(--muted)}
+.zs-acts{margin-top:10px}
+.zs-actrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.zs-actrow input{flex:1;min-width:150px}
+.zs-link{margin-top:8px}
+.zs-link p{margin:0 0 6px}
+.zs-privline{margin:12px 0 0;font-size:12px;color:var(--muted)}
+.zs-priv{border:1px solid var(--line);background:#fff;border-radius:8px;padding:5px 10px;font-size:12.5px;cursor:pointer}
+.zs-mine .zs-list{margin:0 0 10px}
+.zs-mh{font-size:14px;margin:6px 0 6px}
+.zs-th-buy{border-left:4px solid #34a853}
+.zs-buy{color:#1a7f37}
+.zs-new{background:#eef4ff;color:#0b63c4}
+.zs-allok{margin:4px 0 10px;font-weight:600;color:#1a7f37}
+.zs-mest{margin:4px 0 10px;font-size:13.5px}
+.zs-mfoot{margin:10px 0 0;font-size:12px;color:var(--muted);line-height:1.5}
+.zs-th small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.zs-wt>.zs-badge{align-self:flex-start}
