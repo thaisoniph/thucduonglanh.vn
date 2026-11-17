@@ -204,6 +204,8 @@ export async function crmZsale(x, u, d, crmLog) {
   const a = d.action, now = Date.now(), admin = u.level >= 3, mySlot = slug(u.name);
   // 👁 Quản trị chỉ đọc nội dung khi đã bật công tắc (tự tắt sau 24 giờ). Tắt = Quản trị thấy như Quản lý: con số + gợi ý.
   const full = admin && readOn(await zsCfg(x)), OFF_MSG = READ_ALLOWED ? 'Đang tắt xem nội dung tin nhắn. Bật ở đầu tab 👀 Zalo của sale (tự tắt sau 24 giờ).' : 'Nội dung tin nhắn chỉ sale đó xem. Quản trị và Quản lý xem con số + gợi ý ở tab 👀 Zalo của sale.';
+  // 👁 Quản trị đang "Xem như" 1 nhân sự: KHÔNG lộ Zalo của bạn ấy (18/11/2026 – đã hứa với chị em: không ai đọc, kể cả Quản trị)
+  if (u.viewAs) { if (a === 'zs_mine') return { ok: true, on: false, can: false, va: 1 }; if (/^zs_(thread|ai|order|link|private|self|qr)$/.test(a)) return { ok: false, error: 'Zalo của nhân sự không hiện khi đang 👁 Xem như.' }; }
   // ----- sale: 💬 Zalo của tôi
   if (a === 'zs_mine') return zsMine(x, u);
   if (a === 'zs_thread') {
