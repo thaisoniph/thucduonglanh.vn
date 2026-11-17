@@ -3576,3 +3576,18 @@ details.top-fold[open] > summary::after { transform: rotate(180deg); }
 .zs-mfoot{margin:10px 0 0;font-size:12px;color:var(--muted);line-height:1.5}
 .zs-th small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .zs-wt>.zs-badge{align-self:flex-start}
+
+/* 📲 Sale tự nối Zalo + ✨ gợi ý trả lời (17/11/2026) */
+.zs-join{background:#f3f9ff;border:1px solid #d6e4ff;border-radius:16px;padding:14px}
+.zs-jg{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin:0 0 10px}
+.zs-jg h3{font-size:14px;margin:0 0 6px}
+.zs-jg ul{margin:0;padding-left:18px;line-height:1.55;font-size:13.5px}
+.zs-agree{display:flex;gap:8px;align-items:flex-start;font-size:13.5px;margin:4px 0 10px;line-height:1.45}
+.zs-agree input{margin-top:3px;flex:none}
+.zs-linkbtn{border:none;background:none;color:#0b63c4;padding:0;font:inherit;cursor:pointer;text-decoration:underline}
+.zs-ai{margin:0 0 10px}
+.zs-aibtn{width:100%;background:#f5efff;border-color:#e2d4ff;color:#5b2db8;font-weight:600}
+.zs-need,.zs-next{margin:6px 0;font-size:13.5px;line-height:1.45}
+.zs-rep{display:flex;gap:8px;align-items:flex-start;background:#fff;border:1px solid var(--line);border-radius:12px;padding:9px 10px;margin:6px 0}
+.zs-rep p{margin:0;flex:1;font-size:14px;line-height:1.45}
+.zs-rep .btn{flex:none}

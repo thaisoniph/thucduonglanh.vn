@@ -27,6 +27,16 @@ Không ai thấy Zalo của bạn khác. CRM **chỉ đọc**, **không bao gi�
 
 Mở tab **Hôm nay**, kéo xuống mục **💬 Zalo của tôi**.
 
+### Việc 0. Tự nối Zalo của bạn (1 lần, 1 phút)
+
+1. Mở CRM trên **máy tính**, tab **Hôm nay** → thẻ **📲 Nối Zalo của bạn với CRM**.
+2. Đọc **Bạn được gì** và **Bạn yên tâm**, tích ô **Tôi đồng ý…**.
+3. Bấm **📲 Nối Zalo của tôi** → mã QR hiện ra.
+4. Mở **Zalo trên điện thoại** → biểu tượng **QR** (góc trên bên phải) → quét mã → bấm **Đăng nhập**.
+5. Xong. Bạn vẫn dùng Zalo trên điện thoại và máy tính như cũ.
+
+Muốn nghỉ: cuối mục 💬 Zalo của tôi bấm **⏸ Tạm ngắt Zalo với CRM**. Nối lại lúc nào cũng được.
+
 ### Việc 1. Trả lời khách đang chờ
 
 - Mục **⏰ Khách đang chờ bạn trả lời** hiện tên khách, câu khách nhắn cuối và **đã chờ bao lâu**.
@@ -43,7 +53,16 @@ Mở tab **Hôm nay**, kéo xuống mục **💬 Zalo của tôi**.
 - Bấm vào khách → **➕ Thêm vào CRM** (số và tên điền sẵn, nguồn Zalo).
 - Zalo không cho xem số của khách? Gõ số khách vào ô rồi bấm **📇 Gắn số khách**. Từ đó tin Zalo vào đúng hồ sơ khách.
 
-### Việc 4. Người thân, bạn bè
+### Việc 4. ✨ Nhờ CRM gợi ý cách trả lời
+
+1. Bấm vào khách → bấm **✨ Gợi ý trả lời & cách chăm sóc khách này**.
+2. CRM đọc tin nhắn và hồ sơ khách (đã mua gì, lần trước chăm sóc thế nào), rồi đưa ra:
+   - 🎯 **Khách cần** gì
+   - **2 câu trả lời mẫu**, bấm **📋 Chép** rồi dán vào Zalo
+   - 👉 **Nên làm tiếp** (lên đơn, hẹn gọi lại, hỏi thăm sau khi dùng…)
+3. Sửa câu cho đúng giọng mình rồi tự gửi. **CRM không tự gửi.**
+
+### Việc 5. Người thân, bạn bè
 
 - Bấm vào cuộc trò chuyện → **🔒 Đây không phải khách**.
 - CRM **xoá hẳn** cuộc trò chuyện đó và **từ nay không lưu nữa**.
@@ -71,7 +90,9 @@ Nhóm Telegram chỉ nhận **con số** ("Lương: 3 khách"), không có tên 
 
 Thấy thêm: danh sách khách đang chờ, trò chuyện gần đây, bấm vào để đọc; số cuộc sale đã đánh dấu 🔒 "không phải khách".
 
-### Kết nối 1 sale (bấm ngay trong CRM)
+Sale **tự nối Zalo** ở tab Hôm nay (Việc 0). Lời đồng ý của từng bạn (giờ, email) được CRM lưu lại. Bạn nào tự ngắt, nhóm Telegram nhận tin kèm lý do (nếu bạn ghi).
+
+### Quản trị kết nối giúp 1 sale
 
 1. Tab **👀 Zalo của sale** → bấm **➕ Kết nối Zalo của 1 sale**.
 2. Chọn **đúng tên sale như trong Cài đặt → Nhân sự** → bấm **Kết nối**. Mã QR hiện ra.

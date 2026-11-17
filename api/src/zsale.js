@@ -19,7 +19,10 @@
  *   Sale: 💬 Zalo của tôi ở tab Hôm nay (zs_mine) – khách đang chờ mình trả lời, khách có ý muốn mua → Lên đơn, khách mới chưa có
  *   trong CRM → thêm / gắn số, lịch sử Zalo tự vào hồ sơ khách, 🔒 Không phải khách (người thân, bạn bè) → xoá + không lưu nữa.
  *   Nhóm Telegram chỉ nhận con số; tên khách chỉ nhắn riêng cho đúng sale đó. Ô Zalo của sale = tên nhân sự CRM (slug(u.name)). */
+import Anthropic from '@anthropic-ai/sdk';
 import { esc, run, all, first, kvGet, kvSet, kvJson, normPhone, fmtDate, CRM_URL, TZ_MS, DAY } from './lib.js';
+import { aiFetch } from './airelay.js';
+import { kb, safe } from './chat.js';
 import { telegram } from './google.js';
 import { telegramUser, crmUsers } from './crm.js';
 
@@ -212,6 +215,12 @@ export async function crmZsale(x, u, d, crmLog) {
     await run(x.db, 'DELETE FROM zs_threads WHERE sale = ? AND uid = ?', sale, uid);
     return { ok: true };
   }
+  if (a === 'zs_self') return zsSelf(x, u, d, crmLog); // 📲 sale tự kết nối / tự ngắt Zalo của mình (17/11/2026)
+  if (a === 'zs_qr' && slug(d.sale) === mySlot) { const acc = (await zsAccounts(x))[mySlot] || {}; return { ok: true, qr: await kvGet(x.db, 'zs_qr_' + mySlot) || '', on: !!acc.on }; }
+  if (a === 'zs_ai') { // ✨ gợi ý trả lời + cách chăm sóc 1 khách (sale: Zalo của mình; Quản trị: mọi sale)
+    if (!admin && u.level >= 2) return { ok: false, error: 'Gợi ý trả lời dành cho sale có Zalo đó.' };
+    return zsAi(x, u, d, admin ? slug(d.sale) : mySlot);
+  }
   if (u.level < 2) return { ok: false, error: 'Mục này dành cho Quản lý và Quản trị. Zalo của bạn xem ở tab Hôm nay → 💬 Zalo của tôi.' };
   if (a === 'zs_view') return zsView(x, u);
   if (a === 'zs_qr') { const sale = slug(d.sale); return { ok: true, qr: await kvGet(x.db, 'zs_qr_' + sale) || '', on: !!((await zsAccounts(x))[sale] || {}).on }; }
@@ -309,7 +318,10 @@ async function zsView(x, u) {
 /** 💬 Zalo của tôi (sale): chỉ cuộc trò chuyện trên Zalo của chính mình. Ô Zalo = tên nhân sự (slug). */
 async function zsMine(x, u) {
   const sale = slug(u.name), acc = (await zsAccounts(x))[sale];
-  if (!acc || !acc.want || !acc.on) return { ok: true, on: false };
+  if (!acc || !acc.want || !acc.on) { // chưa kết nối → CRM hiện thẻ 📲 Kết nối Zalo của tôi (khi tính năng đang bật + chương trình trên máy chủ đang chạy)
+    const cfg = await zsCfg(x), hostAt = Number(await kvGet(x.db, 'zs_host_at')) || 0;
+    return { ok: true, on: false, sale, can: cfg.on !== false && Date.now() - hostAt < 10 * 60e3, pending: !!(acc && acc.want), agreed: !!(await kvJson(x.db, 'zs_consent', {}))[sale] };
+  }
   const now = Date.now(), cfg = await zsCfg(x), s = await first(x.db, 'SELECT at, down, live FROM zs_sale WHERE sale = ?', sale) || {};
   const online = !!(s.live && s.at && now - s.at < 5 * 60e3 && !s.down);
   const th = await all(x.db, 'SELECT uid, phone, zname, last_cust, last_sale, n, cust_n FROM zs_threads WHERE sale = ? AND max(last_cust, last_sale) > ? ORDER BY max(last_cust, last_sale) DESC LIMIT 80', sale, now - 30 * DAY);
@@ -340,4 +352,85 @@ async function zsThread(x, d, onlySale) {
   const t = uid && sale ? await first(x.db, 'SELECT phone, zname FROM zs_threads WHERE sale = ? AND uid = ?', sale, uid) : null;
   const ph = phone || (t && t.phone) || '', who = await custNameOwner(x, ph);
   return { ok: true, msgs, name: who.name, owner: who.owner, phone: ph, zname: (t && t.zname) || '', crm: !!who.name, sale, uid: uid || (rows[0] && rows[0].uid) || '' };
+}
+
+/* ================================================================ 📲 Sale tự kết nối Zalo của mình (17/11/2026 anh Sơn: chị em chủ động, yên tâm)
+ * op 'connect' {agree}: ghi đồng ý (kv zs_consent – bằng chứng theo Luật 91/2025) + mở mã QR cho ô của mình. op 'off': tự ngắt (xoá phiên). */
+async function zsSelf(x, u, d, crmLog) {
+  const sale = slug(u.name), now = Date.now(); if (!sale) return { ok: false, error: 'Tài khoản chưa có tên.' };
+  const accounts = await zsAccounts(x), cfg = await zsCfg(x);
+  if (d.op === 'connect') {
+    if (cfg.on === false) return { ok: false, error: 'Công ty đang tạm tắt tính năng này.' };
+    if (!d.agree) return { ok: false, error: 'Bạn tích ô đồng ý trước nhé.' };
+    const cs = await kvJson(x.db, 'zs_consent', {}); cs[sale] = { at: now, name: u.name, email: u.email }; await kvSet(x.db, 'zs_consent', JSON.stringify(cs));
+    accounts[sale] = { name: u.name, want: 1, on: (accounts[sale] || {}).on || 0, at: now, self: 1 }; await zsAccountsSet(x, accounts);
+    const pv = await zsPriv(x); // lần kết nối mới: không lưu lại các cuộc đã 🔒
+    if (crmLog) await crmLog(x, u, 'Tự kết nối Zalo', '-', '', u.name, 'Đồng ý lưu tin nhắn công việc');
+    return { ok: true, sale, priv: Object.keys(pv[sale] || {}).length };
+  }
+  if (d.op === 'off') {
+    if (accounts[sale]) { accounts[sale].want = 0; await zsAccountsSet(x, accounts); }
+    await run(x.db, 'UPDATE zs_sale SET live = 0 WHERE sale = ?', sale);
+    if (crmLog) await crmLog(x, u, 'Tự ngắt Zalo', '-', '', u.name, String(d.why || '').slice(0, 200));
+    x.later(telegram(x.env, '⏸ <b>' + esc(u.name) + '</b> đã tạm ngắt Zalo với CRM' + (d.why ? ': ' + esc(String(d.why).slice(0, 200)) : '') + '. Kết nối lại ở tab Hôm nay → 💬 Zalo của tôi.'));
+    return { ok: true };
+  }
+  return { ok: false, error: 'Không rõ thao tác.' };
+}
+
+/* ================================================================ ✨ Gợi ý trả lời + cách chăm sóc 1 khách (17/11/2026)
+ * Đọc ~20 tin gần nhất + hồ sơ khách trong CRM + thông tin sản phẩm chính thức (chat-kb, dùng chung trợ lý chat web) → Haiku viết:
+ * khách đang cần gì, 2 câu trả lời mẫu (sale chép, tự gửi trên Zalo – CRM KHÔNG gửi), việc nên làm tiếp. ~100–300đ / lần. */
+const ZS_AI_MAX = 60; // lượt / người / ngày
+let zsClient = null;
+const zsAiClient = env => zsClient || (zsClient = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY, maxRetries: 1, timeout: 40e3, fetch: aiFetch(env), defaultHeaders: { 'x-tdl-muc': 'crm' } }));
+const ZS_RULES = `Bạn là trợ lý chăm sóc khách của Thực Dưỡng Lành (thực phẩm thực dưỡng, trà thảo mộc). Bạn giúp NHÂN VIÊN SALE trả lời khách trên Zalo và chăm sóc khách tốt hơn. Sale sẽ tự chép câu trả lời và tự gửi.
+
+Viết đúng 4 dòng, mỗi dòng bắt đầu bằng nhãn sau, không thêm gì khác:
+KHÁCH CẦN: (1 câu: khách đang muốn gì / lo gì, đọc từ tin nhắn)
+TRẢ LỜI 1: (câu trả lời để sale gửi ngay, ấm áp, xưng "em", gọi khách đúng như sale đang gọi, ≤ 60 chữ, có 1 câu hỏi mở hoặc lời mời bước tiếp theo)
+TRẢ LỜI 2: (cách trả lời khác, ngắn hơn hoặc hướng khác, ≤ 45 chữ)
+NÊN LÀM: (1–2 việc cụ thể sale nên làm tiếp: lên đơn, hẹn gọi lại giờ nào, gửi cách dùng, hỏi thăm sau khi dùng…, ≤ 40 chữ)
+
+Quy tắc:
+- Dựa vào THÔNG TIN SẢN PHẨM. Không bịa giá, khuyến mãi, công dụng. Không chắc giá / quà thì để sale điền: "[giá]".
+- Không bao giờ nói sản phẩm "chữa", "điều trị", "khỏi bệnh", "đặc trị", "thay thuốc". Khách nhắc bệnh, thuốc, mang thai: nhắc nhẹ sản phẩm là thực phẩm, không phải là thuốc, nên hỏi bác sĩ nếu đang điều trị.
+- Khách phải chờ lâu: mở đầu bằng lời xin lỗi ngắn.
+- Văn tự nhiên như người Việt nhắn Zalo, không sáo rỗng, không dùng emoji quá 1 cái.`;
+
+async function zsAi(x, u, d, sale) {
+  const uid = String(d.uid || ''); if (!sale || !uid) return { ok: false, error: 'Thiếu cuộc trò chuyện.' };
+  if (!x.env.ANTHROPIC_API_KEY) return { ok: false, error: 'Trợ lý AI chưa bật.' };
+  const k = 'zsai_' + slug(u.name) + '_' + fmtDate(Date.now(), 'yyMMdd'), n = Number(await kvGet(x.db, k) || 0);
+  if (n >= ZS_AI_MAX) return { ok: false, error: 'Hôm nay bạn đã dùng ' + ZS_AI_MAX + ' lượt gợi ý. Mai dùng tiếp nhé.' };
+  const msgs = (await all(x.db, 'SELECT self, text, ts FROM zs_msgs WHERE sale = ? AND uid = ? ORDER BY id DESC LIMIT 20', sale, uid)).reverse();
+  if (!msgs.length) return { ok: false, error: 'Chưa có tin nhắn nào để gợi ý.' };
+  const th = await first(x.db, 'SELECT phone, zname FROM zs_threads WHERE sale = ? AND uid = ?', sale, uid) || {};
+  let prof = 'Khách chưa có trong CRM (khách mới).';
+  if (th.phone) {
+    const c = await first(x.db, 'SELECT name, orders, spent, products, last, runout, care_result FROM customers WHERE phone = ?', th.phone);
+    if (c) {
+      const os = await all(x.db, "SELECT time, items, total, status FROM orders WHERE phone = ? ORDER BY time DESC LIMIT 3", th.phone);
+      prof = 'Khách cũ: ' + (c.name || '') + ' · đã mua ' + (c.orders || 0) + ' đơn, tổng ' + Math.round((c.spent || 0) / 1000) + 'k' + (c.products ? ' · hay mua: ' + String(c.products).slice(0, 200) : '') +
+        (c.last ? ' · lần mua gần nhất ' + fmtDate(c.last, 'dd/MM/yyyy') : '') + (c.runout ? ' · dự kiến hết hàng ' + fmtDate(c.runout, 'dd/MM') : '') + (c.care_result ? ' · lần chăm sóc trước: ' + String(c.care_result).slice(0, 120) : '') +
+        (os.length ? '\nĐơn gần đây: ' + os.map(o => fmtDate(o.time, 'dd/MM') + ' ' + String(o.items || '').slice(0, 100) + ' (' + (o.status || '') + ')').join('; ') : '');
+    } else if (await first(x.db, 'SELECT 1 FROM leads WHERE phone = ? LIMIT 1', th.phone)) prof = 'Khách đã hỏi trước đây nhưng chưa mua.';
+  }
+  const now = Date.now(), last = msgs[msgs.length - 1];
+  const conv = msgs.map(m => (m.self ? 'Sale' : 'Khách') + ' (' + fmtDate(m.ts, 'dd/MM HH:mm') + '): ' + String(m.text).slice(0, 600)).join('\n');
+  const wait = !last.self ? ' Khách nhắn cuối lúc ' + fmtDate(last.ts, 'HH:mm dd/MM') + ', đã chờ ' + Math.round((now - last.ts) / 60e3) + ' phút.' : ' Tin cuối là của sale (gợi ý cách nhắn tiếp / chăm sóc tiếp).';
+  let res;
+  try {
+    res = await zsAiClient(x.env).messages.create({
+      model: 'claude-haiku-5-5', max_tokens: 700, output_config: { effort: 'low' },
+      system: [{ type: 'text', text: ZS_RULES }, { type: 'text', text: '# THÔNG TIN SẢN PHẨM\n\n' + await kb(), cache_control: { type: 'ephemeral' } }],
+      messages: [{ role: 'user', content: 'Sale: ' + u.name + '. Hôm nay ' + fmtDate(now, 'dd/MM/yyyy HH:mm') + '.' + wait + '\n\n# HỒ SƠ KHÁCH\n' + prof + '\n\n# TIN NHẮN ZALO (cũ → mới)\n' + conv }]
+    });
+  } catch (e) { console.error('zs ai', e && (e.status || ''), e && e.message); return { ok: false, error: 'Trợ lý chưa trả lời được, thử lại sau ít phút.' }; }
+  const t = safe(res.content.filter(b => b.type === 'text').map(b => b.text).join('\n'));
+  const pick = lb => { const m = t.match(new RegExp(lb + '\\s*:\\s*(.+)')); return m ? m[1].trim() : ''; };
+  const out = { need: pick('KHÁCH CẦN'), replies: [pick('TRẢ LỜI 1'), pick('TRẢ LỜI 2')].filter(Boolean), next: pick('NÊN LÀM') };
+  if (!out.replies.length) return { ok: false, error: 'Trợ lý chưa gợi ý được, thử lại nhé.' };
+  await kvSet(x.db, k, String(n + 1), 2 * DAY);
+  return Object.assign({ ok: true }, out);
 }
