@@ -3599,3 +3599,21 @@ details.top-fold[open] > summary::after { transform: rotate(180deg); }
 .zs-read.on{background:#fff8e6;border-color:#f3dd9a}
 .zs-rl{display:block;margin:6px 0 2px;font-weight:600;color:#1a7f37}
 .zs-rl.on{color:#b35c00}
+
+/* 17/11/2026 🎯 Mục tiêu đếm được */
+.gv-goals { margin: 0 0 16px; }
+.gv-goals-h { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.gv-gl { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px; margin-top: 8px; }
+.gv-gc { background: #fff; border: 1px solid var(--line); border-radius: var(--radius, 14px); padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; }
+.gv-gc-end { opacity: .75; }
+.gv-gc-m { all: unset; cursor: pointer; display: flex; flex-direction: column; gap: 6px; }
+.gv-gc-m[disabled] { cursor: default; }
+.gv-gc-t { display: flex; flex-direction: column; } .gv-gc-t b { font-size: 15px; } .gv-gc-t small { font-size: 12.5px; color: var(--muted); }
+.gv-gc-bar { position: relative; height: 10px; border-radius: 5px; background: #ecefe9; overflow: visible; }
+.gv-gc-bar i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 5px; background: var(--primary); }
+.gv-gc-bar em { position: absolute; top: -3px; bottom: -3px; width: 2px; background: #1c1c1e; opacity: .55; }
+.gv-gc-n { font-size: 14px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.gv-gc-s { font-size: 12.5px; color: var(--muted); }
+.gv-gc-b { display: flex; gap: 8px; } .gv-gc-b .btn { flex: 1; }
+.gv-gl-end { margin-top: 8px; } .gv-gl-end > summary { cursor: pointer; font-size: 13.5px; color: var(--muted); }
+.gv-g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }

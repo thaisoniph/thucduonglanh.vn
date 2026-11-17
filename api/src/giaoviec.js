@@ -43,6 +43,11 @@ async function schema(db) {
   await run(db, `CREATE TABLE IF NOT EXISTS gv_log (id INTEGER PRIMARY KEY AUTOINCREMENT, task INTEGER, at INTEGER, by_name TEXT, text TEXT)`);
   await run(db, `CREATE TABLE IF NOT EXISTS gv_msg (chat TEXT, msg INTEGER, task INTEGER, at INTEGER, PRIMARY KEY (chat, msg))`);
   await run(db, `CREATE TABLE IF NOT EXISTS gv_wk (task INTEGER, week INTEGER, PRIMARY KEY (task, week))`);
+  // 🎯 Mục tiêu đếm được (17/11/2026, Thủy góp ý → anh Sơn duyệt đợt 1): vd 100 video / tháng, mỗi lần xong 1 phần cộng số → % + đúng nhịp hay chậm
+  await run(db, `CREATE TABLE IF NOT EXISTS gv_goals (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, unit TEXT DEFAULT '', target INTEGER, done INTEGER DEFAULT 0, who_email TEXT, who_name TEXT, by_email TEXT, by_name TEXT,
+    start INTEGER, due INTEGER, status TEXT DEFAULT 'open', at INTEGER, upd_at INTEGER, done_at INTEGER)`);
+  await run(db, `CREATE TABLE IF NOT EXISTS gv_gl (id INTEGER PRIMARY KEY AUTOINCREMENT, goal INTEGER, at INTEGER, by_name TEXT, n INTEGER, link TEXT DEFAULT '', note TEXT DEFAULT '', task INTEGER)`);
+  for (const [c, def] of [['goal_id', 'INTEGER'], ['qty', 'INTEGER DEFAULT 0']]) if (!cols.includes(c)) { try { await run(db, `ALTER TABLE gv_tasks ADD COLUMN ${c} ${def}`); } catch (e) { } }
   schemaOk = true;
 }
 
@@ -149,6 +154,7 @@ async function createTask(x, C, by, w, f, src) {
   const r = await run(x.db, 'INSERT INTO gv_tasks (title, body, who_email, who_name, by_email, by_name, due, due_t, status, at, upd_at, src, kind, goal, week, helpers, ndirty) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)',
     clean(f.title, 300), clean(f.body, 2000), w.email, w.name, by.email, by.name, f.due || null, f.due && f.dueT ? 1 : 0, w.email === by.email ? 'Đang làm' : 'Mới', now, now, src || 'crm', kind, clean(f.goal, 500), wk, (f.helpers || []).filter(e => e !== w.email).join(','));
   const id = r.meta && r.meta.last_row_id;
+  if (Number(f.goalId)) { const g = await getGoal(x, f.goalId); if (g) await run(x.db, 'UPDATE gv_tasks SET goal_id = ? WHERE id = ?', g.id, id); }
   await run(x.db, 'INSERT OR IGNORE INTO gv_wk (task, week) VALUES (?, ?)', id, wk);
   await addLog(x, id, by.name, (kind === 'tt' ? '⭐ Việc trọng tâm' : 'Việc phát sinh') + (src === 'tg' ? ' · qua Telegram' : src === 'hop' ? ' · 🎙 từ biên bản cuộc họp' : ' · trong CRM'));
   return getTask(x, id);
@@ -187,6 +193,7 @@ async function changeTask(x, C, u, t, ch) {
     set.kind = ch.kind === 'tt' ? 'tt' : 'ps'; notes.push(set.kind === 'tt' ? '⭐ thành việc trọng tâm' : 'thành việc phát sinh');
   }
   if (ch.qa && boss && ch.qa !== t.qa) { set.qa = ch.qa; notes.push('🔎 nghiệm thu: ' + ch.qa); }
+  if (ch.goalId !== undefined && (boss || mine) && (Number(ch.goalId) || null) !== (t.goal_id || null)) { const g = Number(ch.goalId) ? await getGoal(x, ch.goalId) : null; set.goal_id = g ? g.id : null; notes.push(g ? '🎯 thuộc mục tiêu: ' + g.title : '🎯 bỏ gắn mục tiêu'); }
   if (ch.note) notes.push('💬 ' + clean(ch.note, 500));
   if (ch.title && boss && ch.title !== t.title) set.title = clean(ch.title, 300);
   if (ch.body !== undefined && boss && clean(ch.body, 2000) !== t.body) set.body = clean(ch.body, 2000);
@@ -197,7 +204,12 @@ async function changeTask(x, C, u, t, ch) {
   if (keys.length) await run(x.db, 'UPDATE gv_tasks SET ' + keys.map(k => k + ' = ?').join(', ') + ', upd_at = ?, ndirty = 1, ntry = 0 WHERE id = ?', ...keys.map(k => set[k]), now, t.id);
   else await run(x.db, 'UPDATE gv_tasks SET upd_at = ? WHERE id = ?', now, t.id);
   if (notes.length) await addLog(x, t.id, u.name, notes.join(' · '));
-  const nt = await getTask(x, t.id);
+  let nt = await getTask(x, t.id);
+  if (nt.status === 'Xong' && nt.goal_id && !nt.qty) { // 🎯 việc thuộc mục tiêu: xong thì cộng số (CRM hỏi số; Telegram lấy số đầu tiên trong câu kết quả)
+    const q = Number(ch.qty) || (ch.status === 'Xong' && ch.result ? Number((String(ch.result).replace(/https?:\/\/\S+/g, '').match(/\d+/) || [])[0]) : 0);
+    const g = q > 0 ? await taskToGoal(x, C, u, nt, q) : null;
+    if (g) { await addLog(x, t.id, u.name, '🎯 cộng ' + q + ' vào mục tiêu: ' + g.title + ' (' + g.done + '/' + g.target + ')'); nt = await getTask(x, t.id); nt._goal = g; }
+  }
   try {
     await refreshMsgs(x, C, nt);
     if (set.who_email) await announce(x, C, nt, { alsoPriv: 1 });
@@ -391,6 +403,14 @@ async function onUpdate(x, C, up) {
     if (/^chua xong/.test(b)) { const r = await changeTask(x, C, u, ctxTask, Object.assign({ next: body }, proofCh)); return reply(r.ok ? '📝 Đã ghi. Việc #' + ctxTask.id + ' sẽ sang tuần sau, thứ Hai mình cùng xem nhé.' : esc(r.error)); }
     if (file) { const r = await changeTask(x, C, u, ctxTask, Object.assign({ note: body }, proofCh)); return reply(r.ok ? '📎 Đã lưu ảnh / file vào việc #' + ctxTask.id + '.' : esc(r.error)); }
   }
+  const gm = !ctxTask && body.match(/^\+\s*(\d{1,6})\b([\s\S]*)$/); // 🎯 "+1 https://link" / "+3 #M2 video Tết" → cộng vào mục tiêu
+  if (gm) {
+    const mine = (await goalsVisible(x, u, C, true)).filter(g => g.who_email === u.email || goalBoss(u, C, g)), code = (gm[2].match(/#m(\d+)/i) || [])[1];
+    const own = mine.filter(g => g.who_email === u.email), g = code ? mine.find(z => z.id === Number(code)) : own.length === 1 ? own[0] : mine.length === 1 ? mine[0] : null;
+    if (!g) return reply(mine.length ? 'Bạn có ' + mine.length + ' mục tiêu, ghi thêm mã để em cộng đúng chỗ:\n' + mine.map(z => '• <b>#M' + z.id + '</b> ' + esc(z.title) + ' (' + z.done + '/' + z.target + ')').join('\n') + '\nVd: <i>+1 #M' + mine[0].id + ' https://link</i>' : 'Bạn chưa có mục tiêu đếm được nào. Tạo trong CRM → ✅ Việc tuần → 🎯 Mục tiêu.');
+    const r = await goalAdd(x, C, u, g, Number(gm[1]), gm[2], gm[2].replace(/https?:\/\/\S+/g, '').replace(/#m\d+/i, '').trim());
+    return reply(r.ok ? '✓ Đã cộng ' + gm[1] + '\n' + goalLine(r.g) : esc(r.error));
+  }
   if (!body && !file) return reply(helpText(u, C));
   const J = await aiRead(x, u, C, body || '(gửi ảnh/file)', ctxTask);
   if (!J) { if (ctxTask && body) { await changeTask(x, C, u, ctxTask, { note: body }); return reply('💬 Đã ghi vào việc #' + ctxTask.id + '.'); } return reply('Em chưa đọc được tin này (AI tạm nghỉ). Bạn ghi trong CRM giúp em nhé: ' + VIEW_URL); }
@@ -439,7 +459,7 @@ function helpText(u, C) {
   const b = C.bot ? '@' + C.bot : 'em';
   return '<b>Nhịp tuần của mình</b>\n• Trước <b>9h sáng thứ Ba</b>: chốt tối đa 3 việc ⭐ trọng tâm\n• Trước <b>21h thứ Năm</b>: cập nhật tiến độ\n• Trước <b>21h Chủ nhật</b>: kết quả + link minh chứng\n\n' +
     '<b>Cách nhắn</b>\n• Chốt việc: <i>' + b + ' trọng tâm tuần: đăng 3 video trà DILVANG lên TikTok, hạn thứ Sáu</i>\n• Nhờ ai đó: <i>' + b + ' nhờ Trang gửi bảng lương trước 17h thứ Sáu</i>\n' +
-    '• Bấm <b>🙋 Mình nhận</b> / <b>✅ Xong rồi</b> dưới tin việc\n• Trả lời (reply) tin việc: <i>xong, đăng 3 video https://…</i> · gửi ảnh kết quả · <i>xin lùi sang thứ Hai</i>\n• /viec: việc của tôi · /baocao: báo cáo tuần của tôi' + (canAssign(u, C) ? ' · /phong: việc cả công ty' : '') + '\n• Xem đủ trong CRM: ' + VIEW_URL;
+    '• Bấm <b>🙋 Mình nhận</b> / <b>✅ Xong rồi</b> dưới tin việc\n• Trả lời (reply) tin việc: <i>xong, đăng 3 video https://…</i> · gửi ảnh kết quả · <i>xin lùi sang thứ Hai</i>\n• <i>+1 https://link</i>: cộng 1 vào 🎯 mục tiêu đếm được của bạn\n• /viec: việc của tôi · /baocao: báo cáo tuần của tôi' + (canAssign(u, C) ? ' · /phong: việc cả công ty' : '') + '\n• Xem đủ trong CRM: ' + VIEW_URL;
 }
 async function listText(x, C, u, scope) {
   const all_ = scope === 'all' && canAssign(u, C), now = Date.now(), sq = scopeSql(u, C);
@@ -472,7 +492,10 @@ export async function weekReport(x, C, W, onlyEmail, nowArg) {
     people.push({ email: z.email, name: z.name, role: z.role, tt: mine, ps: extra, n, done, ontime, pctDone: n ? Math.round(done * 100 / n) : null, pctOn: n ? Math.round(ontime * 100 / n) : null,
       help: mine.filter(r => (r.pace === 'help' || r.block) && (r.st === 'open' || r.st === 'carried')).length, noProof: mine.filter(r => r.noProof).length });
   }
-  return { week: W, label: wkLabel(W), people, total: totalOf(people) };
+  const goals = (await all(x.db, "SELECT * FROM gv_goals WHERE status <> 'stop' AND (status = 'open' OR done_at >= ?) ORDER BY due IS NULL, due, id", W)).filter(g => inS(g.who_email))
+    .map(g => { const S = goalStat(g, Math.min(now, end)); return { id: g.id, title: g.title, unit: g.unit, target: g.target, done: g.done, who: g.who_name, whoE: g.who_email, due: g.due, pct: S.pct, pace: S.pace, left: S.left, perDay: S.perDay, daysLeft: S.daysLeft }; });
+  people.forEach(p => { p.goals = goals.filter(g => g.whoE === p.email); });
+  return { week: W, label: wkLabel(W), people, goals, total: totalOf(people) };
 }
 function totalOf(people) {
   const T = people.reduce((a, p) => { a.n += p.n; a.done += p.done; a.ontime += p.ontime; return a; }, { n: 0, done: 0, ontime: 0 });
@@ -490,6 +513,7 @@ export function speech(p, label, nextTT) {
       ((r.st === 'carried' || r.st === 'open') && r.next ? '\n   ➡️ ' + esc(r.next) : '') + (r.block ? '\n   🙏 Cần hỗ trợ: ' + esc(r.block) : ''));
   });
   if (p.ps.length) L.push('\n<b>Việc phát sinh đã xong:</b> ' + p.ps.map(r => esc(r.title)).join(' · '));
+  (p.goals || []).forEach(g => L.push('\n' + goalLine(g)));
   if (p.n) L.push('\n👉 Xong ' + p.done + '/' + p.n + ' việc trọng tâm, ' + p.ontime + ' việc đúng hạn.');
   if (nextTT) L.push(nextTT.length ? '\n<b>Tuần mới (việc chuyển sang):</b> ' + nextTT.map(t => esc(t.title)).join(' · ') + '\nChốt thêm (tổng tối đa 3 việc) trước 9h sáng thứ Ba nhé.' : '\nTuần mới: chốt tối đa 3 việc ⭐ trọng tâm trước 9h sáng thứ Ba nhé 🌿');
   return L.join('\n');
@@ -671,6 +695,110 @@ export async function gvNotionTick(x, C, max) {
   return n;
 }
 
+/* ---------------------------------------------------------------- 🎯 Mục tiêu đếm được (17/11/2026) */
+async function getGoal(x, id) { await schema(x.db); return first(x.db, 'SELECT * FROM gv_goals WHERE id = ?', Number(id) || 0); }
+function goalSee(u, C, g) { const sc = scopeOf(u, C); return !sc || sc.indexOf(g.who_email) >= 0 || g.by_email === u.email; }
+function goalBoss(u, C, g) { return g.by_email === u.email || canManage(u, C, g.who_email); }
+/** % + nhịp: so số đã làm với số lẽ ra phải có theo thời gian đã trôi (từ ngày bắt đầu tới hạn). */
+export function goalStat(g, now) {
+  now = now || Date.now();
+  const target = Number(g.target) || 1, done = Number(g.done) || 0, left = Math.max(0, target - done), pct = Math.min(100, Math.round(done * 100 / target));
+  const end = g.due ? dueEnd({ due: g.due, due_t: 0 }) : 0, st = Number(g.start) || Number(g.at) || now;
+  let pace = '', expect = null, daysLeft = null, perDay = null;
+  if (g.status === 'stop') pace = 'stop';
+  else if (done >= target) pace = 'done';
+  else if (end) {
+    daysLeft = Math.max(0, Math.ceil((end - now) / DAY));
+    if (now >= end) pace = 'late';
+    else {
+      const frac = Math.min(1, Math.max(0, (now - st) / Math.max(DAY, end - st)));
+      expect = Math.floor(target * frac);
+      pace = done >= expect * 0.9 ? 'ok' : done >= expect * 0.6 ? 'slow' : 'behind';
+      perDay = Math.ceil(left / Math.max(1, daysLeft));
+    }
+  }
+  return { pct, left, pace, expect, daysLeft, perDay };
+}
+const GPACE = { ok: '🟢 Đúng nhịp', slow: '🟡 Hơi chậm', behind: '🔴 Chậm', late: '🔴 Quá hạn, chưa đạt', done: '🎉 Đã đạt', stop: '✖️ Đã dừng' };
+function goalLine(g, now) {
+  const S = goalStat(g, now);
+  return '🎯 ' + esc(g.title) + ': <b>' + g.done + '/' + g.target + (g.unit ? ' ' + esc(g.unit) : '') + '</b> (' + S.pct + '%)' + (S.pace ? ' · ' + GPACE[S.pace] : '') + (S.perDay && S.left ? ' · còn ' + S.left + ' trong ' + S.daysLeft + ' ngày, mỗi ngày ~' + S.perDay : '');
+}
+function goalOut(g, logs, u, C, now) {
+  const S = goalStat(g, now);
+  return { id: g.id, title: g.title, unit: g.unit, target: g.target, done: g.done, who: g.who_name, whoE: g.who_email, by: g.by_name, byE: g.by_email, start: g.start, due: g.due, st: g.status, at: g.at, upd: g.upd_at, doneAt: g.done_at,
+    pct: S.pct, left: S.left, pace: S.pace, expect: S.expect, daysLeft: S.daysLeft, perDay: S.perDay, boss: goalBoss(u, C, g) ? 1 : 0, can: g.who_email === u.email || goalBoss(u, C, g) ? 1 : 0, log: logs || [] };
+}
+/** Cộng (hoặc trừ khi ghi nhầm) số đã làm. Người làm, người giao, người theo dõi. */
+async function goalAdd(x, C, u, g, n, link, note, taskId) {
+  n = Math.round(Number(n) || 0);
+  if (!n || Math.abs(n) > 100000) return { ok: false, error: 'Ghi số đã làm thêm (vd 1, 3, 10). Ghi nhầm thì ghi số âm để trừ, vd -1.' };
+  if (!(g.who_email === u.email || goalBoss(u, C, g))) return { ok: false, error: 'Mục tiêu này của ' + g.who_name + ', bạn chưa được cập nhật.' };
+  if (g.status === 'stop') return { ok: false, error: 'Mục tiêu này đã dừng.' };
+  const now = Date.now(), done = Math.max(0, (Number(g.done) || 0) + n), reached = done >= g.target && (Number(g.done) || 0) < g.target;
+  await run(x.db, 'UPDATE gv_goals SET done = ?, upd_at = ?, status = ?, done_at = ? WHERE id = ?', done, now, done >= g.target ? 'done' : 'open', done >= g.target ? (g.done_at || now) : null, g.id);
+  await run(x.db, 'INSERT INTO gv_gl (goal, at, by_name, n, link, note, task) VALUES (?, ?, ?, ?, ?, ?, ?)', g.id, now, u.name, n, linkOf(link || '') || '', clean(note, 300), taskId || null);
+  const ng = await getGoal(x, g.id);
+  try {
+    if (reached) {
+      const ppl = await staff(x);
+      for (const e of [...new Set([ng.who_email, ng.by_email])]) { const z = ppl.find(y => y.email === e); const p = z && await privChat(x, z); if (p) await say(x, C, p, '🎉 <b>Đạt mục tiêu!</b>\n' + goalLine(ng)); }
+      if (C.group) await say(x, C, C.group, '🎉 Chúc mừng <b>' + esc(ng.who_name) + '</b> vừa đạt 1 mục tiêu 💚'); // nhóm không thấy nội dung mục tiêu
+    } else if (ng.by_email !== u.email && ng.by_email !== ng.who_email) { const b = (await staff(x)).find(z => z.email === ng.by_email); const p = b && await privChat(x, b); if (p && Math.abs(n) >= 1) await say(x, C, p, (n > 0 ? '＋' + n : String(n)) + ' · ' + esc(u.name) + '\n' + goalLine(ng)); }
+  } catch (e) { console.error('gv goal notify', e.message); }
+  return { ok: true, g: ng };
+}
+async function goalsVisible(x, u, C, onlyOpen) {
+  await schema(x.db);
+  const now = Date.now(), rows = (await all(x.db, `SELECT * FROM gv_goals WHERE ${onlyOpen ? "status = 'open'" : "(status = 'open' OR upd_at > ?)"} ORDER BY (status <> 'open'), due IS NULL, due, id`, ...(onlyOpen ? [] : [now - 30 * DAY]))).filter(g => goalSee(u, C, g));
+  return rows;
+}
+async function gvGoal(x, u, d) {
+  await schema(x.db);
+  const C = await cfgOf(x), a = d.action;
+  if (a === 'gv_goal_save') {
+    const ppl = await staff(x), title = clean(d.title, 200), unit = clean(d.unit, 30), target = Math.round(Number(d.target) || 0), due = Number(d.due) || null, start = Number(d.start) || null;
+    if (!title) return { ok: false, error: 'Ghi tên mục tiêu, vd "Đăng video TikTok trà DILVANG".' };
+    if (!(target > 0 && target <= 1000000)) return { ok: false, error: 'Ghi con số đích, vd 100.' };
+    if (Number(d.id)) {
+      const g = await getGoal(x, d.id); if (!g) return { ok: false, error: 'Không thấy mục tiêu này.' };
+      if (!goalBoss(u, C, g) && g.who_email !== u.email) return { ok: false, error: 'Chỉ người giao hoặc người theo dõi sửa được mục tiêu này.' };
+      const w = d.who ? ppl.find(z => z.email === String(d.who).toLowerCase()) : null;
+      if (w && w.email !== g.who_email && !canManage(u, C, w.email) && w.email !== u.email) return { ok: false, error: 'Bạn chỉ giao mục tiêu cho mình hoặc người bạn theo dõi.' };
+      const done = Number(g.done) || 0;
+      await run(x.db, 'UPDATE gv_goals SET title = ?, unit = ?, target = ?, due = ?, start = coalesce(?, start), who_email = ?, who_name = ?, status = ?, done_at = ?, upd_at = ? WHERE id = ?', title, unit, target, due, start, (w || g).email || g.who_email, w ? w.name : g.who_name,
+        g.status === 'stop' ? 'stop' : done >= target ? 'done' : 'open', done >= target ? (g.done_at || Date.now()) : null, Date.now(), g.id);
+      return gvList(x, u);
+    }
+    const w = ppl.find(z => z.email === String(d.who || u.email).toLowerCase());
+    if (!w) return { ok: false, error: 'Người này chưa bật ✅ Việc tuần.' };
+    if (w.email !== u.email && !canManage(u, C, w.email)) return { ok: false, error: 'Bạn chỉ đặt mục tiêu cho mình hoặc người bạn theo dõi (Cài đặt → Nhân sự → 👀).' };
+    const now = Date.now();
+    await run(x.db, 'INSERT INTO gv_goals (title, unit, target, done, who_email, who_name, by_email, by_name, start, due, status, at, upd_at) VALUES (?, ?, ?, 0, ?, ?, ?, ?, ?, ?, ?, ?, ?)', title, unit, target, w.email, w.name, u.email, u.name, start || startOfDay(now), due, 'open', now, now);
+    if (w.email !== u.email && C.token) { try { const p = await privChat(x, w); if (p) await say(x, C, p, '🎯 <b>Mục tiêu mới</b> từ ' + esc(u.name) + ':\n' + esc(title) + ': ' + target + (unit ? ' ' + esc(unit) : '') + (due ? ' · hạn ' + fmtDate(due, 'dd/MM') : '') + '\nMỗi lần xong 1 phần, nhắn em <i>+1 https://link</i> (hoặc bấm ＋1 trong CRM) để cộng số.'); } catch (e) { } }
+    return gvList(x, u);
+  }
+  const g = await getGoal(x, d.id); if (!g || !goalSee(u, C, g)) return { ok: false, error: 'Không thấy mục tiêu này.' };
+  if (a === 'gv_goal_add') { const r = await goalAdd(x, C, u, g, d.n, d.link, d.note); return r.ok ? gvList(x, u) : r; }
+  if (a === 'gv_goal_set') {
+    if (!goalBoss(u, C, g)) return { ok: false, error: 'Chỉ người giao hoặc người theo dõi dừng được mục tiêu này.' };
+    const st = d.st === 'stop' ? 'stop' : (Number(g.done) || 0) >= g.target ? 'done' : 'open';
+    await run(x.db, 'UPDATE gv_goals SET status = ?, upd_at = ? WHERE id = ?', st, Date.now(), g.id);
+    return gvList(x, u);
+  }
+  if (a === 'gv_goal_log') return { ok: true, log: await all(x.db, 'SELECT at, by_name, n, link, note, task FROM gv_gl WHERE goal = ? ORDER BY id DESC LIMIT 300', g.id) };
+  return { ok: false, error: 'Không rõ thao tác: ' + a };
+}
+/** Việc gắn mục tiêu: báo xong kèm số lượng → cộng vào mục tiêu 1 lần. */
+async function taskToGoal(x, C, u, t, qty) {
+  if (!t.goal_id || t.qty) return null;
+  const n = Math.round(Number(qty) || 0); if (n <= 0) return null;
+  const g = await getGoal(x, t.goal_id); if (!g || g.status === 'stop') return null;
+  await run(x.db, 'UPDATE gv_tasks SET qty = ? WHERE id = ?', n, t.id);
+  const r = await goalAdd(x, C, u, g, n, t.proof && !/^tg:/.test(t.proof) ? t.proof : '', 'từ việc #' + t.id, t.id);
+  return r.ok ? r.g : null;
+}
+
 /* ---------------------------------------------------------------- CRM */
 async function gvList(x, u) {
   await schema(x.db);
@@ -682,8 +810,11 @@ async function gvList(x, u) {
   for (const z of ppl) linked[z.email] = !!(await kvGet(x.db, 'gv_tg_' + z.email));
   const W = weekOf(now), inW = new Set((await all(x.db, 'SELECT task FROM gv_wk WHERE week = ?', W)).map(r => r.task));
   const tasks = rows.map(t => ({ id: t.id, title: t.title, body: t.body, goal: t.goal, kind: t.kind, who: t.who_name, whoE: t.who_email, by: t.by_name, byE: t.by_email, due: t.due, dueT: t.due_t ? 1 : 0, st: t.status, at: t.at, upd: t.upd_at, done: t.done_at, src: t.src,
-    result: t.result, proof: proofUrl(C, t), proofTg: /^tg:/.test(t.proof) ? 1 : 0, pace: t.pace, paceAt: t.pace_at, next: t.next, block: t.block, carry: t.carry, qa: t.qa, helpers: helpersOf(t), thisWeek: inW.has(t.id) ? 1 : 0, late: late(t, now) ? 1 : 0, nOk: t.nid && !t.ndirty ? 1 : 0, log: L[t.id] || [] }));
-  const out = { tasks, me: u.email, lead: lead ? 1 : 0, admin: u.level >= 3 ? 1 : 0, linked: linked[u.email] ? 1 : 0, bot: C.bot, group: C.groupName || (C.group ? 'đã nối' : ''), on: C.token ? 1 : 0, ai: x.env.ANTHROPIC_API_KEY ? 1 : 0, week: W, weekLabel: wkLabel(W), max: MAX_TT, now, all: u.level >= 3 ? 1 : 0, see: seeList(u, C),
+    result: t.result, proof: proofUrl(C, t), goalId: t.goal_id || 0, qty: t.qty || 0, proofTg: /^tg:/.test(t.proof) ? 1 : 0, pace: t.pace, paceAt: t.pace_at, next: t.next, block: t.block, carry: t.carry, qa: t.qa, helpers: helpersOf(t), thisWeek: inW.has(t.id) ? 1 : 0, late: late(t, now) ? 1 : 0, nOk: t.nid && !t.ndirty ? 1 : 0, log: L[t.id] || [] }));
+  const gs = await goalsVisible(x, u, C), gIds = gs.map(g => g.id), glog = gIds.length ? await all(x.db, `SELECT goal, at, by_name, n, link, note, task FROM gv_gl WHERE goal IN (${gIds.map(() => '?').join(',')}) ORDER BY id DESC LIMIT 400`, ...gIds) : [];
+  const GL = {}; glog.forEach(l => { const a = GL[l.goal] || (GL[l.goal] = []); if (a.length < 12) a.push({ at: l.at, by: l.by_name, n: l.n, link: l.link, note: l.note, task: l.task }); });
+  const goals = gs.map(g => goalOut(g, GL[g.id], u, C, now));
+  const out = { tasks, goals, me: u.email, lead: lead ? 1 : 0, admin: u.level >= 3 ? 1 : 0, linked: linked[u.email] ? 1 : 0, bot: C.bot, group: C.groupName || (C.group ? 'đã nối' : ''), on: C.token ? 1 : 0, ai: x.env.ANTHROPIC_API_KEY ? 1 : 0, week: W, weekLabel: wkLabel(W), max: MAX_TT, now, all: u.level >= 3 ? 1 : 0, see: seeList(u, C),
     staff: ppl.map(z => ({ email: z.email, name: z.name, role: z.role, tg: linked[z.email] || !!z.tg ? 1 : 0, lead: canAssign(z, C) ? 1 : 0, lv: z.level, mem: 1 })), off: (await crmUsers(x)).filter(z => z.active && !z.gv).map(z => ({ email: z.email, name: z.name, role: z.role })) };
   if (u.level >= 3) { out.seeMap = {}; (await crmUsers(x)).forEach(z => { if (z.active && z.gvsee && z.gvsee.length) out.seeMap[z.email] = z.gvsee; }); out.notion = C.notion ? { title: C.notion.title || '', wait: (await first(x.db, 'SELECT COUNT(*) n FROM gv_tasks WHERE ndirty = 1 AND ntry < 5')).n, fail: (await first(x.db, 'SELECT COUNT(*) n FROM gv_tasks WHERE ndirty = 1 AND ntry >= 5')).n, err: ((await first(x.db, "SELECT nerr FROM gv_tasks WHERE nerr <> '' ORDER BY upd_at DESC LIMIT 1")) || {}).nerr || '' } : null; }
   return { ok: true, gv: out };
@@ -699,18 +830,18 @@ async function gvSave(x, u, d) {
   if (kind === 'tt' && !d.force) { const g = await goalCheck(x, title, goal); if (!g.ok) return { ok: false, needFix: 1, tip: g.tip || 'Kết quả này chưa đo được.', goal: g.goal || '', error: g.tip || 'Kết quả này chưa đo được.' }; }
   if (Number(d.id)) {
     const t = await getTask(x, d.id); if (!t) return { ok: false, error: 'Không thấy việc này.' };
-    const r = await changeTask(x, C, u, t, { title, body: d.body, goal, due, dueT, kind, helpers, who: w && w.email !== t.who_email ? w : null });
+    const r = await changeTask(x, C, u, t, { title, body: d.body, goal, due, dueT, kind, helpers, who: w && w.email !== t.who_email ? w : null, goalId: d.goalId !== undefined ? d.goalId : undefined });
     return r.ok ? gvList(x, u) : r;
   }
   if (!w) return { ok: false, error: 'Chọn người làm.' };
   if (kind === 'tt') { const err = await ttGuard(x, C, u, w); if (err) return { ok: false, error: err }; }
-  const t = await createTask(x, C, u, w, { title, body: d.body, goal, due, dueT, kind, helpers }, 'crm');
+  const t = await createTask(x, C, u, w, { title, body: d.body, goal, due, dueT, kind, helpers, goalId: d.goalId }, 'crm');
   let sent = 0; if (C.token && d.tg !== false) { try { sent = await announce(x, C, t, { alsoPriv: 1 }); } catch (e) { console.error('gv announce', e.message); } }
   const r = await gvList(x, u); r.sent = sent; return r;
 }
 async function gvSet(x, u, d) {
   const C = await cfgOf(x), t = await getTask(x, d.id); if (!t) return { ok: false, error: 'Không thấy việc này.' };
-  const ch = { status: GV_ST.indexOf(d.st) >= 0 ? d.st : '', note: d.note, pace: PACE[d.pace] ? d.pace : '', next: d.next || '', qa: ['Đạt yêu cầu', 'Cần bổ sung', 'Chờ xác nhận'].indexOf(d.qa) >= 0 ? d.qa : '' };
+  const ch = { qty: Number(d.qty) || 0, status: GV_ST.indexOf(d.st) >= 0 ? d.st : '', note: d.note, pace: PACE[d.pace] ? d.pace : '', next: d.next || '', qa: ['Đạt yêu cầu', 'Cần bổ sung', 'Chờ xác nhận'].indexOf(d.qa) >= 0 ? d.qa : '' };
   if (d.result !== undefined) ch.result = d.result;
   if (d.proof !== undefined && d.proof !== '') { if (!hasLink(d.proof)) return { ok: false, error: 'Minh chứng cần là 1 link mở được (bài đăng, Google Drive, Sheet, Canva…).' }; ch.proof = linkOf(d.proof); }
   if (d.block !== undefined) ch.block = d.block;
@@ -775,5 +906,6 @@ export async function crmGv(x, u, d) {
   if (a === 'gv_cfg') return gvCfg(x, u, d);
   if (a === 'gv_rep') return gvRep(x, u, d);
   if (a === 'gv_check') return { ok: true, check: await goalCheck(x, d.title, d.goal) };
+  if (/^gv_goal_/.test(a)) return gvGoal(x, u, d); // 🎯 mục tiêu đếm được (17/11/2026)
   return { ok: false, error: 'Không rõ thao tác: ' + a };
 }

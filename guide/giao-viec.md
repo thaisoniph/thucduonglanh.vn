@@ -22,6 +22,18 @@ description: Mỗi tuần mỗi người chốt tối đa 3 việc trọng tâm,
 - **Nhãn ✅ Việc tuần** ở dòng lời chào trên cùng màn hình đầu tiên: nhãn tô cam là có việc cần bạn. Bấm nhãn để mở dòng Việc tuần, bấm tiếp là vào việc.
 - Màn **Thêm** → mục **Việc của tôi** (đầu danh sách).
 
+## 🎯 Mục tiêu đếm được (vd 100 video / tháng)
+
+Dùng cho việc cần **đếm cả tháng**: 100 video TikTok, 30 bài Fanpage, 400 đơn đối soát…
+
+1. ✅ Việc tuần → **🎯 Mục tiêu đếm được** → **＋ Mục tiêu mới**: ghi tên, **con số đích**, đơn vị, ngày bắt đầu, hạn, người phụ trách.
+2. Mỗi lần xong 1 phần: bấm **＋1** trên thẻ mục tiêu (hoặc **＋ Ghi số…** để ghi 3, 5… kèm link). Trên Telegram: nhắn Lành <i>+1 https://link-video</i>. Ghi nhầm thì ghi số âm, vd <i>-1</i>.
+3. Máy tự tính: **38/100 video · 38%**, và so với số lẽ ra phải có tới hôm nay (vạch đen trên thanh): **🟢 Đúng nhịp / 🟡 Hơi chậm / 🔴 Chậm**, kèm **"còn 62 video trong 14 ngày, mỗi ngày cần ~5"**.
+4. Việc tuần có thể **gắn vào mục tiêu** (ô 📈 Thuộc mục tiêu nào?). Báo xong việc thì ghi **làm được bao nhiêu**, máy tự cộng vào mục tiêu, không phải ghi 2 lần.
+5. Báo cáo tuần (họp thứ Hai) có dòng 🎯 của từng người.
+
+Ai xem được mục tiêu: giống việc (Quản trị xem hết, người theo dõi xem nhóm mình, còn lại xem của mình).
+
 ## Ai xem được việc của ai
 
 | Ai | Thấy việc của |

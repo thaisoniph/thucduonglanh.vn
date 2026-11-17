@@ -227,5 +227,35 @@ ok(!r.ok, 'Thủy không đặt được việc trọng tâm cho sale Lan');
 r = await G.crmGv(x, users.son, { action: 'gv_cfg', on: ['thuy@x.vn'] }); r = await G.crmGv(x, users.son, { action: 'gv_save', kind: 'ps', title: 'Việc cho người chưa bật', goal: '1 việc', who: 'ha@x.vn' });
 ok(!r.ok && /chưa bật/.test(r.error), 'Giao cho người chưa bật → báo rõ, không tự giao cho mình');
 
+// 17/11/2026: 🎯 mục tiêu đếm được
+r = await G.crmGv(x, users.son, { action: 'gv_goal_save', title: 'Đăng video TikTok trà DILVANG', unit: 'video', target: 10, due: Date.now() + 10 * DAY, who: 'thuy@x.vn' });
+let g1 = r.gv.goals.find(g => g.title === 'Đăng video TikTok trà DILVANG');
+ok(r.ok && g1 && g1.done === 0 && g1.pct === 0 && g1.whoE === 'thuy@x.vn', 'Anh Sơn đặt mục tiêu 10 video cho Thủy');
+r = await G.crmGv(x, thuy1, { action: 'gv_goal_add', id: g1.id, n: 3, link: 'https://tiktok.com/v1' });
+g1 = r.gv.goals.find(g => g.id === g1.id);
+ok(g1.done === 3 && g1.pct === 30 && g1.log[0].n === 3 && /tiktok/.test(g1.log[0].link), 'Thủy cộng +3 → 3/10 (30%), lưu link');
+r = await G.crmGv(x, users.son, { action: 'gv_save', kind: 'ps', title: 'Quay 2 video Tết', goal: '2 video đã đăng', who: 'thuy@x.vn', goalId: g1.id });
+const tg1 = r.gv.tasks.find(t => t.title === 'Quay 2 video Tết');
+ok(tg1 && tg1.goalId === g1.id, 'Việc gắn vào mục tiêu');
+r = await G.crmGv(x, thuy1, { action: 'gv_set', id: tg1.id, st: 'Xong', qty: 2, result: 'Đã đăng 2 video' });
+ok(r.gv.goals.find(g => g.id === g1.id).done === 5, 'Báo xong việc kèm 2 video → mục tiêu tự cộng 5/10');
+r = await G.crmGv(x, thuy1, { action: 'gv_set', id: tg1.id, note: 'thêm ghi chú' });
+ok(r.gv.goals.find(g => g.id === g1.id).done === 5, 'Việc đã cộng rồi thì không cộng lại');
+r = await G.crmGv(x, users.ha, { action: 'gv_list' });
+ok(!r.gv.goals.some(g => g.id === g1.id), 'Hà (không theo dõi Thủy) không thấy mục tiêu của Thủy');
+r = await G.crmGv(x, users.ha, { action: 'gv_goal_add', id: g1.id, n: 1 });
+ok(!r.ok, 'Hà không cộng được vào mục tiêu của Thủy');
+r = await G.crmGv(x, users.son, { action: 'gv_goal_save', title: 'Bài Fanpage', unit: 'bài', target: 4, due: Date.now() + 5 * DAY });
+sent.length = 0;
+await hook({ message: { message_id: 900, from: { id: 100 }, chat: { id: 100, type: 'private' }, text: '+2 https://facebook.com/p1' } });
+ok(sent.some(s => s.includes('Đã cộng 2') && s.includes('2/4')), 'Telegram: "+2 link" cộng vào mục tiêu của chính mình');
+r = await G.crmGv(x, thuy1, { action: 'gv_goal_add', id: g1.id, n: 5 });
+const g1d = r.gv.goals.find(g => g.id === g1.id);
+ok(g1d.done === 10 && g1d.st === 'done' && g1d.pace === 'done', 'Đủ 10/10 → 🎉 Đã đạt');
+const st = G.goalStat({ target: 100, done: 20, start: Date.now() - 15 * DAY, due: Date.now() + 14 * DAY, status: 'open' });
+ok(st.pace === 'behind' && st.perDay >= 5, 'Giữa tháng mới 20/100 → 🔴 Chậm, mỗi ngày cần ≥5');
+r = await G.crmGv(x, thuy1, { action: 'gv_rep', week: G.weekOf(Date.now()) });
+ok(r.rep.goals.some(g => g.id === g1.id), 'Báo cáo tuần có dòng mục tiêu');
+
 origLog('sai:', bad);
 process.exit(bad ? 1 : 0);
