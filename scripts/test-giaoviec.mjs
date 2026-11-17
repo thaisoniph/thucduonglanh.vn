@@ -28,6 +28,7 @@ globalThis.fetch = async (url, init) => {
 const origLog = console.log; console.log = (...a) => { if (a[0] === 'GV') sent.push(a.slice(1).join(' ')); else origLog(...a); };
 const later = []; const x = { env: { DB, MOCK_GOOGLE: 1, ANTHROPIC_API_KEY: 'test' }, db: DB, later: p => later.push(p) };
 const flush = async () => { while (later.length) await later.shift(); };
+const gvc = (x, u, d) => G.crmGv(x, u, d.action === 'gv_save' && !d.id && !d.due && !d.noDue ? Object.assign({ due: Date.now() + 3 * DAY }, d) : d); // 17/11/2026: việc nào cũng cần hạn
 const users = { son: { email: 'thaisoniph@gmail.com', name: 'Thái Sơn', role: 'Quản trị', level: 3 }, thuy: { email: 'thuy@x.vn', name: 'Nguyễn Thị Thủy', role: 'Quản lý', level: 2 }, trang: { email: 'trang@x.vn', name: 'Lê Thu Trang', role: 'Kế toán', level: 0 }, ha: { email: 'ha@x.vn', name: 'Phạm Thu Hà', role: 'Marketing', level: 0 } };
 let bad = 0; const ok = (c, m) => { origLog((c ? '✅ ' : '❌ ') + m); if (!c) bad++; };
 const DAY = 864e5, W = G.weekOf(Date.now()), at = (d, h, m) => W + d * DAY + (h * 60 + (m || 0)) * 60e3 - 7 * 3600e3 + 7 * 3600e3; // W = thứ Hai 0h VN (ms UTC) → cộng ngày + giờ VN
@@ -37,33 +38,33 @@ const lastAnswer = () => sent.filter(s => s.startsWith('answerCallbackQuery')).p
 await DB.prepare("INSERT INTO kv (k, v) VALUES ('gv_cfg', ?)").bind(JSON.stringify({ token: '1:x', bot: 'tdl_cunglam_bot', secret: 'abc', group: '-500', groupName: 'Nhà Lành · Cùng làm', leads: [] })).run();
 await DB.prepare("INSERT INTO kv (k, v) VALUES ('gv_tg_thaisoniph@gmail.com', '100')").run(); // anh Sơn đã bấm Start với bot mới
 const hook = body => G.gvRoute(x, new Request('https://api.thucduonglanh.vn/gv/tg/abc', { method: 'POST', headers: { 'X-Telegram-Bot-Api-Secret-Token': 'abc' }, body: JSON.stringify(body) }), '/gv/tg/abc').then(flush);
-const find = async (who, re) => (await G.crmGv(x, users.son, { action: 'gv_list' })).gv.tasks.find(t => re.test(t.title));
+const find = async (who, re) => (await gvc(x, users.son, { action: 'gv_list' })).gv.tasks.find(t => re.test(t.title));
 
 // 1. bắt buộc "Thế nào là xong"; việc trọng tâm mơ hồ → AI gợi ý viết lại
-let r = await G.crmGv(x, users.ha, { action: 'gv_save', kind: 'tt', title: 'Làm video Tết', goal: '', who: 'ha@x.vn' }).catch(e => ({ ok: false, error: e.message }));
+let r = await gvc(x, users.ha, { action: 'gv_save', kind: 'tt', title: 'Làm video Tết', goal: '', who: 'ha@x.vn' }).catch(e => ({ ok: false, error: e.message }));
 ok(!r.ok && /Thế nào là xong/.test(r.error), 'Thiếu "Thế nào là xong" → không lưu');
 aiReply = { do_duoc: false, vi_sao: 'Chưa rõ bao nhiêu video, đăng ở đâu.', goi_y: 'Đăng 3 video Tết trà DILVANG lên TikTok, có tiêu đề + ảnh bìa' };
-r = await G.crmGv(x, users.ha, { action: 'gv_save', kind: 'tt', title: 'Làm video Tết', goal: 'hoàn thành video', who: 'ha@x.vn' });
+r = await gvc(x, users.ha, { action: 'gv_save', kind: 'tt', title: 'Làm video Tết', goal: 'hoàn thành video', who: 'ha@x.vn' });
 ok(!r.ok && r.needFix && /3 video/.test(r.goal), 'Trọng tâm mơ hồ → AI gợi ý "' + r.goal + '"');
-r = await G.crmGv(x, users.ha, { action: 'gv_save', kind: 'tt', title: 'Làm video Tết', goal: r.goal, who: 'ha@x.vn' });
+r = await gvc(x, users.ha, { action: 'gv_save', kind: 'tt', title: 'Làm video Tết', goal: r.goal, who: 'ha@x.vn' });
 ok(r.ok && r.gv.tasks[0].kind === 'tt' && r.gv.tasks[0].st === 'Đang làm', 'Dùng câu gợi ý (có con số) → lưu, tự đặt nên Đang làm');
 // 2. tối đa 3 việc trọng tâm
-await G.crmGv(x, users.ha, { action: 'gv_save', kind: 'tt', title: 'Báo cáo quảng cáo tuần', goal: '1 file Sheet chi phí + số khách 7 ngày', who: 'ha@x.vn' });
-await G.crmGv(x, users.ha, { action: 'gv_save', kind: 'tt', title: 'Viết 5 bài Fanpage', goal: '5 bài đã đăng trên Fanpage', who: 'ha@x.vn' });
-r = await G.crmGv(x, users.ha, { action: 'gv_save', kind: 'tt', title: 'Việc thứ tư', goal: '4 việc cùng lúc', who: 'ha@x.vn' });
+await gvc(x, users.ha, { action: 'gv_save', kind: 'tt', title: 'Báo cáo quảng cáo tuần', goal: '1 file Sheet chi phí + số khách 7 ngày', who: 'ha@x.vn' });
+await gvc(x, users.ha, { action: 'gv_save', kind: 'tt', title: 'Viết 5 bài Fanpage', goal: '5 bài đã đăng trên Fanpage', who: 'ha@x.vn' });
+r = await gvc(x, users.ha, { action: 'gv_save', kind: 'tt', title: 'Việc thứ tư', goal: '4 việc cùng lúc', who: 'ha@x.vn' });
 ok(!r.ok && /đã có 3 việc trọng tâm/.test(r.error), 'Việc trọng tâm thứ 4 → chặn, gợi ý dừng bớt hoặc ghi phát sinh');
-r = await G.crmGv(x, users.ha, { action: 'gv_save', kind: 'ps', title: 'Việc thứ tư', goal: 'gửi 1 ảnh mẫu', who: 'ha@x.vn' });
+r = await gvc(x, users.ha, { action: 'gv_save', kind: 'ps', title: 'Việc thứ tư', goal: 'gửi 1 ảnh mẫu', who: 'ha@x.vn' });
 ok(r.ok, 'Ghi là việc phát sinh thì được');
 // 3. ai cũng nhờ được ai (phát sinh); trọng tâm của người khác thì không
-r = await G.crmGv(x, users.ha, { action: 'gv_save', kind: 'tt', title: 'Trang làm gì đó', goal: '1 file báo cáo', who: 'trang@x.vn' });
+r = await gvc(x, users.ha, { action: 'gv_save', kind: 'tt', title: 'Trang làm gì đó', goal: '1 file báo cáo', who: 'trang@x.vn' });
 ok(!r.ok && /tự chốt hoặc người phụ trách/.test(r.error), 'Hà không đặt việc trọng tâm cho Trang');
-r = await G.crmGv(x, users.ha, { action: 'gv_save', kind: 'ps', title: 'Gửi số chi quảng cáo tháng 10', goal: '1 con số tổng chi T10', who: 'trang@x.vn' });
+r = await gvc(x, users.ha, { action: 'gv_save', kind: 'ps', title: 'Gửi số chi quảng cáo tháng 10', goal: '1 con số tổng chi T10', who: 'trang@x.vn' });
 ok(r.ok, 'Hà nhờ Trang 1 việc phát sinh được');
 
 // 4. anh Sơn đặt việc trọng tâm cho Trang, hạn ~50 phút nữa (16/11/2026: việc chỉ nhắn riêng, không đăng vào nhóm)
 raw.exec("INSERT OR REPLACE INTO kv (k, v) VALUES ('gv_tg_trang@x.vn', '300')");
 sent.length = 0;
-r = await G.crmGv(x, users.son, { action: 'gv_save', kind: 'tt', title: 'Gửi bảng lương tháng 11', goal: 'Bảng lương 12 người trong 1 file Sheet', who: 'trang@x.vn', due: Date.now() + 50 * 60e3, dueT: 1, tg: true });
+r = await gvc(x, users.son, { action: 'gv_save', kind: 'tt', title: 'Gửi bảng lương tháng 11', goal: 'Bảng lương 12 người trong 1 file Sheet', who: 'trang@x.vn', due: Date.now() + 50 * 60e3, dueT: 1, tg: true });
 const t2 = r.gv.tasks.find(t => t.title === 'Gửi bảng lương tháng 11');
 ok(r.ok && t2.st === 'Mới' && sent.some(s => s.includes('"chat_id":"300"') && s.includes('Việc trọng tâm')) && !sent.some(s => s.includes('-500') && s.includes('bảng lương')), 'Tin việc ⭐ nhắn riêng Trang, không đăng nội dung vào nhóm');
 const msg = await DB.prepare('SELECT * FROM gv_msg WHERE task = ? AND chat = ?').bind(t2.id, '300').first();
@@ -96,9 +97,9 @@ await hook({ message: { message_id: 61, from: { id: 300 }, chat: { id: -500, typ
 ok(sent.length === 0, 'Chuyện thường trong nhóm: bot im lặng');
 
 // 9. Hà nối riêng
-r = await G.crmGv(x, users.ha, { action: 'gv_link' });
+r = await gvc(x, users.ha, { action: 'gv_link' });
 await hook({ message: { message_id: 1, from: { id: 400 }, chat: { id: 400, type: 'private' }, text: '/start ' + r.url.split('start=')[1] } });
-ok((await G.crmGv(x, users.ha, { action: 'gv_list' })).gv.linked === 1, 'Hà nối Telegram riêng bằng mã');
+ok((await gvc(x, users.ha, { action: 'gv_list' })).gv.linked === 1, 'Hà nối Telegram riêng bằng mã');
 
 // 10. nhịp tuần
 sent.length = 0; await tick(at(0, 20, 5));
@@ -134,18 +135,18 @@ sent.length = 0; await tick(at(6, 21, 5));
 ok(sent.some(s => s.includes('"chat_id":"100"') && s.includes('21h Chủ nhật')), '21h Chủ nhật: anh Sơn nhận tổng tuần');
 
 // 11. báo cáo họp thứ Hai
-r = await G.crmGv(x, users.son, { action: 'gv_rep', week: W });
+r = await gvc(x, users.son, { action: 'gv_rep', week: W });
 const pHa = r.rep.people.find(p => p.email === 'ha@x.vn'), pTr = r.rep.people.find(p => p.email === 'trang@x.vn');
 ok(pHa.n === 3 && pHa.done === 1 && pTr.n === 1 && pTr.done === 1 && pTr.ontime === 1, 'Báo cáo tuần: Hà xong 1/3, Trang xong 1/1 đúng hạn');
 ok(/Cam kết/.test(pHa.text) && /Thực tế/.test(pHa.text), 'Có bài nói theo công thức họp (Cam kết → Thực tế → minh chứng)');
-r = await G.crmGv(x, users.trang, { action: 'gv_rep', week: W });
+r = await gvc(x, users.trang, { action: 'gv_rep', week: W });
 ok(r.rep.people.length === 1 && r.rep.people[0].email === 'trang@x.vn', 'Nhân sự chỉ xem báo cáo của mình');
 sent.length = 0; await tick(at(7, 7, 5));
 const tRep2 = await find(0, /Báo cáo quảng cáo/);
 ok(tRep2.carry === 1, '7h thứ Hai: việc chưa xong chuyển tuần (đếm lần chuyển)');
 ok(sent.some(s => s.includes('"chat_id":"400"') && s.includes('Báo cáo tuần') && s.includes('Chuyển tuần')), 'Hà nhận bài báo cáo cho buổi họp');
 ok(sent.some(s => s.includes('-500') && s.includes('Nhà Lành cùng xong')), 'Nhóm nhận lời cảm ơn cả tuần');
-r = await G.crmGv(x, users.son, { action: 'gv_rep', week: W + 7 * DAY });
+r = await gvc(x, users.son, { action: 'gv_rep', week: W + 7 * DAY });
 ok(r.rep.people.find(p => p.email === 'ha@x.vn').n === 2, 'Tuần mới: việc chuyển sang được tính cho tuần mới (Hà 2 việc ⭐)');
 
 // 12. Notion song song
@@ -158,11 +159,11 @@ ok(pVid && pVid.body.properties['Nhân sự thực hiện'].select.name === 'Mar
 ok(pVid.body.properties['Trạng thái'].status.name === 'Hoàn thành' && pVid.body.properties['Loại việc'].select.name === 'Cam kết đầu tuần' && /\/gv\/f\//.test(pVid.body.properties['Minh chứng'].url) && pVid.body.properties['Ngày hoàn thành thực tế'].date, 'Notion: Hoàn thành + Cam kết đầu tuần + Minh chứng + Ngày hoàn thành');
 const pTrg = posts.find(c => /bảng lương tháng 11/.test(c.body.properties['Đầu việc / Kết quả'].title[0].text.content));
 ok(pTrg && pTrg.body.properties['Nhân sự thực hiện'].select.name === 'Kế toán — Nguyễn Thị Kiều Trang', 'Notion: khớp Trang theo họ tên đầy đủ trong CRM');
-notionCalls.length = 0; await G.crmGv(x, users.son, { action: 'gv_set', id: tRep.id, pace: 'ok', next: 'Xong 50%' }); await G.gvNotionTick(x, C0, 50);
+notionCalls.length = 0; await gvc(x, users.son, { action: 'gv_set', id: tRep.id, pace: 'ok', next: 'Xong 50%' }); await G.gvNotionTick(x, C0, 50);
 ok(notionCalls.length === 1 && notionCalls[0].method === 'PATCH', 'Sửa 1 việc → chỉ cập nhật đúng 1 trang Notion');
 
 // 13. quyền, giả mạo
-r = await G.crmGv(x, users.trang, { action: 'gv_list' });
+r = await gvc(x, users.trang, { action: 'gv_list' });
 ok(r.ok && r.gv.tasks.every(t => t.whoE === 'trang@x.vn' || t.byE === 'trang@x.vn' || t.helpers.indexOf('trang@x.vn') >= 0), 'Kế toán chỉ thấy việc của mình / mình nhờ / cùng làm');
 const bad403 = await G.gvRoute(x, new Request('https://api.thucduonglanh.vn/gv/tg/abc', { method: 'POST', headers: { 'X-Telegram-Bot-Api-Secret-Token': 'sai' }, body: '{}' }), '/gv/tg/abc');
 ok(bad403 && bad403.status === 403, 'Tin giả mạo (sai mã bí mật) bị chặn');
@@ -185,77 +186,95 @@ let J = await res.json();
 ok(res.status === 200 && J.ok && J.made.length === 2, 'Tạo 2 việc khớp tên (' + J.made.map(m => m.who).join(', ') + ')');
 ok(J.made.some(m => m.who === 'Lê Thu Trang') && J.made.some(m => m.who === 'Nguyễn Thị Thủy'), 'Khớp tên gọi "chị Trang" và họ tên không dấu');
 ok(J.unknown.indexOf('Hà') >= 0 && J.unknown.indexOf('Minh') >= 0, 'Trùng tên (2 người tên Hà) + tên lạ → unknown, không tạo');
-r = await G.crmGv(x, users.son, { action: 'gv_list' });
+r = await gvc(x, users.son, { action: 'gv_list' });
 const tl = r.gv.tasks.find(t => t.title === 'Gửi bảng lương nháp T11'), tc = r.gv.tasks.find(t => t.title === 'Chốt lịch trực Chủ nhật');
 ok(tl && tl.src === 'hop' && tl.byE === 'thaisoniph@gmail.com' && /Từ cuộc họp: Họp sale \(14\/11\)/.test(tl.body), 'Người giao = anh Sơn, src hop, body có "Từ cuộc họp"');
 const vn = new Date(tl.due + 7 * 3600e3);
 ok(tl.dueT === 0 && vn.getUTCDate() === 20 && vn.getUTCHours() === 23 && vn.getUTCMinutes() === 59, 'Hạn = cuối ngày 20/11 (23:59 giờ VN)');
-ok(tc && !tc.due, 'Hạn rỗng → không đặt hạn');
+ok(tc && tc.due && new Date(tc.due + 7 * 3600e3).getUTCDay() === 0, 'Hạn rỗng → máy tự đặt Chủ nhật tuần này (để đo được tiến độ)');
 ok(sent.filter(s => s.includes('sendMessage') && s.includes('Việc #')).length >= 1 && !sent.some(s => s.includes('-500') && s.includes('Việc #')), 'Gửi Telegram riêng cho người làm (không đăng vào nhóm)');
 res = await imp({ src: 'hop', meeting: 'Họp sale (14/11)', tasks: [{ who: 'Trang', title: 'Gửi bảng lương nháp T11', due: '2026-11-20' }] }, 'k-test-123');
 J = await res.json();
 ok(J.made.length === 0 && J.skipped.length === 1, 'Bot gửi lại lần 2 → không tạo trùng');
 
 // 16/11/2026: Việc tuần bật theo người: sale chưa bật → không có trong danh sách, không giao được, bot báo chưa bật
-r = await G.crmGv(x, users.son, { action: 'gv_list' });
+r = await gvc(x, users.son, { action: 'gv_list' });
 ok(!r.gv.staff.some(z => z.email === 'lan@x.vn') && r.gv.off.some(z => z.email === 'lan@x.vn'), 'Sale chưa bật → nằm ở danh sách chưa bật');
 ok(r.gv.staff.some(z => z.email === 'thaisoniph@gmail.com'), 'Anh Sơn luôn bật (ô trống vẫn bật)');
-r = await G.crmGv(x, users.son, { action: 'gv_save', kind: 'ps', title: 'Gọi 5 khách', goal: '5 cuộc gọi', who: 'lan@x.vn' });
+r = await gvc(x, users.son, { action: 'gv_save', kind: 'ps', title: 'Gọi 5 khách', goal: '5 cuộc gọi', who: 'lan@x.vn' });
 ok(!r.ok || !(r.gv.tasks || []).some(t => t.whoE === 'lan@x.vn'), 'Không giao được việc cho sale chưa bật');
-r = await G.crmGv(x, users.son, { action: 'gv_cfg', on: ['thuy@x.vn', 'lan@x.vn'] });
+r = await gvc(x, users.son, { action: 'gv_cfg', on: ['thuy@x.vn', 'lan@x.vn'] });
 ok(r.gv.staff.some(z => z.email === 'lan@x.vn') && !r.gv.staff.some(z => z.email === 'ha@x.vn') && r.gv.staff.some(z => z.email === 'thaisoniph@gmail.com'), 'Bật Lan, tắt Hà, anh Sơn vẫn bật');
 
 // 16/11/2026: ai xem việc của ai. Quản trị xem hết; Thủy (Quản lý) chỉ xem việc của mình + người được giao theo dõi (Trang, Hà)
-await G.crmGv(x, users.son, { action: 'gv_cfg', on: ['thuy@x.vn', 'lan@x.vn', 'trang@x.vn', 'ha@x.vn'] });
-await G.crmGv(x, users.son, { action: 'gv_save', kind: 'ps', title: 'Lan gọi 5 khách cũ', goal: '5 cuộc gọi ghi CRM', who: 'lan@x.vn' });
+await gvc(x, users.son, { action: 'gv_cfg', on: ['thuy@x.vn', 'lan@x.vn', 'trang@x.vn', 'ha@x.vn'] });
+await gvc(x, users.son, { action: 'gv_save', kind: 'ps', title: 'Lan gọi 5 khách cũ', goal: '5 cuộc gọi ghi CRM', who: 'lan@x.vn' });
 const thuy0 = Object.assign({}, users.thuy, { gvsee: [] }), thuy1 = Object.assign({}, users.thuy, { gvsee: ['trang@x.vn', 'ha@x.vn'] });
-r = await G.crmGv(x, thuy0, { action: 'gv_list' });
+r = await gvc(x, thuy0, { action: 'gv_list' });
 ok(!r.gv.tasks.some(t => t.whoE === 'trang@x.vn' && t.byE !== 'thuy@x.vn') && r.gv.lead === 0, 'Thủy chưa được giao theo dõi → không thấy việc của Trang, không có tab nhóm');
-r = await G.crmGv(x, thuy1, { action: 'gv_list' });
+r = await gvc(x, thuy1, { action: 'gv_list' });
 ok(r.gv.tasks.some(t => t.whoE === 'trang@x.vn') && r.gv.tasks.some(t => t.whoE === 'ha@x.vn') && !r.gv.tasks.some(t => t.whoE === 'lan@x.vn') && r.gv.lead === 1 && r.gv.all === 0, 'Thủy theo dõi Trang + Hà: thấy việc 2 bạn, không thấy việc sale Lan');
-r = await G.crmGv(x, users.son, { action: 'gv_list' });
+r = await gvc(x, users.son, { action: 'gv_list' });
 ok(r.gv.tasks.some(t => t.whoE === 'lan@x.vn') && r.gv.all === 1, 'Anh Sơn (Quản trị) thấy việc của mọi người');
-r = await G.crmGv(x, users.ha, { action: 'gv_list' });
+r = await gvc(x, users.ha, { action: 'gv_list' });
 ok(r.gv.tasks.every(t => t.whoE === 'ha@x.vn' || t.byE === 'ha@x.vn' || t.helpers.indexOf('ha@x.vn') >= 0), 'Hà chỉ thấy việc mình làm / mình nhờ / mình cùng làm');
-r = await G.crmGv(x, thuy1, { action: 'gv_rep', week: W });
+r = await gvc(x, thuy1, { action: 'gv_rep', week: W });
 ok(r.rep.people.every(p => ['thuy@x.vn', 'trang@x.vn', 'ha@x.vn'].indexOf(p.email) >= 0), 'Báo cáo tuần của Thủy chỉ có Thủy, Trang, Hà');
-r = await G.crmGv(x, thuy1, { action: 'gv_save', kind: 'tt', title: 'Đối soát Shopee tuần', goal: '1 file đối soát khớp 100% đơn', who: 'trang@x.vn' });
+r = await gvc(x, thuy1, { action: 'gv_save', kind: 'tt', title: 'Đối soát Shopee tuần', goal: '1 file đối soát khớp 100% đơn', who: 'trang@x.vn' });
 ok(r.ok, 'Thủy đặt được việc trọng tâm cho Trang (người mình theo dõi)');
-r = await G.crmGv(x, thuy1, { action: 'gv_save', kind: 'tt', title: 'Lan làm gì đó', goal: '1 file', who: 'lan@x.vn' });
+r = await gvc(x, thuy1, { action: 'gv_save', kind: 'tt', title: 'Lan làm gì đó', goal: '1 file', who: 'lan@x.vn' });
 ok(!r.ok, 'Thủy không đặt được việc trọng tâm cho sale Lan');
 
-r = await G.crmGv(x, users.son, { action: 'gv_cfg', on: ['thuy@x.vn'] }); r = await G.crmGv(x, users.son, { action: 'gv_save', kind: 'ps', title: 'Việc cho người chưa bật', goal: '1 việc', who: 'ha@x.vn' });
+r = await gvc(x, users.son, { action: 'gv_cfg', on: ['thuy@x.vn'] }); r = await gvc(x, users.son, { action: 'gv_save', kind: 'ps', title: 'Việc cho người chưa bật', goal: '1 việc', who: 'ha@x.vn' });
 ok(!r.ok && /chưa bật/.test(r.error), 'Giao cho người chưa bật → báo rõ, không tự giao cho mình');
 
 // 17/11/2026: 🎯 mục tiêu đếm được
-r = await G.crmGv(x, users.son, { action: 'gv_goal_save', title: 'Đăng video TikTok trà DILVANG', unit: 'video', target: 10, due: Date.now() + 10 * DAY, who: 'thuy@x.vn' });
+r = await gvc(x, users.son, { action: 'gv_goal_save', title: 'Đăng video TikTok trà DILVANG', unit: 'video', target: 10, due: Date.now() + 10 * DAY, who: 'thuy@x.vn' });
 let g1 = r.gv.goals.find(g => g.title === 'Đăng video TikTok trà DILVANG');
 ok(r.ok && g1 && g1.done === 0 && g1.pct === 0 && g1.whoE === 'thuy@x.vn', 'Anh Sơn đặt mục tiêu 10 video cho Thủy');
-r = await G.crmGv(x, thuy1, { action: 'gv_goal_add', id: g1.id, n: 3, link: 'https://tiktok.com/v1' });
+r = await gvc(x, thuy1, { action: 'gv_goal_add', id: g1.id, n: 3, link: 'https://tiktok.com/v1' });
 g1 = r.gv.goals.find(g => g.id === g1.id);
 ok(g1.done === 3 && g1.pct === 30 && g1.log[0].n === 3 && /tiktok/.test(g1.log[0].link), 'Thủy cộng +3 → 3/10 (30%), lưu link');
-r = await G.crmGv(x, users.son, { action: 'gv_save', kind: 'ps', title: 'Quay 2 video Tết', goal: '2 video đã đăng', who: 'thuy@x.vn', goalId: g1.id });
+r = await gvc(x, users.son, { action: 'gv_save', kind: 'ps', title: 'Quay 2 video Tết', goal: '2 video đã đăng', who: 'thuy@x.vn', goalId: g1.id });
 const tg1 = r.gv.tasks.find(t => t.title === 'Quay 2 video Tết');
 ok(tg1 && tg1.goalId === g1.id, 'Việc gắn vào mục tiêu');
-r = await G.crmGv(x, thuy1, { action: 'gv_set', id: tg1.id, st: 'Xong', qty: 2, result: 'Đã đăng 2 video' });
+r = await gvc(x, thuy1, { action: 'gv_set', id: tg1.id, st: 'Xong', qty: 2, result: 'Đã đăng 2 video' });
 ok(r.gv.goals.find(g => g.id === g1.id).done === 5, 'Báo xong việc kèm 2 video → mục tiêu tự cộng 5/10');
-r = await G.crmGv(x, thuy1, { action: 'gv_set', id: tg1.id, note: 'thêm ghi chú' });
+r = await gvc(x, thuy1, { action: 'gv_set', id: tg1.id, note: 'thêm ghi chú' });
 ok(r.gv.goals.find(g => g.id === g1.id).done === 5, 'Việc đã cộng rồi thì không cộng lại');
-r = await G.crmGv(x, users.ha, { action: 'gv_list' });
+r = await gvc(x, users.ha, { action: 'gv_list' });
 ok(!r.gv.goals.some(g => g.id === g1.id), 'Hà (không theo dõi Thủy) không thấy mục tiêu của Thủy');
-r = await G.crmGv(x, users.ha, { action: 'gv_goal_add', id: g1.id, n: 1 });
+r = await gvc(x, users.ha, { action: 'gv_goal_add', id: g1.id, n: 1 });
 ok(!r.ok, 'Hà không cộng được vào mục tiêu của Thủy');
-r = await G.crmGv(x, users.son, { action: 'gv_goal_save', title: 'Bài Fanpage', unit: 'bài', target: 4, due: Date.now() + 5 * DAY });
+r = await gvc(x, users.son, { action: 'gv_goal_save', title: 'Bài Fanpage', unit: 'bài', target: 4, due: Date.now() + 5 * DAY });
 sent.length = 0;
 await hook({ message: { message_id: 900, from: { id: 100 }, chat: { id: 100, type: 'private' }, text: '+2 https://facebook.com/p1' } });
 ok(sent.some(s => s.includes('Đã cộng 2') && s.includes('2/4')), 'Telegram: "+2 link" cộng vào mục tiêu của chính mình');
-r = await G.crmGv(x, thuy1, { action: 'gv_goal_add', id: g1.id, n: 5 });
+r = await gvc(x, thuy1, { action: 'gv_goal_add', id: g1.id, n: 5 });
 const g1d = r.gv.goals.find(g => g.id === g1.id);
 ok(g1d.done === 10 && g1d.st === 'done' && g1d.pace === 'done', 'Đủ 10/10 → 🎉 Đã đạt');
 const st = G.goalStat({ target: 100, done: 20, start: Date.now() - 15 * DAY, due: Date.now() + 14 * DAY, status: 'open' });
 ok(st.pace === 'behind' && st.perDay >= 5, 'Giữa tháng mới 20/100 → 🔴 Chậm, mỗi ngày cần ≥5');
-r = await G.crmGv(x, thuy1, { action: 'gv_rep', week: G.weekOf(Date.now()) });
+r = await gvc(x, thuy1, { action: 'gv_rep', week: G.weekOf(Date.now()) });
 ok(r.rep.goals.some(g => g.id === g1.id), 'Báo cáo tuần có dòng mục tiêu');
+
+// 17/11/2026: việc rõ ràng, đo được: bắt buộc hạn, ưu tiên, con số đích + số đã làm → đèn tiến độ
+r = await G.crmGv(x, users.son, { action: 'gv_save', kind: 'ps', title: 'Livestream TikTok', goal: '5 phiên, mỗi phiên ≥60 phút', who: 'thuy@x.vn' });
+ok(!r.ok && /hạn/.test(r.error), 'Tạo việc trong CRM không có hạn → nhắc chọn hạn');
+r = await G.crmGv(x, users.son, { action: 'gv_save', kind: 'ps', title: 'Livestream TikTok', goal: '5 phiên, mỗi phiên ≥60 phút', who: 'thuy@x.vn', due: Date.now() + 6 * DAY, prio: 'gap', targetN: 5, unit: 'phiên' });
+let lv = r.gv.tasks.find(t => t.title === 'Livestream TikTok');
+ok(lv && lv.prio === 'gap' && lv.targetN === 5 && lv.unit === 'phiên' && lv.health.h === 'ok' && lv.health.pct === 0, 'Lưu ưu tiên 🔴 Gấp + con số đích 5 phiên, đèn 🟢 lúc mới tạo');
+r = await G.crmGv(x, thuy1, { action: 'gv_set', id: lv.id, doneN: 2 });
+lv = r.gv.tasks.find(t => t.id === lv.id);
+ok(lv.doneN === 2 && lv.health.pct === 40 && lv.st === 'Đang làm', 'Cập nhật đã làm 2/5 → 40%, tự chuyển Đang làm');
+const hb = G.taskHealth({ status: 'Đang làm', at: Date.now() - 5 * DAY, due: Date.now() + 1 * DAY, target_n: 10, done_n: 2 });
+ok(hb.h === 'behind' && hb.expect >= 6, 'Gần hạn mới 2/10 → 🔴 Chậm');
+ok(G.taskHealth({ status: 'Đang làm', at: Date.now(), due: null }).h === 'nodue' && G.taskHealth({ status: 'Mới', at: Date.now() - 9 * DAY, due: Date.now() - 2 * DAY }).h === 'late', 'Không hạn → chưa đo được; qua hạn → ⏰');
+const msg2 = await DB.prepare("SELECT * FROM gv_msg WHERE task = ? LIMIT 1").bind(lv.id).first();
+if (msg2) { sent.length = 0; await hook({ message: { message_id: 950, from: { id: 300 }, chat: { id: Number(msg2.chat), type: 'private' }, text: '+1', reply_to_message: { message_id: msg2.msg } } }); }
+r = await G.crmGv(x, users.son, { action: 'gv_rep', week: G.weekOf(Date.now()) });
+const pth = r.rep.people.find(p => p.email === 'thuy@x.vn');
+ok(pth && pth.health && (pth.health.ok + pth.health.slow + pth.health.behind + pth.health.late + pth.health.noupd + pth.health.nodue) >= 1, 'Báo cáo tuần có đèn việc của từng người');
 
 origLog('sai:', bad);
 process.exit(bad ? 1 : 0);

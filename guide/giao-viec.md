@@ -16,6 +16,41 @@ description: Mỗi tuần mỗi người chốt tối đa 3 việc trọng tâm,
 
 **Anh Sơn bật / tắt cho từng người:** ⚙ **Cài đặt → 👥 Nhân sự → 🧑‍💼 Ai được vào CRM** → ở dòng của người đó tích ô **✅ Việc tuần** → **Lưu nhân sự**. Hoặc ở **✅ Việc tuần → ⚙️ Cài đặt việc tuần → Ai dùng Việc tuần?**. Người chưa bật: không thấy tab, không nhận việc, không nhận lời nhắc Telegram, không có trong báo cáo thứ Hai.
 
+## Tạo việc rõ ràng, đo được
+
+Khi tạo việc, ô **📝 Việc đã rõ chưa?** ở đầu tự kiểm 5 điều, đủ 5/5 thì chuyển xanh **✅**:
+
+1. **Việc ghi rõ làm gì**: bắt đầu bằng động từ (Đăng, Gọi, Hoàn thiện, Thu…).
+2. **Thế nào là xong**: sản phẩm bàn giao.
+3. **Có con số**: ghi vào ô **🔢 Con số đích** (vd *5 phiên*, *3 hồ sơ*) để máy tính % tiến độ.
+4. **Có hạn** (bắt buộc): việc không hạn thì không đo được nhanh hay chậm.
+5. **Mức ưu tiên**: 🔴 Gấp (ảnh hưởng tiền / khách) · 🟠 Quan trọng (việc trọng tâm tuần) · 🟢 Bình thường.
+
+| ❌ Chưa rõ | ✅ Rõ ràng, đo được |
+|---|---|
+| Live stream 5 phiên trên tiktok shopee (không hạn) | **Livestream 5 phiên trên TikTok Shop** · mỗi phiên ≥60 phút · 🔢 5 phiên · 📅 Chủ nhật · 🟠 |
+| Tuyển dụng nhân sự Kinh doanh/ Marketing | **Thu 3 hồ sơ ứng tuyển Kinh doanh / Marketing** · 🔢 3 hồ sơ · 📅 Thứ Sáu · 🟠 |
+
+## Cập nhật tiến độ trong 1 chạm
+
+Mỗi việc của bạn có nút ngay trên dòng:
+
+- **＋1** (việc có con số): làm xong 1 phần bấm 1 cái. Trên Telegram: trả lời tin việc *+1*.
+- **📍 Cập nhật**: số đã làm, 🟢🟡🔴, 1 câu "đã làm gì → làm gì tiếp", cần ai hỗ trợ. Việc cũ chưa có hạn thì đặt hạn ở đây.
+- **✅ Xong**: mở thẳng phần ghi kết quả + link minh chứng.
+
+## Đèn tiến độ
+
+| Đèn | Nghĩa |
+|---|---|
+| 🟢 Đúng tiến độ | Số đã làm ≥ 90% số lẽ ra phải có tới hôm nay (vạch đen trên thanh) |
+| 🟡 Hơi chậm / Chưa cập nhật | Được 60–90%, hoặc đã qua nửa thời gian mà chưa cập nhật |
+| 🔴 Chậm | Dưới 60% số lẽ ra phải có |
+| ⏰ Quá hạn | Qua hạn mà chưa xong |
+| ⚪ Chưa có hạn | Chưa đo được: đặt hạn ngay |
+
+Người theo dõi (Quản trị, chị Thủy…) mở tab **👀 Nhóm tôi theo dõi** thấy **📊 Tiến độ từng người**: mỗi người 1 thanh màu theo đèn. Thanh nhiều đỏ là cần hỏi thăm, hỗ trợ. Bấm tên để xem việc của người đó. **📋 Báo cáo tuần** cũng có thanh màu của từng người.
+
 ## Mở Việc tuần ở đâu?
 
 - **Nút ✅ trên đầu màn hình** (cạnh 🔍 ❓ ⚙), màn nào cũng có. **Số đỏ** = số việc đang chờ bạn: việc mới cần nhận, việc quá hạn, việc đến lúc cập nhật, việc trong nhóm bạn theo dõi bị trễ hoặc cần hỗ trợ.
