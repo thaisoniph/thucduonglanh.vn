@@ -16205,7 +16205,7 @@
   /** ＋ Ghi số: bao nhiêu, link, ghi chú. n sẵn (＋1) thì ghi ngay. */
   function gvGoalAdd(id, n, btn) {
     var g = gvGoalFind(id); if (!g) return;
-    if (n) { if (btn) btn.disabled = true; api('gv_goal_add', { id: g.id, n: n }).then(function (j) { gvSetD(j); var ng = gvGoalFind(id); toast('＋' + n + ' ✓ ' + (ng ? ng.done + '/' + ng.target + ' (' + ng.pct + '%)' : '')); render(); }, function (e) { if (btn) btn.disabled = false; toast(e.message, true); }); return; }
+    if (n) { if (btn) btn.disabled = true; api('gv_goal_add', { id: g.id, n: n }).then(function (j) { gvSetD(j); var ng = gvGoalFind(id); toast('＋' + n + ' ✓ Đã ghi · ' + (ng ? ng.done + '/' + ng.target + ' (' + ng.pct + '%)' : '')); render(); }, function (e) { if (btn) btn.disabled = false; toast(e.message, true); }); return; }
     var m = modal('＋ ' + esc(g.title), '<div class="gv-m"><p class="gv-p">Hiện có <b>' + g.done + '/' + g.target + (g.unit ? ' ' + esc(g.unit) : '') + '</b>.</p><label class="f"><span>Làm thêm được bao nhiêu' + (g.unit ? ' ' + esc(g.unit) : '') + '?</span><input type="number" inputmode="numeric" id="gaN" value="1"></label><small class="muted">Ghi nhầm thì ghi số âm để trừ, vd -1.</small>' +
       '<label class="f"><span>Link (không bắt buộc)</span><input type="url" id="gaL" placeholder="https://… video, bài đăng, file"></label><label class="f"><span>Ghi chú (không bắt buộc)</span><input type="text" id="gaC" placeholder="vd video Tết số 12"></label></div>',
       '<button class="btn" data-close>Thôi</button><button class="btn pri" id="gaSave">Ghi</button>');
