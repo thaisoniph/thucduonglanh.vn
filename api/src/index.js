@@ -203,7 +203,7 @@ export default {
       if (req.method !== 'POST') return json({ ok: false, error: 'method' }, origin, 405);
       const t0 = Date.now();
       await ensureSchema(x.db);
-      const text = await req.text(); if (text.length > (text.startsWith('{"type":"apply"') ? 8e6 : /^\{"type":"crm","action":"ins_s(core|tt)"/.test(text.slice(0, 40)) ? 16e6 : 2e6)) return json({ ok: false, error: 'Dữ liệu quá lớn' }, origin, 413); // hồ sơ ứng tuyển kèm file CV tới 5 MB · 🧪 chấm bài kèm 8 khung hình + tiếng video ≤ 4 phút (~10 MB)
+      const text = await req.text(); if (text.length > (text.startsWith('{"type":"apply"') ? 8e6 : /^\{"type":"crm","action":"ins_s(core|tt)"/.test(text.slice(0, 40)) ? 16e6 : text.startsWith('{"type":"crm","action":"kt_ncc"') ? 4e6 : 2e6)) return json({ ok: false, error: 'Dữ liệu quá lớn' }, origin, 413); // hồ sơ ứng tuyển kèm file CV tới 5 MB · 🧪 chấm bài kèm 8 khung hình + tiếng video ≤ 4 phút (~10 MB)
       const d = JSON.parse(text || '{}');
       if (d.type === 'crm') { x.ua = req.headers.get('user-agent') || ''; const out = await crmApi(x, d, ADMIN, DUPS); out.v = API_VERSION; out.sms = Date.now() - t0; return json(out, origin); } // sms: thời gian máy chủ xử lý → CRM ghi vào "Đo tốc độ CRM"
       if (d.type === 'vtp') return json(await vtpWebhook(x, d.payload), origin);

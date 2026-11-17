@@ -310,6 +310,27 @@ Khi nhà cung cấp gửi bảng công nợ, **không xác nhận và không chu
 
 Khi nhà cung cấp đã sửa lại số: mở nhà cung cấp → mục **🔍 Đối chiếu với nhà cung cấp** → bấm **✅ Đã giải quyết**, ghi cách xử lý. Lệch chưa giải quyết thì hiện đỏ ở tab Kế toán và ở Tổng quan của anh Sơn.
 
+### Nhà cung cấp gửi giấy tờ: chụp / tải lên, AI đọc giúp
+
+Nhà cung cấp gửi qua Zalo **hoá đơn, phiếu xuất kho, đơn đặt hàng, bảng công nợ, ảnh chuyển khoản**: bấm giữ ảnh → Lưu vào máy, rồi ở mục Công nợ nhà cung cấp bấm **📷 Nhà cung cấp gửi giấy tờ?**
+
+1. Chọn ảnh hoặc PDF (PDF tối đa 1,4 MB; ảnh máy tự nén).
+2. Bấm **✨ AI đọc & điền giúp**: AI cho biết đây là giấy gì, của nhà cung cấp nào, số tiền bao nhiêu. **Kiểm tra lại số** rồi bấm nút tiếp theo:
+   - Bảng công nợ → mở **🔍 Đối chiếu** đã điền sẵn số họ báo.
+   - Hoá đơn / phiếu xuất kho → mở **＋ Hoá đơn** đã điền sẵn.
+   - Đơn đặt hàng → mở **🛒 Đơn đặt**. Hỗ trợ VAT / khuyến mại → mở **🎁 Hàng hỗ trợ**.
+   - Ảnh chuyển khoản → chỉ lưu làm chứng từ. Tiền trả tự trừ khi tải sao kê.
+3. Không cần AI thì bấm **💾 Chỉ lưu**. Giấy tờ đã lưu xem lại ở từng nhà cung cấp → mục **📎 Chứng từ**.
+
+**☁️ Chép lên Google Drive:** **mỗi thứ Hai** máy tự chép chứng từ mới vào Drive công ty: `05_Tài chính & Kế toán / Chứng từ nhà cung cấp / Tên nhà cung cấp / Năm-Tháng`. Tên file: `Năm-Tháng-Ngày_Loại - Nhà cung cấp`. Cần ngay thì bấm **☁️ Chép ngay**.
+
+### Đơn đặt hàng và hàng hỗ trợ
+
+Bấm **🛒 Đơn đặt / 🎁 Hàng hỗ trợ**:
+
+- **🛒 Đơn đặt**: ghi hàng gì, **tổng tiền gồm VAT**, ngày hẹn về. Chọn **sản phẩm trong kho** + số lượng thì kho thấy hàng đang về. Khi kho ghi **📥 Hàng về** theo lần đặt đó (hoặc kế toán bấm **✅ Hàng đã về**), máy **tự ghi hoá đơn vào công nợ**, hạn trả tự tính. Không phải ghi hoá đơn lần nữa.
+- **🎁 Hàng hỗ trợ**: nhà cung cấp còn nợ mình **bằng hàng** (vd hỗ trợ 50% VAT tháng 9–10 = 11.328.000đ). **Không cộng vào công nợ.** Máy nhắc ở Việc hôm nay và tin 8h tới khi bấm **✅ Đã nhận**.
+
 **📒 Sổ chi tiết** (trong từng nhà cung cấp): từng dòng mua hàng / đã trả và số còn nợ sau mỗi dòng, giống bảng nhà cung cấp gửi. Đặt cạnh bảng của họ để so từng dòng, thiếu dòng nào là chỗ lệch. Có nút 📋 Chép bảng và 🖨 In biên bản.
 
 **Trước khi trả tiền:** so hoá đơn với **📥 Hàng về kho** (mục Hàng tồn kho bên dưới) xem kho đã nhận đủ chưa.

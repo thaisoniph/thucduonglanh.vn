@@ -3,6 +3,7 @@
   "authorized": true,
   "services": [
     { "userSymbol": "AnalyticsData", "serviceId": "analyticsdata", "version": "v1beta" },
-    { "userSymbol": "AnalyticsAdmin", "serviceId": "analyticsadmin", "version": "v1beta" }
+    { "userSymbol": "AnalyticsAdmin", "serviceId": "analyticsadmin", "version": "v1beta" },
+    { "userSymbol": "Drive", "serviceId": "drive", "version": "v3" }
   ]
 }

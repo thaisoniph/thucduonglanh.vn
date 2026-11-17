@@ -6719,6 +6719,12 @@
     var CK = knChkSt();
     if (CK.due && CK.miss.length) h += '<button type="button" class="notice kn-unk" data-kn="chk">🔍 <b>Đã qua ngày ' + KN_CHK_DAY + ': còn ' + CK.miss.length + ' nhà cung cấp chưa đối chiếu công nợ ' + monthLabel(CK.mo) + '</b> (' + CK.miss.slice(0, 3).map(function (r) { return esc(r.s.name); }).join(', ') + (CK.miss.length > 3 ? '…' : '') + '). Xin nhà cung cấp gửi bảng công nợ rồi <u>bấm để đối chiếu</u>.</button>';
     if (CK.diff.length) h += '<p class="notice warn small">⚠️ <b>Đối chiếu còn lệch:</b> ' + CK.diff.map(function (c) { var x = knSup(c.ncc); return esc(x ? x.name : '?') + ' ' + (c.their > c.ours ? '+' : '−') + moneyShort(Math.abs(c.their - c.ours)); }).join(', ') + '. Mở nhà cung cấp → xem lần đối chiếu → ghi cách xử lý, bấm ✅ Đã giải quyết.</p>';
+    h += '<button type="button" class="btn pri kn-scan" data-kn="scan">📷 Nhà cung cấp gửi giấy tờ? Chụp / tải lên, AI đọc giúp</button><p class="small muted" style="margin:4px 0 10px">Hoá đơn, phiếu xuất kho, đơn đặt hàng, bảng công nợ, ảnh chuyển khoản: máy lưu lại và điền sẵn số vào đúng chỗ.</p>';
+    var DV = D.drive || {}, nDoc = (D.docs || []).length, nLeft = (D.docs || []).filter(function (f) { return !f.drive; }).length;
+    if (nDoc) h += '<p class="small kn-drv">☁️ Chứng từ tự chép lên Google Drive <b>mỗi thứ Hai</b>' + (DV.at ? ' · lần gần nhất ' + fDateTime(DV.at) : '') + ' · ' + (nLeft ? '<b>' + nLeft + ' file chưa chép</b>' : '✅ đã chép hết') + (DV.err ? ' · <em class="ktv-red">⚠️ ' + esc(DV.err) + '</em>' : '') +
+      ' ' + (nLeft ? '<button class="btn sm" data-kn="drive">☁️ Chép ngay</button> ' : '') + (DV.url ? '<a class="btn sm ghost" target="_blank" rel="noopener" href="' + esc(DV.url) + '">📂 Mở thư mục Drive</a>' : '') + '</p>';
+    var PO = (D.pos || []).filter(function (o) { return o.st === 'open'; }), pb = PO.filter(function (o) { return o.kind === 'buy'; }), pg = PO.filter(function (o) { return o.kind === 'gift'; }), ps = function (a) { return a.reduce(function (t, o) { return t + o.amt; }, 0); };
+    if (PO.length) h += '<button type="button" class="notice info kn-unk" data-kn="po">' + (pb.length ? '🛒 <b>' + pb.length + ' đơn đặt chưa về</b> (' + moneyShort(ps(pb)) + ', về sẽ tự thành công nợ)' : '') + (pb.length && pg.length ? ' · ' : '') + (pg.length ? '🎁 <b>Nhà cung cấp còn nợ mình hàng hỗ trợ ' + moneyShort(ps(pg)) + '</b>: nhớ nhắc lấy hàng' : '') + '. <u>Xem</u></button>';
     if (D.unk && D.unk.length) h += '<button type="button" class="notice kn-unk" data-kn="unk">⚠️ <b>' + D.unk.length + ' khoản trả nhà cung cấp trên sao kê</b> (' + moneyShort(D.unk.reduce(function (t, r) { return t + r.amt; }, 0)) + ') máy chưa biết trả cho ai. <u>Bấm để chọn</u>, lần sau máy tự nhận ra.</button>';
     var R = C.rows.filter(function (r) { return !r.s.off || r.owe; }).sort(function (a, b) { return (b.over ? 1 : 0) - (a.over ? 1 : 0) || (a.next || '9') .localeCompare(b.next || '9') || b.owe - a.owe; });
     if (R.length) h += '<div class="box kn-list">' + R.map(function (r) {
@@ -6726,7 +6732,7 @@
       var lc = CK.last[r.s.id]; sub += lc ? (knChkOk(lc) ? ' · ✅ đã đối chiếu ' + knDd(isoDate(lc.at)).slice(0, 5) : ' · <em class="ktv-red">⚠️ đối chiếu lệch ' + moneyShort(Math.abs(lc.their - lc.ours)) + '</em>') : r.owe && CK.due ? ' · <em class="ktv-red">🔍 chưa đối chiếu ' + monthLabel(CK.mo).replace(/^tháng /, 'T') + '</em>' : '';
       return '<button type="button" class="ktv-row' + (r.over ? ' kn-late' : '') + '" data-kn="sup|' + r.s.id + '"><span><b>' + esc(r.s.name) + '</b><small>' + sub + '</small></span><b class="ktv-amt">' + (r.owe ? moneyShort(r.owe) : '–') + '</b><i aria-hidden="true">›</i></button>';
     }).join('') + '</div>';
-    h += '<div class="ktv-big kn-btns"><button class="btn pri" data-kn="bill">＋ Hoá đơn nhập hàng</button><button class="btn" data-kn="pay">＋ Ghi đã trả (tiền mặt)</button><button class="btn" data-kn="new">＋ Nhà cung cấp</button>' + (D.bills.length ? '<button class="btn" data-kn="chk">🔍 Nhà cung cấp gửi công nợ</button>' : '') + (D.bills.length ? '<button class="btn ghost" data-kn="copy">📋 Chép bảng công nợ</button>' : '') + '</div>';
+    h += '<div class="ktv-big kn-btns"><button class="btn pri" data-kn="bill">＋ Hoá đơn nhập hàng</button><button class="btn" data-kn="pay">＋ Ghi đã trả (tiền mặt)</button><button class="btn" data-kn="new">＋ Nhà cung cấp</button>' + (D.bills.length ? '<button class="btn" data-kn="chk">🔍 Nhà cung cấp gửi công nợ</button>' : '') + '<button class="btn" data-kn="po">🛒 Đơn đặt / 🎁 Hàng hỗ trợ</button>' + (D.bills.length ? '<button class="btn ghost" data-kn="copy">📋 Chép bảng công nợ</button>' : '') + '</div>';
     return h + '</section>';
   }
   function knSupOpts(sel) { return '<option value="">— Chọn nhà cung cấp —</option>' + (KN.d ? KN.d.ncc : []).filter(function (s) { return !s.off || +s.id === +sel; }).map(function (s) { return '<option value="' + s.id + '"' + (+s.id === +sel ? ' selected' : '') + '>' + esc(s.name) + '</option>'; }).join(''); }
@@ -6752,7 +6758,7 @@
       knDo(m, this, { op: 'sup', id: id || '', name: n, terms: knNum($('#knT', m).value), phone: $('#knP', m).value, keys: $('#knK', m).value, note: $('#knNo', m).value, off: $('#knOff', m) && $('#knOff', m).checked ? 1 : 0 }, 'Đã lưu nhà cung cấp ✓', id ? function () { openKnSup(id); } : null);
     };
   }
-  function openKnBill(nid, bid) {
+  function openKnBill(nid, bid, pre) {
     if (KN.d && !KN.d.ncc.length) { toast('Thêm nhà cung cấp trước'); openKnEdit(); return; }
     var b = bid ? (KN.d.bills || []).filter(function (x) { return x.id === bid; })[0] : null; nid = b ? b.ncc : nid;
     var dueAuto = function (day, sid) { var s = knSup(sid); return s && day ? isoDate(new Date(day + 'T12:00:00+07:00').getTime() + (Number(s.terms) || 0) * DAY) : ''; };
@@ -6766,6 +6772,7 @@
     var touched = !!b, hint = function () { var s = knSup($('#knS', m).value); $('#knDueH', m).textContent = s ? 'Hạn tự tính: ngày hoá đơn + ' + (s.terms || 0) + ' ngày được nợ. Sửa được nếu hoá đơn ghi hạn khác.' : ''; };
     var re = function () { if (!touched) $('#knDue', m).value = dueAuto($('#knDay', m).value, $('#knS', m).value); hint(); };
     $('#knS', m).onchange = re; $('#knDay', m).onchange = re; $('#knDue', m).onchange = function () { touched = true; }; hint(); knMoneyIn($('#knA', m));
+    if (pre) { if (pre.amt) $('#knA', m).value = (+pre.amt).toLocaleString('vi-VN'); if (pre.doc) $('#knD', m).value = pre.doc; if (pre.note) $('#knNo', m).value = pre.note; if (pre.day) { $('#knDay', m).value = pre.day; re(); } }
     $('#knGo', m).onclick = function () {
       var sid = $('#knS', m).value, a = knNum($('#knA', m).value); if (!sid) { $('.kn-err', m).textContent = 'Chọn nhà cung cấp.'; return; } if (!a) { $('.kn-err', m).textContent = 'Ghi số tiền hoá đơn.'; return; }
       knDo(m, this, { op: 'bill', id: b ? b.id : '', ncc: sid, amt: a, doc: $('#knD', m).value, day: $('#knDay', m).value, due: $('#knDue', m).value, note: $('#knNo', m).value }, b ? 'Đã sửa hoá đơn ✓' : 'Đã ghi hoá đơn ✓', function () { openKnSup(sid); });
@@ -6798,6 +6805,10 @@
       return '<div class="ktb-row"><span><b>' + knDd(p.day) + ' · ' + money(p.amt) + '</b><small>' + esc(p.src || '') + (p.note ? ' · ' + esc(p.note) : '') + (p.by ? ' · ' + esc(p.by) : '') + '</small></span>' +
         (/^tay:/.test(p.id) ? '<button class="btn sm ghost" data-knp="del|' + esc(p.id) + '" aria-label="Xoá lần trả">🗑</button>' : '<button class="btn sm ghost" data-knp="un|' + esc(p.id) + '" title="Khoản sao kê này không phải trả cho nhà cung cấp này">↩ Không phải</button>') + '</div>';
     }).join('') + '</div>' : '<p class="small muted">Chưa có lần trả nào. Tải sao kê VCB / MB là máy tự lấy khoản chuyển khoản cho nhà cung cấp này.</p>') + '<p class="small muted">Tiền trả trừ dần vào hoá đơn có hạn sớm nhất.</p>';
+    var PO = (KN.d.pos || []).filter(function (o) { return +o.ncc === +id && (o.st === 'open' || o.got >= isoDate(Date.now() - 60 * DAY)); });
+    h += '<h3 class="kts-h">🛒 Đơn đặt & 🎁 hàng hỗ trợ <small>' + (PO.length ? PO.filter(function (o) { return o.st === 'open'; }).length + ' khoản đang chờ' : 'chưa có') + '</small></h3>' + (PO.length ? '<div class="ktv-list">' + PO.map(knPoRow).join('') + '</div>' : '<p class="small muted">Đặt hàng nhà cung cấp, hoặc nhà cung cấp hứa trả bằng hàng (hỗ trợ VAT, khuyến mại): bấm <b>🛒 Đơn đặt / 🎁</b> bên dưới.</p>');
+    var DC = (KN.d.docs || []).filter(function (f) { return +f.ncc === +id; });
+    h += '<h3 class="kts-h">📎 Chứng từ <small>' + DC.length + ' file · bấm để xem</small></h3>' + (DC.length ? '<div class="ktv-list">' + DC.slice(0, 30).map(knDocRow).join('') + '</div>' : '<p class="small muted">Chưa lưu chứng từ nào. Bấm <b>📷 Chứng từ</b> bên dưới để chụp / tải hoá đơn, phiếu xuất kho, bảng công nợ.</p>');
     var CH = (KN.d.chks || []).filter(function (c) { return +c.ncc === +id; });
     h += '<h3 class="kts-h">🔍 Đối chiếu với nhà cung cấp <small>' + (CH.length ? CH.length + ' lần' : 'chưa lần nào') + ' · ngày ' + KN_CHK_DAY + ' hằng tháng</small></h3>' + (CH.length ? '<div class="ktv-list">' + CH.slice(0, 12).map(function (c) {
       var ok = knChkOk(c), df = c.their - c.ours;
@@ -6806,6 +6817,9 @@
     }).join('') + '</div>' : '<p class="small muted">Khi nhà cung cấp gửi bảng công nợ, bấm <b>🔍 Đối chiếu</b>: máy so với sổ, chỉ ra khoản lệch trước khi xác nhận hay chuyển tiền.</p>') + '<p class="err kn-err"></p>';
     var m = modal('🧾 ' + esc(s.name), h, '<button class="btn" id="knL">📒 Sổ chi tiết</button><button class="btn" id="knC">🔍 Đối chiếu</button><button class="btn pri" id="knB2">＋ Hoá đơn</button>');
     $('#knL', m).onclick = function () { openKnLedger(id); }; $('#knC', m).onclick = function () { openKnChk(id); };
+    $('#knE', m).insertAdjacentHTML('afterend', ' <button class="btn sm" id="knSc">📷 Chứng từ</button> <button class="btn sm" id="knPo">🛒 Đơn đặt / 🎁</button>');
+    $('#knSc', m).onclick = function () { openKnScan(id); }; $('#knPo', m).onclick = function () { openKnPo(id, 'buy'); };
+    knBindPo(m, function () { openKnSup(id); }); knBindDoc(m);
     $$('[data-knc]', m).forEach(function (el) {
       el.onclick = function () {
         var c = CH.filter(function (x) { return x.id === +el.getAttribute('data-knc').split('|')[1]; })[0]; if (!c) return;
@@ -6931,14 +6945,14 @@
     }
     return out.slice(0, 5);
   }
-  function openKnChk(nid, upto0) {
+  function openKnChk(nid, upto0, their0) {
     var CK = knChkSt(); nid = nid || (CK.miss[0] && CK.miss[0].s.id) || '';
     var body = '<p class="small" style="margin:0 0 8px">Nhà cung cấp gửi bảng công nợ thì <b>đối chiếu ở đây trước</b> khi xác nhận hay chuyển tiền. Máy so với sổ CRM tới cùng ngày và chỉ ra khoản lệch.</p>' +
       '<label class="f"><span>Nhà cung cấp</span><select id="knS">' + knSupOpts(nid) + '</select></label>' +
       '<div class="kn-2"><label class="f"><span>Số tính đến ngày (ngày cuối trên bảng NCC gửi)</span><input type="date" id="knU" value="' + (upto0 || isoDate(Date.now())) + '"></label><label class="f"><span>Nhà cung cấp báo còn nợ</span><input type="text" inputmode="numeric" id="knA" placeholder="vd 310.400.000"></label></div>' +
       '<div id="knR"></div><label class="f"><span>Ghi chú (không bắt buộc)</span><input type="text" id="knNo" placeholder="vd đã gửi lại NCC qua Zalo, chờ NCC sửa"></label><p class="err kn-err"></p>';
     var m = modal('🔍 Đối chiếu công nợ nhà cung cấp', body, '<button class="btn" id="knCp" hidden>📋 Chép tin gửi NCC</button><button class="btn" id="knPr">🖨 In biên bản</button><button class="btn pri" id="knGo">Lưu kết quả</button>');
-    knMoneyIn($('#knA', m));
+    knMoneyIn($('#knA', m)); if (their0) $('#knA', m).value = (+their0).toLocaleString('vi-VN');
     var st = {}, draw = function () {
       var sid = $('#knS', m).value, up = $('#knU', m).value, raw = $('#knA', m).value.replace(/[^\d]/g, ''), o = $('#knR', m), s = knSup(sid);
       st = { sid: sid, up: up, has: raw !== '' };
@@ -6965,6 +6979,131 @@
       var sid = st.sid; knDo(m, this, { op: 'chk', ncc: sid, upto: st.up, their: st.their, note: $('#knNo', m).value }, st.df ? 'Đã lưu: còn lệch, nhớ gửi lại nhà cung cấp' : 'Đã đối chiếu: khớp ✓', function () { openKnSup(sid); });
     };
   }
+  /* ---------- 📎 Chứng từ + ✨ AI đọc + 🛒 đơn đặt / 🎁 hàng hỗ trợ (17/11/2026, anh Sơn "Làm cả 3" sau tin nhắn NCC Hoa Kỳ). Máy chủ ncc.js: op doc / doc_get / doc_del / po / ai.
+   * Ảnh nén ≤ 1800px JPEG trước khi gửi (D1 giữ ≤ ~1,4 MB / file). AI đọc → mở đúng hộp đã điền sẵn: bảng công nợ → 🔍 Đối chiếu, hoá đơn / phiếu xuất → ＋ Hoá đơn, đơn đặt → 🛒, hỗ trợ → 🎁. */
+  var KN_DOC_KINDS = ['Hoá đơn', 'Phiếu xuất kho', 'Đơn đặt hàng', 'Thông báo công nợ', 'Ảnh chuyển khoản', 'Biên bản đối chiếu', 'Hỗ trợ / khuyến mại', 'Khác'];
+  var KN_AI_KIND = { cong_no: 'Thông báo công nợ', hoa_don: 'Hoá đơn', phieu_xuat: 'Phiếu xuất kho', don_dat: 'Đơn đặt hàng', ho_tro: 'Hỗ trợ / khuyến mại', chuyen_khoan: 'Ảnh chuyển khoản' };
+  function knFileRead(f) {
+    return new Promise(function (ok, no) {
+      var rd = new FileReader(); rd.onerror = function () { no(new Error('Không đọc được file.')); };
+      if (f.type === 'application/pdf') { rd.onload = function () { var b = String(rd.result).replace(/^data:[^,]*,/, ''); if (b.length > 1.9e6) no(new Error('File PDF lớn quá 1,4 MB. Chụp ảnh từng trang thay vì PDF.')); else ok({ b64: b, mime: 'application/pdf', name: f.name }); }; rd.readAsDataURL(f); return; }
+      if (!/^image\//.test(f.type)) { no(new Error('Chỉ nhận ảnh hoặc PDF.')); return; }
+      rd.onload = function () {
+        var im = new Image(); im.onerror = function () { no(new Error('Ảnh không mở được (ảnh HEIC của iPhone: chụp màn hình ảnh đó rồi tải lại).')); };
+        im.onload = function () {
+          var go = function (px, q) { var sc = Math.min(1, px / Math.max(im.width, im.height)), c = document.createElement('canvas'); c.width = Math.round(im.width * sc); c.height = Math.round(im.height * sc); var g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height); g.drawImage(im, 0, 0, c.width, c.height); return c.toDataURL('image/jpeg', q).replace(/^data:[^,]*,/, ''); };
+          var b = go(2000, 0.82); if (b.length > 1.9e6) b = go(1500, 0.7); if (b.length > 1.9e6) b = go(1200, 0.6);
+          ok({ b64: b, mime: 'image/jpeg', name: f.name.replace(/\.[a-z0-9]+$/i, '') + '.jpg' });
+        };
+        im.src = rd.result;
+      };
+      rd.readAsDataURL(f);
+    });
+  }
+  function knDocRow(f) { return '<button type="button" class="ktv-row" data-knd="' + esc(f.id) + '"><span><b>' + (/pdf/.test(f.mime) ? '📄 ' : '🖼 ') + esc(f.kind) + ' · ' + knDd(f.day).slice(0, 5) + '</b><small>' + esc(f.name) + ' · ' + Math.max(1, Math.round(f.size / 1024)) + ' KB · ' + esc(f.by || '') + (f.drive ? ' · ☁️ đã chép Drive' : '') + '</small></span><i aria-hidden="true">›</i></button>'; }
+  function knBindDoc(m) { $$('[data-knd]', m).forEach(function (el) { el.onclick = function () { openKnDoc(el.getAttribute('data-knd')); }; }); }
+  function openKnDoc(id) {
+    var f = (KN.d.docs || []).filter(function (x) { return x.id === id; })[0]; if (!f) return; var back = f.ncc;
+    var m = modal('📎 ' + esc(f.kind) + ' · ' + knDd(f.day), '<p class="muted small">⏳ Đang mở…</p>', '<button class="btn danger" id="kndDel">🗑 Xoá</button><button class="btn" id="kndBack">‹ Quay lại</button>');
+    $('#kndBack', m).onclick = function () { openKnSup(back); };
+    $('#kndDel', m).onclick = function () { if (confirm('Xoá chứng từ "' + f.name + '"? Chỉ xoá khi tải nhầm.')) knDo(m, this, { op: 'doc_del', id: id }, 'Đã xoá chứng từ', function () { openKnSup(back); }); };
+    api('kt_ncc', { op: 'doc_get', id: id }).then(function (j) {
+      var b = $('.sheet-b', m); if (!b) return;
+      if (/^image\//.test(j.mime)) b.innerHTML = '<img class="kn-docimg" alt="' + esc(j.name) + '" src="data:' + j.mime + ';base64,' + j.b64 + '">';
+      else {
+        var bin = atob(j.b64), u8 = new Uint8Array(bin.length); for (var i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
+        var url = URL.createObjectURL(new Blob([u8], { type: j.mime })); b.innerHTML = '<p>📄 <b>' + esc(j.name) + '</b></p><a class="btn pri" download="' + esc(j.name) + '" href="' + url + '">⬇️ Tải về để xem</a>';
+      }
+    }, function (e) { var b = $('.sheet-b', m); if (b) b.innerHTML = '<p class="err">' + esc(e.message) + '</p>'; });
+  }
+  /** Đoán nhà cung cấp theo tên AI đọc được (bỏ chữ công ty, TNHH, CP…). */
+  function knGuessSup(name) {
+    var core = function (t) { return norm(t).replace(/[^a-z0-9 ]/g, ' ').replace(/\b(cong ty|cty|tnhh|co phan|cp|mtv|tap doan|thuong mai|san xuat|dich vu|tm|sx|dv|ct)\b/g, ' ').replace(/\s+/g, ' ').trim(); };
+    var c = core(name || ''); if (c.length < 4) return null;
+    return (KN.d.ncc || []).filter(function (s) { var k = core(s.name); return k && (c.indexOf(k) >= 0 || k.indexOf(c) >= 0); })[0] || null;
+  }
+  function openKnScan(nid) {
+    var body = '<p class="small" style="margin:0 0 8px">Chụp hoặc tải <b>ảnh / PDF</b> nhà cung cấp gửi (Zalo: bấm giữ ảnh → Lưu, rồi chọn ở đây). Máy <b>lưu lại</b> và AI đọc số để điền sẵn.</p>' +
+      '<label class="f"><span>Ảnh hoặc PDF</span><input type="file" id="knF" accept="image/*,application/pdf"></label>' +
+      '<label class="f"><span>Nhà cung cấp</span><select id="knS">' + knSupOpts(nid) + '</select></label>' +
+      '<label class="f"><span>Loại giấy tờ</span><select id="knK">' + KN_DOC_KINDS.map(function (k) { return '<option>' + k + '</option>'; }).join('') + '</select><small class="muted">AI đọc xong tự chọn, sửa được.</small></label>' +
+      '<div id="knR"></div><p class="err kn-err"></p>';
+    var m = modal('📷 Giấy tờ nhà cung cấp gửi', body, '<button class="btn" id="knSave">💾 Chỉ lưu</button><button class="btn pri" id="knAi">✨ AI đọc &amp; điền giúp</button>'), F = null, R = null;
+    var err = function (t) { $('.kn-err', m).textContent = t || ''; };
+    $('#knF', m).onchange = function () { var f = this.files[0]; F = null; R = null; $('#knR', m).innerHTML = ''; err(); if (!f) return; $('#knR', m).innerHTML = '<p class="small muted">⏳ Đang nén ảnh…</p>'; knFileRead(f).then(function (x) { F = x; $('#knR', m).innerHTML = '<p class="small">✅ ' + esc(x.name) + ' · ' + Math.round(x.b64.length * 0.75 / 1024) + ' KB</p>' + (/^image/.test(x.mime) ? '<img class="kn-docimg kn-prev" alt="" src="data:' + x.mime + ';base64,' + x.b64 + '">' : ''); }, function (e) { $('#knR', m).innerHTML = ''; err(e.message); }); };
+    var save = function (b, next) {
+      if (!F) { err('Chọn ảnh hoặc PDF trước.'); return; } var sid = $('#knS', m).value; if (!sid) { err('Chọn nhà cung cấp (chưa có thì đóng hộp này, bấm ＋ Nhà cung cấp).'); return; }
+      b.disabled = true; var t = b.textContent; b.textContent = '⏳ Đang lưu…';
+      api('kt_ncc', { op: 'doc', ncc: sid, kind: $('#knK', m).value, day: R && (R.upto || R.day) || '', name: F.name, mime: F.mime, b64: F.b64 }).then(function (j) {
+        knSet(j); var id = (j.docs || []).filter(function (f) { return +f.ncc === +sid; })[0]; F = null; toast('Đã lưu chứng từ ✓'); render(); if (next) next(sid, id ? id.id : ''); else openKnSup(sid);
+      }, function (e) { b.disabled = false; b.textContent = t; err(e.message); });
+    };
+    $('#knSave', m).onclick = function () { save(this); };
+    $('#knAi', m).onclick = function () {
+      var b = this; if (!F) { err('Chọn ảnh hoặc PDF trước.'); return; } if (R) { knAiGo(); return; } err(); b.disabled = true; b.textContent = '⏳ AI đang đọc… (10–30 giây)';
+      api('kt_ncc', { op: 'ai', mime: F.mime, b64: F.b64 }).then(function (j) {
+        R = j.read; b.disabled = false; var g = knGuessSup(R.ncc); if (g && !$('#knS', m).value) $('#knS', m).value = g.id; if (KN_AI_KIND[R.type]) $('#knK', m).value = KN_AI_KIND[R.type];
+        var act = { cong_no: '🔍 Lưu + mở Đối chiếu', hoa_don: '＋ Lưu + ghi hoá đơn', phieu_xuat: '＋ Lưu + ghi hoá đơn', don_dat: '🛒 Lưu + ghi đơn đặt', ho_tro: '🎁 Lưu + ghi hàng hỗ trợ' }[R.type] || '💾 Lưu chứng từ';
+        b.textContent = act; $('#knSave', m).hidden = true;
+        var line = function (l, v) { return v ? '<li>' + l + ': <b>' + v + '</b></li>' : ''; };
+        $('#knR', m).insertAdjacentHTML('afterbegin', '<div class="notice info small"><b>✨ AI đọc được</b> (kiểm tra lại số trước khi lưu):<ul style="margin:4px 0 0">' + line('Loại', esc(KN_AI_KIND[R.type] || 'Khác')) + line('Nhà cung cấp', esc(R.ncc) + (g ? ' → ' + esc(g.name) : R.ncc ? ' <em class="ktv-red">(chưa có trong danh sách: bấm ＋ Nhà cung cấp)</em>' : '')) +
+          line('Ngày', knDd(R.day)) + line('Số dư cuối (còn nợ)', R.balance != null ? money(R.balance) + (R.upto ? ' tính đến ' + knDd(R.upto) : '') : '') + line('Số tiền', R.amount != null ? money(R.amount) : '') + line('Số chứng từ', esc(R.doc)) + line('Hàng', esc(R.items)) + '</ul>' + (R.note ? '<p style="margin:4px 0 0">📝 ' + esc(R.note) + '</p>' : '') +
+          (R.type === 'chuyen_khoan' ? '<p style="margin:4px 0 0">Khoản chuyển khoản <b>tự trừ công nợ khi tải sao kê VCB / MB</b>, không cần ghi tay. Ảnh này chỉ lưu làm chứng từ.</p>' : '') + '</div>');
+        b.onclick = function () { knAiGo(); };
+      }, function (e) { b.disabled = false; b.textContent = '✨ AI đọc & điền giúp'; err(e.message); });
+    };
+    function knAiGo() {
+      save($('#knAi', m), function (sid, docId) {
+        var r = R || {}, note = [r.items, r.note].filter(Boolean).join(' · ').slice(0, 280);
+        if (r.type === 'cong_no') openKnChk(sid, r.upto || r.day, r.balance);
+        else if (r.type === 'hoa_don' || r.type === 'phieu_xuat') openKnBill(sid, null, { amt: r.amount, doc: r.doc, day: r.day, note: note });
+        else if (r.type === 'don_dat') openKnPo(sid, 'buy', { day: r.day, items: r.items, amt: r.amount, doc: r.doc, qty: r.qty, note: r.note, docId: docId });
+        else if (r.type === 'ho_tro') openKnPo(sid, 'gift', { day: r.day, items: r.items, amt: r.amount, note: r.note, docId: docId });
+        else openKnSup(sid);
+      });
+    }
+  }
+  function knPoRow(o) {
+    var s = knSup(o.ncc), gift = o.kind === 'gift', late = o.st === 'open' && o.eta && o.eta < isoDate(Date.now());
+    return '<div class="ktb-row' + (late ? ' kn-late' : '') + '"><span><b>' + (gift ? '🎁 ' : '🛒 ') + esc(o.items) + '</b><small>' + (s ? esc(s.name) + ' · ' : '') + (gift ? 'giá trị ' : '') + money(o.amt) + ' · ' + (gift ? 'ghi ' : 'đặt ') + knDd(o.day).slice(0, 5) + (o.eta && o.st === 'open' ? ' · hẹn về ' + knDd(o.eta).slice(0, 5) + (late ? ' ⚠️ trễ' : '') : '') + (o.kpo ? ' · kho thấy' : '') +
+      (o.st === 'got' ? ' · ✅ ' + (gift ? 'đã nhận hàng' : 'đã về, thành công nợ') + ' ' + knDd(o.got).slice(0, 5) : o.st === 'cancel' ? ' · đã huỷ' : '') + (o.note ? '<br>📝 ' + esc(o.note) : '') + '</small></span>' +
+      (o.st === 'open' ? '<span class="kn-poact"><button class="btn sm" data-knpo="got|' + o.id + '">✅ ' + (gift ? 'Đã nhận' : 'Hàng đã về') + '</button><button class="btn sm ghost" data-knpo="cancel|' + o.id + '">Huỷ</button></span>' : '') + '</div>';
+  }
+  function knBindPo(m, after) {
+    $$('[data-knpo]', m).forEach(function (el) {
+      el.onclick = function () {
+        var a = el.getAttribute('data-knpo').split('|'), o = (KN.d.pos || []).filter(function (x) { return x.id === +a[1]; })[0]; if (!o) return;
+        if (a[0] === 'cancel') { if (confirm('Huỷ "' + o.items + '"?' + (o.kpo ? ' Kho cũng thôi chờ hàng này.' : ''))) knDo(m, el, { op: 'po', id: o.id, cancel: 1 }, 'Đã huỷ', after); return; }
+        var d = prompt(o.kind === 'gift' ? 'Ngày nhận hàng hỗ trợ (năm-tháng-ngày):' : 'Ngày hàng về (năm-tháng-ngày). Máy ghi hoá đơn ' + money(o.amt) + ' vào công nợ, hạn trả tự tính:', isoDate(Date.now())); if (!d) return;
+        knDo(m, el, { op: 'po', id: o.id, got: 1, day: d.trim() }, o.kind === 'gift' ? 'Đã nhận hàng hỗ trợ ✓' : 'Đã ghi công nợ ✓', after);
+      };
+    });
+  }
+  function openKnPoList() {
+    var O = (KN.d.pos || []).filter(function (o) { return o.st === 'open' || o.got >= isoDate(Date.now() - 30 * DAY); });
+    var m = modal('🛒 Đơn đặt & 🎁 hàng hỗ trợ', '<p class="small" style="margin:0 0 8px"><b>🛒 Đơn đặt</b>: hàng về (kho ghi 📥 Hàng về, hoặc bấm ✅ ở đây) thì máy tự ghi hoá đơn vào công nợ. <b>🎁 Hàng hỗ trợ</b>: nhà cung cấp còn nợ mình bằng hàng (hỗ trợ VAT, khuyến mại), không cộng vào công nợ, máy nhắc tới khi nhận đủ.</p>' +
+      (O.length ? '<div class="ktv-list">' + O.map(knPoRow).join('') + '</div>' : '<p class="muted small">Chưa có khoản nào.</p>') + '<p class="err kn-err"></p>', '<button class="btn" id="knG">🎁 Ghi hàng hỗ trợ</button><button class="btn pri" id="knB">🛒 Ghi đơn đặt</button>');
+    $('#knG', m).onclick = function () { openKnPo('', 'gift'); }; $('#knB', m).onclick = function () { openKnPo('', 'buy'); };
+    knBindPo(m, openKnPoList);
+  }
+  function openKnPo(nid, kind, pre) {
+    pre = pre || {}; var gift = kind === 'gift', K = (KTK.d && KTK.d.items) || []; if (!KTK.d) ktkLoad(true);
+    var body = '<p class="small" style="margin:0 0 8px">' + (gift ? '<b>Nhà cung cấp còn nợ mình bằng hàng</b> (vd hỗ trợ 50% VAT, hàng khuyến mại). Không cộng vào công nợ. Nhận đủ hàng thì bấm ✅ Đã nhận.' : '<b>Đơn đặt hàng</b> (tiền gồm VAT). Hàng về thì máy tự ghi hoá đơn vào công nợ, không phải ghi lại.') + '</p>' +
+      '<label class="f"><span>Nhà cung cấp</span><select id="knS">' + knSupOpts(nid) + '</select></label>' +
+      '<label class="f"><span>Hàng gì, bao nhiêu</span><input type="text" id="knI" value="' + esc(pre.items || '') + '" placeholder="' + (gift ? 'vd Hỗ trợ 50% VAT T9–T10: Progomax 900g (chờ chọn loại)' : 'vd 600 lon Fucoidan Progomax 900g × 100.000đ') + '"></label>' +
+      '<div class="kn-2"><label class="f"><span>' + (gift ? 'Giá trị hàng hỗ trợ' : 'Tổng tiền gồm VAT') + '</span><input type="text" inputmode="numeric" id="knA" value="' + (pre.amt ? (+pre.amt).toLocaleString('vi-VN') : '') + '" placeholder="' + (gift ? 'vd 11.328.000' : 'vd 64.800.000') + '"></label><label class="f"><span>Ngày ' + (gift ? 'ghi' : 'đặt') + '</span><input type="date" id="knDay" value="' + (pre.day || isoDate(Date.now())) + '"></label></div>' +
+      '<div class="kn-2"><label class="f"><span>Sản phẩm trong kho (để kho thấy đang chờ hàng)</span><select id="knKi"><option value="">— Không gắn kho —</option>' + K.map(function (i) { return '<option value="' + esc(i.id) + '">' + esc(i.name) + '</option>'; }).join('') + '</select></label><label class="f"><span>Số lượng</span><input type="text" inputmode="decimal" id="knQ" value="' + (pre.qty || '') + '" placeholder="vd 600"></label></div>' +
+      '<div class="kn-2"><label class="f"><span>Hẹn hàng về</span><input type="date" id="knEta" value=""></label><label class="f"><span>Số đơn (không bắt buộc)</span><input type="text" id="knD" value="' + esc(pre.doc || '') + '"></label></div>' +
+      '<label class="f"><span>Ghi chú</span><input type="text" id="knNo" value="' + esc(pre.note || '') + '" placeholder="' + (gift ? 'vd chờ báo NCC lấy loại 400g hay 900g' : 'vd giao tại kho Gia Lâm') + '"></label><p class="err kn-err"></p>';
+    var m = modal(gift ? '🎁 Hàng hỗ trợ nhà cung cấp còn nợ' : '🛒 Đơn đặt hàng nhà cung cấp', body, '<button class="btn" data-close>Huỷ</button><button class="btn pri" id="knGo">Lưu</button>'); knMoneyIn($('#knA', m));
+    if (pre.items && K.length) { var w = norm(pre.items), hit = K.filter(function (i) { var n = norm(i.name).split(' ').filter(function (t) { return t.length > 2; }); return n.length && n.every(function (t) { return w.indexOf(t) >= 0; }); })[0]; if (hit) $('#knKi', m).value = hit.id; }
+    $('#knGo', m).onclick = function () {
+      var sid = $('#knS', m).value, a = knNum($('#knA', m).value), it = $('#knI', m).value.trim();
+      if (!sid) { $('.kn-err', m).textContent = 'Chọn nhà cung cấp.'; return; } if (!it) { $('.kn-err', m).textContent = 'Ghi hàng gì, bao nhiêu.'; return; } if (!a) { $('.kn-err', m).textContent = gift ? 'Ghi giá trị hàng hỗ trợ.' : 'Ghi tổng tiền gồm VAT.'; return; }
+      if ($('#knKi', m).value && !(Number(String($('#knQ', m).value).replace(',', '.')) > 0)) { $('.kn-err', m).textContent = 'Gắn kho thì ghi số lượng.'; return; }
+      knDo(m, this, { op: 'po', ncc: sid, kind: gift ? 'gift' : 'buy', items: it, amt: a, day: $('#knDay', m).value, eta: $('#knEta', m).value, kitem: $('#knKi', m).value, qty: String($('#knQ', m).value).replace(',', '.'), doc: $('#knD', m).value, note: $('#knNo', m).value, docId: pre.docId || '' }, gift ? 'Đã ghi hàng hỗ trợ ✓' : 'Đã ghi đơn đặt ✓', function () { openKnSup(sid); });
+    };
+  }
   function bindKn() {
     $$('[data-kn]').forEach(function (el) {
       el.onclick = function () {
@@ -6976,6 +7115,9 @@
         else if (a[0] === 'new') openKnEdit();
         else if (a[0] === 'unk') openKnUnk();
         else if (a[0] === 'chk') openKnChk('');
+        else if (a[0] === 'scan') openKnScan('');
+        else if (a[0] === 'drive') { el.disabled = true; el.textContent = '⏳ Đang chép…'; api('kt_ncc', { op: 'drive' }).then(function (j) { knSet(j); toast(j.derr ? '⚠️ ' + j.derr : 'Đã chép ' + j.copied + ' file lên Drive ✓' + (j.left ? ' (còn ' + j.left + ', bấm lại)' : '')); render(); }, function (e) { el.disabled = false; toast(e.message, true); }); }
+        else if (a[0] === 'po') openKnPoList('');
         else if (a[0] === 'copy') copy(knTsv()).then(function () { toast('Đã chép bảng ✓ Mở Google Sheet, bấm ô A1 rồi Ctrl+V (Mac: ⌘+V)'); });
         else if (a[0] === 'import') {
           var F = S.d.rules.fin; if (!F || !F.pay || !confirm('Chép ' + F.pay.length + ' khoản còn nợ từ trang Công nợ vào sổ CRM? Từ nay ghi công nợ trong CRM, không cần cập nhật trang Công nợ nữa.')) return; el.disabled = true;
@@ -7483,7 +7625,8 @@
   function ktNccLine() {
     if (!KN.d) return 'Ghi hoá đơn nhập hàng, máy tự trừ khi sao kê có khoản trả';
     var o = 0, d7 = 0; knCalc().rows.forEach(function (r) { o += r.over; d7 += r.due7; });
-    return o ? '<span class="ktv-red">⚠️ Quá hạn ' + moneyShort(o) + '</span>' + (d7 ? ' · 7 ngày tới ' + moneyShort(d7) : '') : d7 ? 'Đến hạn trong 7 ngày: ' + moneyShort(d7) : 'Không có khoản nào sắp đến hạn';
+    var gf = (KN.d.pos || []).filter(function (x) { return x.st === 'open' && x.kind === 'gift'; }).reduce(function (t, x) { return t + x.amt; }, 0);
+    return (o ? '<span class="ktv-red">⚠️ Quá hạn ' + moneyShort(o) + '</span>' + (d7 ? ' · 7 ngày tới ' + moneyShort(d7) : '') : d7 ? 'Đến hạn trong 7 ngày: ' + moneyShort(d7) : 'Không có khoản nào sắp đến hạn') + (gf ? ' · 🎁 NCC còn nợ hàng ' + moneyShort(gf) : '');
   }
   function ktTodayHTML(L, old) {
     var dw = new Date().getDay(), payDay = dw === 1 || dw === 3 || dw === 5, dom = new Date().getDate(), S7 = [], n = 0;
@@ -7504,6 +7647,11 @@
     if (lw) S7.push(step(false, '⚠️', lw + ' đơn hãng thu khác tiền, chưa ghi lý do', 'Chọn lý do cho từng đơn (hạ COD, sale nhập sai…).', go('kt_g_thang', 'Ghi lý do')));
     if (KN.d) { var ov = 0, d3 = 0, td = isoDate(Date.now()), t3 = isoDate(Date.now() + 3 * DAY), C = knCalc(); C.rows.forEach(function (r) { ov += r.over; r.open.forEach(function (x) { if (x.due && x.due >= td && x.due <= t3) d3 += C.left[x.id]; }); });
       if (ov || d3) S7.push(step(false, '🧾', 'Trả nợ nhà cung cấp', (ov ? '<em class="ktv-red">Quá hạn ' + moneyShort(ov) + '</em>' : '') + (ov && d3 ? ' · ' : '') + (d3 ? 'Đến hạn trong 3 ngày: ' + moneyShort(d3) : '') + '. Báo anh/chị duyệt chi.', go('kt_g_ncc'))); }
+    if (KN.d && KN.d.bills.length) { var CKs = knChkSt(), PG = (KN.d.pos || []).filter(function (o) { return o.st === 'open'; });
+      if (CKs.diff.length) S7.push(step(false, '⚠️', 'Đối chiếu công nợ còn lệch', CKs.diff.length + ' nhà cung cấp: gửi lại nhà cung cấp, sửa xong bấm ✅ Đã giải quyết. Chưa chuyển tiền theo số của họ.', go('kt_g_ncc')));
+      if (CKs.due && CKs.miss.length) S7.push(step(false, '🔍', 'Đối chiếu công nợ tháng này (ngày ' + KN_CHK_DAY + ')', 'Còn ' + CKs.miss.length + ' nhà cung cấp: xin bảng công nợ, bấm 📷 tải lên để AI đọc và so.', go('kt_g_ncc')));
+      var lateP = PG.filter(function (o) { return o.kind === 'buy' && o.eta && o.eta < isoDate(Date.now()); }), gf = PG.filter(function (o) { return o.kind === 'gift'; });
+      if (lateP.length || gf.length) S7.push(step(false, '🛒', (lateP.length ? lateP.length + ' đơn đặt nhà cung cấp trễ hẹn' : '') + (lateP.length && gf.length ? ' · ' : '') + (gf.length ? 'Nhà cung cấp còn nợ hàng hỗ trợ' : ''), (lateP.length ? 'Hỏi nhà cung cấp ngày giao. ' : '') + (gf.length ? 'Hàng hỗ trợ ' + moneyShort(gf.reduce(function (t, o) { return t + o.amt; }, 0)) + ': nhắc nhà cung cấp gửi.' : ''), go('kt_g_ncc'))); }
     if (dom >= 25 || dom <= 5) S7.push(step(false, '📅', 'Chốt sổ tháng', 'Chốt doanh số theo sale, bảng lương, KPI, hàng tồn kho cuối tháng.', go('kt_g_thang')));
     var dn = ['Chủ nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'][dw];
     return '<section class="box ktd"><div class="ktd-top"><h2>👉 Việc hôm nay <small>' + dn + ' ' + fDate(Date.now()).slice(0, 5) + '</small></h2><span class="ktd-left' + (n ? '' : ' ok') + '">' + (n ? 'Còn ' + n + ' việc' : '🎉 Xong hết') + '</span></div>' +

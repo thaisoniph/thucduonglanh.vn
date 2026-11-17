@@ -3658,3 +3658,9 @@ details.top-fold[open] > summary::after { transform: rotate(180deg); }
 .zo-v{margin:0;font-size:14px}
 .zo-ask{margin:10px 0}
 .zo-ask>p{margin:0 0 4px;font-size:13.5px}
+
+/* 📎 chứng từ nhà cung cấp (17/11/2026) */
+.kn-scan{width:100%;margin:6px 0 0}
+.kn-docimg{display:block;max-width:100%;height:auto;border:1px solid var(--line,#ddd);border-radius:8px}
+.kn-prev{max-height:260px;object-fit:contain;margin-top:6px}
+.kn-poact{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}

@@ -29,6 +29,7 @@ import { pmTick } from './phongai.js';
 import { gvTick, gvMorning } from './giaoviec.js';
 import { hrTick } from './hr.js';
 import { snhTick } from './sinhnhat.js'; // 🎂 ngày 25 + trước 3 ngày
+import { nccDriveTick } from './ncc.js'; // ☁️ thứ Hai chép chứng từ nhà cung cấp lên Drive
 
 function careMessage(items, leads, today, isGroup, who, R) {
   const block = (title, arr, tip) => !arr.length ? '' : '\n\n<b>' + title + ' (' + arr.length + ')</b> – ' + tip + '\n' + arr.slice(0, 25).map(c =>
@@ -140,6 +141,7 @@ export async function scheduled(x, cron) {
   if (!await kvGet(x.db, 'migrated')) return;
   const now = Date.now(), vn = new Date(now + 7 * 3600e3);
   if (vn.getUTCHours() < 7 || vn.getUTCHours() >= 22) return; // ban đêm (22h–7h) không ai làm việc → nghỉ, đỡ tốn lượt đọc
+  if (vn.getUTCDay() === 1 && vn.getUTCHours() >= 9) x.later(nccDriveTick(x).catch(e => console.error('nccDrive', e.message))); // ☁️ thứ Hai: chép chứng từ nhà cung cấp lên Google Drive (ncc.js)
   if (vn.getUTCHours() === 7 && vn.getUTCMinutes() >= 30 && vn.getUTCMinutes() < 50) { // 💼 7h30: tự đọc link Google Sheet kế toán (lượt riêng, lỗi không ảnh hưởng tin 8h)
     const fk = 'finsync_' + fmtDate(now, 'yyyyMMdd');
     if (!await kvGet(x.db, fk)) { await kvSet(x.db, fk, '1', 2 * DAY); try { await finSync(x); } catch (e) { console.error('finSync', e.message); } return; }
