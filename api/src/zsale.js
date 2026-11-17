@@ -452,7 +452,7 @@ async function zsAi(x, u, d, sale) {
   let res;
   try {
     res = await zsAiClient(x.env).messages.create({
-      model: 'claude-haiku-5-5', max_tokens: 700, output_config: { effort: 'low' },
+      model: 'claude-haiku-5-5', max_tokens: 3000, output_config: { effort: 'low' }, // 18/11: 700 bị AI dùng hết để suy nghĩ (stop max_tokens, không ra chữ)
       system: [{ type: 'text', text: ZS_RULES }, { type: 'text', text: '# THÔNG TIN SẢN PHẨM\n\n' + await kb(), cache_control: { type: 'ephemeral' } }],
       messages: [{ role: 'user', content: 'Sale: ' + u.name + '. Hôm nay ' + fmtDate(now, 'dd/MM/yyyy HH:mm') + '.' + wait + '\n\n# HỒ SƠ KHÁCH\n' + prof + '\n\n# TIN NHẮN ZALO (cũ → mới)\n' + conv }]
     });
@@ -483,7 +483,7 @@ async function zsOrder(x, u, d, sale) {
     if (n < ZS_AI_MAX) {
       try {
         const res = await zsAiClient(x.env).messages.create({
-          model: 'claude-haiku-5-5', max_tokens: 500, output_config: { effort: 'low' },
+          model: 'claude-haiku-5-5', max_tokens: 2000, output_config: { effort: 'low' },
           system: 'Bạn đọc tin nhắn Zalo giữa nhân viên bán hàng (Sale) và khách của Thực Dưỡng Lành, lấy thông tin để lên đơn. Chỉ trả về 1 khối JSON, không giải thích:\n{"phone":"số điện thoại nhận hàng (10 số, bắt đầu 0) hoặc rỗng","name":"tên người nhận hoặc rỗng","address":"địa chỉ nhận hàng đầy đủ khách đã gửi hoặc rỗng","items":[{"name":"tên sản phẩm, chọn đúng 1 tên trong DANH SÁCH SẢN PHẨM nếu khớp","qty":1}],"ask":"nếu thiếu số điện thoại, địa chỉ hoặc chưa rõ món: 1 câu ngắn lễ phép (xưng em) để Sale gửi khách xin đúng phần còn thiếu; đủ rồi thì rỗng"}\nChỉ lấy thông tin khách đã viết, không bịa. Sản phẩm chưa rõ thì để items rỗng.',
           messages: [{ role: 'user', content: 'DANH SÁCH SẢN PHẨM: ' + (prods.join(' | ') || '(không có)') + '\nTên Zalo của khách: ' + (th.zname || '') + '\n\nTIN NHẮN (cũ → mới):\n' + msgs.map(m => (m.self ? 'Sale' : 'Khách') + ': ' + String(m.text).slice(0, 500)).join('\n') }]
         });
