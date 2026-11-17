@@ -15850,8 +15850,7 @@
     var adm = lvl() >= 3;
     // 17/11/2026 anh Sơn (sau góp ý chị Thủy): Quản trị xem hết để đánh giá chất lượng; Quản lý chỉ con số + gợi ý hỗ trợ; sale xem Zalo của mình ở Hôm nay.
     var h = '<div class="zs-wrap"><div class="page-head"><h1>👀 Zalo của sale</h1></div>' +
-      '<p class="zs-intro">' + (adm ? 'Quản trị xem được <b>cả nội dung</b> để đánh giá chất lượng chăm sóc. <b>Quản lý</b> chỉ thấy con số + gợi ý hỗ trợ. <b>Sale</b> thấy Zalo của chính mình ở tab Hôm nay → 💬 Zalo của tôi (nhắc khách chờ, khách muốn mua, lịch sử vào hồ sơ khách).'
-        : 'Con số Zalo của từng bạn sale + <b>gợi ý để hỗ trợ</b> các bạn. Nội dung tin nhắn là của sale với khách nên không hiện ở đây. Sale được CRM nhắc riêng khi có khách chờ.') + '</p>';
+      '<p class="zs-intro">Con số Zalo của từng bạn sale + <b>gợi ý để hỗ trợ</b> các bạn. Nội dung tin nhắn là của sale với khách nên không hiện ở đây. Sale được CRM nhắc riêng khi có khách chờ.</p>';
     if (ZS.err && !ZS.d) return h + '<div class="box"><p class="err">' + esc(ZS.err) + '</p><button class="btn" data-zs="re">🔄 Thử lại</button></div></div>';
     if (!ZS.d) return h + '<div class="box">Đang tải…</div></div>';
     var D = ZS.d;
@@ -15863,6 +15862,10 @@
         '<p class="small muted">Trước khi bật: ghi nội quy + cho sale ký đồng ý lưu hội thoại công việc (Luật 91/2025). Chi tiết: <a href="/huong-dan/zalo-sale/" target="_blank" rel="noopener">hướng dẫn Zalo của sale</a>.</p>' +
         '<p><button class="btn" data-zs="re">🔄 Tải lại</button></p></div></div>';
     }
+    // 👁 công tắc xem nội dung (Quản trị, 18/11/2026): tắt = như Quản lý; bật = xem tin nhắn, tự tắt sau 24 giờ. Sale thấy trạng thái này.
+    if (D.admin) h += '<label class="zs-read' + (D.read ? ' on' : '') + '"><input type="checkbox" id="zsRead"' + (D.read ? ' checked' : '') + '><span><b>👁 Xem nội dung tin nhắn</b>' +
+      (D.read ? ' – đang bật, tự tắt lúc <b>' + esc(fDateTime(D.readUntil)) + '</b>. Bỏ tích để tắt ngay.' : ' – đang tắt. Tích khi cần (khách khiếu nại, tìm câu trả lời hay), tự tắt sau 24 giờ.') +
+      '<small>Chị em sale thấy trên màn hình của mình lúc nào đang bật / tắt.</small></span></label>';
     if (D.admin) h += '<div class="zs-top"><button class="btn pri" data-zs="add">➕ Kết nối Zalo của 1 sale</button>' +
       '<span class="small muted">Chỉ kết nối sale đã đồng ý (đã ký). Chạy thử 1–2 tuần trước khi mở rộng.</span></div>';
     // trạng thái từng tài khoản đã kết nối
@@ -15947,6 +15950,11 @@
     api('zs_mine', {}).then(function (j) { ZSM.busy = 0; ZSM.d = j; ZSM.at = Date.now(); if ((j.on || j.can || j.pending) && route().view === 'hom-nay') render(); },
       function () { ZSM.busy = 0; ZSM.at = Date.now(); });
   }
+  /** 🔒 / 👁 dòng trạng thái cho sale: hiện có ai khác đang được xem nội dung tin nhắn không (công tắc của Quản trị, 18/11/2026). */
+  function zsReadLine(D) {
+    return D.read ? '<span class="zs-rl on">👁 Quản trị đang mở xem nội dung để hỗ trợ khách, tự tắt lúc ' + esc(fDateTime(D.readUntil)) + '.</span>'
+      : '<span class="zs-rl">🔒 Hiện không ai khác đọc tin nhắn của bạn. Quản lý chỉ thấy con số.</span>';
+  }
   /** 📲 Thẻ mời sale tự nối Zalo (17/11/2026 anh Sơn: chị em chủ động, yên tâm). Nói rõ được gì + an tâm gì + ô đồng ý. "Để sau" ẩn 7 ngày. */
   function zsJoinCard(D) {
     if (!D.can && !D.pending) return '';
@@ -15955,7 +15963,7 @@
       '<div class="zs-actrow"><button type="button" class="btn pri" data-zsj="qr">📲 Hiện mã QR</button><button type="button" class="btn" data-zsj="off">Huỷ</button></div></section>';
     return '<section class="section zs-mine zs-join"><div class="section-h"><h2>📲 Nối Zalo của bạn với CRM</h2><span class="tip">1 lần, mất 1 phút</span></div>' +
       '<div class="zs-jg"><div><h3>Bạn được gì</h3><ul><li>⏰ CRM <b>nhắc khi khách nhắn mà bạn chưa trả lời</b>, không bỏ sót khách nào</li><li>🛒 Khách hỏi giá, hỏi ship → hiện ngay để <b>lên đơn 1 chạm</b></li><li>✨ <b>Gợi ý câu trả lời và cách chăm sóc</b> từng khách, dựa trên khách đã mua gì</li><li>📇 Tin Zalo <b>tự vào hồ sơ khách</b>, không cần chép lại</li></ul></div>' +
-      '<div><h3>Bạn yên tâm</h3><ul><li>CRM <b>chỉ đọc</b>, không bao giờ gửi tin thay bạn. Bạn vẫn dùng Zalo như cũ</li><li>Chỉ lưu tin chữ nhắn riêng với khách. Không lưu nhóm, ảnh, cuộc gọi</li><li>Người thân, bạn bè: bấm 🔒 là xoá hẳn</li><li>Quản lý chỉ thấy con số. Nội dung chỉ bạn và Quản trị (khi cần hỗ trợ khách) xem</li><li><b>Bạn tự ngắt được</b> bất cứ lúc nào</li></ul></div></div>' +
+      '<div><h3>Bạn yên tâm</h3><ul><li>CRM <b>chỉ đọc</b>, không bao giờ gửi tin thay bạn. Bạn vẫn dùng Zalo như cũ</li><li>Chỉ lưu tin chữ nhắn riêng với khách. Không lưu nhóm, ảnh, cuộc gọi</li><li>Người thân, bạn bè: bấm 🔒 là xoá hẳn</li><li>Quản lý chỉ thấy con số. <b>Nội dung tin nhắn chỉ bạn xem</b>. Quản trị chỉ mở khi cần hỗ trợ khách (khiếu nại), tự tắt sau 24 giờ, và bạn thấy ngay trên màn hình này</li><li><b>Bạn tự ngắt được</b> bất cứ lúc nào</li></ul></div></div>' +
       '<label class="zs-agree"><input type="checkbox" id="zsAgree"' + (D.agreed ? ' checked' : '') + '> Tôi đồng ý cho CRM lưu tin nhắn công việc trên Zalo công ty cấp để chăm sóc khách (tự xoá sau 12 tháng).</label>' +
       '<div class="zs-actrow"><button type="button" class="btn pri" data-zsj="go">📲 Nối Zalo của tôi</button><button type="button" class="btn" data-zsj="later">Để sau</button></div>' +
       '<p class="zs-mfoot">Nên mở CRM trên <b>máy tính</b> để hiện mã, rồi quét bằng Zalo trên điện thoại. <a href="/huong-dan/zalo-sale/" target="_blank" rel="noopener">Xem hướng dẫn</a></p></section>';
@@ -15991,7 +15999,7 @@
     if (!wait.length && !buy.length) h += '<p class="zs-allok">✅ Bạn đã trả lời hết khách nhắn Zalo. Tuyệt vời!</p>';
     if (t.threads) h += '<p class="zs-mest">🏅 Hôm nay bạn đã chăm <b>' + t.threads + '</b> khách qua Zalo' + (t.avgMin != null ? ' · trả lời trung bình sau <b>' + ZS_MIN(t.avgMin) + '</b>' + (t.avgMin <= 10 ? ' – rất nhanh 👏' : '') : '') + '</p>';
     if (rest.length) h += '<details class="grp" data-grp="zsall"' + (S.f.gopen && S.f.gopen.zsall ? ' open' : '') + '><summary><span class="g-t">📜 Trò chuyện Zalo 30 ngày</span><span class="count">' + rest.length + '</span><span class="g-tip">' + (fresh ? fresh + ' khách chưa có trong CRM – mở ra bấm ➕ Thêm' : 'bấm để đọc lại') + '</span></summary><div class="zs-list" style="padding:10px 12px">' + rest.slice(0, 40).map(function (r) { return zsMineRow(r, ''); }).join('') + '</div></details>';
-    h += '<p class="zs-mfoot">Tin Zalo với khách tự lưu vào <b>hồ sơ khách</b>, bạn không cần chép lại. Người thân, bạn bè: mở cuộc trò chuyện → <b>🔒 Không phải khách</b> là xoá hẳn. Nội dung chỉ bạn và Quản trị (khi cần hỗ trợ khách) xem được, Quản lý chỉ thấy con số. <button type="button" class="zs-linkbtn" data-zsj="off">⏸ Tạm ngắt Zalo với CRM</button></p></section>';
+    h += '<p class="zs-mfoot">Tin Zalo với khách tự lưu vào <b>hồ sơ khách</b>, bạn không cần chép lại. Người thân, bạn bè: mở cuộc trò chuyện → <b>🔒 Không phải khách</b> là xoá hẳn. ' + zsReadLine(D) + ' <button type="button" class="zs-linkbtn" data-zsj="off">⏸ Tạm ngắt Zalo với CRM</button></p></section>';
     return h;
   }
   function bindZsale() {
@@ -16002,6 +16010,8 @@
     $$('[data-zsoff]').forEach(function (b) { b.onclick = function () { var p = b.getAttribute('data-zsoff').split('|');
       if (!confirm('Ngắt theo dõi Zalo của ' + p[1] + '? (Có thể kết nối lại sau.)')) return;
       api('zs_disconnect', { sale: p[0] }).then(function () { toast('Đã ngắt ✓'); ZS.at = 0; zsFetch(); }, function (e) { toast(e.message, true); }); }; });
+    var rd = $('#zsRead'); if (rd) rd.onchange = function () { rd.disabled = true;
+      api('zs_cfg', { read: rd.checked ? 1 : 0 }).then(function (j) { toast(j.read ? '👁 Đã bật xem nội dung, tự tắt sau 24 giờ' : 'Đã tắt xem nội dung ✓'); ZS.at = 0; zsFetch(); }, function (e) { rd.disabled = false; rd.checked = !rd.checked; toast(e.message, true); }); };
     var sv = $('[data-zs="save"]'); if (sv) sv.onclick = function () {
       sv.disabled = true; api('zs_cfg', { on: $('#zsOn').checked ? 1 : 0, replyMins: +$('#zsMins').value || 30 })
         .then(function (j) { ZS.d.cfg = j.cfg; toast('Đã lưu ✓'); sv.disabled = false; }, function (e) { toast(e.message, true); sv.disabled = false; });
@@ -16035,7 +16045,7 @@
     }
   }
   /** 💬 Khối Zalo trong hồ sơ khách: chỉ Quản lý/Quản trị, tải tin khi mở ra (không tải sẵn cho nhẹ). */
-  function zsCustBox(c) { return lvl() >= 3 || (lvl() < 2 && ZSM.d && ZSM.d.on) ? '<details class="p-edit zs-cbox" id="zsCustBox"><summary>💬 Zalo của sale với khách này</summary><div class="zs-conv" id="zsCustBody" style="margin:8px 0 0">Bấm để xem…</div></details>' : ''; }
+  function zsCustBox(c) { return (lvl() >= 3 && ZS.d && ZS.d.read) || (lvl() < 2 && ZSM.d && ZSM.d.on) ? '<details class="p-edit zs-cbox" id="zsCustBox"><summary>💬 Zalo của sale với khách này</summary><div class="zs-conv" id="zsCustBody" style="margin:8px 0 0">Bấm để xem…</div></details>' : ''; }
   function zsCustBind(m, c) {
     var dt = $('#zsCustBox', m); if (!dt) return;
     dt.addEventListener('toggle', function () {

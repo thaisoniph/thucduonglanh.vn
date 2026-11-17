@@ -4,7 +4,7 @@ nav: Zalo của sale
 group: quan-ly
 short: Trợ lý Zalo nhắc khách chờ, khách muốn mua
 order: 9
-updated: 2026-11-17
+updated: 2026-11-18
 description: Trợ lý nhắc sale không bỏ sót khách nhắn Zalo, khách muốn mua thì lên đơn 1 chạm. Quản lý xem con số và gợi ý hỗ trợ.
 roles: [sale, ql]
 ---
@@ -18,8 +18,11 @@ roles: [sale, ql]
 | Ai | Thấy gì |
 |---|---|
 | **Bạn sale** | Zalo **của chính mình**: khách đang chờ, khách muốn mua, lịch sử tin nhắn trong hồ sơ khách |
-| **Quản lý** | **Chỉ con số** (bao nhiêu khách nhắn, trả lời sau bao lâu) + **gợi ý để hỗ trợ** bạn. **Không** thấy nội dung tin nhắn |
-| **Quản trị** | Xem được nội dung khi cần hỗ trợ khách (khách khiếu nại, học câu trả lời hay để cả đội dùng) |
+| **Quản lý, Quản trị** | **Chỉ con số** (bao nhiêu khách nhắn, trả lời sau bao lâu) + **gợi ý để hỗ trợ** bạn. **Không** thấy nội dung tin nhắn |
+
+- **Nội dung tin nhắn chỉ bạn xem.** Tin nhắn được lưu để CRM nhắc khách chờ, gợi ý cách trả lời và đưa lịch sử vào hồ sơ khách.
+- Chỉ khi cần hỗ trợ khách (ví dụ khách khiếu nại), Quản trị mới bật xem nội dung. Công tắc **tự tắt sau 24 giờ**.
+- Cuối mục **💬 Zalo của tôi** luôn có 1 dòng cho bạn biết: **🔒 Hiện không ai khác đọc tin nhắn của bạn**, hoặc **👁 Quản trị đang mở xem…, tự tắt lúc …**.
 
 Không ai thấy Zalo của bạn khác. CRM **chỉ đọc**, **không bao giờ gửi tin thay bạn**. Bạn vẫn dùng Zalo trên điện thoại và máy tính như cũ.
 
@@ -80,35 +83,15 @@ Mở **••• Thêm → 👀 Zalo của sale**:
 
 - **💡 Gợi ý hỗ trợ chị em**: CRM tự gợi ý từ con số. Ví dụ: bạn đang có nhiều khách chờ → hỏi bạn có cần người đỡ không; bạn trả lời rất nhanh → khen bạn.
 - **📊 Con số từng sale**: hôm nay và 7 ngày (số khách nhắn, số lần trả lời, trả lời sau bao lâu, đang chờ mấy khách).
-- 🟢 = Zalo đang nối với CRM · 🔴 = mất kết nối (nhắc bạn mở Zalo trên điện thoại, hoặc báo anh Sơn).
+- 🟢 = Zalo đang nối với CRM · 🔴 = mất kết nối (nhắc bạn mở Zalo trên điện thoại, hoặc báo anh Sơn) · 🟡 = bạn chưa quét mã QR.
 
 Dùng con số để **hỏi han và giúp đỡ**, không dùng để phạt.
 
-Nhóm Telegram chỉ nhận **con số** ("Lương: 3 khách"), không có tên khách hay nội dung.
+Nhóm Telegram chỉ nhận **con số** ("Lương: 3 khách"), không có tên khách hay nội dung. Bạn sale nào tự tạm ngắt Zalo, nhóm nhận tin kèm lý do (nếu bạn ghi).
 
-## Dành cho Quản trị
+### Mời 1 bạn sale nối Zalo
 
-Thấy thêm: danh sách khách đang chờ, trò chuyện gần đây, bấm vào để đọc; số cuộc sale đã đánh dấu 🔒 "không phải khách".
-
-Sale **tự nối Zalo** ở tab Hôm nay (Việc 0). Lời đồng ý của từng bạn (giờ, email) được CRM lưu lại. Bạn nào tự ngắt, nhóm Telegram nhận tin kèm lý do (nếu bạn ghi).
-
-### Quản trị kết nối giúp 1 sale
-
-1. Tab **👀 Zalo của sale** → bấm **➕ Kết nối Zalo của 1 sale**.
-2. Chọn **đúng tên sale như trong Cài đặt → Nhân sự** → bấm **Kết nối**. Mã QR hiện ra.
-3. Sale mở Zalo trên điện thoại → biểu tượng **QR** → **Quét mã** → **Đăng nhập**.
-4. Xong, thẻ sale chuyển 🟢. Ngắt: bấm **✕** cạnh tên sale.
-
-### Trước khi kết nối 1 bạn
-
-- **Nói rõ với bạn trước**: mục đích, ai thấy gì (bảng trên), quyền 🔒 người thân / bạn bè.
+- **Nói rõ với bạn trước**: mục đích (CRM nhắc khách chờ, gợi ý trả lời), ai thấy gì (bảng trên), quyền 🔒 người thân / bạn bè, tự ngắt được.
 - **Đúng luật (Luật 91/2025)**: Zalo công ty cấp cho công việc. Ghi vào nội quy / hợp đồng và **cho bạn ký đồng ý**.
-- Chỉ lưu **tin chữ** 1–1, không lưu nhóm, ảnh, cuộc gọi. Tin tự xoá sau 12 tháng. Chỉ lưu từ lúc kết nối trở đi.
-
-### Cài 1 lần lên máy chủ (người kỹ thuật)
-
-```
-bash zalo-bot/cai-zalo-sale.sh tdl-vps
-```
-
-Chạy lại đúng lệnh này khi cập nhật code. Chi tiết ở `zalo-bot/README.md` và `HUONG-DAN.md` mục 6a2.
+- Bạn **tự nối** ở tab Hôm nay (Việc 0 ở trên). Lời đồng ý của bạn được CRM lưu lại.
+- Chỉ lưu **tin chữ** nhắn riêng với khách, không lưu nhóm, ảnh, cuộc gọi. Tin tự xoá sau 12 tháng. Chỉ lưu từ lúc nối trở đi.

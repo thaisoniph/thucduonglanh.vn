@@ -26,7 +26,9 @@ import { kb, safe } from './chat.js';
 import { telegram } from './google.js';
 import { telegramUser, crmUsers } from './crm.js';
 
-const CFG0 = { on: true, replyMins: 30 };
+const CFG0 = { on: true, replyMins: 30, readUntil: 0 };
+const READ_MS = 24 * 3600e3; // 👁 Quản trị bật xem nội dung → tự tắt sau 24 giờ (18/11/2026 anh Sơn: chỉ bật khi cần, chị em yên tâm)
+const readOn = cfg => Number(cfg.readUntil || 0) > Date.now();
 const RETAIN_DAYS = 365;
 const QR_TTL = 110e3; // mã QR sống ~110 giây rồi hết hạn (chương trình tự tạo mã mới)
 const vnHour = t => { const d = new Date(t + TZ_MS); return d.getUTCHours() + d.getUTCMinutes() / 60; };
@@ -190,16 +192,18 @@ async function custNameOwner(x, phone) {
  * Quyền (17/11/2026): Quản trị (level 3) xem hết · Quản lý (level 2) chỉ con số + gợi ý · Sale (level 1) chỉ cuộc trò chuyện trên Zalo của chính mình. */
 export async function crmZsale(x, u, d, crmLog) {
   const a = d.action, now = Date.now(), admin = u.level >= 3, mySlot = slug(u.name);
+  // 👁 Quản trị chỉ đọc nội dung khi đã bật công tắc (tự tắt sau 24 giờ). Tắt = Quản trị thấy như Quản lý: con số + gợi ý.
+  const full = admin && readOn(await zsCfg(x)), OFF_MSG = 'Đang tắt xem nội dung tin nhắn. Bật ở đầu tab 👀 Zalo của sale (tự tắt sau 24 giờ).';
   // ----- sale: 💬 Zalo của tôi
   if (a === 'zs_mine') return zsMine(x, u);
   if (a === 'zs_thread') {
-    if (!admin && u.level >= 2) return { ok: false, error: 'Quản lý xem con số và gợi ý hỗ trợ ở tab 👀 Zalo của sale. Nội dung tin nhắn chỉ sale đó (và Quản trị khi cần hỗ trợ khách) xem.' };
-    return zsThread(x, d, admin ? '' : mySlot);
+    if (u.level >= 2 && !full) return { ok: false, error: admin ? OFF_MSG : 'Quản lý xem con số và gợi ý hỗ trợ ở tab 👀 Zalo của sale. Nội dung tin nhắn chỉ sale đó xem.' };
+    return zsThread(x, d, full ? '' : mySlot);
   }
   if (a === 'zs_private' || a === 'zs_link') {
     const sale = admin ? slug(d.sale) : mySlot, uid = String(d.uid || '');
     if (!sale || !uid) return { ok: false, error: 'Thiếu cuộc trò chuyện.' };
-    if (!admin && u.level >= 2) return { ok: false, error: 'Chỉ sale có Zalo đó làm được.' };
+    if (u.level >= 2 && !full) return { ok: false, error: admin ? OFF_MSG : 'Chỉ sale có Zalo đó làm được.' };
     const th = await first(x.db, 'SELECT phone, zname FROM zs_threads WHERE sale = ? AND uid = ?', sale, uid);
     if (!th) return { ok: false, error: 'Không tìm thấy cuộc trò chuyện (có thể đã xoá).' };
     if (a === 'zs_link') { // 📇 gắn số điện thoại cho cuộc trò chuyện chưa nhận ra khách → tin Zalo vào hồ sơ khách
@@ -218,8 +222,8 @@ export async function crmZsale(x, u, d, crmLog) {
   if (a === 'zs_self') return zsSelf(x, u, d, crmLog); // 📲 sale tự kết nối / tự ngắt Zalo của mình (17/11/2026)
   if (a === 'zs_qr' && slug(d.sale) === mySlot) { const acc = (await zsAccounts(x))[mySlot] || {}; return { ok: true, qr: await kvGet(x.db, 'zs_qr_' + mySlot) || '', on: !!acc.on }; }
   if (a === 'zs_ai') { // ✨ gợi ý trả lời + cách chăm sóc 1 khách (sale: Zalo của mình; Quản trị: mọi sale)
-    if (!admin && u.level >= 2) return { ok: false, error: 'Gợi ý trả lời dành cho sale có Zalo đó.' };
-    return zsAi(x, u, d, admin ? slug(d.sale) : mySlot);
+    if (u.level >= 2 && !full) return { ok: false, error: admin ? OFF_MSG : 'Gợi ý trả lời dành cho sale có Zalo đó.' };
+    return zsAi(x, u, d, full ? slug(d.sale) : mySlot);
   }
   if (u.level < 2) return { ok: false, error: 'Mục này dành cho Quản lý và Quản trị. Zalo của bạn xem ở tab Hôm nay → 💬 Zalo của tôi.' };
   if (a === 'zs_view') return zsView(x, u);
@@ -246,6 +250,11 @@ export async function crmZsale(x, u, d, crmLog) {
     const cfg = await zsCfg(x);
     if (d.on !== undefined) cfg.on = !!d.on;
     if (d.replyMins !== undefined) cfg.replyMins = Math.max(5, Math.min(240, Number(d.replyMins) || 30));
+    if (d.read !== undefined) { // 👁 công tắc xem nội dung: bật 24 giờ / tắt ngay. Ghi nhật ký; sale thấy trạng thái trên màn hình của mình.
+      cfg.readUntil = d.read ? now + READ_MS : 0; await kvSet(x.db, 'zs_cfg', JSON.stringify(cfg));
+      if (crmLog) await crmLog(x, u, d.read ? 'Bật xem nội dung Zalo sale' : 'Tắt xem nội dung Zalo sale', '-', '', d.read ? 'tự tắt ' + fmtDate(cfg.readUntil, 'HH:mm dd/MM') : '', '');
+      return { ok: true, cfg, read: readOn(cfg), readUntil: cfg.readUntil };
+    }
     await kvSet(x.db, 'zs_cfg', JSON.stringify(cfg));
     if (crmLog) await crmLog(x, u, 'Cài đặt Zalo sale', '-', '', (cfg.on ? 'Bật' : 'Tắt') + ' · nhắc sau ' + cfg.replyMins + ' phút', '');
     return { ok: true, cfg };
@@ -292,7 +301,7 @@ async function zsView(x, u) {
   // tài khoản đang theo dõi (want) + trạng thái
   const sales = Object.entries(accounts).filter(([, a]) => a.want).map(([sale, a]) => {
     const s = live[sale] || {};
-    return { sale, name: a.name || (s.name) || sale, phone: admin ? s.phone || '' : '', on: !!a.on, online: !!(s.live && s.at && now - s.at < 5 * 60e3 && !s.down), pairing: !a.on };
+    return { sale, name: a.name || (s.name) || sale, phone: admin && readOn(cfg) ? s.phone || '' : '', on: !!a.on, online: !!(s.live && s.at && now - s.at < 5 * 60e3 && !s.down), pairing: !a.on };
   });
   const saleNm = {}; sales.forEach(s => saleNm[s.sale] = s.name);
   // khách đang chờ trả lời
@@ -304,8 +313,9 @@ async function zsView(x, u) {
   // chương trình giữ Zalo đã cài & đang chạy chưa (poll gần đây) → để CRM biết hiện nút Kết nối hay hướng dẫn cài 1 lần
   const hostAt = Number(await kvGet(x.db, 'zs_host_at')) || 0;
   const hostOn = now - hostAt < 5 * 60e3 || Object.keys(accounts).length > 0;
-  const out = { ok: true, admin, hostOn, cfg: { on: cfg.on !== false, replyMins: cfg.replyMins }, sales, perSale, tips };
-  if (!admin) return out; // Quản lý: chỉ con số + gợi ý (17/11/2026)
+  const read = readOn(cfg);
+  const out = { ok: true, admin, read, readUntil: read ? cfg.readUntil : 0, hostOn, cfg: { on: cfg.on !== false, replyMins: cfg.replyMins }, sales, perSale, tips };
+  if (!admin || !read) return out; // Quản lý, và Quản trị khi tắt 👁: chỉ con số + gợi ý (17–18/11/2026)
   const waiting = [];
   for (const w of waitRows) { const who = await custNameOwner(x, w.phone); waiting.push({ sale: w.sale, saleName: saleNm[w.sale] || w.sale, uid: w.uid, phone: w.phone, name: who.name || w.zname || 'Khách', owner: who.owner || '', mins: Math.round((now - w.last_cust) / 60e3) }); }
   const recent = await all(x.db, 'SELECT sale, uid, phone, zname, last_cust, last_sale, n FROM zs_threads ORDER BY max(last_cust, last_sale) DESC LIMIT 40');
@@ -320,7 +330,7 @@ async function zsMine(x, u) {
   const sale = slug(u.name), acc = (await zsAccounts(x))[sale];
   if (!acc || !acc.want || !acc.on) { // chưa kết nối → CRM hiện thẻ 📲 Kết nối Zalo của tôi (khi tính năng đang bật + chương trình trên máy chủ đang chạy)
     const cfg = await zsCfg(x), hostAt = Number(await kvGet(x.db, 'zs_host_at')) || 0;
-    return { ok: true, on: false, sale, can: cfg.on !== false && Date.now() - hostAt < 10 * 60e3, pending: !!(acc && acc.want), agreed: !!(await kvJson(x.db, 'zs_consent', {}))[sale] };
+    return { ok: true, on: false, sale, read: readOn(cfg), can: cfg.on !== false && Date.now() - hostAt < 10 * 60e3, pending: !!(acc && acc.want), agreed: !!(await kvJson(x.db, 'zs_consent', {}))[sale] };
   }
   const now = Date.now(), cfg = await zsCfg(x), s = await first(x.db, 'SELECT at, down, live FROM zs_sale WHERE sale = ?', sale) || {};
   const online = !!(s.live && s.at && now - s.at < 5 * 60e3 && !s.down);
@@ -337,7 +347,7 @@ async function zsMine(x, u) {
     list.push(r);
   }
   const st = (await zsStats(x, dayStartVn(now)))[sale] || EMPTY_ST, wk = (await zsStats(x, now - 7 * DAY))[sale] || EMPTY_ST;
-  return { ok: true, on: true, online, replyMins: cfg.replyMins, list, today: st, week: wk };
+  return { ok: true, on: true, online, replyMins: cfg.replyMins, read: readOn(cfg), readUntil: readOn(cfg) ? cfg.readUntil : 0, list, today: st, week: wk };
 }
 
 async function zsThread(x, d, onlySale) {
