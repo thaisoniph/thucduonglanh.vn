@@ -40,32 +40,39 @@ Mở tab **Hôm nay**, kéo xuống mục **💬 Zalo của tôi**.
 
 Muốn nghỉ: cuối mục 💬 Zalo của tôi bấm **⏸ Tạm ngắt Zalo với CRM**. Nối lại lúc nào cũng được.
 
-### Việc 1. Trả lời khách đang chờ
+Mỗi dòng là 1 khách: chữ cái đầu tên, câu khách nhắn cuối, bên phải là **1 nút việc cần làm**. Bấm vào dòng là đọc cả cuộc trò chuyện.
 
-- Mục **⏰ Khách đang chờ bạn trả lời** hiện tên khách, câu khách nhắn cuối và **đã chờ bao lâu**.
-- Mở Zalo trả lời khách. Trả lời xong, khách tự biến khỏi danh sách.
-- Khách chờ quá 30 phút (trong giờ làm), CRM **nhắn riêng** cho bạn qua Telegram. Chỉ bạn nhận tên khách.
+### Việc 1. ⏰ Khách đang chờ bạn → ✨ Gợi ý trả lời
 
-### Việc 2. Khách muốn mua → lên đơn ngay
-
-- Mục **🛒 Khách nhắn muốn mua** hiện khách vừa hỏi giá, hỏi ship, muốn đặt, gửi địa chỉ…
-- Bấm vào khách → bấm **🛒 Lên đơn**. Form lên đơn mở sẵn số của khách.
-
-### Việc 3. Khách mới chưa có trong CRM
-
-- Bấm vào khách → **➕ Thêm vào CRM** (số và tên điền sẵn, nguồn Zalo).
-- Zalo không cho xem số của khách? Gõ số khách vào ô rồi bấm **📇 Gắn số khách**. Từ đó tin Zalo vào đúng hồ sơ khách.
-
-### Việc 4. ✨ Nhờ CRM gợi ý cách trả lời
-
-1. Bấm vào khách → bấm **✨ Gợi ý trả lời & cách chăm sóc khách này**.
-2. CRM đọc tin nhắn và hồ sơ khách (đã mua gì, lần trước chăm sóc thế nào), rồi đưa ra:
+1. Mục **⏰ Khách đang chờ bạn** hiện khách nhắn mà bạn chưa trả lời, và **đã chờ bao lâu**.
+2. Bấm **✨ Gợi ý trả lời**. CRM đọc tin nhắn và hồ sơ khách, đưa ra:
    - 🎯 **Khách cần** gì
    - **2 câu trả lời mẫu**, bấm **📋 Chép** rồi dán vào Zalo
    - 👉 **Nên làm tiếp** (lên đơn, hẹn gọi lại, hỏi thăm sau khi dùng…)
-3. Sửa câu cho đúng giọng mình rồi tự gửi. **CRM không tự gửi.**
+3. Sửa câu cho đúng giọng mình rồi tự gửi trên Zalo. **CRM không tự gửi.** Trả lời xong, khách tự biến khỏi danh sách.
 
-### Việc 5. Người thân, bạn bè
+Khách chỉ nhắn "ok", "dạ", "cảm ơn", "để sau" thì CRM **không** tính là đang chờ. Khách chờ quá 30 phút (trong giờ làm), CRM **nhắn riêng** cho bạn qua Telegram.
+
+### Việc 2. 🛒 Khách muốn mua → Lên đơn
+
+Khách hỏi giá, hỏi ship, muốn đặt, gửi địa chỉ… thì hiện ở mục **🛒 Khách muốn mua**.
+
+1. Bấm **🛒 Lên đơn**. CRM **tự đọc tin nhắn** và điền sẵn: số điện thoại, tên, địa chỉ, món khách muốn mua.
+2. Dòng nào có ⚠️ là **còn thiếu**. CRM đưa sẵn 1 câu hỏi khách, ví dụ: *"Dạ để em lên đơn cho mình, mình cho em xin số điện thoại, địa chỉ nhận hàng với ạ."* Bấm **📋 Chép**, dán vào Zalo gửi khách.
+3. Khách gửi đủ rồi, bấm lại **🛒 Lên đơn** → **Mở form lên đơn**. Form đã điền sẵn, bạn kiểm tra rồi lưu như thường.
+
+Cần có **số điện thoại** mới mở được form. Số khách gõ trong tin nhắn thì CRM tự lấy.
+
+### Việc 3. Gắn số cho khách
+
+Zalo thường **ẩn số** của khách. Bấm vào khách để xem dòng dưới 2 nút:
+- **❓ Có phải khách … của bạn?** – CRM đoán theo tên. Đúng thì bấm **✓ Đúng, gắn số**.
+- **📇 Gõ số khách** – nếu bạn biết số.
+- **➕ Thêm vào CRM** – khách mới, có số nhưng chưa có trong CRM.
+
+Gắn số xong, tin Zalo vào đúng **hồ sơ khách**, lần sau mở hồ sơ là đọc lại được.
+
+### Việc 4. Người thân, bạn bè
 
 - Bấm vào cuộc trò chuyện → **🔒 Đây không phải khách**.
 - CRM **xoá hẳn** cuộc trò chuyện đó và **từ nay không lưu nữa**.

@@ -3617,3 +3617,44 @@ details.top-fold[open] > summary::after { transform: rotate(180deg); }
 .gv-gc-b { display: flex; gap: 8px; } .gv-gc-b .btn { flex: 1; }
 .gv-gl-end { margin-top: 8px; } .gv-gl-end > summary { cursor: pointer; font-size: 13.5px; color: var(--muted); }
 .gv-g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+/* 💬 Zalo của tôi gọn (18/11/2026): dòng có chữ cái đầu + 1 nút việc chính; 🛒 Lên đơn từ Zalo */
+.zm-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 8px}
+.zm-head h2{margin:0;font-size:17px}
+.zm-stat{margin-left:auto;font-size:12.5px;color:var(--muted);background:#f6f7f9;border-radius:999px;padding:3px 10px}
+.zm-h{display:flex;align-items:center;gap:6px;font-size:14px;margin:10px 0 6px}
+.zm-n{background:#ffe7c2;color:#8a4b00;border-radius:999px;padding:0 8px;font-size:12px;font-weight:700}
+.zm-n.buy{background:#d9f2df;color:#1a7f37}
+.zm-list{display:flex;flex-direction:column;gap:6px}
+.zr{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:9px 10px;cursor:pointer}
+.zr:hover{background:#f7f9fc}
+.zr-wait{border-left:4px solid #ff9500}
+.zr-buy{border-left:4px solid #34a853}
+.zr-av{width:34px;height:34px;border-radius:50%;background:#e8f0fe;color:#0b63c4;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none}
+.zr-m{flex:1;min-width:0;display:flex;flex-direction:column}
+.zr-m b{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.zr-m b i{font-style:normal;font-size:12px}
+.zr-m small{color:var(--muted);font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.zr-r{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex:none}
+.zr-r em{font-style:normal;font-size:11.5px;color:var(--muted)}
+.zr-r em.late{color:#b35c00;font-weight:700}
+.zr-btn{border:1px solid #e2d4ff;background:#f5efff;color:#5b2db8;border-radius:9px;padding:5px 9px;font-size:12.5px;font-weight:600;cursor:pointer;white-space:nowrap}
+.zr-btn.buy{border-color:#bfe5c8;background:#e9f7ed;color:#1a7f37}
+.zm-all{margin:10px 0 0;background:#fff;border:1px solid var(--line);border-radius:14px;padding:8px 10px}
+.zm-all summary{cursor:pointer;font-weight:600;font-size:14px}
+.zm-all .zm-list{margin-top:8px}
+.zm-foot{margin:10px 0 0;font-size:12px;color:var(--muted)}
+.zm-foot .zs-rl{display:inline;margin:0}
+.zs-main{margin:0 0 6px}
+.zs-main .btn{flex:1}
+.zs-who{margin:4px 0 8px;font-size:13px;line-height:1.5}
+.zs-mute{color:var(--muted)}
+.zs-acts{margin:0 0 10px;border-bottom:1px solid var(--line);padding-bottom:8px}
+.zo-l{display:flex;gap:8px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--line)}
+.zo-l>div{flex:1;min-width:0}
+.zo-l b{display:block;font-size:13px;margin:0 0 4px}
+.zo-l input,.zo-l textarea{width:100%}
+.zo-l.miss b{color:#b35c00}
+.zo-v{margin:0;font-size:14px}
+.zo-ask{margin:10px 0}
+.zo-ask>p{margin:0 0 4px;font-size:13.5px}

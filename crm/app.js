@@ -3575,6 +3575,10 @@
     var start = eo ? parseItems(eo.items) : [], sItems = start.filter(function (i) { return !i.gift; }), sGifts = start.filter(function (i) { return i.gift; });
     if (!eo && lead && lead.interest) sItems = [{ name: lead.interest, variant: '', qty: 1 }];
     var fullAddr = c0 ? [c0.address].concat([c0.ward, c0.province].filter(function (x) { var ad = norm(c0.address || ''), k = norm(x), i = ad.indexOf(k); return x && !(i >= 0 && !/[a-z0-9]/.test(ad.charAt(i + k.length))); })).filter(Boolean).join(', ') : ''; // địa chỉ đã ghi sẵn phường / tỉnh thì không ghép thêm (trước đây mỗi lần đặt lại tên tỉnh bị lặp thêm 1 lần)
+    if (!eo && opt.prefill) { // 🛒 lên đơn từ Zalo (18/11/2026): địa chỉ + món CRM đọc từ tin nhắn
+      if (opt.prefill.address && !fullAddr) fullAddr = opt.prefill.address;
+      if (opt.prefill.items && opt.prefill.items.length) sItems = opt.prefill.items.map(function (i) { return { name: i.name, variant: '', qty: i.qty || 1 }; });
+    }
     var addrMini = !eo && !!c0 && !c0.isLead && !!fullAddr; // khách cũ đã có địa chỉ: hiện gọn 1 khung (CRM đọc không ra tỉnh thì tự mở đủ ô để chọn)
     var src0 = store('crm_osrc'); if (SOURCES.indexOf(src0) < 0) src0 = SOURCES[0]; // nhớ lựa chọn lần trước của từng người
     var car0 = eo ? carrierOf(eo) : 'BEST Express'; // đơn mới mặc định BEST Express (anh Sơn 20/10/2026)
@@ -15899,47 +15903,83 @@
     h += '<p class="zs-foot"><button class="btn" data-zs="re">🔄 Tải lại</button> <small>Cập nhật ' + esc(when(ZS.at)) + '</small></p></div>';
     return h;
   }
-  /** 💬 Mở 1 cuộc trò chuyện. Quản trị: mọi sale. Sale: chỉ Zalo của mình (máy chủ tự lọc). Dưới cùng là việc làm tiếp: hồ sơ, lên đơn, thêm khách, gắn số, 🔒. */
-  function zsOpen(sale, uid, phone, title) {
-    var m = modal('💬 ' + esc(title || 'Zalo'), '<div class="zs-conv" id="zsConv">Đang tải…</div><div class="zs-acts" id="zsActs"></div>', '', {});
+  /** 💬 Mở 1 cuộc trò chuyện. Quản trị (khi được xem): mọi sale. Sale: chỉ Zalo của mình (máy chủ tự lọc). autoAi = mở là chạy ✨ gợi ý luôn. */
+  function zsOpen(sale, uid, phone, title, autoAi) {
+    var m = modal('💬 ' + esc(title || 'Zalo'), '<div class="zs-acts" id="zsActs"></div><div class="zs-conv" id="zsConv">Đang tải…</div>', '', {});
     api('zs_thread', { sale: sale, uid: uid, phone: phone }).then(function (j) {
       var box = $('#zsConv', m); if (!box) return;
-      var head = (j.owner ? '<p class="zs-conv-h">👤 Phụ trách: <b>' + esc(j.owner) + '</b>' + (j.phone ? ' · ' + esc(j.phone) : '') + '</p>' : j.phone ? '<p class="zs-conv-h">' + esc(j.phone) + '</p>' : '');
-      box.innerHTML = !j.msgs || !j.msgs.length ? '<p class="muted">Chưa có tin nào được lưu.</p>' : head + j.msgs.map(function (x) {
+      box.innerHTML = !j.msgs || !j.msgs.length ? '<p class="muted">Chưa có tin nào được lưu.</p>' : j.msgs.map(function (x) {
         return '<div class="zs-b ' + (x.self ? 'zs-me' : 'zs-cust') + '"><div class="zs-tx">' + esc(x.text).replace(/\n/g, '<br>') + '</div><time>' + (x.self ? esc(x.saleName) + ' · ' : '') + esc(when(x.ts)) + '</time></div>';
       }).join('');
       box.scrollTop = box.scrollHeight;
       zsActs(m, j, title);
+      if (autoAi) { var ab = $('[data-zsa="ai"]', m); if (ab) ab.click(); }
     }, function (e) { var box = $('#zsConv', m); if (box) box.innerHTML = '<p class="err">' + esc(e.message) + '</p>'; });
   }
+  /** Việc làm tiếp trong 1 cuộc trò chuyện (18/11/2026 gọn lại): 2 nút chính ✨ Gợi ý trả lời · 🛒 Lên đơn; khách chưa rõ số thì 1 dòng "Có phải khách…?" hoặc gắn số; 🔒 cất cuối. */
   function zsActs(m, j, title) {
     var el = $('#zsActs', m); if (!el) return;
-    var c = j.phone ? cust(j.phone) : null, a = '';
-    if (c) a += '<button type="button" class="btn" data-zsa="prof">📇 Mở hồ sơ khách</button>';
-    if (j.phone) a += '<button type="button" class="btn pri" data-zsa="buy">🛒 Lên đơn</button>';
-    if (j.phone && !j.crm) a += '<button type="button" class="btn" data-zsa="lead">➕ Thêm vào CRM</button>';
-    var h = a ? '<div class="zs-actrow">' + a + '</div>' : '';
-    if (!j.phone) h += '<div class="zs-link"><p class="small">Zalo không cho xem số của khách này. Gõ số khách để tin Zalo vào đúng hồ sơ:</p><div class="zs-actrow"><input type="tel" inputmode="tel" id="zsPh" placeholder="Số điện thoại khách"><button type="button" class="btn" data-zsa="link">📇 Gắn số khách</button></div></div>';
-    if (lvl() < 2 || lvl() >= 3) h = '<div class="zs-ai" id="zsAi"><button type="button" class="btn zs-aibtn" data-zsa="ai">✨ Gợi ý trả lời & cách chăm sóc khách này</button></div>' + h;
-    if (lvl() < 2 && !j.crm) h += '<p class="zs-privline"><button type="button" class="zs-priv" data-zsa="priv">🔒 Đây không phải khách (người thân, bạn bè)</button> <small>xoá hẳn cuộc trò chuyện này khỏi CRM, từ nay không lưu nữa</small></p>';
+    var c = j.phone ? cust(j.phone) : null, me = lvl() < 2, gu = !j.phone && ZSM.d && ZSM.d.list ? (ZSM.d.list.filter(function (r) { return r.uid === j.uid; })[0] || {}).guess : null;
+    var h = '<div class="zs-actrow zs-main"><button type="button" class="btn zs-aibtn" data-zsa="ai">✨ Gợi ý trả lời</button><button type="button" class="btn pri" data-zsa="buy">🛒 Lên đơn</button></div>';
+    h += '<p class="zs-who">' + (c ? '📇 Khách trong CRM: <b>' + esc(c.name || j.phone) + '</b> · ' + esc(j.phone) + ' <button type="button" class="zs-linkbtn" data-zsa="prof">Mở hồ sơ</button>'
+      : j.phone ? '📞 ' + esc(j.phone) + ' · chưa có trong CRM <button type="button" class="zs-linkbtn" data-zsa="lead">➕ Thêm vào CRM</button>'
+      : gu ? '❓ Có phải khách <b>' + esc(gu.name) + '</b> · ' + esc(gu.phone) + ' của bạn? <button type="button" class="zs-linkbtn" data-zsa="yes">✓ Đúng, gắn số</button> <button type="button" class="zs-linkbtn zs-mute" data-zsa="nolink">Không phải</button>'
+      : '📞 Chưa biết số của khách (Zalo ẩn số). <button type="button" class="zs-linkbtn" data-zsa="nolink">📇 Gõ số khách</button>') + '</p>';
+    h += '<div class="zs-link" id="zsLinkBox" hidden><div class="zs-actrow"><input type="tel" inputmode="tel" id="zsPh" placeholder="Số điện thoại khách"><button type="button" class="btn" data-zsa="link">Gắn số</button></div></div>';
+    h += '<div class="zs-ai" id="zsAi"></div>';
     el.innerHTML = h;
-    $$('[data-zsa]', el).forEach(function (b) { b.onclick = function () {
+    var foot = $('#zsPrivFoot', m); if (foot) foot.remove();
+    if (me && !j.crm) { var pf = document.createElement('p'); pf.id = 'zsPrivFoot'; pf.className = 'zs-privline'; pf.innerHTML = '<button type="button" class="zs-linkbtn zs-mute" data-zsa="priv">🔒 Đây không phải khách (người thân, bạn bè) – xoá hẳn, không lưu nữa</button>'; $('.sheet-b', m).appendChild(pf); }
+    var link = function (ph, b) { if (b) b.disabled = true;
+      api('zs_link', { sale: j.sale, uid: j.uid, phone: ph }).then(function (r) { toast('Đã gắn số ✓' + (r.who && r.who.name ? ' – ' + r.who.name : '')); j.phone = r.phone; j.crm = !!(r.who && r.who.name); zsActs(m, j, title); ZSM.at = 0; zsMineFetch(); }, function (e) { if (b) b.disabled = false; toast(e.message, true); }); };
+    $$('[data-zsa]', m).forEach(function (b) { b.onclick = function () {
       var k = b.getAttribute('data-zsa');
-      if (k === 'ai') { var ab = $('#zsAi', m); b.disabled = true; b.textContent = '✨ Đang đọc tin nhắn và hồ sơ khách…';
-        api('zs_ai', { sale: j.sale, uid: j.uid }).then(function (r) {
+      if (k === 'ai') { var ab = $('#zsAi', m); b.disabled = true; b.textContent = '✨ Đang đọc tin nhắn…';
+        api('zs_ai', { sale: j.sale, uid: j.uid }).then(function (r) { b.disabled = false; b.textContent = '✨ Gợi ý khác';
           ab.innerHTML = (r.need ? '<p class="zs-need">🎯 <b>Khách cần:</b> ' + esc(r.need) + '</p>' : '') + r.replies.map(function (t, i) {
             return '<div class="zs-rep"><p>' + esc(t) + '</p><button type="button" class="btn" data-zsrep="' + i + '">📋 Chép</button></div>'; }).join('') +
             (r.next ? '<p class="zs-next">👉 <b>Nên làm tiếp:</b> ' + esc(r.next) + '</p>' : '') + '<p class="zs-mfoot">Chép câu bạn thích, sửa cho đúng giọng mình rồi gửi trên Zalo. CRM không tự gửi.</p>';
-          $$('[data-zsrep]', ab).forEach(function (c) { c.onclick = function () { copy(r.replies[+c.getAttribute('data-zsrep')]).then(function () { toast('Đã chép ✓ Dán vào Zalo để gửi'); }); }; });
-        }, function (er) { b.disabled = false; b.textContent = '✨ Gợi ý trả lời & cách chăm sóc khách này'; toast(er.message, true); }); }
+          $$('[data-zsrep]', ab).forEach(function (c2) { c2.onclick = function () { copy(r.replies[+c2.getAttribute('data-zsrep')]).then(function () { toast('Đã chép ✓ Dán vào Zalo để gửi'); }); }; });
+        }, function (er) { b.disabled = false; b.textContent = '✨ Gợi ý trả lời'; toast(er.message, true); }); }
+      if (k === 'buy') zsOrderGo(j.sale, j.uid, j.phone, title);
       if (k === 'prof') { closeModal(true); openCustomer(j.phone); }
-      if (k === 'buy') { closeModal(true); openOrderForm(c ? { phone: j.phone } : { lead: { phone: j.phone, name: j.zname || title || '' } }); }
       if (k === 'lead') { closeModal(true); openLeadForm(null); setTimeout(function () { var f = $('#lfForm'); if (!f) return; f.phone.value = j.phone; f.name.value = j.zname || ''; f.phone.dispatchEvent(new Event('input', { bubbles: true })); var z = $('[data-lfch="Zalo"]'); if (z) z.click(); }, 50); }
-      if (k === 'link') { var ph = ($('#zsPh', m).value || '').trim(); if (!ph) { toast('Gõ số điện thoại khách', true); return; } b.disabled = true;
-        api('zs_link', { sale: j.sale, uid: j.uid, phone: ph }).then(function (r) { toast('Đã gắn số ✓' + (r.who && r.who.name ? ' – ' + r.who.name : '')); j.phone = r.phone; j.crm = !!(r.who && r.who.name); zsActs(m, j, title); ZSM.at = 0; ZS.at = 0; }, function (e) { b.disabled = false; toast(e.message, true); }); }
+      if (k === 'yes' && gu) link(gu.phone, b);
+      if (k === 'nolink') { var lb = $('#zsLinkBox', m); lb.hidden = false; $('#zsPh', m).focus(); }
+      if (k === 'link') { var ph = ($('#zsPh', m).value || '').trim(); if (!ph) { toast('Gõ số điện thoại khách', true); return; } link(ph, b); }
       if (k === 'priv') { if (!confirm('Xoá hẳn cuộc trò chuyện này khỏi CRM và từ nay không lưu nữa?\n(Chỉ dùng cho người thân, bạn bè – không phải khách.)')) return; b.disabled = true;
         api('zs_private', { uid: j.uid }).then(function () { toast('Đã xoá, từ nay không lưu ✓'); closeModal(true); ZSM.at = 0; zsMineFetch(); }, function (e) { b.disabled = false; toast(e.message, true); }); }
     }; });
+  }
+  /** 🛒 Lên đơn từ Zalo (18/11/2026 anh Sơn: khách chưa có số / địa chỉ thì lên đơn thế nào?). CRM đọc tin nhắn → điền sẵn số, tên, địa chỉ, món;
+   *  còn thiếu gì thì đưa câu chép gửi khách xin thêm. Đủ số điện thoại là mở form lên đơn đã điền sẵn. */
+  function zsOrderGo(sale, uid, phone, title) {
+    var m = modal('🛒 Lên đơn từ Zalo – ' + esc(title || ''), '<div id="zsOrd"><p class="muted">🔎 Đang đọc tin nhắn để điền sẵn đơn… (khoảng 5 giây)</p></div>', '', {});
+    var prods = productOptions().map(function (p) { return p.label; }).slice(0, 80);
+    api('zs_order', { sale: sale, uid: uid, prods: prods }).then(function (r) {
+      var box = $('#zsOrd', m); if (!box) return;
+      var c = r.phone ? cust(r.phone) : null, hasAddr = !!(r.address || (c && c.address));
+      var line = function (ok, label, val) { return '<div class="zo-l ' + (ok ? 'ok' : 'miss') + '"><span>' + (ok ? '✅' : '⚠️') + '</span><div><b>' + label + '</b>' + val + '</div></div>'; };
+      var h = '<p class="small muted">CRM đã đọc tin nhắn và điền sẵn. Bạn xem lại, sửa nếu sai.</p>' +
+        line(!!r.phone, 'Số điện thoại', '<input type="tel" inputmode="tel" id="zoPh" value="' + esc(r.phone || '') + '" placeholder="Chưa có – hỏi khách">') +
+        line(true, 'Tên người nhận', '<input type="text" id="zoNm" value="' + esc(r.name || (c && c.name) || r.zname || '') + '">') +
+        line(hasAddr, 'Địa chỉ', c && c.address && !r.address ? '<p class="zo-v">Giao như lần trước</p>' : '<textarea id="zoAd" rows="2" placeholder="Chưa có – hỏi khách">' + esc(r.address || '') + '</textarea>') +
+        line(!!r.items.length, 'Khách muốn mua', r.items.length ? '<p class="zo-v">' + r.items.map(function (i) { return esc(i.qty + ' × ' + i.name); }).join('<br>') + '</p>' : '<p class="zo-v muted">Chưa rõ – chọn trong form lên đơn</p>');
+      if (r.ask) h += '<div class="zo-ask"><p>💬 <b>Còn thiếu, gửi khách câu này:</b></p><div class="zs-rep"><p>' + esc(r.ask) + '</p><button type="button" class="btn" id="zoCopy">📋 Chép</button></div></div>';
+      h += '<div class="zs-actrow"><button type="button" class="btn pri" id="zoGo">🛒 Mở form lên đơn</button><button type="button" class="btn" data-close>Để sau</button></div>' +
+        '<p class="zs-mfoot">Chưa có số điện thoại thì gửi khách câu trên trước. Khách gửi số rồi, bấm lại 🛒 Lên đơn là CRM điền tiếp.</p>';
+      box.innerHTML = h;
+      var cp = $('#zoCopy', m); if (cp) cp.onclick = function () { copy(r.ask).then(function () { toast('Đã chép ✓ Dán vào Zalo để gửi'); }); };
+      $('#zoGo', m).onclick = function () {
+        var ph = ($('#zoPh', m).value || '').replace(/\D/g, ''); if (ph.length === 9) ph = '0' + ph;
+        if (!/^0\d{9}$/.test(ph)) { toast('Cần số điện thoại khách (10 số). Chép câu hỏi gửi khách trước nhé.', true); $('#zoPh', m).focus(); return; }
+        var nm = ($('#zoNm', m).value || '').trim(), ad = $('#zoAd', m) ? ($('#zoAd', m).value || '').trim() : '';
+        if (ph !== r.phone) api('zs_link', { sale: sale, uid: uid, phone: ph }).catch(function () { });
+        closeModal(true); ZSM.at = 0;
+        var c2 = cust(ph), pre = { address: ad, items: r.items };
+        openOrderForm(c2 ? { phone: ph, prefill: pre } : { lead: { phone: ph, name: nm }, prefill: pre });
+      };
+    }, function (e) { var box = $('#zsOrd', m); if (box) box.innerHTML = '<p class="err">' + esc(e.message) + '</p>'; });
   }
   /* ================================================================ 💬 Zalo của tôi (sale, tab Hôm nay – 17/11/2026 anh Sơn)
    * Chỉ có lợi cho sale: không bỏ quên khách nhắn, khách muốn mua → Lên đơn 1 chạm, khách mới chưa có trong CRM → thêm 1 chạm,
@@ -15953,7 +15993,7 @@
   /** 🔒 / 👁 dòng trạng thái cho sale: hiện có ai khác đang được xem nội dung tin nhắn không (công tắc của Quản trị, 18/11/2026). */
   function zsReadLine(D) {
     return D.read ? '<span class="zs-rl on">👁 Quản trị đang mở xem nội dung để hỗ trợ khách, tự tắt lúc ' + esc(fDateTime(D.readUntil)) + '.</span>'
-      : '<span class="zs-rl">🔒 Không ai khác đọc tin nhắn của bạn, kể cả Quản lý và Quản trị. Mọi người chỉ thấy con số.</span>';
+      : '<span class="zs-rl">🔒 Không ai khác đọc tin nhắn của bạn, kể cả Quản lý và Quản trị</span>';
   }
   /** 📲 Thẻ mời sale tự nối Zalo (17/11/2026 anh Sơn: chị em chủ động, yên tâm). Nói rõ được gì + an tâm gì + ô đồng ý. "Để sau" ẩn 7 ngày. */
   function zsJoinCard(D) {
@@ -15978,12 +16018,21 @@
     if (k === 'off') { var why = prompt('Tạm ngắt Zalo với CRM? CRM sẽ không nhắc khách chờ cho bạn nữa.\nLý do (không bắt buộc):', ''); if (why === null) return;
       api('zs_self', { op: 'off', why: why }).then(function () { toast('Đã ngắt. Bạn nối lại bất cứ lúc nào ✓'); ZSM.at = 0; ZSM.d = null; zsMineFetch(); render(); }, function (er) { toast(er.message, true); }); }
   });
-  document.addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('[data-zsm]'); if (!b) return; var p = b.getAttribute('data-zsm').split('|'); zsOpen('', p[0], p[1], p[2]); });
+  document.addEventListener('click', function (e) {
+    var g = e.target.closest && e.target.closest('[data-zsgo]'); // nút việc chính trên dòng: ✨ Gợi ý trả lời / 🛒 Lên đơn
+    if (g) { e.stopPropagation(); var q = g.getAttribute('data-zsgo').split('|'); if (q[0] === 'buy') zsOrderGo('', q[1], q[2], q[3]); else zsOpen('', q[1], q[2], q[3], 1); return; }
+    var b = e.target.closest && e.target.closest('[data-zsm]'); if (!b) return; var p = b.getAttribute('data-zsm').split('|'); zsOpen('', p[0], p[1], p[2]);
+  });
+  /** 1 dòng khách (18/11/2026 gọn lại): chữ cái đầu · tên + câu khách nhắn cuối · bên phải thời gian + 1 nút việc chính. Bấm cả dòng = đọc cuộc trò chuyện. */
   function zsMineRow(r, kind) {
-    var sub = kind === 'wait' ? (r.lastText ? '“' + esc(r.lastText) + '”' : 'khách nhắn, bạn chưa trả lời') : kind === 'buy' ? '“' + esc(r.buy) + '”' : (r.n + ' tin · ' + esc(when(r.last)));
-    return '<button type="button" class="zs-th' + (kind === 'wait' ? ' zs-th-wait' : kind === 'buy' ? ' zs-th-buy' : '') + '" data-zsm="' + esc(r.uid) + '|' + esc(r.phone || '') + '|' + esc(r.name) + '">' +
-      '<span class="zs-wt"><b>' + esc(r.name) + '</b>' + (!r.crm ? ' <em class="zs-badge zs-new">chưa có trong CRM</em>' : '') + '<small>' + sub + '</small></span>' +
-      (kind === 'wait' ? '<span class="zs-min">' + (r.mins < 60 ? r.mins + ' phút' : Math.round(r.mins / 60) + ' giờ') + '</span>' : kind === 'buy' ? '<span class="zs-min zs-buy">🛒 Lên đơn</span>' : '<span class="zs-chev">›</span>') + '</button>';
+    var key = esc(r.uid) + '|' + esc(r.phone || '') + '|' + esc(r.name), ini = String(r.name || '?').trim().split(/\s+/).pop().charAt(0).toUpperCase();
+    var btn = kind === 'wait' ? '<button type="button" class="zr-btn" data-zsgo="ai|' + key + '">✨ Gợi ý trả lời</button>'
+      : kind === 'buy' ? '<button type="button" class="zr-btn buy" data-zsgo="buy|' + key + '">🛒 Lên đơn</button>' : '';
+    var t = kind === 'wait' ? (r.mins < 60 ? r.mins + ' phút' : r.mins < 1440 ? Math.round(r.mins / 60) + ' giờ' : Math.round(r.mins / 1440) + ' ngày') : esc(when(r.last));
+    var quote = kind === 'buy' ? r.buy : r.lastText;
+    return '<div class="zr' + (kind ? ' zr-' + kind : '') + '" role="button" tabindex="0" data-zsm="' + key + '"><span class="zr-av">' + esc(ini) + '</span>' +
+      '<span class="zr-m"><b>' + esc(r.name) + (r.crm ? ' <i title="Khách trong CRM">📇</i>' : '') + '</b><small>' + (quote ? '“' + esc(quote) + '”' : r.n + ' tin nhắn') + '</small></span>' +
+      '<span class="zr-r"><em' + (kind === 'wait' ? ' class="late"' : '') + '>' + (kind === 'wait' ? 'chờ ' : '') + t + '</em>' + btn + '</span></div>';
   }
   function zsMineBlock() {
     if (lvl() >= 2) return '';
@@ -15991,31 +16040,16 @@
     var D = ZSM.d; if (!D) return ''; if (!D.on) return zsJoinCard(D);
     var bought = function (r) { return r.phone && S.d.orders.some(function (o) { return o.phone === r.phone && o.time >= r.buyAt - 600e3 && !isVoid(o.status); }); };
     var wait = D.list.filter(function (r) { return r.wait; }).sort(function (a, b) { return b.mins - a.mins; }),
-      buy = D.list.filter(function (r) { return r.buy && !r.wait && !bought(r); }), rest = D.list, fresh = rest.filter(function (r) { return !r.crm; }).length, t = D.today;
-    var h = '<section class="section zs-mine"><div class="section-h"><h2>💬 Zalo của tôi</h2><span class="tip">trợ lý nhắc bạn không bỏ sót khách nhắn Zalo</span></div>';
-    if (!D.online) h += '<p class="zs-warn">Zalo của bạn tạm chưa nối với CRM. Bạn mở Zalo trên điện thoại 1 lần là được, nếu vẫn vậy thì báo anh Sơn.</p>';
-    if (wait.length) h += '<h3 class="zs-mh">⏰ Khách đang chờ bạn trả lời (' + wait.length + ')</h3><div class="zs-list">' + wait.slice(0, 8).map(function (r) { return zsMineRow(r, 'wait'); }).join('') + '</div>';
-    if (buy.length) h += '<h3 class="zs-mh">🛒 Khách nhắn muốn mua – lên đơn ngay (' + buy.length + ')</h3><div class="zs-list">' + buy.slice(0, 6).map(function (r) { return zsMineRow(r, 'buy'); }).join('') + '</div>';
+      buy = D.list.filter(function (r) { return r.buy && !r.wait && !bought(r); }), t = D.today;
+    var h = '<section class="section zs-mine"><div class="zm-head"><h2>💬 Zalo của tôi</h2>' +
+      (t.threads ? '<span class="zm-stat">🏅 Hôm nay <b>' + t.threads + '</b> khách' + (t.avgMin != null ? ' · trả lời sau <b>' + ZS_MIN(t.avgMin) + '</b>' + (t.avgMin <= 10 ? ' 👏' : '') : '') + '</span>' : '') + '</div>';
+    if (!D.online) h += '<p class="zs-warn">Zalo của bạn tạm chưa nối với CRM. Mở Zalo trên điện thoại 1 lần là được, vẫn vậy thì báo anh Sơn.</p>';
+    if (wait.length) h += '<h3 class="zm-h">⏰ Khách đang chờ bạn <span class="zm-n">' + wait.length + '</span></h3><div class="zm-list">' + wait.slice(0, 8).map(function (r) { return zsMineRow(r, 'wait'); }).join('') + '</div>';
+    if (buy.length) h += '<h3 class="zm-h">🛒 Khách muốn mua <span class="zm-n buy">' + buy.length + '</span></h3><div class="zm-list">' + buy.slice(0, 6).map(function (r) { return zsMineRow(r, 'buy'); }).join('') + '</div>';
     if (!wait.length && !buy.length) h += '<p class="zs-allok">✅ Bạn đã trả lời hết khách nhắn Zalo. Tuyệt vời!</p>';
-    if (t.threads) h += '<p class="zs-mest">🏅 Hôm nay bạn đã chăm <b>' + t.threads + '</b> khách qua Zalo' + (t.avgMin != null ? ' · trả lời trung bình sau <b>' + ZS_MIN(t.avgMin) + '</b>' + (t.avgMin <= 10 ? ' – rất nhanh 👏' : '') : '') + '</p>';
-    if (rest.length) h += '<details class="grp" data-grp="zsall"' + (S.f.gopen && S.f.gopen.zsall ? ' open' : '') + '><summary><span class="g-t">📜 Trò chuyện Zalo 30 ngày</span><span class="count">' + rest.length + '</span><span class="g-tip">' + (fresh ? fresh + ' khách chưa có trong CRM – mở ra bấm ➕ Thêm' : 'bấm để đọc lại') + '</span></summary><div class="zs-list" style="padding:10px 12px">' + rest.slice(0, 40).map(function (r) { return zsMineRow(r, ''); }).join('') + '</div></details>';
-    h += '<p class="zs-mfoot">Tin Zalo với khách tự lưu vào <b>hồ sơ khách</b>, bạn không cần chép lại. Người thân, bạn bè: mở cuộc trò chuyện → <b>🔒 Không phải khách</b> là xoá hẳn. ' + zsReadLine(D) + ' <button type="button" class="zs-linkbtn" data-zsj="off">⏸ Tạm ngắt Zalo với CRM</button></p></section>';
+    if (D.list.length) h += '<details class="zm-all" data-grp="zsall"' + (S.f.gopen && S.f.gopen.zsall ? ' open' : '') + '><summary>📜 Tất cả trò chuyện 30 ngày <span class="zm-n">' + D.list.length + '</span></summary><div class="zm-list">' + D.list.slice(0, 40).map(function (r) { return zsMineRow(r, ''); }).join('') + '</div></details>';
+    h += '<p class="zm-foot">' + zsReadLine(D) + ' · <a href="/huong-dan/zalo-sale/" target="_blank" rel="noopener">Cách dùng</a> · <button type="button" class="zs-linkbtn" data-zsj="off">⏸ Tạm ngắt</button></p></section>';
     return h;
-  }
-  function bindZsale() {
-    $$('[data-zs="re"]').forEach(function (b) { b.onclick = function () { ZS.at = 0; zsFetch(); }; });
-    $$('[data-zst]').forEach(function (b) { b.onclick = function () { var p = b.getAttribute('data-zst').split('|'); zsOpen(p[0], p[1], p[2], p[3]); }; });
-    var add = $('[data-zs="add"]'); if (add) add.onclick = zsAddOpen;
-    $$('[data-zsqr]').forEach(function (b) { b.onclick = function () { var p = b.getAttribute('data-zsqr').split('|'); zsQrOpen(p[0], p[1]); }; });
-    $$('[data-zsoff]').forEach(function (b) { b.onclick = function () { var p = b.getAttribute('data-zsoff').split('|');
-      if (!confirm('Ngắt theo dõi Zalo của ' + p[1] + '? (Có thể kết nối lại sau.)')) return;
-      api('zs_disconnect', { sale: p[0] }).then(function () { toast('Đã ngắt ✓'); ZS.at = 0; zsFetch(); }, function (e) { toast(e.message, true); }); }; });
-    var rd = $('#zsRead'); if (rd) rd.onchange = function () { rd.disabled = true;
-      api('zs_cfg', { read: rd.checked ? 1 : 0 }).then(function (j) { toast(j.read ? '👁 Đã bật xem nội dung, tự tắt sau 24 giờ' : 'Đã tắt xem nội dung ✓'); ZS.at = 0; zsFetch(); }, function (e) { rd.disabled = false; rd.checked = !rd.checked; toast(e.message, true); }); };
-    var sv = $('[data-zs="save"]'); if (sv) sv.onclick = function () {
-      sv.disabled = true; api('zs_cfg', { on: $('#zsOn').checked ? 1 : 0, replyMins: +$('#zsMins').value || 30 })
-        .then(function (j) { ZS.d.cfg = j.cfg; toast('Đã lưu ✓'); sv.disabled = false; }, function (e) { toast(e.message, true); sv.disabled = false; });
-    };
   }
   /** ➕ Chọn 1 sale để kết nối: gõ tên (gợi ý từ danh sách sale) → tạo slot → mở cửa sổ QR. */
   function zsAddOpen() {
