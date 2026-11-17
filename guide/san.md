@@ -64,7 +64,11 @@ Dùng: mở trang Shopee (tìm từ khoá, chọn **Bán chạy**, hoặc vào s
 
 ## Việc 5: Sổ theo dõi cuối ngày
 
-Thay bảng ghi tay cuối ngày. **Doanh số, số đơn** CRM tự lấy từ đơn Shopee; bạn ghi:
+Thay bảng ghi tay cuối ngày. **Doanh số, số đơn** CRM tự lấy từ đơn Shopee.
+
+**Cách nhanh (không gõ tay):** trên máy tính, mở **Kênh Người Bán** (banhang.shopee.vn), vào từng trang **Quảng cáo Shopee** (chọn Hôm nay), **Đơn hàng → Chờ lấy hàng**, **Chat**… Ở mỗi trang bấm nút **📥 Gửi về CRM** trên thanh dấu trang. Vào CRM → **📒 Sổ theo dõi ngày → 📥 Dán từ Kênh Người Bán** → dán (Ctrl+V) → **📥 Đọc số**. AI điền sẵn số vào sổ, bạn **kiểm tra lại** rồi bấm **Lưu**. Ô **☀️ Ca sáng** ở đầu khối cũng hiện số đơn chờ đóng gói, tin nhắn chưa trả lời, số dư quảng cáo vừa đọc.
+
+**Hoặc gõ tay** ở **✏️ Ghi số hôm nay**:
 
 - **Chi phí quảng cáo** và **doanh thu từ quảng cáo** (Kênh Người Bán → Quảng cáo Shopee → số hôm nay).
 - **Số dư quảng cáo còn lại**: CRM tính còn đủ mấy ngày, dưới 3 ngày thì báo đỏ + Telegram 8h nhắc nạp.
@@ -74,7 +78,7 @@ Thay bảng ghi tay cuối ngày. **Doanh số, số đơn** CRM tự lấy từ
 
 ## Nối Shopee
 
-*Phần này anh Sơn làm 1 lần.* Khi nối, CRM tự lấy **đơn chờ đóng gói, số dư và chi phí quảng cáo theo ngày, tin nhắn chưa đọc** 30 phút / lần, Thủy không cần tải file hay ghi tay chi phí quảng cáo.
+*Phần này anh Sơn làm 1 lần.* **17/11/2026:** Shopee chỉ cho **shop Mall** hoặc **Shop Yêu thích** tự nối. Shop greeneats.official chưa đủ điều kiện, nên tạm dùng nút **📥 Gửi về CRM** ở Kênh Người Bán ([Việc 5](#viec-5-so-theo-doi-cuoi-ngay)). Khi shop đạt Yêu thích thì làm các bước dưới. Khi nối, CRM tự lấy **đơn chờ đóng gói, số dư và chi phí quảng cáo theo ngày, tin nhắn chưa đọc** 30 phút / lần, Thủy không cần tải file hay ghi tay chi phí quảng cáo.
 
 1. Vào **open.shopee.com**, đăng nhập bằng tài khoản Shopee **chủ shop**.
 2. Đăng ký nhà phát triển cho shop của mình (loại **Seller In House System** / người bán tự dùng), điền thông tin công ty.

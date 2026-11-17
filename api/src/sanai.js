@@ -14,7 +14,7 @@ import { all, first, run, kvGet, kvSet, kvJson, randHex, fmtDate, DAY } from './
 import { sanDaySchema, crmShp } from './sanshp.js';
 
 const M_SHOP = 'claude-sonnet-5-5', M_DT = 'claude-opus-5-5'; // anh Sơn 13/11: Sonnet việc hằng ngày, Opus việc nghĩ sâu (đối thủ 1 lần / tuần)
-const DAY_MAX = { shop: 20, dt: 10 };
+const DAY_MAX = { shop: 20, dt: 10, sc: 60 };
 const cut = (s, n) => String(s == null ? '' : s).trim().slice(0, n);
 const vnDay = t => fmtDate(t, 'yyyy-MM-dd');
 const addDay = (d, k) => vnDay(new Date(d + 'T12:00:00+07:00').getTime() + k * DAY);
@@ -188,6 +188,27 @@ async function dtItems(x, pages) {
   return { rows: rows.slice(0, 150), text, n: items.length, kws: [...new Set(items.map(r => r.kw))].slice(0, 10) };
 }
 
+/** 📥 trang Kênh Người Bán (Thủy bấm nút trên banhang.shopee.vn, chữ cả trang) → Haiku tách số: chi phí / doanh thu / số dư quảng cáo, đơn chờ đóng gói, tin nhắn chưa trả lời, đơn video / live / affiliate. -1 = trang không có. */
+const INT = { type: 'integer' };
+const schSc = () => ({ type: 'object', properties: { day: STR, ads: INT, ads_gmv: INT, bal: INT, pending: INT, chat: INT, vid: INT, live: INT, aff: INT, found: STR }, required: ['day', 'ads', 'ads_gmv', 'bal', 'pending', 'chat', 'vid', 'live', 'aff', 'found'], additionalProperties: false }); // hàm: STR khai báo phía dưới
+async function aiScRead(x, u, d) {
+  const pages = (Array.isArray(d.pages) ? d.pages : []).filter(p => p && p.sc && p.t).slice(0, 8);
+  if (!pages.length) return { ok: false, error: 'Chưa có trang Kênh Người Bán nào.' };
+  const day = /^\d{4}-\d\d-\d\d$/.test(String(d.day || '')) ? d.day : vnDay(Date.now());
+  const g = await dayGate(x, 'sc'); if (g) return { ok: false, error: g };
+  const sys = 'Bạn đọc chữ chép từ các trang Kênh Người Bán Shopee Việt Nam (banhang.shopee.vn) của 1 shop và tách đúng con số. Chỉ lấy số có trên trang, không đoán, không cộng số của các trang khác nhau trừ khi cùng 1 chỉ số chia nhiều dòng. Không có thì -1. Tiền là đồng (VND), đổi "1,2tr" = 1200000, "₫345.678" = 345678, "12,5k" = 12500.';
+  const ask = 'Ngày cần lấy số: ' + day + ' (nếu trang ghi rõ khoảng ngày khác thì ghi vào day dạng yyyy-mm-dd của ngày cuối, chỉ khi trang là số của đúng 1 ngày; không rõ thì day = "").\n' +
+    'Cần tách:\n- ads: Chi phí quảng cáo (Quảng cáo Shopee: "Chi phí" / "Chi tiêu") của cả shop trong ngày.\n- ads_gmv: Doanh số / Doanh thu từ quảng cáo ("Doanh số", "GMV" trong trang quảng cáo).\n- bal: Số dư tài khoản quảng cáo ("Số dư", "Số dư quảng cáo").\n- pending: số đơn Chờ lấy hàng / Chờ xác nhận / Cần gửi (đơn chờ đóng gói).\n- chat: số cuộc trò chuyện / tin nhắn chưa đọc, chưa trả lời.\n- vid, live, aff: số đơn từ Shopee Video, Shopee Live, Tiếp thị liên kết (Affiliate).\n- found: liệt kê ngắn những số đã tìm thấy và ở trang nào (≤25 chữ).\n\n' +
+    pages.map((p, i) => '# TRANG ' + (i + 1) + ': ' + cut(p.k, 80) + '\n' + cut(p.t, 15000)).join('\n\n');
+  const r = await callAi(x, 'claude-haiku-5-5', 'low', sys, [{ type: 'text', text: ask }], schSc(), 3000);
+  if (r.error) return { ok: false, error: r.error };
+  const j = r.j, v = n => { n = Math.round(Number(n)); return isFinite(n) && n >= 0 ? n : null; };
+  const vals = { ads: v(j.ads), ads_gmv: v(j.ads_gmv), bal: v(j.bal), vid: v(j.vid), live: v(j.live), aff: v(j.aff) };
+  const live = { pending: v(j.pending), chat: v(j.chat), bal: vals.bal, at: Date.now(), by: u.name };
+  if (live.pending != null || live.chat != null || live.bal != null) { const old = await kvJson(x.db, 'sc_live', {}) || {}; await kvSet(x.db, 'sc_live', JSON.stringify(Object.assign({}, old.at && Date.now() - old.at < 12 * 3600e3 ? old : {}, Object.fromEntries(Object.entries(live).filter(([, z]) => z != null))))); }
+  return { ok: true, day: /^\d{4}-\d\d-\d\d$/.test(j.day || '') ? j.day : day, vals, found: cut(j.found, 200) };
+}
+
 async function callAi(x, model, effort, system, content, sch, maxTok) {
   const req = { model, max_tokens: maxTok, output_config: { effort, format: { type: 'json_schema', schema: sch } }, system, messages: [{ role: 'user', content }] };
   let res;
@@ -289,7 +310,7 @@ async function aiView(x, u) {
     list.push({ id: r.id, kind: r.kind, day: r.day, j: P(r.j) || {}, m: r.kind === 'shop' ? P(r.m) : null, acts, by: r.by_name, at: r.at });
   }
   const C = await cfgOf(x), shp = await crmShp(x, u, { action: 'san_shp' });
-  return { ok: true, list, cfg: C, def: { shop: DEF_SHOP, dt: DEF_DT }, aiOn: !!x.env.ANTHROPIC_API_KEY, book: await dayBook(x), shp, admin: u.level >= 3 };
+  return { ok: true, list, cfg: C, def: { shop: DEF_SHOP, dt: DEF_DT }, aiOn: !!x.env.ANTHROPIC_API_KEY, book: await dayBook(x), shp, sc: await kvJson(x.db, 'sc_live', null), admin: u.level >= 3 };
 }
 async function aiCfg(x, u, d) {
   const C = await cfgOf(x);
@@ -323,6 +344,7 @@ export async function crmSanAi(x, u, d) {
   if (a === 'san_ai_dt' && Array.isArray(d.pages) && d.pages.length) return aiDt(x, u, d); // có bảng máy so → chạy được cả khi AI tắt
   if (!x.env.ANTHROPIC_API_KEY) return { ok: false, error: 'AI chưa được bật (chưa có khoá ANTHROPIC_API_KEY trên máy chủ).' };
   if (a === 'san_ai_shop') return aiShop(x, u, d);
+  if (a === 'san_ai_scread') return aiScRead(x, u, d);
   if (a === 'san_ai_dt') return aiDt(x, u, d);
   return { ok: false, error: 'Lệnh không đúng.' };
 }
