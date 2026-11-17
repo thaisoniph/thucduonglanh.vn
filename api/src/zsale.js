@@ -419,11 +419,8 @@ let zsClient = null;
 const zsAiClient = env => zsClient || (zsClient = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY, maxRetries: 1, timeout: 40e3, fetch: aiFetch(env), defaultHeaders: { 'x-tdl-muc': 'crm' } }));
 const ZS_RULES = `Bạn là trợ lý chăm sóc khách của Thực Dưỡng Lành (thực phẩm thực dưỡng, trà thảo mộc). Bạn giúp NHÂN VIÊN SALE trả lời khách trên Zalo và chăm sóc khách tốt hơn. Sale sẽ tự chép câu trả lời và tự gửi.
 
-Viết đúng 4 dòng, mỗi dòng bắt đầu bằng nhãn sau, không thêm gì khác:
-KHÁCH CẦN: (1 câu: khách đang muốn gì / lo gì, đọc từ tin nhắn)
-TRẢ LỜI 1: (câu trả lời để sale gửi ngay, ấm áp, xưng "em", gọi khách đúng như sale đang gọi, ≤ 60 chữ, có 1 câu hỏi mở hoặc lời mời bước tiếp theo)
-TRẢ LỜI 2: (cách trả lời khác, ngắn hơn hoặc hướng khác, ≤ 45 chữ)
-NÊN LÀM: (1–2 việc cụ thể sale nên làm tiếp: lên đơn, hẹn gọi lại giờ nào, gửi cách dùng, hỏi thăm sau khi dùng…, ≤ 40 chữ)
+Chỉ trả về đúng 1 khối JSON, không viết gì khác (18/11/2026: đổi từ 4 dòng có nhãn sang JSON cho chắc chắn đọc được):
+{"need":"1 câu: khách đang muốn gì / lo gì, đọc từ tin nhắn","reply1":"câu trả lời để sale gửi ngay, ấm áp, xưng em, gọi khách đúng như sale đang gọi, ≤ 60 chữ, có 1 câu hỏi mở hoặc lời mời bước tiếp theo","reply2":"cách trả lời khác, ngắn hơn hoặc hướng khác, ≤ 45 chữ","next":"1–2 việc cụ thể sale nên làm tiếp: lên đơn, hẹn gọi lại giờ nào, gửi cách dùng, hỏi thăm sau khi dùng…, ≤ 40 chữ"}
 
 Quy tắc:
 - Dựa vào THÔNG TIN SẢN PHẨM. Không bịa giá, khuyến mãi, công dụng. Không chắc giá / quà thì để sale điền: "[giá]".
@@ -461,9 +458,10 @@ async function zsAi(x, u, d, sale) {
     });
   } catch (e) { console.error('zs ai', e && (e.status || ''), e && e.message); return { ok: false, error: 'Trợ lý chưa trả lời được, thử lại sau ít phút.' }; }
   const t = safe(res.content.filter(b => b.type === 'text').map(b => b.text).join('\n'));
-  const pick = lb => { const m = t.match(new RegExp(lb + '\\s*:\\s*(.+)')); return m ? m[1].trim() : ''; };
-  const out = { need: pick('KHÁCH CẦN'), replies: [pick('TRẢ LỜI 1'), pick('TRẢ LỜI 2')].filter(Boolean), next: pick('NÊN LÀM') };
-  if (!out.replies.length) return { ok: false, error: 'Trợ lý chưa gợi ý được, thử lại nhé.' };
+  let j = {}; try { j = JSON.parse((t.match(/\{[\s\S]*\}/) || ['{}'])[0]); } catch (e) { j = {}; }
+  const pick = lb => { const m = t.replace(/\*\*/g, '').match(new RegExp(lb + '\\s*:\\s*(.+)', 'i')); return m ? m[1].trim() : ''; }; // dự phòng nếu AI không trả JSON
+  const out = { need: String(j.need || pick('KHÁCH CẦN')).trim(), replies: [j.reply1 || pick('TRẢ LỜI 1'), j.reply2 || pick('TRẢ LỜI 2')].map(v => safe(String(v || '').trim())).filter(Boolean), next: String(j.next || pick('NÊN LÀM')).trim() };
+  if (!out.replies.length) { console.error('zs ai parse', res.stop_reason, t.slice(0, 300)); return { ok: false, error: 'Trợ lý chưa gợi ý được, thử lại nhé.' }; }
   await kvSet(x.db, k, String(n + 1), 2 * DAY);
   return Object.assign({ ok: true }, out);
 }
