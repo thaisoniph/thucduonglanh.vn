@@ -4,7 +4,7 @@ nav: Content
 group: marketing
 short: Từng bước làm bài, video, ảnh với AI
 order: 5.1
-updated: 2026-11-15
+updated: 2026-11-19
 description: Làm bài viết, kịch bản video, ảnh, bài Facebook cho sale theo khoá content của anh Sơn (Tuấn Hà – Vinalink). Mỗi việc có hình từng bước. Đọc khoảng 5 phút.
 roles: [mkt, ql]
 ---
@@ -51,17 +51,18 @@ Trước khi viết bất kỳ bài nào, trả lời 4 câu:
 
 [[steps:ct-mo]]
 
-**7 ô chọn việc, mỗi ô để làm gì** (dưới tên ô có ghi khi nào dùng; đầu mỗi thẻ có 📌 Dùng để + các bước ① ② ③):
+**Các thẻ chia 3 nhóm theo việc** (dưới tên thẻ có ghi khi nào dùng; đầu mỗi thẻ có 📌 Dùng để + các bước ① ② ③):
 
-| Thẻ | Dùng để |
-| --- | --- |
-| 📊 Tổng quan | Xem 30 ngày qua có bao nhiêu bài cho từng nhóm khách, bài nào tốt / kém |
-| ✍️ Tạo nội dung | Viết kịch bản video, câu lệnh ảnh, bài Facebook cho sale, ưu đãi |
-| 🧪 Chấm bài | AI chấm bài bạn làm trước khi đăng |
-| 🗣 Lời khách | Câu nguyên văn của khách thật |
-| 🛡 Câu bị giữ | Câu trả lời của trợ lý chat bị máy giữ lại vì nói sai (người gác cổng) |
-| 👥 Nhóm khách | Mỗi nhóm khách mong gì, bị cản bởi gì, ý lớn đang chạy |
-| ⚙️ Cài đặt | Chuyện đang nóng, dịp sắp tới, 📗 [Sổ tay doanh nghiệp](/huong-dan/website/#viec-8-sua-so-tay-doanh-nghiep), từ khoá bài web |
+| Nhóm | Thẻ | Dùng để |
+| --- | --- | --- |
+| **📊 Xem kết quả** (mỗi tuần 1 lần) | 📊 Tổng quan | Xem 30 ngày qua có bao nhiêu bài cho từng nhóm khách, bài nào tốt / kém |
+| | 🛡 Câu bị giữ | Câu trả lời của trợ lý chat bị máy giữ lại vì nói sai (người gác cổng) |
+| **✍️ Tự làm thêm** (khi cần) | ✍️ Tạo nội dung | Viết kịch bản video, câu lệnh ảnh, bài Facebook cho sale, ưu đãi |
+| | 🧪 Chấm bài | AI chấm bài bạn làm trước khi đăng |
+| **🧠 Dạy trợ lý** (trợ lý đọc trước khi viết) | 👥 Nhóm khách | Mỗi nhóm khách mong gì, bị cản bởi gì, ý lớn đang chạy |
+| | 🗣 Lời khách | Câu nguyên văn của khách thật |
+| | 📅 Dịp & chuyện nóng | Dịp lễ sắp tới, chuyện cả mạng đang bàn tán |
+| | 📗 Tài liệu nền | 📗 [Sổ tay doanh nghiệp](/huong-dan/website/#viec-8-sua-so-tay-doanh-nghiep), từ khoá bài web, phương pháp viết |
 
 ## Việc 1: Duyệt bài trợ lý viết
 
@@ -125,7 +126,7 @@ Có chuyện cả mạng đang bàn tán (phim, sự kiện, câu nói hot)? Ghi
 
 **Không bao giờ dùng:** tin buồn, tai nạn, bệnh dịch, chính trị, chuyện riêng người nổi tiếng (trợ lý cũng tự bỏ qua).
 
-**📅 Dịp sắp tới** ở cùng thẻ ⚙️ Cài đặt. Dòng nào hiện **⏰ đến lúc chuẩn bị** thì lên ý lớn hoặc bài gắn dịp ngay. Tết chuẩn bị trước khoảng 90 ngày, lễ lớn trước 1 tuần, mùng 1 / rằm trước 2 ngày.
+**📅 Dịp sắp tới** ở thẻ 📅 Dịp & chuyện nóng. Dòng nào hiện **⏰ đến lúc chuẩn bị** thì lên ý lớn hoặc bài gắn dịp ngay. Tết chuẩn bị trước khoảng 90 ngày, lễ lớn trước 1 tuần, mùng 1 / rằm trước 2 ngày.
 
 ## Việc 7: Lên ý lớn (big idea)
 
@@ -171,7 +172,7 @@ Dựng 1 ưu đãi "khó từ chối" cho 1 sản phẩm + 1 nỗi lòng khách.
 
 Có khoảng **100 từ khoá** người ta thật sự gõ lên Google hoặc hỏi ChatGPT. Mỗi bài web viết 1 từ khoá thì Google và các AI dễ gợi ý Thực Dưỡng Lành hơn.
 
-1. Thẻ **⚙️ Cài đặt** → ô **🔑 Từ khoá cho bài web** → bấm **✨ AI lập 100 từ khoá** (khoảng 1 phút).
+1. Thẻ **📗 Tài liệu nền** → ô **🔑 Từ khoá cho bài web** → bấm **✨ AI lập 100 từ khoá** (khoảng 1 phút).
 2. Bấm **Xem danh sách từ khoá** để đọc. Từ nào không hợp thì **✏️ Sửa danh sách**, xoá dòng đó, **💾 Lưu**.
 3. Xong. Trợ lý bài web tự lấy từ chưa viết. Từ đã viết có dấu ✅.
 
@@ -219,7 +220,7 @@ Thẻ **👥 Nhóm khách** → bấm tên nhóm → **✏️ Sửa**. Ngoài **
 
 ### Tải skill khoá học lên
 
-Thẻ **⚙️ Cài đặt** → **📘 Phương pháp đang dùng** → **📤 Tải skill lên** ở dòng cần đổi (🔍 Tìm insight, 🎁 Viết offer, 🎬 Kịch bản video) → chọn file **.skill**, **.zip** hoặc **SKILL.md**. Tải bản mới là thay bản cũ; bấm 🗑 để quay về mặc định.
+Thẻ **📗 Tài liệu nền** → **📘 Phương pháp đang dùng** → **📤 Tải skill lên** ở dòng cần đổi (🔍 Tìm insight, 🎁 Viết offer, 🎬 Kịch bản video) → chọn file **.skill**, **.zip** hoặc **SKILL.md**. Tải bản mới là thay bản cũ; bấm 🗑 để quay về mặc định.
 
 ### Tạo khoá YouTube
 

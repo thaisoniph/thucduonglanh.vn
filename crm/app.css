@@ -2719,7 +2719,15 @@ b.csx-c-ok { color: var(--primary-2); } b.csx-c-sua { color: var(--orange); } b.
 
 /* 🎯 Insight & nội dung sắp lại 15/11/2026: menu "chọn việc", dùng để + các bước, mục gập */
 .inx-intro { margin: -4px 0 10px; color: var(--ink); line-height: 1.5; }
-.inx-menu { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin: 12px 0 12px; }
+/* 18/11/2026: menu chia 3 nhóm theo việc (Xem kết quả · Tự làm thêm · Dạy trợ lý), mỗi nhóm 1 khung có tên + "để làm gì" */
+.inx-menu { display: grid; grid-template-columns: 2fr 2fr 4fr; gap: 8px; margin: 12px 0 12px; }
+.inx-mg { background: var(--bg, #f6f5f1); border: 1px solid var(--line); border-radius: 14px; padding: 8px; }
+.inx-mg.on { border-color: var(--primary); }
+.inx-mgh { margin: 0 2px 6px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 8px; }
+.inx-mgh b { font-size: 14px; }
+.inx-mgh small { font-size: 12px; color: var(--muted); }
+.inx-mgb { display: grid; grid-template-columns: repeat(var(--n, 2), 1fr); gap: 6px; }
+.inx-mg4 .inx-mgb { --n: 4; }
 .inx-menu button { display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 8px 4px 7px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; cursor: pointer; color: var(--ink); font: inherit; line-height: 1.25; text-align: center; }
 .inx-menu button i { font-style: normal; font-size: 20px; line-height: 1.2; }
 .inx-menu button b { font-size: 13.5px; font-weight: 700; }
@@ -2746,7 +2754,12 @@ b.csx-c-ok { color: var(--primary-2); } b.csx-c-sua { color: var(--orange); } b.
 .inx-glist { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 0 10px; align-items: start; }
 .inx-glist > details[open] { grid-column: 1 / -1; }
 @media (max-width: 720px) {
-  .inx-menu { grid-template-columns: repeat(4, 1fr); gap: 5px; }
+  .inx-menu { grid-template-columns: 1fr 1fr; gap: 6px; }
+  .inx-mg4 { grid-column: 1 / -1; }
+  .inx-mg { padding: 6px; border-radius: 12px; }
+  .inx-mgh { margin-bottom: 4px; }
+  .inx-mgh small { display: none; }
+  .inx-mgb { gap: 5px; }
   .inx-menu button { padding: 6px 2px; border-radius: 10px; }
   .inx-menu button i { font-size: 17px; }
   .inx-menu button b { font-size: 12px; }

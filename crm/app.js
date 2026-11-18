@@ -9150,7 +9150,7 @@
     if (ed && j.upd) L.push(['📚 Bản insight mặc định có cập nhật mới từ tài liệu khoá học. Gộp vào không xoá gì anh chị đã sửa.', 'merge', '📚 Gộp ngay']);
     if (ev) L.push(['📅 <b>' + esc(ev.n) + '</b> ' + (ev.in ? 'còn ' + ev.in + ' ngày' : 'là hôm nay') + ': đến lúc chuẩn bị bài gắn dịp.', 'tab|tao', '✍️ Tạo nội dung']);
     if (zero.length) L.push(['⚠️ <b>' + zero.length + ' nhóm khách</b> chưa có bài nào 30 ngày qua (' + esc(zero.slice(0, 2).map(function (g) { return g.name; }).join(', ')) + (zero.length > 2 ? '…' : '') + ').', 'vgo|' + esc(zero[0].id), '🎬 Viết video']);
-    if (ed && !((j.kw && j.kw.list) || []).length) L.push(['🔑 Chưa có từ khoá cho bài web: Google và ChatGPT khó gợi ý Thực Dưỡng Lành.', 'tab|cai|kw', '🔑 Lập từ khoá']);
+    if (ed && !((j.kw && j.kw.list) || []).length) L.push(['🔑 Chưa có từ khoá cho bài web: Google và ChatGPT khó gợi ý Thực Dưỡng Lành.', 'tab|nen|kw', '🔑 Lập từ khoá']);
     L = L.slice(0, 3);
     return '<div class="box inx-todo"><div class="zb-ph"><b>👉 Nên làm ngay</b></div>' + (L.length ? L.map(function (x) { return '<button class="inx-todo-r" data-in="' + x[1] + '"><span class="small">' + x[0] + '</span><b class="small">' + x[2] + ' ›</b></button>'; }).join('') : '<p class="small">✅ Mọi thứ đang ổn. Trợ lý tự viết bài theo lịch, anh chị chỉ cần duyệt bài.</p>') + '</div>';
   }
@@ -9160,8 +9160,12 @@
     var L = [].concat(lam || []);
     return '<div class="inx-tabi"><p class="inx-use">📌 <b>Dùng để:</b> ' + dung + '</p><ol class="inx-steps">' + L.map(function (x, k) { return '<li><b>' + (k + 1) + '</b><span>' + x + '</span></li>'; }).join('') + '</ol>' + (note ? '<p class="muted inx-note">' + note + '</p>' : '') + '</div>';
   }
-  /** Thẻ của trang: [mã, biểu tượng, tên, khi nào dùng] */
-  var IN_TABS = [['tong', '📊', 'Tổng quan', 'xem mỗi tuần'], ['tao', '✍️', 'Tạo nội dung', 'video, ảnh, offer'], ['cham', '🧪', 'Chấm bài', 'trước khi đăng'], ['loi', '🗣', 'Lời khách', 'khách nói gì'], ['gac', '🛡', 'Câu bị giữ', 'khi Telegram báo'], ['nhom', '👥', 'Nhóm khách', 'khách là ai'], ['cai', '⚙️', 'Cài đặt', 'chuyện nóng, dịp']];
+  /** Thẻ của trang chia 3 nhóm theo việc (18/11/2026): [biểu tượng + tên nhóm, nhóm này để làm gì, [[mã, biểu tượng, tên, khi nào dùng]…]] */
+  var IN_GROUPS = [
+    ['📊 Xem kết quả', 'mỗi tuần mở 1 lần', [['tong', '📊', 'Tổng quan', 'bài đã viết'], ['gac', '🛡', 'Câu bị giữ', 'khi Telegram báo']]],
+    ['✍️ Tự làm thêm', 'khi cần, ngoài bài tự viết', [['tao', '✍️', 'Tạo nội dung', 'video, ảnh, offer'], ['cham', '🧪', 'Chấm bài', 'trước khi đăng']]],
+    ['🧠 Dạy trợ lý', 'trợ lý đọc trước khi viết', [['nhom', '👥', 'Nhóm khách', 'khách là ai'], ['loi', '🗣', 'Lời khách', 'khách nói gì'], ['dip', '📅', 'Dịp & chuyện nóng', 'lễ sắp tới, trend'], ['nen', '📗', 'Tài liệu nền', 'sổ tay, từ khoá']]]];
+  var IN_TABS = [].concat.apply([], IN_GROUPS.map(function (g) { return g[2]; }));
   /** Mục gập / mở (giữ trạng thái khi vẽ lại) */
   function inAcc(k, title, info, body, def) {
     var open = IN.acc && k in IN.acc ? IN.acc[k] : def;
@@ -9170,9 +9174,11 @@
   function viewIns() {
     if (!IN.d && !IN.err && !IN.busy) setTimeout(inFetch, 0);
     if (!IN.tab) { try { IN.tab = localStorage.getItem('inTab') || 'tong'; } catch (e) { IN.tab = 'tong'; } }
-    if (route().id === 'so-tay' && !IN.stGo) { IN.stGo = 1; IN.tab = 'cai'; IN.acc = IN.acc || {}; IN.acc.sot = true; }
+    if (IN.tab === 'cai') IN.tab = 'dip'; // thẻ ⚙️ Cài đặt cũ (trước 18/11) đã tách thành 📅 Dịp & chuyện nóng + 📗 Tài liệu nền
+    if (!IN_TABS.some(function (x) { return x[0] === IN.tab; })) IN.tab = 'tong';
+    if (route().id === 'so-tay' && !IN.stGo) { IN.stGo = 1; IN.tab = 'nen'; IN.acc = IN.acc || {}; IN.acc.sot = true; }
     var h = '<div class="page-head"><h1>🎯 Insight & nội dung</h1></div>' +
-      '<p class="small lq-intro inx-intro">Dạy trợ lý AI <b>viết cho ai, chạm nỗi lòng gì</b>, để bài web, nhóm Zalo, Fanpage, video <b>thu hút hơn và ra đơn hơn</b>. Trợ lý tự viết theo lịch; việc của bạn là chọn thẻ bên dưới theo việc cần làm. <a href="/huong-dan/content/" target="_blank" rel="noopener">📖 Hướng dẫn có hình</a></p>';
+      '<p class="small lq-intro inx-intro">Trợ lý AI <b>tự viết</b> bài web, nhóm Zalo, Fanpage theo lịch. Trang này giúp bài <b>chạm đúng nỗi lòng khách, ra đơn hơn</b>. Bạn làm 3 việc: <b>📊 xem kết quả</b> · <b>✍️ tự làm thêm khi cần</b> · <b>🧠 dạy trợ lý hiểu khách</b>. <a href="/huong-dan/content/" target="_blank" rel="noopener">📖 Hướng dẫn có hình</a></p>';
     if (!IN.d) return h + '<div class="box"><p class="muted">' + (IN.err ? '⚠️ ' + esc(IN.err) + ' <button class="link" data-in="reload">Thử lại</button>' : '⏳ Đang tải…') + '</p></div>';
     var j = IN.d, bank = j.bank || [], ed = inCanEdit(), tab = IN.tab;
     var how = '<div class="inx-flow"><div><b>1</b>👥 Chọn<br>nhóm khách</div><div><b>2</b>⚡ Chọn<br>nỗi lòng<small>điều họ mong ↔ điều cản họ</small></div><div><b>3</b>🔻 Chọn<br>loại bài<small>thu hút · niềm tin · bán</small></div><div><b>4</b>✍️ Viết bài<br>gỡ nỗi lòng đó</div></div>';
@@ -9186,7 +9192,10 @@
       '<li>Luật quảng cáo thực phẩm: chỉ nói công dụng đúng hồ sơ công bố; kinh nghiệm dân gian phải nói là kinh nghiệm dân gian. Bài có cụm dễ phạm luật (lợi sữa, giảm cân, thanh lọc…) sẽ hiện ⚠️ để người duyệt đọc lại.</li>' +
       '<li>Tension gắn <b>🏷 nhãn sản phẩm</b> chỉ dùng khi bài nói về sản phẩm đó; tension <b>🌐 dùng chung</b> hợp mọi sản phẩm. Xem ở thẻ 👥 Nhóm khách → 🏷 Insight theo sản phẩm.</li></ol></details>';
     h += inTodoHtml(j, ed);
-    h += '<div class="inx-menu" role="tablist">' + IN_TABS.map(function (x) { return '<button role="tab" class="' + (tab === x[0] ? 'on' : '') + '" data-in="tab|' + x[0] + '"><i>' + x[1] + '</i><b>' + x[2] + '</b><small>' + x[3] + '</small></button>'; }).join('') + '</div>';
+    h += '<div class="inx-menu" role="tablist">' + IN_GROUPS.map(function (g) {
+      var on = g[2].some(function (x) { return x[0] === tab; });
+      return '<div class="inx-mg inx-mg' + g[2].length + (on ? ' on' : '') + '"><p class="inx-mgh"><b>' + g[0] + '</b><small>' + g[1] + '</small></p><div class="inx-mgb">' + g[2].map(function (x) { return '<button role="tab" class="' + (tab === x[0] ? 'on' : '') + '" data-in="tab|' + x[0] + '"><i>' + x[1] + '</i><b>' + x[2] + '</b><small>' + x[3] + '</small></button>'; }).join('') + '</div></div>';
+    }).join('') + '</div>';
     if (tab === 'tao') {
       // 🎬 kịch bản video
       var gOpt = '<option value="">🔄 Tự chọn (nhóm ít video nhất)</option>' + bank.filter(function (g) { return g.on; }).map(function (g) { return '<option value="' + esc(g.id) + '"' + (IN.vg === g.id ? ' selected' : '') + '>' + esc(g.name) + '</option>'; }).join('');
@@ -9238,11 +9247,13 @@
       h += gtkHtml();
     } else if (tab === 'cham') {
       h += csxHtml(j);
-    } else if (tab === 'cai') {
-      var st = j.st, kwL = (j.kw && j.kw.list) || [], tr = j.trend && j.trend.t;
-      h += inTabi('Những điều trợ lý đọc thêm trước khi viết, để bài hợp thời điểm và đúng giọng công ty.', ['Có chuyện mọi người đang bàn tán: ghi vào <b>🔥 Chuyện đang nóng</b>', 'Các mục khác để nguyên, khi cần mới bấm mở']);
-      h += inAcc('ev', '📅 Dịp sắp tới & 🔥 Chuyện đang nóng', tr ? '🔥 đang có 1 chuyện' : 'chưa ghi chuyện nóng', inEvHtml(j, ed), true) +
-        inAcc('sot', '📗 Sổ tay doanh nghiệp', stInfoLine(st), sotHtml(), false) +
+    } else if (tab === 'dip') {
+      h += inTabi('Trợ lý tự gắn bài với <b>dịp lễ sắp tới</b> và <b>chuyện cả mạng đang bàn tán</b>, để bài hợp thời điểm, dễ được chia sẻ.', ['Dòng ⏰ <b>đến lúc chuẩn bị</b>: vào ✍️ Tạo nội dung làm bài gắn dịp', 'Có chuyện mọi người đang bàn tán: ghi vào ô <b>🔥 Chuyện đang nóng</b> bên dưới, bấm <b>💾 Lưu</b>']);
+      h += inEvHtml(j, ed);
+    } else if (tab === 'nen') {
+      var st = j.st, kwL = (j.kw && j.kw.list) || [];
+      h += inTabi('Tài liệu gốc trợ lý tra trước khi trả lời khách và viết bài: thông tin công ty, từ khoá bài web, cách viết theo khoá học. <b>Ít khi phải sửa.</b>', ['Công ty đổi chính sách, có câu hỏi mới: sửa <b>📗 Sổ tay</b>', 'Chưa có từ khoá bài web: bấm <b>🔑 Từ khoá</b> để AI lập 1 lần', '<b>📘 Phương pháp</b>: để nguyên']);
+      h += inAcc('sot', '📗 Sổ tay doanh nghiệp', stInfoLine(st), sotHtml(), false) +
         inAcc('kw', '🔑 Từ khoá cho bài web', kwL.length ? kwL.length + ' từ khoá' : 'chưa có từ khoá', inKwHtml(j, ed), false) +
         inAcc('pp', '📘 Phương pháp trợ lý đang dùng', 'mặc định theo khoá học', inSkillsHtml(j, ed), false);
     } else {

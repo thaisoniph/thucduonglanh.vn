@@ -141,7 +141,7 @@ Trang tuyển dụng: [congsu.thucduonglanh.vn](https://congsu.thucduonglanh.vn)
 
 ## Việc 8: Sửa Sổ tay doanh nghiệp
 
-Từ 15/11/2026 Sổ tay **sửa trong CRM** (không còn ở trang quản trị web), làm được cả trên điện thoại: CRM → **🎯 Insight & nội dung** → **⚙️ Cài đặt** → **📗 Sổ tay doanh nghiệp**.
+Từ 15/11/2026 Sổ tay **sửa trong CRM** (không còn ở trang quản trị web), làm được cả trên điện thoại: CRM → **🎯 Insight & nội dung** → **📗 Tài liệu nền** → **📗 Sổ tay doanh nghiệp**.
 
 **Sổ tay doanh nghiệp** là **một nơi duy nhất** ghi những điều mọi trợ lý AI phải nói đúng: trợ lý chat trên web, trợ lý nhóm Zalo và tin nhắn riêng, trợ lý Fanpage, trợ lý viết bài, chấm bài, và ChatGPT / Gemini / Claude nối vào CRM.
 
