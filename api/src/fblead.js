@@ -69,7 +69,8 @@ function parseLead(L) {
   for (const f of L.field_data || []) {
     const k = String(f.name || '').toLowerCase(), v = String((f.values || [])[0] || '').trim(); if (!v) continue;
     if (!phone && /phone|sdt|so_dien_thoai|điện thoại|dien_thoai|zalo/.test(k) && normPhone(v).length >= 10) phone = normPhone(v);
-    else if (k === 'full_name' || k === 'ho_ten' || k === 'name') name = v;
+    else if (k === 'full_name' || k === 'ho_ten' || k === 'name' || k === 'customer_name' || k === 'ten' || k === 'ho_va_ten') name = v; // customer_name: biểu mẫu tin nhắn / quảng cáo tương tác
+    else if (k === 'thread_link') continue;
     else if (k === 'first_name') first0 = v; else if (k === 'last_name') last0 = v;
     else if (!/email|city|province|street/.test(k)) ans.push(String(f.name).replace(/_/g, ' ') + ': ' + v);
   }
@@ -112,19 +113,28 @@ export async function flHook(x, p, v) {
     const L = await gget(String(v.leadgen_id) + '?fields=' + LEAD_FIELDS, p.token);
     if (v.form_id && !L.form_name) { try { L.form_name = (await gget(String(v.form_id) + '?fields=name', p.token)).name || ''; } catch (e) { } }
     await ingest(x, p, L, 'webhook'); await kvSet(x.db, 'fl_hook_at', String(Date.now()));
+    if (v.form_id) await formKeep(x, String(v.form_id), String(p.id));
   } catch (e) { console.error('flHook', e.message); await setErr(x, 'Webhook: ' + permHint(e)); }
 }
 
+/** Biểu mẫu không có trong /{trang}/leadgen_forms (vd biểu mẫu tự tạo của quảng cáo tương tác / tin nhắn – 18/11/2026 khách thử bị sót vì vậy)
+ *  → nhớ form_id lấy từ webhook / khách đã về (kv fl_xforms {form: trang}, giữ 60 ngày) để lượt quét đọc cả các biểu mẫu này. */
+async function formKeep(x, form, page) {
+  const m = await kvJson(x.db, 'fl_xforms', {}) || {}; if (m[form] && Date.now() - m[form].t < DAY) return;
+  m[form] = { p: page, t: Date.now() }; for (const k of Object.keys(m)) if (Date.now() - m[k].t > 60 * DAY) delete m[k];
+  await kvSet(x.db, 'fl_xforms', JSON.stringify(m));
+}
 /** Quét biểu mẫu mọi trang (cron 10 phút / lần + nút 🔄 Quét ngay). Lần đầu lấy 2 ngày gần nhất. */
 async function scan(x) {
   useEnv(x); await flSchema(x.db);
   const pages = await all(x.db, "SELECT id, name, token FROM fp_pages WHERE token != ''"); if (!pages.length) return { pages: 0, got: 0 };
-  let got = 0, forms = 0, seen = 0, err = '';
+  let got = 0, forms = 0, seen = 0, err = ''; const xf = await kvJson(x.db, 'fl_xforms', {}) || {};
   for (const p of pages) {
     const sk = 'fl_since_' + p.id, since = Number(await kvGet(x.db, sk)) || Date.now() - 2 * DAY, t0 = Date.now();
     try {
-      const fl = await gget(p.id + '/leadgen_forms?fields=id,name,status&limit=100', p.token);
-      for (const f of (fl.data || []).filter(f => f.status !== 'DELETED')) { // gồm cả biểu mẫu lưu trữ (18/11/2026: khách thử của biểu mẫu lưu trữ bị bỏ sót)
+      const fl = await gget(p.id + '/leadgen_forms?fields=id,name,status&limit=100', p.token), list = (fl.data || []).filter(f => f.status !== 'DELETED');
+      for (const [id, o] of Object.entries(xf)) if (o.p === String(p.id) && !list.some(f => f.id === id)) list.push({ id, name: '' });
+      for (const f of list) { // gồm cả biểu mẫu lưu trữ (18/11/2026: khách thử của biểu mẫu lưu trữ bị bỏ sót)
         forms++;
         const filt = encodeURIComponent(JSON.stringify([{ field: 'time_created', operator: 'GREATER_THAN', value: Math.floor((since - 10 * 60e3) / 1000) }]));
         const j = await gget(f.id + '/leads?fields=' + LEAD_FIELDS + '&filtering=' + filt + '&limit=200', p.token);

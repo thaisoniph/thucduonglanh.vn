@@ -60,10 +60,13 @@ r = await F.crmFl(x, admin, { action: 'fl_scan' }, log);
 ok(r.got === 0 && raw.prepare("SELECT count(*) n FROM fl_leads").get().n === 2, 'Quét lần 2 không tạo trùng');
 
 // 2) webhook (khách mới thứ 3)
-leadsData.push({ id: '9003', created_time: new Date().toISOString(), form_id: 'F1', field_data: [{ name: 'full_name', values: ['Trần B'] }, { name: 'phone_number', values: ['0987654321'] }] });
+leadsData.push({ id: '9003', created_time: new Date().toISOString(), form_id: 'F1', field_data: [{ name: 'customer_name', values: ['Trần B'] }, { name: 'phone_number', values: ['0987654321'] }, { name: 'thread_link', values: ['https://x'] }] });
 await F.flHook(x, { id: '111', name: 'Thực Dưỡng Lành', token: 'PAGE_TOKEN' }, { leadgen_id: '9003', form_id: 'F1' });
 const L3 = raw.prepare("SELECT owner FROM leads WHERE phone = '0987654321'").get();
 ok(L3 && L3.owner, 'Webhook: khách thứ 3 vào CRM ngay, giao cho ' + (L3 && L3.owner));
+const L3n = raw.prepare("SELECT name, note FROM leads WHERE phone = '0987654321'").get();
+ok(L3n.name === 'Trần B' && !/thread/.test(L3n.note), 'Đọc tên ô customer_name, bỏ ô thread_link');
+ok(JSON.parse(raw.prepare("SELECT v FROM kv WHERE k = 'fl_xforms'").get().v).F1, 'Nhớ biểu mẫu từ webhook để lần sau quét');
 
 // 3) Marketing chỉ thấy số đã che
 r = await F.crmFl(x, mkt, { action: 'fl_view' }, log);
