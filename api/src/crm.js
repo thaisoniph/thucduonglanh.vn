@@ -877,6 +877,17 @@ function poolTaken(x, u, ld) {
 /** 13/11/2026 (Thủy đề xuất trong họp sale): sale tự trả khách hỏi chưa chốt về Kho chung, bắt buộc ghi lý do để người sau đọc. Khách đã mua thì vẫn là khách của người phụ trách (không trả được). */
 async function crmPoolGive(x, u, d) {
   const R = await rulesCfg(x); if (await assignMode(x) !== 'pool' || !R.poolOn) return { ok: false, error: 'Kho chung đang tắt.' };
+  if (!d.leadId && d.phone) { // 18/11/2026 (sale đề nghị): khách ĐÃ MUA chăm mãi không khả thi → chủ động trả về Kho chung cho người khác chăm. Khách vẫn giữ lịch sử đơn; đơn mới của khách tính cho người chăm lúc đó.
+    const ph = normPhone(d.phone), c = await first(x.db, 'SELECT phone, name, owner, note FROM customers WHERE phone = ?', ph);
+    if (!c) return { ok: false, error: 'Không tìm thấy khách.' };
+    if (!c.owner) return { ok: false, error: 'Khách này đang ở Kho chung rồi.' };
+    if (c.owner !== u.name && u.level < 2) return { ok: false, error: 'Chỉ người đang phụ trách hoặc quản lý trả được.' };
+    const why = String(d.why || '').trim().slice(0, 300); if (why.length < 5) return { ok: false, error: 'Ghi lý do (vài chữ) để người nhận sau biết cách chăm khách.' };
+    const now = Date.now(), n0 = String(c.note || '');
+    await run(x.db, "UPDATE customers SET owner = '', callback = NULL, note = ? WHERE phone = ?", (n0 ? n0 + '\n' : '') + fmtDate(now, 'dd/MM') + ': ↩ ' + u.name + ' trả về Kho chung: ' + why, ph);
+    await crmLog(x, u, 'Về kho chung', ph, c.name, c.owner, 'Khách đã mua, tự trả: ' + why);
+    return { ok: true };
+  }
   const ld = await leadGet(x, d.leadId); if (!ld) return { ok: false, error: 'Không tìm thấy khách hỏi.' };
   if (ld.status !== 'Mới hỏi' && ld.status !== 'Đang tư vấn') return { ok: false, error: 'Chỉ trả được khách hỏi đang mở (chưa chốt, chưa báo Không mua).' };
   if (ld.owner !== u.name && u.level < 2) return { ok: false, error: 'Chỉ người đang giữ số hoặc quản lý trả được.' };

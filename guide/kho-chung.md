@@ -46,7 +46,9 @@ Luật này **không áp dụng** cho: số **không liên lạc được**, kh�
 
 Khách không hợp với bạn, hoặc bạn không chăm tiếp được: mở khách hỏi đó, kéo xuống bấm **🧺 Trả số này về Kho chung**, **ghi lý do** (đã gọi mấy lần, khách thích gì, giờ nào dễ nghe máy), rồi bấm **🧺 Trả về Kho chung**.
 
-Người nhận sau đọc được lý do của bạn. Khách **đã mua** thì vẫn là khách của bạn, không trả được.
+Người nhận sau đọc được lý do của bạn. 
+
+**Khách đã mua** (từ 18/11/2026): chăm một thời gian thấy không khả thi thì bạn cũng trả được. Mở hồ sơ khách ở tab **Khách hàng**, kéo xuống bấm **🧺 Trả khách này về Kho chung**, ghi lý do. Khách giữ nguyên lịch sử mua và hiện ở tab **Khách hàng** với chữ *Chưa ai phụ trách*; người khác mở hồ sơ bấm **✋ Nhận khách này**. Khách đang có đơn mới thì đơn đó vẫn tính cho người đã bán.
 
 ## Số KHÔNG BAO GIỜ tự về kho
 

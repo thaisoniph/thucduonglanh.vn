@@ -2498,6 +2498,7 @@
       '<button class="btn pri" id="cSave">Lưu thay đổi</button></div></details>' +
       (canEdit(c) ? '<details class="p-edit"><summary>🔗 Gộp với số khác của khách này</summary><div class="box" style="margin:8px 0 0"><p class="small muted" style="margin:0 0 8px">Khách mua bằng 2–3 số điện thoại thì CRM tách thành nhiều hồ sơ. Nhập số còn lại: đơn hàng, nhật ký, ghi chú của số đó chuyển hết về hồ sơ này (' + fPhone(c.phone) + ' là số chính). Sau này file sale / đơn web có số kia cũng tự vào đây.</p>' +
         '<label class="f"><span>Số cần gộp vào (nhiều số cách nhau dấu phẩy)</span><input type="text" id="cMgPh" inputmode="tel" placeholder="VD 0399766607" value="' + esc(altPhones(c.note).filter(function (p) { return p !== c.phone && cust(p); }).join(', ')) + '"></label><button class="btn" id="cMg">🔗 Gộp vào hồ sơ này</button></div></details>' : '') +
+      (!isMkt() && mode() === 'pool' && poolOn() && c.owner && canEdit(c) ? '<details class="p-edit"><summary>🧺 Trả khách này về Kho chung</summary><div class="box" style="margin:8px 0 0"><p class="small muted" style="margin:0 0 8px">Dùng khi chăm một thời gian thấy không khả thi (khách không nghe máy, không hợp cách tư vấn của bạn…). Khách <b>vẫn giữ nguyên lịch sử mua</b>, cả phòng sẽ thấy và người khác nhận chăm. Bạn không còn giữ khách này. Ghi lý do và cách bạn đã chăm để người sau gọi tốt hơn.</p><label class="f"><span>Lý do trả về (bắt buộc)</span><textarea id="cpgWhy" rows="2" placeholder="Vd: gọi 4 lần không nghe, Zalo xem không trả lời; khách mua cho mẹ, hay hỏi giá"></textarea></label><button class="btn" id="cpgGo">🧺 Trả về Kho chung</button></div></details>' : '') +
       (lvl() >= 3 ? '<details class="p-edit"><summary>🗑 Xoá khách (chỉ Quản trị)</summary><div class="box" style="margin:8px 0 0"><p class="small muted" style="margin:0 0 8px">Dùng cho khách nhập thử / nhập nhầm. Xoá hồ sơ khách cùng <b>toàn bộ đơn hàng</b> (kể cả đơn huỷ/hoàn), khách hỏi và nhật ký chăm sóc của số ' + fPhone(c.phone) + '. Không khôi phục được.</p><button class="btn danger" id="cDel">🗑 Xoá khách này</button></div></details>' : '');
     var foot = '<div class="p-quick"><input type="text" id="cQuick" placeholder="✏️ Ghi nhanh: kh dùng ok, hẹn cuối tháng…" enterkeyhint="send"><button class="btn pri" id="cQSave">Lưu</button></div>';
     var m = modal(cp(c.name, esc(c.name || 'Khách')) + ' ' + custTags(c) + famTag(c), body, foot, { route: '#khach-hang', pushed: !fromRoute });
@@ -2547,6 +2548,7 @@
       var miss = ps.filter(function (p) { return !cust(p); }); // số chưa có trong danh sách (chưa mua / nhân viên không thấy): máy chủ kiểm tra lại
       mergeCust(c.phone, ps, this, miss.length ? '\n(Số ' + miss.join(', ') + ' chưa thấy trong danh sách khách đã mua trên máy này.)' : '');
     };
+    if ($('#cpgGo', m)) $('#cpgGo', m).onclick = function () { poolGiveCust(c, $('#cpgWhy', m).value, this); };
     if ($('#cUnZalo', m)) $('#cUnZalo', m).onclick = function () { setZalo(c, false); this.remove(); };
     if ($('#cDel', m)) $('#cDel', m).onclick = function () { adminDelete('c', c, 'khách ' + (c.name || '') + ' – ' + fPhone(c.phone) + ' cùng ' + c.orders + ' đơn', this); };
     var quick = function () {
@@ -4372,6 +4374,17 @@
     btn.disabled = true; btn.textContent = 'Đang trả…';
     api('pool_give', { leadId: l.id, why: why }).then(function () {
       var now = Date.now(); l.poolFrom = l.owner; l.owner = ''; l.poolN = (l.poolN || 0) + 1; l.ownAt = now; l.callback = null; l.note = String(l.note || '') + '\n[' + fDate(now).slice(0, 5) + '] ↩ ' + S.user.name + ' trả về Kho chung: ' + why;
+      setData(S.d, S.loadedAt); closeModal(true); render(); navBadges(); toast('Đã trả về Kho chung ✓');
+    }, function (e) { toast(e.message, true); btn.disabled = false; btn.textContent = '🧺 Trả về Kho chung'; });
+  }
+
+  /** 18/11/2026 (sale đề nghị): trả khách ĐÃ MUA về Kho chung (khách vẫn giữ lịch sử đơn), kèm lý do cho người nhận sau. */
+  function poolGiveCust(c, why, btn) {
+    why = String(why || '').trim(); if (why.length < 5) { toast('Ghi lý do vài chữ để người nhận sau biết cách chăm khách nhé', true); return; }
+    if (!confirm('Trả ' + (c.name || fPhone(c.phone)) + ' về Kho chung?\n\nKhách giữ nguyên lịch sử mua. Cả phòng sẽ thấy và nhận được khách này. Bạn không còn phụ trách khách này nữa.')) return;
+    btn.disabled = true; btn.textContent = 'Đang trả…';
+    api('pool_give', { phone: c.phone, why: why }).then(function () {
+      var now = Date.now(); c.owner = ''; c.callback = null; c.note = (c.note ? c.note + '\n' : '') + fDate(now).slice(0, 5) + ': ↩ ' + S.user.name + ' trả về Kho chung: ' + why;
       setData(S.d, S.loadedAt); closeModal(true); render(); navBadges(); toast('Đã trả về Kho chung ✓');
     }, function (e) { toast(e.message, true); btn.disabled = false; btn.textContent = '🧺 Trả về Kho chung'; });
   }

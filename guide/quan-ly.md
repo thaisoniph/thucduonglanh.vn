@@ -164,7 +164,7 @@ Tài khoản Quản trị không nằm trong bảng so sánh nhân sự. Doanh s
     - **Chỉ áp cho số công ty giao** (file số quảng cáo, web, quản lý giao). Không áp cho khách sale tự tìm, khách cũ giới thiệu, file cũ. Mỗi số về kho tối đa 2 lần.
     - **Ô thứ hai:** mỗi người nhận từ kho tối đa bao nhiêu số / ngày (mặc định 10, 0 = không giới hạn).
     - **Khách hỏi quảng cáo "Không mua" quá 75 ngày** mà người giữ chưa gọi lại → tự mở lại và về kho (mỗi lượt tối đa 20 số). Không áp cho số không liên lạc được, khách đã mua, hỏi quá 180 ngày.
-    - **Sale tự trả số** bằng nút **🧺 Trả số này về Kho chung** (bắt buộc ghi lý do).
+    - **Sale tự trả số** bằng nút **🧺 Trả số này về Kho chung** (bắt buộc ghi lý do); từ 18/11/2026 **khách đã mua** cũng trả được ở hồ sơ khách (nút **🧺 Trả khách này về Kho chung**), nhật ký ghi "Khách đã mua, tự trả".
     - **Báo tin:** sale được Telegram báo trước 1 ngày; khi số về kho thì báo sale và nhóm; khi có người nhận số, người giữ cũ được báo để ngừng nhắn Zalo khách. Nhật ký ghi dòng **Về kho chung**.
     - **Đơn web qua link của sale khác:** người giữ đang chăm (chưa chạm mốc ①②, hoặc có hẹn) thì đơn tính cho người giữ; quá mốc thì tính cho sale gửi link.
 - **Ai được nhận khách mới**: bật hoặc tắt cho từng người. Ví dụ tắt khi nghỉ phép.
