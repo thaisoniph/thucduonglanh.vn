@@ -4,7 +4,7 @@ nav: Fanpage
 group: marketing
 short: Trợ lý trả lời Facebook, Messenger
 order: 7
-updated: 2026-11-18
+updated: 2026-11-19
 description: Trợ lý An Lành trả lời bình luận, nhắn Messenger, tặng quà, xin số Zalo và soạn bài cho các fanpage. Bạn duyệt bài và lo ca khó. Mỗi việc có hình.
 roles: [mkt, ql]
 ---
@@ -52,7 +52,14 @@ Bình luận có **số điện thoại** sẽ được trợ lý **ẩn đi** �
 
 Trong CRM, bấm **FB** trên thanh menu. Quản trị bấm **••• Thêm → Fanpage**.
 
-Màn hình xếp theo thứ tự làm việc (từ 15/11/2026): **ô trạng thái** 🟢 → **👉 Việc hôm nay** (khách đang chờ người thật, bài cần duyệt, lỗi) → **📝 Bài đăng fanpage** → **📊 Kết quả 7 ngày qua** → **📄 Fanpage đã kết nối** (cài đặt từng trang) → **🕘 Trợ lý vừa làm gì**. Hàng **Đi nhanh tới** dưới tên trang đưa bạn tới thẳng từng phần.
+Trên cùng luôn có **ô trạng thái** 🟢 và **👉 Việc hôm nay** (khách đang chờ người thật, bài cần duyệt, lỗi; bấm **Xem** là tự mở đúng thẻ). Bên dưới là **các thẻ chia 3 nhóm theo việc** (từ 19/11/2026):
+
+| Nhóm | Thẻ | Dùng để |
+| --- | --- | --- |
+| **📝 Mỗi ngày** | 📝 Bài sắp đăng | Duyệt bài trước giờ đăng, bài đã đăng gần đây |
+| | 🕘 Trợ lý vừa làm gì | Ca cần người thật, lỗi, dạy trợ lý trả lời |
+| **📊 Xem kết quả** (mỗi tuần) | 📊 Kết quả | Số 7 ngày qua |
+| **🛠 Chuẩn bị** (khi cần) | 📄 Fanpage & cài đặt | Bật trợ lý, chờ duyệt / tự đăng, giờ đăng từng trang; 🔗 Kết nối Facebook |
 
 ## Việc 1: Duyệt bài đăng
 
@@ -158,7 +165,7 @@ Anh làm trên **máy tính**, đăng nhập Facebook bằng tài khoản **qu�
    - URL chính sách quyền riêng tư: `https://thucduonglanh.vn/chinh-sach-bao-mat/`
    - Xoá dữ liệu người dùng: chọn **URL hướng dẫn xoá dữ liệu** và dán cùng link trên.
    - Biểu tượng ứng dụng: logo 1024×1024. Hạng mục: **Mua sắm** hoặc **Doanh nghiệp**. Bấm **Lưu**.
-6. Mở CRM → **📘 Fanpage** → **🔗 Kết nối Facebook** (khi đã kết nối xong, mục này nằm cuối trang), dán App ID và App Secret → **💾 Lưu mã ứng dụng**.
+6. Mở CRM → **📘 Fanpage** → **🔗 Kết nối Facebook** (khi đã kết nối xong, mục này nằm cuối thẻ **📄 Fanpage & cài đặt**), dán App ID và App Secret → **💾 Lưu mã ứng dụng**.
 
 **Bước 2. Webhook (để Facebook báo bình luận, tin nhắn cho trợ lý)**
 

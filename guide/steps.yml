@@ -419,7 +419,7 @@ mk-mt:
         - ["h", "🎯 Mục tiêu & ngân sách tháng"]
         - ["btn", "🎯 Đặt mục tiêu của tôi", ""]
       hi: 3
-      text: "Đầu tháng, mở <b>🧮 Máy tính ra số cần thế nào?</b> trong ô <b>📇</b> đầu trang để biết cần bao nhiêu khách mới, bao nhiêu số. Rồi bấm <b>🎯 Mục tiêu</b> (hàng <i>Đi nhanh tới</i>) → <b>🎯 Đặt mục tiêu của tôi</b>."
+      text: "Đầu tháng, mở <b>🧮 Máy tính ra số cần thế nào?</b> ở thẻ <b>📇 Số điện thoại</b> để biết cần bao nhiêu khách mới, bao nhiêu số. Rồi bấm <b>🎯 Mục tiêu</b> (hàng <i>Đi nhanh tới</i>) → <b>🎯 Đặt mục tiêu của tôi</b>."
     - title: Đặt mục tiêu
       els:
         - ["in", "📘 Facebook · tiền khách mới", "180.000.000"]
@@ -545,7 +545,7 @@ mk-sp:
         - ["card", "🛍 Sản phẩm nào đang hiện trên web?", "Bấm để mở", ""]
         - ["btn", "🛍 Bật / tắt sản phẩm trên web", "g"]
       hi: 2
-      text: "Tab <b>📣 Marketing</b> → kéo xuống câu hỏi <b>4 🌱 Kênh tự có</b> → mục <b>🛍</b> → bấm <b>🛍 Bật / tắt sản phẩm trên web</b>."
+      text: "Tab <b>📣 Marketing</b> → thẻ <b>🔎 Vì sao</b> → câu hỏi <b>4 🌱 Kênh tự có</b> → mục <b>🛍</b> → bấm <b>🛍 Bật / tắt sản phẩm trên web</b>."
     - title: Sản phẩm trên web
       els:
         - ["card", "Trà DILVANG", "☑ Hiện trên web · ☑ Hiện ở trang chủ", ""]
@@ -643,7 +643,7 @@ zl-kh:
         - ["card", "Tuần 17/11 – 23/11", "⏳ chờ duyệt · 14 chủ đề", "y"]
         - ["btn", "✅ Duyệt cả tuần", "g"]
       hi: 1
-      text: "Tab <b>Zalo</b> → bấm <b>📋 Kế hoạch chủ đề</b> ở hàng <i>Đi nhanh tới</i> (hoặc bấm <b>Xem kế hoạch</b> trong ô ✅ Việc cần làm hôm nay). Mở tuần có nhãn vàng <b>⏳ chờ duyệt</b>."
+      text: "Tab <b>Zalo</b> → bấm thẻ <b>📋 Kế hoạch chủ đề</b> (nhóm 🛠 Chuẩn bị) (hoặc bấm <b>Xem kế hoạch</b> trong ô ✅ Việc cần làm hôm nay). Mở tuần có nhãn vàng <b>⏳ chờ duyệt</b>."
     - title: Kế hoạch chủ đề
       els:
         - ["card", "☀️ T2 · 🔵 Bếp lành: cháo hạt sen", "🎯 Người ăn chay · 👉 khoe món", ""]
