@@ -64,7 +64,7 @@ Cách tính: cứ 100 số sale chốt được khoảng 37 khách, mỗi khách
 
 **Không chọn:** sở thích hẹp, tệp nhỏ dưới 500.000 người, giới hạn giá thầu, tắt vị trí. Các cài đặt này làm giá đắt và không tiêu hết tiền.
 
-**Nên loại trừ khách đã mua:** CRM → **📣 Marketing** → **🧰 Công cụ** → **👥 Tệp khách FB** (Quản trị tải file) → tải lên Facebook làm Đối tượng tuỳ chỉnh → chọn **Loại trừ**.
+**Nên loại trừ khách đã mua:** CRM → **📣 Marketing** → thẻ **🧰 Công cụ** → **👥 Tệp khách FB** (Quản trị tải file) → tải lên Facebook làm Đối tượng tuỳ chỉnh → chọn **Loại trừ**.
 
 ## Việc 3: Tạo biểu mẫu
 

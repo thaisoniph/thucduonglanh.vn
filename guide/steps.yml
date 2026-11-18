@@ -366,21 +366,22 @@ mk-man:
       text: "Mở tab <b>📣 Marketing</b>. Trên cùng là khung <b>👉 Việc hôm nay</b>: góc phải ghi <b>Còn mấy việc</b>, các việc đã <b>đánh số 1, 2, 3</b>, ghi rõ <b>ai làm</b>. Làm lần lượt từ bước 1. Bấm <b>Xem</b> để tới đúng chỗ cần sửa."
     - title: Marketing
       els:
+        - ["chips", ["📇 Mỗi ngày", "📊 Xem kết quả", "🛠 Chuẩn bị"], 0]
         - ["h", "📇 Số điện thoại về cho sale"]
         - ["card", "🔴 Đang thiếu số", "Về 39 số / ngày · cần 79 số / ngày", "r"]
         - ["chips", ["Hôm nay 18 số", "Tháng 506 / 1.767"], -1]
         - ["chips", ["⭐ 1 số 96k", "⏳ Chưa gọi 244"], -1]
         - ["note", "💰 Ngân sách còn đủ mua bao nhiêu số"]
-      hi: 1
-      text: "Ngay dưới là ô <b>📇</b>, trả lời câu quan trọng nhất: <b>số điện thoại về cho sale đã đủ chưa, giá 1 số bao nhiêu</b>. Đọc dòng có đèn 🟢🟠🔴 trước."
+      hi: 2
+      text: "Ngay dưới là các thẻ chia <b>3 nhóm</b>: <b>📇 Mỗi ngày</b>, <b>📊 Xem kết quả</b> (mỗi tuần), <b>🛠 Chuẩn bị</b> (đầu tháng). Thẻ <b>📇 Số điện thoại</b> trả lời câu quan trọng nhất: <b>số điện thoại về cho sale đã đủ chưa, giá 1 số bao nhiêu</b>. Đọc dòng có đèn 🟢🟠🔴 trước."
     - title: Marketing
       els:
         - ["h", "📘 Quảng cáo Facebook đang chạy"]
         - ["card", "DILVANG-11 · 🟢 Nên tăng tiền", "👉 Tăng 20% ngân sách", "g"]
         - ["btn", "👉 Làm ngay: ➕ Tăng 20%", "g"]
-        - ["note", "Kéo xuống: 📊 Kết quả theo kỳ · 🔎 Chi tiết"]
+        - ["note", "Thẻ khác: 📊 Kết quả · 🔎 Vì sao · 🎯 Mục tiêu"]
       hi: 2
-      text: "Ngay dưới là <b>📘 Quảng cáo Facebook đang chạy</b>: mỗi chiến dịch có 1 dòng <b>👉 việc nên làm</b> và nút <b>👉 Làm ngay</b>. Kéo xuống nữa là <b>📊 Kết quả theo kỳ</b> (6 ô số) và phần chi tiết."
+      text: "Bấm thẻ <b>📘 Quảng cáo đang chạy</b>: mỗi chiến dịch có 1 dòng <b>👉 việc nên làm</b> và nút <b>👉 Làm ngay</b>. Mỗi tuần xem thẻ <b>📊 Kết quả</b> (6 ô số) và <b>🔎 Vì sao</b>."
 mk-fb:
   title: Xem và sửa quảng cáo Facebook mỗi ngày
   steps:

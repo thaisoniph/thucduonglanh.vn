@@ -4,7 +4,7 @@ nav: Marketing
 group: marketing
 short: Quảng cáo, chi phí, link và mã QR, sàn
 order: 5
-updated: 2026-11-18
+updated: 2026-11-19
 description: Xem và sửa quảng cáo, đặt mục tiêu, nhập chi phí, báo ưu đãi cho sale, tạo link và mã QR, cập nhật số sàn. Mỗi việc có hình từng bước.
 roles: [mkt, ql]
 ---
@@ -52,11 +52,21 @@ Bạn không thấy khách đã mua, đơn hàng hay doanh số toàn công ty. 
 
 [[steps:mk-man]]
 
-Màn hình xếp theo đúng thứ tự làm việc, đọc từ trên xuống (từ 15/11/2026). Hàng **Đi nhanh tới** dưới tên trang đưa bạn tới thẳng từng phần.
+**Khung 👉 Việc hôm nay** luôn ở trên cùng: các việc đánh số 1, 2, 3… Làm lần lượt từ bước 1. Góc phải ghi **Còn mấy việc**; không có việc thì ghi **🎉 Xong hết**. Nhãn màu ghi ai làm (Marketing hay Sale). Bấm **Xem** trong một việc là CRM tự mở đúng thẻ.
 
-**1. Khung 👉 Việc hôm nay** (trên cùng): các việc đánh số 1, 2, 3… Làm lần lượt từ bước 1. Góc phải ghi **Còn mấy việc**; không có việc thì ghi **🎉 Xong hết**. Nhãn màu ghi ai làm (Marketing hay Sale).
+Ngay dưới là **các thẻ chia 3 nhóm theo việc** (từ 19/11/2026). Mỗi lần xem 1 thẻ, đầu thẻ có ô xanh **📌 Dùng để** + các bước ① ②:
 
-**2. Ô 📇 Số điện thoại về cho sale: đủ chưa, giá bao nhiêu?** Luôn tính **hôm nay** và **tháng này**.
+| Nhóm | Thẻ | Dùng để |
+| --- | --- | --- |
+| **📇 Mỗi ngày** | 📇 Số điện thoại | Số về cho sale đã đủ chưa, giá 1 số bao nhiêu |
+| | 📘 Quảng cáo đang chạy | Từng chiến dịch Facebook: tăng, giảm, tắt ([Việc 2](#viec-2-xem-va-sua-quang-cao-facebook)) |
+| **📊 Xem kết quả** (mỗi tuần) | 📊 Kết quả | 6 ô số theo kỳ: tiền bỏ ra, tiền khách mới mang về |
+| | 🔎 Vì sao | 4 câu hỏi chi tiết: có lời không, quảng cáo nào dở, số có ra đơn không, kênh tự có |
+| **🛠 Chuẩn bị** (đầu tháng, khi cần) | 🎯 Mục tiêu | Mục tiêu và ngân sách tháng ([Việc 3](#viec-3-dat-muc-tieu-thang)) |
+| | 🎁 Ưu đãi | Ưu đãi đang chạy (Quản trị) |
+| | 🧰 Công cụ | Link & QR, biểu mẫu FB, tệp khách, tin Telegram |
+
+**Thẻ 📇 Số điện thoại về cho sale: đủ chưa, giá bao nhiêu?** Luôn tính **hôm nay** và **tháng này**.
 
 | Ô | Nghĩa là |
 | --- | --- |
@@ -72,9 +82,7 @@ Màn hình xếp theo đúng thứ tự làm việc, đọc từ trên xuống (
   2. **Khách mới** = mục tiêu − phần khách cũ. Lấy phần đến từ số quảng cáo (theo tỷ lệ thật 3 tháng trước) → chia đơn đầu trung bình ra **số khách mới** → chia tỷ lệ chốt ra **số điện thoại cần** và **ngân sách** (số cần × giá tốt 1 số).
   Sale đổi mục tiêu thì số này tự đổi. Khách cũ mua lại nhiều hơn thì Marketing cần ít số hơn.
 
-**3. 📘 Quảng cáo Facebook đang chạy:** nơi bạn sửa quảng cáo ([Việc 2](#viec-2-xem-va-sua-quang-cao-facebook)).
-
-**4. 📊 Kết quả theo kỳ:** chọn kỳ (Hôm nay, Tuần này, Tháng này…) rồi đọc **6 ô số**:
+**Thẻ 📊 Kết quả:** chọn kỳ (Hôm nay, Tuần này, Tháng này…) rồi đọc **6 ô số**:
 
 | Ô | Nghĩa là | Tốt khi |
 | --- | --- | --- |
@@ -245,7 +253,7 @@ Xem số biểu mẫu đã về: **🧰 Công cụ → 📋 Biểu mẫu FB** (M
 | Giá 1 đơn thật | Tiền chiến dịch ÷ số ra đơn |
 
 - Ở **📘 Quảng cáo Facebook đang chạy**: số 7 ngày gần nhất.
-- Ở **🔎 Xem chi tiết → 2. Quảng cáo nào tốt, quảng cáo nào dở? → 🎬**: số theo kỳ đang chọn, đầu khối ghi đã gắn được bao nhiêu % SĐT với chiến dịch.
+- Ở thẻ **🔎 Vì sao → 2. Quảng cáo nào tốt, quảng cáo nào dở? → 🎬**: số theo kỳ đang chọn, đầu khối ghi đã gắn được bao nhiêu % SĐT với chiến dịch.
 - ⚠️ **Meta báo nhiều, SĐT thật ít**: tỷ lệ SĐT thật dưới mức Quản trị đặt (mặc định 30%). **Bước tiếp theo:** mở hộp thư Fanpage xem khách nhắn gì mà không để lại số.
 - Mới gắn được dưới 60% SĐT với chiến dịch thì CRM chưa tô đèn (số còn thiếu vì chưa ghi cột, không phải do Meta).
 
@@ -261,9 +269,9 @@ Cách 2 và 3: CRM tự điền tên chiến dịch vào ô còn trống của f
 
 ## Hiểu số kỹ hơn
 
-### Xem chi tiết: 4 câu hỏi, đọc từ trên xuống
+### 🔎 Vì sao: 4 câu hỏi, đọc từ trên xuống
 
-Phần dưới màn hình là **4 câu hỏi** theo đúng thứ tự người làm marketing cần trả lời. Dưới mỗi câu hỏi có **câu trả lời ngắn** (đèn 🟢🟠🔴). Câu nào đèn đỏ thì bấm mở các mục bên dưới để tìm nguyên nhân.
+Thẻ **🔎 Vì sao** là **4 câu hỏi** theo đúng thứ tự người làm marketing cần trả lời. Dưới mỗi câu hỏi có **câu trả lời ngắn** (đèn 🟢🟠🔴). Câu nào đèn đỏ thì bấm mở các mục bên dưới để tìm nguyên nhân.
 
 1. **💰 Tiền quảng cáo có lời không?** Bỏ 1đ quảng cáo, khách mới mua bao nhiêu đ.
    - 📊 Kênh nào bỏ 1 đồng thu về nhiều nhất · 📈 Hiệu quả đang tốt lên hay kém đi · 💎 Được chi tối đa bao nhiêu để có 1 khách mới (1 khách mang về bao nhiêu tiền trong 12 tháng, mức 🟢 tốt và mức trần) · 🎯 Mỗi kênh đạt bao nhiêu % mục tiêu.
@@ -275,7 +283,7 @@ Phần dưới màn hình là **4 câu hỏi** theo đúng thứ tự người l
 
 ### 🌐 Khách đặt trên web
 
-Trong **Xem chi tiết → 🌐 Website: khách mới & khách cũ**, kéo xuống dưới các ô số:
+Trong thẻ **🔎 Vì sao → 🌐 Website: khách mới & khách cũ**, kéo xuống dưới các ô số:
 
 - **💡 Gợi ý phát triển web**: kênh nào mang nhiều tiền nhất, bao nhiêu khách vào thẳng web không rõ nguồn, khách cũ đặt lại, mã ưu đãi, sản phẩm bán chạy.
 - **📍 Khách đến từ đâu · 🧴 Mua gì · 🏠 Ở đâu**: xếp theo tiền.
@@ -287,7 +295,7 @@ Muốn biết chính xác khách đến từ kênh nào: khi đăng Zalo, gửi 
 
 ### 🎯 Mục tiêu & ngân sách tháng
 
-- **🎯 Mục tiêu & ngân sách tháng** (dưới khối 📘 Quảng cáo Facebook): tiến độ mục tiêu của từng bạn, từ 2 người có mục tiêu trở lên thì có bảng thi đua xếp theo **% mục tiêu** (vượt mức chi phí thì không đứng hạng 1); thanh ngân sách đã chi so với ngân sách (chỉ Quản trị đặt).
+- **🎯 Mục tiêu & ngân sách tháng** (thẻ 🎯 Mục tiêu): tiến độ mục tiêu của từng bạn, từ 2 người có mục tiêu trở lên thì có bảng thi đua xếp theo **% mục tiêu** (vượt mức chi phí thì không đứng hạng 1); thanh ngân sách đã chi so với ngân sách (chỉ Quản trị đặt).
   - Khung **🧮 Máy tính ra số cần thế nào?** nằm trong ô **📇** đầu trang (từ 15/11/2026; trước đó nằm đầu mục 🎯): CRM cộng mục tiêu các sale văn phòng, trừ phần **khách cũ mua lại** (bằng tiền khách cũ tháng trước), phần còn lại là **khách mới**; lấy phần khách mới đến từ **số quảng cáo** (theo tỷ lệ thật 3 tháng trước, từ 16/11/2026), rồi tính ra cần bao nhiêu **khách mới** và bao nhiêu **số điện thoại** cả tháng / mỗi ngày, kèm thanh tiến độ số đã về. Sale đổi mục tiêu thì số này tự đổi. Bấm **🎯 Đặt mục tiêu** → ô Facebook có nút **Dùng số gợi ý** để lấy luôn số đó (bạn vẫn sửa được), mức **chi phí tối đa %** bạn tự nhập như cũ.
   - Dòng **🧮 Tính ngược** trên thẻ từng kênh (từ 11/11/2026): từ mục tiêu tiền, CRM tính ra **cần khoảng bao nhiêu khách mới**, **bao nhiêu số / tin nhắn** (theo tỷ lệ chốt thật), và **mỗi số được chi tối đa bao nhiêu**. 🟢 = giá mỗi số đang thấp hơn mức đó, 🔴 = đang đắt quá, cần sửa quảng cáo.
 
@@ -295,9 +303,9 @@ Muốn biết chính xác khách đến từ kênh nào: khi đăng Zalo, gửi 
 
 - **👥 Khách trong nhóm Zalo mua lại bao nhiêu?** có ô **Giá trị 1 thành viên nhóm**: 1 người trong nhóm mang về bao nhiêu tiền mua lại trong 90 ngày. Kéo 1 người vào nhóm (quà, minigame, quảng cáo) nên tốn **ít hơn** con số này.
 
-### 🧰 Công cụ (cuối trang)
+### 🧰 Công cụ
 
-Bấm **🧰 Công cụ** ở hàng *Đi nhanh tới*: **📍 Link & QR**, **🗺 Hệ thống Marketing** (sơ đồ hệ thống marketing của công ty), **📋 Biểu mẫu FB** (số khách điền biểu mẫu quảng cáo, báo kết quả về Facebook – [cách làm](/huong-dan/quang-cao-bieu-mau/)), **👥 Tệp khách FB** (chỉ Quản trị).
+Bấm thẻ **🧰 Công cụ** (nhóm 🛠 Chuẩn bị): **📍 Link & QR**, **🗺 Hệ thống Marketing** (sơ đồ hệ thống marketing của công ty), **📋 Biểu mẫu FB** (số khách điền biểu mẫu quảng cáo, báo kết quả về Facebook – [cách làm](/huong-dan/quang-cao-bieu-mau/)), **👥 Tệp khách FB** (chỉ Quản trị).
 
 ## Hỏi số quảng cáo qua Telegram
 

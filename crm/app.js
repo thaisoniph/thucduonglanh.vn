@@ -9167,6 +9167,14 @@
     ['✍️ Tự làm thêm', 'khi cần, ngoài bài tự viết', [['tao', '✍️', 'Tạo nội dung', 'video, ảnh, offer'], ['cham', '🧪', 'Chấm bài', 'trước khi đăng']]],
     ['🧠 Dạy trợ lý', 'trợ lý đọc trước khi viết', [['nhom', '👥', 'Nhóm khách', 'khách là ai'], ['loi', '🗣', 'Lời khách', 'khách nói gì'], ['dip', '📅', 'Dịp & chuyện nóng', 'lễ sắp tới, trend'], ['nen', '📗', 'Tài liệu nền', 'sổ tay, từ khoá']]]];
   var IN_TABS = [].concat.apply([], IN_GROUPS.map(function (g) { return g[2]; }));
+  /** menu thẻ chia nhóm dùng chung (Insight 18/11, Marketing 19/11): G = [[tên nhóm, để làm gì, [[mã, icon, tên, khi nào]…]]…], at(mã) = thuộc tính nút */
+  function grpMenu(G, cur, at) {
+    G = G.filter(function (g) { return g[2].length; });
+    return '<div class="inx-menu" role="tablist" style="--cols:' + G.map(function (g) { return g[2].length + 'fr'; }).join(' ') + '">' + G.map(function (g) {
+      var on = g[2].some(function (x) { return x[0] === cur; });
+      return '<div class="inx-mg inx-mg' + g[2].length + (on ? ' on' : '') + '"><p class="inx-mgh"><b>' + g[0] + '</b><small>' + g[1] + '</small></p><div class="inx-mgb">' + g[2].map(function (x) { return '<button role="tab" class="' + (cur === x[0] ? 'on' : '') + '" ' + at(x[0]) + '><i>' + x[1] + '</i><b>' + x[2] + '</b><small>' + x[3] + '</small></button>'; }).join('') + '</div></div>';
+    }).join('') + '</div>';
+  }
   /** Mục gập / mở (giữ trạng thái khi vẽ lại) */
   function inAcc(k, title, info, body, def) {
     var open = IN.acc && k in IN.acc ? IN.acc[k] : def;
@@ -9193,10 +9201,7 @@
       '<li>Luật quảng cáo thực phẩm: chỉ nói công dụng đúng hồ sơ công bố; kinh nghiệm dân gian phải nói là kinh nghiệm dân gian. Bài có cụm dễ phạm luật (lợi sữa, giảm cân, thanh lọc…) sẽ hiện ⚠️ để người duyệt đọc lại.</li>' +
       '<li>Tension gắn <b>🏷 nhãn sản phẩm</b> chỉ dùng khi bài nói về sản phẩm đó; tension <b>🌐 dùng chung</b> hợp mọi sản phẩm. Xem ở thẻ 👥 Nhóm khách → 🏷 Insight theo sản phẩm.</li></ol></details>';
     h += inTodoHtml(j, ed);
-    h += '<div class="inx-menu" role="tablist">' + IN_GROUPS.map(function (g) {
-      var on = g[2].some(function (x) { return x[0] === tab; });
-      return '<div class="inx-mg inx-mg' + g[2].length + (on ? ' on' : '') + '"><p class="inx-mgh"><b>' + g[0] + '</b><small>' + g[1] + '</small></p><div class="inx-mgb">' + g[2].map(function (x) { return '<button role="tab" class="' + (tab === x[0] ? 'on' : '') + '" data-in="tab|' + x[0] + '"><i>' + x[1] + '</i><b>' + x[2] + '</b><small>' + x[3] + '</small></button>'; }).join('') + '</div></div>';
-    }).join('') + '</div>';
+    h += grpMenu(IN_GROUPS, tab, function (k) { return 'data-in="tab|' + k + '"'; });
     if (tab === 'tao') {
       // 🎬 kịch bản video
       var gOpt = '<option value="">🔄 Tự chọn (nhóm ít video nhất)</option>' + bank.filter(function (g) { return g.on; }).map(function (g) { return '<option value="' + esc(g.id) + '"' + (IN.vg === g.id ? ' selected' : '') + '>' + esc(g.name) + '</option>'; }).join('');
@@ -11749,7 +11754,6 @@
     if (gKey !== key && !gm && !MV.err) setTimeout(function () { mvFetch(gKey); }, 0);
     if (!mj && !MV.err) setTimeout(function () { mvFetch(key); }, 0);
     var h = '<div class="page-head"><h1>📣 Marketing</h1><div class="grow"></div>' + (mkvOnly() ? '<span class="tag" title="Bạn được xem số marketing, không nhập chi phí hay đặt mục tiêu">👁 Chỉ xem</span>' : '<button class="btn" data-mkv="cost">⚙️ Nhập chi phí</button>') + '<button class="btn ghost" data-mkv="fresh" title="Tính lại số mới nhất">↻ Tính lại</button></div>';
-    var jump = function (id, l) { return '<button type="button" class="chip" data-dgo="mk-' + id + '">' + l + '</button>'; };
     if (!mj) return h + '<div class="box"><p class="muted">' + (MV.err ? '⚠️ ' + esc(MV.err) + ' <button class="link" data-mkv="fresh">Thử lại</button>' : '⏳ Đang tính hiệu quả quảng cáo…') + '</p></div>';
     MK.fbOn = mj.fb.on;
     var ch = {}, chp = {}, tot = 0, totp = 0, day = {}, A = dashAds(), per = function (n, v) { return n && v ? moneyShort(Math.round(v / n)) : '–'; };
@@ -11784,16 +11788,18 @@
     // thứ tự màn hình (15/11/2026, anh Sơn: ưu tiên đủ số điện thoại cho sale với chi phí tốt nhất, nhìn là biết làm gì từng bước):
     // 📇 đủ số chưa → ✅ việc cần làm theo bước → 📘 Facebook đang chạy (nơi làm) → 📊 kết quả theo kỳ (6 ô) → 🎯 mục tiêu & ngân sách → 🎁 ưu đãi → 🔎 chi tiết → 🧰 công cụ
     var OA = offerAdmin();
-    h += '<div class="mk-jump"><span class="small muted">Đi nhanh tới:</span>' + jump('live', '📘 Quảng cáo đang chạy') + jump('kq', '📊 Kết quả') + jump('mt', '🎯 Mục tiêu') + (OA ? jump('ud', '🎁 Ưu đãi') : '') + jump('ct', '🔎 Chi tiết') + jump('cc', '🧰 Công cụ') + '</div>';
     // 16/11/2026: 👉 Việc hôm nay lên TRÊN CÙNG (cùng khung mọi vai trò), ô 📇 số điện thoại ngay dưới
     var Linfo = L.filter(function (x) { return /^(🏆|ℹ️)/.test(x); }), Ldo = L.filter(function (x) { return !/^(🏆|ℹ️)/.test(x); });
     h += '<div class="box dash-notes mk-steps td-box">' + todayHead('👉 Việc hôm nay', Ldo.length, 'Làm lần lượt từ bước 1 · nhãn màu = ai làm' + (f.p.k !== 'month' && f.p.k !== 'today' ? ' · tính theo kỳ đang xem: ' + esc(perLabel(f.p)) : '')) +
-      (Ldo.length ? '<ol class="mk-step-l">' + Ldo.map(function (x, i) { return '<li><span class="mk-step-n">' + (i + 1) + '</span><div>' + x + '</div></li>'; }).join('') + '</ol>' : '<p>✅ Hôm nay quảng cáo đang ổn, chưa có việc gì cần sửa. Xem số điện thoại về ở ô ngay dưới.</p>') + Linfo.map(function (x) { return '<p class="td-info">' + x + '</p>'; }).join('') + '</div>';
-    h += mkNeedBox(gKey === key ? mj : gm, mj);
-    h += LB.h;
-    h += '<h2 class="mk-more-h" id="mk-kq">📊 Kết quả theo kỳ <span class="tip">chọn kỳ muốn xem · các số bên dưới đổi theo kỳ</span></h2>' + perChips('m', f.p) + HT;
-    h += GB.h ? GB.h.replace(/<\/section>$/, BH + '</section>') : BH ? '<div id="mk-mt">' + BH + '</div>' : '';
-    if (OA) h += '<div id="mk-ud">' + OA + '</div>';
+      (Ldo.length ? '<ol class="mk-step-l">' + Ldo.map(function (x, i) { return '<li><span class="mk-step-n">' + (i + 1) + '</span><div>' + x + '</div></li>'; }).join('') + '</ol>' : '<p>✅ Hôm nay quảng cáo đang ổn, chưa có việc gì cần sửa. Xem số điện thoại về ở thẻ 📇 Số điện thoại bên dưới.</p>') + Linfo.map(function (x) { return '<p class="td-info">' + x + '</p>'; }).join('') + '</div>';
+    // 19/11/2026 (anh Sơn: "làm tương tự trang Insight"): trang dài 8 khối → 3 nhóm thẻ theo việc, mỗi lần xem 1 thẻ; 👉 Việc hôm nay vẫn trên cùng
+    var tab = mkTab(f, OA);
+    h += grpMenu(mkGroups(OA), tab, function (k) { return 'data-mkt="' + k + '"'; });
+    if (tab === 'so') h += inTabi('Biết hôm nay và tháng này <b>số điện thoại về cho sale đã đủ chưa, giá 1 số bao nhiêu</b>.', ['Ô đỏ / cam: làm các bước ở khung 👉 Việc hôm nay', 'Muốn xem từng chiến dịch: bấm thẻ <b>📘 Quảng cáo đang chạy</b>']) + mkNeedBox(gKey === key ? mj : gm, mj);
+    if (tab === 'live') h += inTabi('Xem từng chiến dịch Facebook đang chạy: <b>🟢 nên tăng tiền, 🔴 nên giảm / tắt</b>, sửa ngay tại đây.', ['Đọc nhãn màu và lý do trên từng chiến dịch', 'Bấm nút trên chiến dịch để tăng, giảm, tắt (chiến dịch đang chạy thì áp lúc 0h)']) + LB.h;
+    if (tab === 'kq') h += inTabi('Tiền bỏ ra quảng cáo và tiền khách mới mang về <b>theo kỳ bạn chọn</b>, so với kỳ trước.', ['Chọn kỳ (tuần này, tháng này…)', 'Ô đỏ: bấm thẻ <b>🔎 Vì sao</b> để biết lý do']) + '<div id="mk-kq">' + perChips('m', f.p) + HT + '</div>';
+    if (tab === 'mt') h += inTabi('Đầu tháng đặt <b>mục tiêu tiền khách mới</b> và <b>ngân sách quảng cáo</b> cho từng kênh; trong tháng xem đã đạt bao nhiêu %.', ['Đầu tháng: bấm <b>🎯 Đặt mục tiêu</b>', 'Kênh không tự cập nhật chi phí: bấm <b>⚙️ Nhập chi phí</b> trên cùng']) + (GB.h ? GB.h.replace(/<\/section>$/, BH + '</section>') : BH ? '<div id="mk-mt">' + BH + '</div>' : '<div class="box"><p class="muted">Chưa có mục tiêu tháng này.</p></div>');
+    if (tab === 'ud' && OA) h += inTabi('Các ưu đãi đang chạy mà sale và trợ lý AI được nhắc tới khách.', ['Ưu đãi mới: 🎯 Insight & nội dung → ✍️ Tạo nội dung → 🎁 Viết offer', 'Duyệt giá xong mới bật ở đây']) + '<div id="mk-ud">' + OA + '</div>';
     // ---- chi tiết (29/10/2026): gom thành 4 câu hỏi theo thứ tự người làm marketing tự hỏi; mỗi câu có câu trả lời ngắn, mục con thu gọn bấm mới mở (mkGroup)
     var D = {};
     if (GB.body) D.goal = mkMore('goal', '🎯 Mỗi kênh đạt bao nhiêu % mục tiêu tháng?', GB.line, GB.body);
@@ -11842,21 +11848,43 @@
         trendChart({ B: BM, fmt: moneyShort, what: 'Tiền khách mới', series: [{ v: nv, name: 'Tiền khách mới mua', cls: 'cur' }, { v: sv, name: 'Chi phí quảng cáo', cls: 'alt' }], note: (eff ? '<b>' + eff + '</b> ' : '') + 'Đường xanh nằm càng cao trên đường vàng là tiền thu về càng nhiều so với tiền quảng cáo.' }));
     }
     var adsA = tot ? adsLv(tot, nr) : '', mins = function (ks) { return ks.map(function (k) { return D[k] || ''; }).join(''); };
-    h += '<h2 class="mk-more-h" id="mk-ct">🔎 Xem chi tiết <span class="tip">4 câu hỏi, đọc từ trên xuống · bấm từng mục để mở</span></h2>';
+    if (tab === 'ct') {
+    h += inTabi('Trả lời <b>4 câu hỏi</b> theo thứ tự người làm marketing tự hỏi, tính theo kỳ đang chọn ở thẻ 📊 Kết quả (' + esc(perLabel(f.p)) + ').', ['Đọc câu trả lời ngắn của từng câu', 'Muốn xem kỹ: bấm mục bên dưới câu đó để mở']);
     h += mkGroup('1', '💰 Tiền quảng cáo có lời không?', !tot ? 'Kỳ này chưa có chi phí quảng cáo.' : adsA === 'ok' ? '🟢 Có lời: bỏ 1đ quảng cáo, khách mới mua ' + oneDec(nr / tot) + 'đ.' : adsA === 'mid' ? '🟠 Tạm ổn: bỏ 1đ, khách mới mua ' + oneDec(nr / tot) + 'đ. Cần rẻ hơn chút nữa.' : '🔴 Chưa có lời: bỏ 1đ quảng cáo, khách mới chỉ mua ' + oneDec(nr / (tot || 1)) + 'đ. Mở các mục dưới để xem kênh, chiến dịch nào kéo xuống.', mins(['ch', 'tr', 'ltv', 'goal']));
     h += mkGroup('2', '📣 Quảng cáo nào tốt, quảng cáo nào dở?', CB.line || 'Chưa có chiến dịch trong kỳ', mins(['camp', 'prod', 'fun']));
     h += mkGroup('3', '📇 Số điện thoại về sale có ra đơn không?', ad ? ad.n + ' số điện thoại · ' + pct(ad.won, ad.n) + '% đã mua' + (ad.idle ? ' · ⏳ ' + ad.idle + ' số sale chưa gọi xong' : '') : 'Chưa có file số quảng cáo của sale.', mins(['data', 'sale']));
     h += mkGroup('4', '🌱 Kênh tự có: website & nhóm Zalo (không tốn tiền quảng cáo)', [wb && wb.share !== null ? '🌐 Web = ' + oneDec(wb.share) + '% doanh số' : '', cm && cm.rev ? '👥 Nhóm Zalo mua lại ' + moneyShort(cm.rev) : ''].filter(Boolean).join(' · ') || 'Website, nhóm Zalo, hoạt động trên web', mins(['site', 'web', 'comm', 'pledge', 'quiz']));
+    }
+    if (tab === 'cc') {
+    h += inTabi('Các công cụ dùng khi cần: link theo dõi, mã QR, biểu mẫu Facebook, tệp khách, tin Telegram mỗi sáng.', ['Chọn công cụ cần dùng bên dưới']);
     h += '<div class="mk-tools" id="mk-cc"><b>🧰 Công cụ</b><div class="steps"><a class="btn ghost" href="#link-qr">📍 Link &amp; QR</a>' + mktDocBtn() + '<button class="btn ghost" data-mkv="flform">📋 Biểu mẫu FB</button>' + (lvl() >= 3 ? '<button class="btn ghost" data-mkv="aud">👥 Tệp khách FB</button>' : '') + '</div>' +
       '<p class="small muted" style="margin:0">📍 <b>Link &amp; QR</b>: tạo link, mã QR cho tờ rơi, standee, quảng cáo và xem hiệu quả.' + (mktDoc().url ? ' 🗺 <b>Hệ thống Marketing</b>: sơ đồ cả hệ thống marketing của công ty.' : '') + ' 📋 <b>Biểu mẫu FB</b>: số khách điền biểu mẫu quảng cáo tự vào CRM, báo kết quả gọi / mua về Facebook.' + (lvl() >= 3 ? ' 👥 <b>Tệp khách FB</b>: file số điện thoại khách cũ để tải lên Facebook.' : '') + '</p></div>';
     h += '<p class="small mk-tgline">📲 Mỗi sáng 8h, Telegram gửi tin <b>📣 Marketing sáng nay</b> (tiến độ mục tiêu, hôm qua, việc nên làm) cho bạn marketing đã kết nối Telegram ở Cài đặt.' + (mkvOnly() ? '' : ' <button class="link" data-mkv="tgtest">Gửi thử cho tôi</button>') + '</p>';
+    }
     h += '<p class="small muted" style="margin-top:12px">' + (mj.fb.on ? '📘 Facebook Ads tự cập nhật' + (mj.fb.last ? ' · lần gần nhất ' + fDateTime(mj.fb.last) : '') + ' · ' : '') + 'Số tính lúc ' + fDateTime(mj.at) + (mj.cached ? ' (bấm ↻ để tính lại)' : '') + '. Tiền khách mới = tiền khách mua lần đầu mang về trong kỳ (cả các đơn sau của họ trong kỳ), gắn theo kênh đã đưa khách tới.</p>';
     return h;
   }
+  /** 📣 Marketing chia 3 nhóm thẻ (19/11/2026) */
+  function mkGroups(OA) {
+    return [['📇 Mỗi ngày', 'số về, quảng cáo đang chạy', [['so', '📇', 'Số điện thoại', 'đủ chưa, giá bao nhiêu'], ['live', '📘', 'Quảng cáo đang chạy', 'tăng, giảm, tắt']]],
+      ['📊 Xem kết quả', 'mỗi tuần 1 lần', [['kq', '📊', 'Kết quả', 'tiền bỏ ra, thu về'], ['ct', '🔎', 'Vì sao', '4 câu hỏi chi tiết']]],
+      ['🛠 Chuẩn bị', 'đầu tháng, khi cần', [['mt', '🎯', 'Mục tiêu', 'và ngân sách tháng']].concat(OA ? [['ud', '🎁', 'Ưu đãi', 'đang chạy']] : [], [['cc', '🧰', 'Công cụ', 'link, QR, biểu mẫu']])]];
+  }
+  function mkTab(f, OA) {
+    if (!f.tab) f.tab = store('mkt_tab') || 'so';
+    if (!mkGroups(OA).some(function (g) { return g[2].some(function (x) { return x[0] === f.tab; }); })) f.tab = 'so';
+    return f.tab;
+  }
+  /** chỗ cần tới (id mk-…) nằm ở thẻ nào; còn lại ở 🔎 Vì sao */
+  var MK_GO = { need: 'so', live: 'live', kq: 'kq', mt: 'mt', ud: 'ud', cc: 'cc' };
   function bindMkv() {
+    $$('[data-mkt]').forEach(function (el) { el.onclick = function () { S.f.m.tab = el.getAttribute('data-mkt'); store('mkt_tab', S.f.m.tab); render(); }; });
     $$('[data-mkv]').forEach(function (el) { el.onclick = function () { var a = el.getAttribute('data-mkv'); if (a === 'aud') openFbAud(); else if (a === 'flform') openFbForm(); else if (a === 'cost') openMkt(); else if (a === 'budget') { var bj = MV.cache[mvKey()]; if (bj) openBudget(bj.budget); } else if (a === 'call') { S.f.m.call = 1; render(); } else if (a === 'tgtest') { el.disabled = true; api('mkt_tg_test').then(function () { toast('📲 Đã gửi, mở Telegram để xem'); }, function (e) { toast(/Không rõ thao tác/.test(e.message) ? 'Máy chủ đang cập nhật bản mới, thử lại sau 2 phút.' : e.message, true); }).then(function () { el.disabled = false; }); } else if (a === 'goal') { var gj = MV.cache[mvKey()]; if (gj) openMkGoal(gj); } else if (a === 'fresh') { KP.err = ''; kpFetch(true); var mk0 = mvMonthKey(), k = mvKey(); delete MV.cache[k]; MV.err = ''; delete MV.pend[k]; mvFetch(k, true); if (mk0 !== k) { delete MV.cache[mk0]; delete MV.pend[mk0]; mvFetch(mk0, true); } render(); } }; });
     $$('#view [data-dash="sfb"]').forEach(function (el) { el.onclick = function () { var f = S.f.m; f.sfb = !f.sfb; store('dash_sfb', f.sfb ? '1' : '0'); render(); }; });
-    $$('#view [data-dgo]').forEach(function (el) { el.onclick = function () { var g = el.getAttribute('data-dgo').replace(/^mk-/, ''), t = $('#mk-' + g); if (!t) return; if (t.tagName === 'DETAILS') t.open = true; t.scrollIntoView({ behavior: 'smooth', block: 'start' }); }; });
+    $$('#view [data-dgo]').forEach(function (el) { el.onclick = function () {
+      var g = el.getAttribute('data-dgo').replace(/^mk-/, ''), go = function () { var t = $('#mk-' + g); if (!t) return; for (var d = t; d; d = d.parentElement && d.parentElement.closest('details')) if (d.tagName === 'DETAILS') d.open = true; t.scrollIntoView({ behavior: 'smooth', block: 'start' }); };
+      if (route().view === 'marketing' && !$('#mk-' + g)) { S.f.m.tab = MK_GO[g] || 'ct'; store('mkt_tab', S.f.m.tab); render(); setTimeout(go, 50); } else go();
+    }; });
     $$('details[data-mk]').forEach(function (d) { d.addEventListener('toggle', function () { var o = S.f.m.open || (S.f.m.open = {}), k = d.getAttribute('data-mk'); if (d.open) o[k] = 1; else delete o[k]; store('mkt_open', JSON.stringify(o)); }); });
     $$('[data-mka]').forEach(function (el) { el.onclick = function () { S.f.m.acc = el.getAttribute('data-mka'); render(); }; });
     $$('[data-mkc]').forEach(function (el) { el.onclick = function () { S.f.m.cv = el.getAttribute('data-mkc'); S.f.m.call = 0; render(); }; });
