@@ -4,7 +4,7 @@ nav: Fanpage
 group: marketing
 short: Trợ lý trả lời Facebook, Messenger
 order: 7
-updated: 2026-11-16
+updated: 2026-11-18
 description: Trợ lý An Lành trả lời bình luận, nhắn Messenger, tặng quà, xin số Zalo và soạn bài cho các fanpage. Bạn duyệt bài và lo ca khó. Mỗi việc có hình.
 roles: [mkt, ql]
 ---
@@ -98,9 +98,19 @@ Nhật ký ở mục **🕘 Trợ lý vừa làm gì** chia theo từng ngày, c
 - Trợ lý trả lời ở nhóm Zalo, Zalo riêng, Fanpage và chat trên web đều học chung từ các câu bạn sửa.
 - Dòng đã dạy hiện nút **✍️ Đã dạy trợ lý · sửa lại**.
 
+## Chọn trang theo dõi (Quản trị)
+
+Tài khoản Facebook kết nối thường quản lý cả trang không liên quan (bất động sản, trang cá nhân…). Mục **📄 Fanpage đang theo dõi** chỉ hiện trang được chọn; các trang còn lại nằm trong dòng thu gọn **⏸ … trang không theo dõi**.
+
+1. Bấm **✏️ Chọn trang theo dõi** (ngay dưới tiêu đề mục).
+2. Gõ tên trang vào ô 🔍 để tìm nhanh, **tích** trang của Thực Dưỡng Lành / VitaGreen, bỏ tích trang không liên quan.
+3. Bấm **Lưu**.
+
+Trang được theo dõi: CRM quét **biểu mẫu quảng cáo** ([Quảng cáo Biểu mẫu](/huong-dan/quang-cao-bieu-mau/)), đếm **số theo từng trang** (Marketing → 🧰 Công cụ → 📋 Biểu mẫu FB) và bật được trợ lý. Bỏ theo dõi trang đang bật trợ lý thì **trợ lý trang đó tắt** (máy hỏi lại trước). Bật trợ lý cho 1 trang thì trang đó tự vào danh sách theo dõi.
+
 ## Cài đặt từng trang
 
-Mục **📄 Fanpage đã kết nối** có mỗi trang 1 dòng: tên trang, đang bật hay tắt, giờ đăng bài. Bấm vào dòng (nút **⚙️ Cài đặt**) để mở cài đặt của trang:
+Mục **📄 Fanpage đang theo dõi** có mỗi trang 1 dòng: tên trang, đang bật hay tắt, giờ đăng bài. Bấm vào dòng (nút **⚙️ Cài đặt**) để mở cài đặt của trang:
 
 ![Mỗi trang 1 dòng, bấm 1 Cài đặt để mở](/huong-dan/img/fp-trang.webp)
 

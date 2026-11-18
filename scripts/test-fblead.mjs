@@ -10,7 +10,7 @@ for (const c of ['recv TEXT', 'alias TEXT', 'tg TEXT', 'ord INTEGER']) { try { r
 for (const c of ['ref_phone TEXT', 'ref_name TEXT', 'own_at INTEGER', 'how TEXT']) { try { raw.exec('ALTER TABLE leads ADD COLUMN ' + c); } catch (e) { } }
 raw.exec(`CREATE TABLE IF NOT EXISTS fp_pages (id TEXT PRIMARY KEY, name TEXT DEFAULT '', token TEXT DEFAULT '', active INTEGER DEFAULT 0, cfg TEXT DEFAULT '{}', at INTEGER, err TEXT DEFAULT '', last_ev INTEGER, on_at INTEGER);
 CREATE TABLE IF NOT EXISTS phone_seen (phone TEXT PRIMARY KEY, at INTEGER, src TEXT);
-INSERT INTO fp_pages (id, name, token) VALUES ('111', 'Thực Dưỡng Lành', 'PAGE_TOKEN');`);
+INSERT INTO fp_pages (id, name, token) VALUES ('111', 'Thực Dưỡng Lành', 'PAGE_TOKEN'), ('222', 'Bất Động Sản ABC', 'PAGE_TOKEN2');`);
 const DB = { prepare(sql) { const st = raw.prepare(sql); let a = []; const o = { bind(...x) { a = x.map(v => v === undefined ? null : typeof v === 'boolean' ? (v ? 1 : 0) : v); return o; },
   async all() { return { results: st.all(...a) }; }, async first() { return st.get(...a) || null; }, async run() { const r = st.run(...a); return { meta: { changes: r.changes } }; } }; return o; } };
 const now = Date.now(), DAY = 864e5;
@@ -59,6 +59,11 @@ ok(tg.some(t => /SỐ MỚI TỪ BIỂU MẪU/.test(t.text)) && tg.some(t => /s�
 r = await F.crmFl(x, admin, { action: 'fl_scan' }, log);
 ok(r.got === 0 && raw.prepare("SELECT count(*) n FROM fl_leads").get().n === 2, 'Quét lần 2 không tạo trùng');
 
+ok(!graphCalls.some(u => u.includes('222/leadgen_forms')), 'Mặc định chỉ quét trang Thực Dưỡng Lành, bỏ trang không liên quan (BĐS)');
+const FB = await import('file://' + ROOT + '/api/src/fb.js');
+raw.prepare("INSERT INTO kv (k, v) VALUES ('fp_track', '[\"222\"]')").run();
+ok((await FB.fpTracked(x)).has('222') && !(await FB.fpTracked(x)).has('111'), 'Quản trị chọn trang theo dõi thì theo danh sách đã chọn');
+raw.prepare("DELETE FROM kv WHERE k = 'fp_track'").run();
 // 2) webhook (khách mới thứ 3)
 leadsData.push({ id: '9003', created_time: new Date().toISOString(), form_id: 'F1', field_data: [{ name: 'customer_name', values: ['Trần B'] }, { name: 'phone_number', values: ['0987654321'] }, { name: 'thread_link', values: ['https://x'] }] });
 await F.flHook(x, { id: '111', name: 'Thực Dưỡng Lành', token: 'PAGE_TOKEN' }, { leadgen_id: '9003', form_id: 'F1' });

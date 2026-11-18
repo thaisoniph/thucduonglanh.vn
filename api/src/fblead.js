@@ -19,6 +19,7 @@ import { esc, run, all, first, allIn, kvGet, kvSet, kvJson, normPhone, fmtDate, 
 import { telegram } from './google.js';
 import { addLead, telegramUser, crmUsers, mainPhone, ownerOf } from './crm.js';
 import { adsTier, tierOf, TIER } from './salemkt.js';
+import { fpTracked } from './fb.js';
 
 let GRAPH = 'https://graph.facebook.com/v23.0/';
 const useEnv = x => { if (x.env.FB_GRAPH) GRAPH = x.env.FB_GRAPH; };
@@ -109,6 +110,7 @@ async function ingest(x, p, L, via) {
 export async function flHook(x, p, v) {
   useEnv(x);
   if (!v || !v.leadgen_id || !p.token) return;
+  if (!(await fpTracked(x)).has(String(p.id))) return; // 📌 trang không theo dõi
   try {
     const L = await gget(String(v.leadgen_id) + '?fields=' + LEAD_FIELDS, p.token);
     if (v.form_id && !L.form_name) { try { L.form_name = (await gget(String(v.form_id) + '?fields=name', p.token)).name || ''; } catch (e) { } }
@@ -127,7 +129,7 @@ async function formKeep(x, form, page) {
 /** Quét biểu mẫu mọi trang (cron 10 phút / lần + nút 🔄 Quét ngay). Lần đầu lấy 2 ngày gần nhất. */
 async function scan(x) {
   useEnv(x); await flSchema(x.db);
-  const pages = await all(x.db, "SELECT id, name, token FROM fp_pages WHERE token != ''"); if (!pages.length) return { pages: 0, got: 0 };
+  const tk = await fpTracked(x), pages = (await all(x.db, "SELECT id, name, token FROM fp_pages WHERE token != ''")).filter(p => tk.has(String(p.id))); if (!pages.length) return { pages: 0, got: 0 }; // 📌 chỉ trang theo dõi
   let got = 0, forms = 0, seen = 0, err = ''; const xf = await kvJson(x.db, 'fl_xforms', {}) || {};
   for (const p of pages) {
     const sk = 'fl_since_' + p.id, since = Number(await kvGet(x.db, sk)) || Date.now() - 2 * DAY, t0 = Date.now();
@@ -255,11 +257,12 @@ export async function crmFl(x, u, d, crmLog) {
     all(x.db, 'SELECT ev, count(*) n, sum(value) v FROM capi_log WHERE at >= ? AND ok = 1 GROUP BY ev', now - 7 * DAY),
     kvGet(x.db, 'capi_err'), kvGet(x.db, 'fl_err'), kvGet(x.db, 'fl_scan_at'), kvGet(x.db, 'fl_hook_at'), kvGet(x.db, 'fl_forms'), tokenOf(x, cfg)
   ]);
-  const pages = await all(x.db, "SELECT name FROM fp_pages WHERE token != ''");
+  const trk = await fpTracked(x), pages = (await all(x.db, "SELECT id, name FROM fp_pages WHERE token != ''")).filter(p => trk.has(String(p.id)));
+  const bp = {}; (await all(x.db, 'SELECT page, count(*) n, sum(CASE WHEN contacted_at > 0 THEN 1 ELSE 0 END) c FROM fl_leads WHERE at >= ? GROUP BY page', now - 7 * DAY)).forEach(r => { bp[r.page] = r; });
   const seePhone = u.level >= 2; // Marketing không xem số khách (NĐ 13/2023) – như tab Marketing
   return { ok: true, admin,
     cfg: { on: cfg.on, pixel: cfg.pixel, test: cfg.test, split: cfg.split, tail: cfg.token ? cfg.token.slice(-4) : '', own: !!cfg.token, has: !!tk },
-    pages: pages.map(p => p.name), forms: Number(forms) || 0, scanAt: Number(scanAt) || 0, hookAt: Number(hookAt) || 0, err: err || '', capiErr: capiErr || '',
+    pages: pages.map(p => p.name), byPage: pages.map(p => ({ name: p.name, n: (bp[p.id] || {}).n || 0, c: (bp[p.id] || {}).c || 0 })).filter(r => r.n).sort((a, b) => b.n - a.n), forms: Number(forms) || 0, scanAt: Number(scanAt) || 0, hookAt: Number(hookAt) || 0, err: err || '', capiErr: capiErr || '',
     n7: (c7 && c7.n) || 0, c7: (c7 && c7.c) || 0, today: (ct && ct.n) || 0, cap: Object.fromEntries(cap.map(r => [r.ev, { n: r.n, v: r.v || 0 }])),
     list: list.map(r => ({ at: r.at, name: seePhone ? r.name : '', phone: seePhone ? r.phone : mask(r.phone), form: r.form_name, camp: r.campaign, owner: r.owner, via: r.via, ok: r.contacted_at > 0, junk: r.contacted_at === -1, status: r.status || '' })) };
 }

@@ -10957,7 +10957,10 @@
     }
     // 📄 từng trang: thu gọn 1 dòng, bấm mở cài đặt
     h += ST7;
-    h += '<h2 class="zb-h" id="fpPages">📄 Fanpage đã kết nối</h2>' + (ps.length ? '<p class="small muted" style="margin:-4px 0 8px">Bấm vào tên trang để bật / tắt trợ lý và cài đặt.</p>' + ps.slice().sort(function (a, b) { return (b.active - a.active) || (a.name < b.name ? -1 : 1); }).map(fpPageBox).join('') : '<div class="box"><p class="muted">Chưa kết nối trang nào (xem 🔗 Kết nối Facebook).</p></div>');
+    var psT = ps.filter(function (p) { return p.track; }), psU = ps.filter(function (p) { return !p.track; }); // 📌 trang theo dõi (18/11/2026)
+    h += '<h2 class="zb-h" id="fpPages">📄 Fanpage đang theo dõi</h2>' + (ps.length ? '<p class="small muted" style="margin:-4px 0 8px">Đang theo dõi <b>' + psT.length + ' / ' + ps.length + '</b> trang: CRM chỉ quét biểu mẫu, tính số và chạy trợ lý ở các trang này.' + (j.trackSet ? '' : ' Em đã chọn sẵn trang có tên Thực Dưỡng Lành, VitaGreen, sản phẩm.') + (j.admin ? ' <button class="link" data-fp="track">✏️ Chọn trang theo dõi</button>' : '') + ' Bấm vào tên trang để bật / tắt trợ lý và cài đặt.</p>' +
+      psT.slice().sort(function (a, b) { return (b.active - a.active) || (a.name < b.name ? -1 : 1); }).map(fpPageBox).join('') +
+      (psU.length ? '<details class="box fp-untrack"><summary>⏸ ' + psU.length + ' trang không theo dõi</summary><p class="small muted">' + psU.map(function (p) { return esc(p.name); }).join(' · ') + '</p></details>' : '') : '<div class="box"><p class="muted">Chưa kết nối trang nào (xem 🔗 Kết nối Facebook).</p></div>');
     // 🕘 nhật ký
     h += '<h2 class="zb-h" id="fpLog">🕘 Trợ lý vừa làm gì</h2>' + fpLogHtml(j);
     if (ready) h += fpConnHtml(j, false);
@@ -10981,6 +10984,24 @@
         '<div class="lq-btns"><button class="btn pri" data-fp="connect">🔗 Kết nối fanpage</button></div>' +
         '<details class="small"><summary>Không đăng nhập được? Dán mã truy cập trang</summary><p class="muted">Lấy ở ứng dụng → Messenger → Cài đặt API → Tạo mã truy cập cho từng trang.</p><label class="f"><input class="zb-text" id="fpPtk" autocomplete="off" placeholder="EAA…"></label><button class="btn sm" data-fp="ptoken">Kết nối bằng mã</button></details>' : '');
     return h + '</details>';
+  }
+  /** 📌 Quản trị chọn trang CRM theo dõi (fp_track). Bỏ trang đang bật trợ lý thì trợ lý trang đó tắt. */
+  function fpTrackOpen() {
+    var ps = (FP.d.pages || []).slice().sort(function (a, b) { return (b.track - a.track) || (a.name < b.name ? -1 : 1); });
+    var m = modal('📌 Chọn trang theo dõi', '<p class="small" style="margin:0 0 8px">Tích trang của <b>Thực Dưỡng Lành / VitaGreen</b>. CRM chỉ quét biểu mẫu, tính số và chạy trợ lý ở trang được tích. Trang không tích: CRM bỏ qua, vẫn giữ kết nối để bật lại khi cần.</p>' +
+      '<input type="search" class="zb-text" id="fpTrkQ" placeholder="🔍 Tìm tên trang" style="margin-bottom:8px">' +
+      '<div class="fp-trk-list">' + ps.map(function (p) { return '<label class="zb-ck fp-trk" data-n="' + esc(norm(p.name)) + '"><input type="checkbox" data-fptk="' + esc(p.id) + '"' + (p.track ? ' checked' : '') + '><span><b>' + esc(p.name) + '</b>' + (p.active ? '<small>🟢 đang bật trợ lý</small>' : '') + '</span></label>'; }).join('') + '</div>',
+      '<button class="btn" data-close>Huỷ</button><button class="btn pri" id="fpTrkSave">Lưu</button>');
+    var cnt = function () { $('#fpTrkSave', m).textContent = 'Lưu (' + $$('[data-fptk]', m).filter(function (x) { return x.checked; }).length + ' trang)'; };
+    $$('[data-fptk]', m).forEach(function (x) { x.onchange = cnt; }); cnt();
+    $('#fpTrkQ', m).oninput = function () { var q = norm(this.value); $$('.fp-trk', m).forEach(function (l) { l.style.display = !q || l.getAttribute('data-n').indexOf(q) >= 0 ? '' : 'none'; }); };
+    $('#fpTrkSave', m).onclick = function () {
+      var ids = $$('[data-fptk]', m).filter(function (x) { return x.checked; }).map(function (x) { return x.getAttribute('data-fptk'); });
+      var off = ps.filter(function (p) { return p.active && ids.indexOf(p.id) < 0; });
+      if (off.length && !confirm('Bỏ theo dõi sẽ TẮT trợ lý ở: ' + off.map(function (p) { return p.name; }).join(', ') + '. Đồng ý?')) return;
+      var b = this; b.disabled = true;
+      api('fp_track', { ids: ids }).then(function (r) { closeModal(); toast('Đang theo dõi ' + r.n + ' trang ✓'); fpFetch(); }, function (e) { b.disabled = false; toast(e.message, true); });
+    };
   }
   function fpPageBox(p) {
     var c = p.cfg, live = p.last_ev && FP.d.now - p.last_ev < 3 * DAY;
@@ -11100,6 +11121,7 @@
     if (v[0] === 'cp') return copy(id).then(function () { toast('Đã chép ✓'); });
     var after = function (msg) { return function () { toast(msg); fpFetch(); }; }, fail = function (e) { t.disabled = false; toast(e.message, true); };
     if (v[0] === 'pf') { FP.pf = id; return render(); }
+    if (v[0] === 'track') return fpTrackOpen();
     if (v[0] === 'go') { if (v[2]) { FP.lf = v[2]; render(); } var goEl = document.getElementById(id); if (goEl) { if (goEl.tagName === 'DETAILS') goEl.open = true; goEl.scrollIntoView({ behavior: 'smooth', block: 'start' }); } return; }
     if (v[0] === 'lf') { FP.lf = id; return render(); }
     if (v[0] === 'edit') { var cd = t.closest('[data-fpcard]'); if (cd) { cd.classList.toggle('zb-editing'); var te = document.getElementById('fpT_' + id); if (te && cd.classList.contains('zb-editing')) te.focus(); } return; }
@@ -11583,7 +11605,9 @@
       var flSt = !j.pages.length ? '🔴 Chưa kết nối fanpage nào (tab 📘 Fanpage → Kết nối fanpage).' : j.err ? '🔴 ' + esc(j.err) : j.scanAt ? '🟢 Đang nhận: ' + j.pages.length + ' fanpage, ' + j.forms + ' biểu mẫu · quét lần cuối ' + fDateTime(j.scanAt) + (j.hookAt ? ' · tin tức thời gần nhất ' + fDateTime(j.hookAt) : '') : '🟠 Chưa quét lần nào. Bấm 🔄 Quét ngay.';
       var h = '<p style="margin:0 0 10px">Khách điền <b>Biểu mẫu tức thì</b> trên quảng cáo Facebook → số tự vào <b>Khách hỏi</b> (kênh “Quảng cáo – Form FB”), tự chia sale và báo Telegram ngay để sale gọi trong 5 phút. Không cần chép số vào file nữa.</p>' +
         '<div class="fl-tiles"><div><span>Hôm nay</span><b>' + nf(j.today) + ' số</b></div><div><span>7 ngày</span><b>' + nf(j.n7) + ' số</b></div><div><span>Gọi được</span><b>' + (j.n7 ? Math.round(j.c7 * 100 / j.n7) + '%' : '–') + '</b></div></div>' +
-        '<p class="small" style="margin:8px 0">' + flSt + '</p>';
+        '<p class="small" style="margin:8px 0">' + flSt + '</p>' +
+        (j.byPage && j.byPage.length ? '<p class="small" style="margin:0 0 8px">📄 Theo trang (7 ngày): ' + j.byPage.map(function (r) { return esc(r.name) + ' <b>' + r.n + '</b> số · gọi được ' + Math.round(r.c * 100 / r.n) + '%'; }).join(' · ') + '</p>' : '') +
+        '<p class="small muted" style="margin:0 0 8px">Chỉ tính trang đang theo dõi (chọn ở tab 📘 Fanpage → ✏️ Chọn trang theo dõi).</p>';
       if (j.list.length) h += '<details class="fl-list"><summary>15 số gần nhất</summary><div class="small">' + j.list.map(function (r) {
         return '<div class="fl-row">' + fDateTime(r.at) + ' · <b>' + esc(r.name || '') + '</b> ' + esc(r.phone || '') + ' · ' + esc(r.camp || r.form || '') + ' → ' + (r.owner ? '👤 ' + esc(r.owner) : '⚠️ chưa giao') + (r.ok ? ' · ✅ đã gọi được' : r.junk ? ' · 🗑 số rác' : r.status ? ' · ' + esc(r.status) : '') + '</div>'; }).join('') + '</div></details>';
       h += '<h3 style="margin:16px 0 6px">📡 Báo kết quả về Facebook</h3><p class="small" style="margin:0 0 8px">CRM tự báo cho Facebook <b>số nào sale gọi được</b> và <b>khách nào đã mua</b> (chỉ khách đến từ quảng cáo; số điện thoại được mã hoá, Facebook không thấy số thật). Nhờ vậy Facebook học tìm đúng người nghe máy và mua hàng, giá mỗi số giảm dần.</p>' +

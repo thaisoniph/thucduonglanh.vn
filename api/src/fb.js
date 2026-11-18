@@ -84,6 +84,14 @@ export async function fbSchema(db) {
 const flog = (x, page, kind, o) => run(x.db, 'INSERT INTO fp_log (at, page, kind, name, text, reply) VALUES (?, ?, ?, ?, ?, ?)', Date.now(), page || '', kind, String(o.name || '').slice(0, 80), String(o.text || '').slice(0, 1000), String(o.reply || '').slice(0, 2000));
 
 /* ---------------------------------------------------------------- cài đặt + gọi Facebook */
+/** 📌 Trang theo dõi (18/11/2026, anh Sơn): mã người dùng kết nối cả trang không liên quan (BĐS, trường học…) → Quản trị chọn trang nào CRM theo dõi.
+ *  Trang theo dõi: quét biểu mẫu (fblead.js), tính số, bật được trợ lý. kv fp_track = [id trang]; chưa chọn lần nào → mặc định trang đang bật trợ lý + trang có tên Thực Dưỡng Lành / VitaGreen / sản phẩm. */
+const TDL_RE = /thuc duong|vitagreen|fucoidan|progomax|gafo|sua hat|dinh duong|chu son|song khoe|an chay|curcumin|dilvang/;
+export async function fpTracked(x) {
+  const v = await kvJson(x.db, 'fp_track', null);
+  if (Array.isArray(v)) return new Set(v.map(String));
+  return new Set((await all(x.db, 'SELECT id, name, active FROM fp_pages')).filter(r => r.active || TDL_RE.test(nrm(r.name))).map(r => String(r.id)));
+}
 async function appCfg(x) { return Object.assign({ id: '', secret: '', verify: '', config: '' }, await kvJson(x.db, 'fp_app', {})); }
 function pageCfg(raw) { let c = {}; try { c = JSON.parse(raw || '{}'); } catch (e) { } c = Object.assign({}, PCFG0, c); if (!Array.isArray(c.replies) || !c.replies.length) c.replies = PCFG0.replies; if (!Array.isArray(c.slots)) c.slots = PCFG0.slots; return c; }
 const PG = new Map(); // giữ trang trong bộ nhớ 60 giây (mỗi tin nhắn / bình luận đỡ 1 lần đọc D1)
@@ -603,10 +611,11 @@ export async function crmFp(x, u, d, crmLog) {
   useEnv(x);
   if (u.level < 2 && u.role !== 'Marketing') return { ok: false, error: 'Chỉ Quản lý, Quản trị và Marketing dùng được Trợ lý Fanpage.' };
   const a = d.action, now = Date.now(), admin = u.level >= 3;
-  if (['fp_app', 'fp_connect', 'fp_ptoken', 'fp_del'].includes(a) && !admin) return { ok: false, error: 'Chỉ Quản trị kết nối / gỡ fanpage được.' };
+  if (['fp_app', 'fp_connect', 'fp_ptoken', 'fp_del', 'fp_track'].includes(a) && !admin) return { ok: false, error: 'Chỉ Quản trị kết nối / gỡ fanpage được.' };
   if (a === 'fp_view') {
     const app = await appCfg(x), from = fmtDate(now - DAY, 'yyyyMMdd');
-    const pages = (await all(x.db, 'SELECT id, name, active, cfg, at, err, last_ev FROM fp_pages ORDER BY name')).map(r => Object.assign({}, r, { cfg: pageCfg(r.cfg) }));
+    const tk = await fpTracked(x), trackSet = Array.isArray(await kvJson(x.db, 'fp_track', null));
+    const pages = (await all(x.db, 'SELECT id, name, active, cfg, at, err, last_ev FROM fp_pages ORDER BY name')).map(r => Object.assign({}, r, { cfg: pageCfg(r.cfg), track: tk.has(String(r.id)) }));
     const posts = await all(x.db, 'SELECT id, page, day, slot, topic, text, link, prod, status, by_name, at, sent_at, fb_id, err, funnel, ins FROM fp_posts WHERE day >= ? ORDER BY day, slot, page', from);
     const log = await all(x.db, 'SELECT rid, at, page, kind, name, text, reply, done_at, done_by FROM fp_log ORDER BY rid DESC LIMIT 80');
     const open = await all(x.db, "SELECT rid, at, page, kind, name, text, reply, done_at, done_by FROM fp_log WHERE kind = 'handoff' AND done_at IS NULL AND at > ? ORDER BY rid DESC LIMIT 30", now - 7 * DAY); // ca cần người thật chưa xử lý: ghim lên đầu
@@ -614,7 +623,7 @@ export async function crmFp(x, u, d, crmLog) {
     const talk = await first(x.db, "SELECT count(*) AS n FROM fp_users WHERE last_in > ?", now - 7 * DAY);
     const insG = (await insBank(x)).map(g => ({ id: g.id, name: g.name, on: g.on }));
     return { ok: true, learnEd: await edCount(x, 'fb'), edR: (await edCount(x, 'reply')).ids, insG, app: { id: app.id, secret: !!app.secret, verify: admin ? app.verify : '', config: app.config, hook: HOOK_URL, cb: CB_URL, verified: Number(await kvGet(x.db, 'fp_verified')) || 0 },
-      pages, posts, log, open, stats, talk: talk ? talk.n : 0, err: await kvGet(x.db, 'fp_write_err'), aiOn: !!x.env.ANTHROPIC_API_KEY, admin, now };
+      pages, trackSet, posts, log, open, stats, talk: talk ? talk.n : 0, err: await kvGet(x.db, 'fp_write_err'), aiOn: !!x.env.ANTHROPIC_API_KEY, admin, now };
   }
   if (a === 'fp_app') {
     const app = await appCfg(x), id = String(d.appId || '').replace(/\D/g, ''), sec = String(d.secret || '').trim();
@@ -673,6 +682,14 @@ export async function crmFp(x, u, d, crmLog) {
     await crmLog(x, u, 'Trợ lý Fanpage', String(r.rid), '', d.undo ? 'Bỏ đánh dấu đã xử lý' : 'Đã xử lý ca cần người thật', r.name || '');
     return { ok: true };
   }
+  if (a === 'fp_track') { // 📌 chọn trang theo dõi (Quản trị). Bỏ theo dõi trang đang bật trợ lý → tắt trợ lý trang đó
+    const all0 = await all(x.db, 'SELECT id, name, active FROM fp_pages'), want = new Set((Array.isArray(d.ids) ? d.ids : []).map(String)), ids = all0.filter(r => want.has(String(r.id))).map(r => String(r.id));
+    const off = all0.filter(r => r.active && !want.has(String(r.id)));
+    for (const r of off) { await run(x.db, 'UPDATE fp_pages SET active = 0 WHERE id = ?', r.id); PG.delete(String(r.id)); }
+    await kvSet(x.db, 'fp_track', JSON.stringify(ids));
+    await crmLog(x, u, 'Cài đặt fanpage', '-', '', 'Theo dõi ' + ids.length + ' / ' + all0.length + ' trang', off.length ? 'Tắt trợ lý: ' + off.map(r => r.name).join(', ') : '');
+    return { ok: true, n: ids.length, off: off.length };
+  }
   if (a === 'fp_page') { // bật / tắt + cài đặt 1 trang
     const r = await first(x.db, 'SELECT * FROM fp_pages WHERE id = ?', String(d.id || '')); if (!r) return { ok: false, error: 'Không tìm thấy trang.' };
     const c = pageCfg(r.cfg), n = d.cfg || {};
@@ -686,6 +703,7 @@ export async function crmFp(x, u, d, crmLog) {
     for (const k of ['gift_link', 'group']) if (n[k] !== undefined) { const v = String(n[k]).trim(); c[k] = /^https:\/\/\S+$/.test(v) ? v.slice(0, 300) : PCFG0[k]; }
     if (Array.isArray(n.slots)) c.slots = [...new Set(n.slots.map(s => String(s).trim()).filter(s => /^\d{1,2}:\d{2}$/.test(s)).map(s => s.padStart(5, '0')))].slice(0, 4).sort();
     const active = d.active === undefined ? r.active : d.active ? 1 : 0;
+    if (active) { const tk = await fpTracked(x); if (!tk.has(String(r.id))) { tk.add(String(r.id)); await kvSet(x.db, 'fp_track', JSON.stringify([...tk])); } } // bật trợ lý = theo dõi trang
     await run(x.db, 'UPDATE fp_pages SET cfg = ?, active = ?, on_at = CASE WHEN ? = 1 AND active = 0 THEN ? ELSE on_at END WHERE id = ?', JSON.stringify(c), active, active, Date.now(), r.id); PG.delete(r.id);
     await crmLog(x, u, 'Cài đặt fanpage', r.id, r.name, active ? 'Bật' : 'Tắt', '');
     return { ok: true };
