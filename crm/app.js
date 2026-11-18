@@ -1375,7 +1375,7 @@
   function custCard(c, withTask) {
     var cat = custCat(c);
     return '<div class="card click tinted" data-cust="' + c.phone + '"' + catAttr(cat) + '>' +
-      '<div class="r1"><b>' + esc(c.name || 'Khách') + '</b>' + catChip(cat) + custTags(c) + (c.owner ? (lvl() >= 2 || c.owner !== S.user.name ? '<span class="tag owner">👤 ' + esc(c.owner) + '</span>' : '') : '<span class="tag noconsent">Chưa ai phụ trách</span>') + '<span class="end">' + (c.orders > 1 ? c.orders + ' đơn · ' : '') + moneyShort(c.spent) + '</span></div>' +
+      '<div class="r1"><b>' + esc(c.name || 'Khách') + '</b>' + catChip(cat) + custTags(c) + (c.owner ? (lvl() >= 2 || c.owner !== S.user.name ? '<span class="tag owner">👤 ' + esc(c.owner) + '</span>' : '') : (c.poolFrom ? '<span class="tag pool" title="' + esc(c.poolFrom) + ' đã chăm khách này một thời gian và trả về Kho chung. Đọc ghi chú / lịch sử rồi thử cách khác.">↩ từ ' + esc(c.poolFrom) + '</span>' : '<span class="tag noconsent">Chưa ai phụ trách</span>')) + '<span class="end">' + (c.orders > 1 ? c.orders + ' đơn · ' : '') + moneyShort(c.spent) + '</span></div>' +
       '<div class="r2">' + fPhone(c.phone) + (c.products.length ? ' · ' + esc(shortProducts(c.products)) : '') + '</div>' +
       '<div class="r-age">' + zaloTag(c) + ageTag(c) + (c.flag ? '<span class="age bad">⚠️ ' + esc(c.flag) + '</span>' : '') + '</div>' +
       '<div class="r3">' + (withTask ? (c.task ? taskLine(c) : 'Mua gần nhất ' + daysAgo(c.last)) : 'Đơn gần nhất ' + daysAgo(c.last)) + '</div>' +
@@ -1987,9 +1987,10 @@
   /** Sale (chế độ Kho chung): khách hỏi chưa ai phụ trách, kể cả số người khác giữ quá hạn → đọc lịch sử rồi ✋ Nhận. Việc dự phòng khi hết số quảng cáo. */
   function poolBlock() {
     var ls = (S.d.leads || []).filter(function (l) { return !l.owner && isOpenLead(l); }).sort(function (a, b) { return (b.ownAt || b.time) - (a.ownAt || a.time); });
-    if (!ls.length) return '';
+    var cs = (S.d.customers || []).filter(function (c) { return !c.owner && c.poolAt; }).sort(function (a, b) { return b.poolAt - a.poolAt; }); // 18/11/2026: khách ĐÃ MUA sale tự trả về kho
+    if (!ls.length && !cs.length) return '';
     var R = S.d.rules || {}, t0 = today(), got = (S.d.log || []).filter(function (l) { return l.by === S.user.name && l.what === 'Nhận khách' && l.time >= t0; }).length;
-    return '<section class="section"><details class="grp" data-grp="pool"' + (S.f.gopen && S.f.gopen.pool ? ' open' : '') + '><summary><span class="g-t">🧺 Kho chung – ai nhận cũng được</span><span class="count">' + ls.length + '</span><span class="g-tip">khách hỏi chưa ai chốt · đọc lịch sử rồi bấm ✋ Nhận' + (R.poolMax ? ' · hôm nay bạn đã nhận ' + got + ' / ' + R.poolMax : '') + '</span></summary>' + poolRuleBar() + '<div class="list cols" style="padding:10px">' + capRows(ls, leadCard) + '</div></details></section>';
+    return '<section class="section"><details class="grp" data-grp="pool"' + (S.f.gopen && S.f.gopen.pool ? ' open' : '') + '><summary><span class="g-t">🧺 Kho chung – ai nhận cũng được</span><span class="count">' + (ls.length + cs.length) + '</span><span class="g-tip">khách hỏi chưa ai chốt' + (cs.length ? ' · ' + cs.length + ' khách đã mua được trả về' : '') + ' · đọc lịch sử rồi bấm ✋ Nhận' + (R.poolMax ? ' · hôm nay bạn đã nhận ' + got + ' / ' + R.poolMax : '') + '</span></summary>' + poolRuleBar() + '<div class="list cols" style="padding:10px">' + capRows(cs, function (c) { return custCard(c, false); }) + capRows(ls, leadCard) + '</div></details></section>';
   }
   /** 14/11/2026 (anh Sơn): dòng luật Kho chung + link trang hướng dẫn + nút góp ý luật, để sale xem lại và góp ý cải tiến. */
   function poolRuleBar() {
@@ -4166,7 +4167,7 @@
     return Math.min(5, ok + extra);
   }
   function idleBlock() {
-    var me = S.user.name, pool = isPoolStaff() && poolOn() ? (S.d.leads || []).filter(function (l) { return !l.owner && isOpenLead(l); }).length : 0, idle = idleLeads(me), amb = 0;
+    var me = S.user.name, pool = isPoolStaff() && poolOn() ? (S.d.leads || []).filter(function (l) { return !l.owner && isOpenLead(l); }).length + (S.d.customers || []).filter(function (c) { return !c.owner && c.poolAt; }).length : 0, idle = idleLeads(me), amb = 0;
     try { rbData(); var A = ambList(); amb = A ? A.list.length : 0; } catch (e) { amb = 0; }
     var t0 = today(), ef = effortStats(me, t0, t0 + DAY), GOAL = 5, PP = (S.d.rules && S.d.rules.payplan) || {};
     var zlN = S.d.customers.filter(function (c) { return c.owner === me && c.orders > 0 && !inComm(c) && !isStopped(c); }).length;
@@ -4384,7 +4385,7 @@
     if (!confirm('Trả ' + (c.name || fPhone(c.phone)) + ' về Kho chung?\n\nKhách giữ nguyên lịch sử mua. Cả phòng sẽ thấy và nhận được khách này. Bạn không còn phụ trách khách này nữa.')) return;
     btn.disabled = true; btn.textContent = 'Đang trả…';
     api('pool_give', { phone: c.phone, why: why }).then(function () {
-      var now = Date.now(); c.owner = ''; c.callback = null; c.note = (c.note ? c.note + '\n' : '') + fDate(now).slice(0, 5) + ': ↩ ' + S.user.name + ' trả về Kho chung: ' + why;
+      var now = Date.now(); c.poolFrom = c.owner; c.poolAt = now; c.owner = ''; c.callback = null; c.note = (c.note ? c.note + '\n' : '') + fDate(now).slice(0, 5) + ': ↩ ' + S.user.name + ' trả về Kho chung: ' + why;
       setData(S.d, S.loadedAt); closeModal(true); render(); navBadges(); toast('Đã trả về Kho chung ✓');
     }, function (e) { toast(e.message, true); btn.disabled = false; btn.textContent = '🧺 Trả về Kho chung'; });
   }

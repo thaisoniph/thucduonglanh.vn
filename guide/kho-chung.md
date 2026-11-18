@@ -48,7 +48,7 @@ Khách không hợp với bạn, hoặc bạn không chăm tiếp được: mở
 
 Người nhận sau đọc được lý do của bạn. 
 
-**Khách đã mua** (từ 18/11/2026): chăm một thời gian thấy không khả thi thì bạn cũng trả được. Mở hồ sơ khách ở tab **Khách hàng**, kéo xuống bấm **🧺 Trả khách này về Kho chung**, ghi lý do. Khách giữ nguyên lịch sử mua và hiện ở tab **Khách hàng** với chữ *Chưa ai phụ trách*; người khác mở hồ sơ bấm **✋ Nhận khách này**. Khách đang có đơn mới thì đơn đó vẫn tính cho người đã bán.
+**Khách đã mua** (từ 18/11/2026): chăm một thời gian thấy không khả thi thì bạn cũng trả được. Mở hồ sơ khách ở tab **Khách hàng**, kéo xuống bấm **🧺 Trả khách này về Kho chung**, ghi lý do. Khách giữ nguyên lịch sử mua và hiện cùng mục **🧺 Kho chung – ai nhận cũng được** ở tab **Hôm nay** (nhãn **↩ từ [tên bạn]**), cũng thấy ở tab **Khách hàng**; người khác bấm **✋ Nhận khách này**. Khi có người nhận, bạn được Telegram báo để ngừng nhắn Zalo khách. Khách đang có đơn mới thì đơn đó vẫn tính cho người đã bán.
 
 ## Số KHÔNG BAO GIỜ tự về kho
 

@@ -47,7 +47,7 @@ import { wbQueue, wbOrderQueue, wbStatusQueue, wbEditQueue, wbDeleteQueue, wbInf
 
 let schemaDone = false, deltaOk = false; // deltaOk: đã có cột upd + trigger → cho CRM tải phần thay đổi
 const NOW_MS = "CAST((julianday('now') - 2440587.5) * 86400000 AS INTEGER)"; // giờ của máy chủ dữ liệu (ms)
-const SCHEMA_V = '2026-11-16g'; // + orders.entered_at (🕐 giờ lên đơn thật khi sale chọn giờ chốt sớm hơn, 16/11/2026) · + users.gvsee (👀 theo dõi việc của ai, 16/11/2026) · users.gv (✅ Việc tuần) + sessions.seen / ua
+const SCHEMA_V = '2026-11-18a'; // + customers.pool_from/pool_at (khách đã mua tự trả về Kho chung, 18/11/2026) · orders.entered_at (🕐 giờ lên đơn thật khi sale chọn giờ chốt sớm hơn, 16/11/2026) · + users.gvsee (👀 theo dõi việc của ai, 16/11/2026) · users.gv (✅ Việc tuần) + sessions.seen / ua
 export async function ensureSchema(db) {
   if (schemaDone) return;
   // Đã kiểm tra với bản này rồi → chỉ hỏi 1 lần. Trước đây mỗi lần Cloudflare bật máy mới (rất thường xuyên) phải chạy ~25 lệnh nối tiếp, mất 3–5 giây.
@@ -86,6 +86,7 @@ export async function ensureSchema(db) {
     for (const col of ['ref_phone', 'ref_name', 'how']) if (!lcols.includes(col)) { try { await run(db, `ALTER TABLE leads ADD COLUMN ${col} TEXT DEFAULT ''`); } catch (e) { } }
     for (const [col, def] of [['own_at', 'INTEGER'], ['pool_n', 'INTEGER DEFAULT 0'], ['pool_from', "TEXT DEFAULT ''"], ['pool_warn', 'INTEGER']]) if (!lcols.includes(col)) { try { await run(db, `ALTER TABLE leads ADD COLUMN ${col} ${def}`); } catch (e) { } } // 09/11/2026 🧺 Kho chung: ngày giao người phụ trách, số lần về kho, người giữ trước, lúc đã báo trước 1 ngày
     for (const [col, def] of [['own_src', "TEXT DEFAULT ''"], ['own_at', 'INTEGER'], ['own_by', "TEXT DEFAULT ''"], ['own_ok', 'INTEGER DEFAULT 0'], ['own_flag', "TEXT DEFAULT ''"], ['own_how', "TEXT DEFAULT ''"], ['own_chk', 'INTEGER DEFAULT 0']]) if (!ccols.includes(col)) { try { await run(db, `ALTER TABLE customers ADD COLUMN ${col} ${def}`); } catch (e) { } } // 10/11/2026 🙋 khách sale tự mang về: self / ref / no, ngày đơn đầu, sale được hưởng
+    for (const [col, def] of [['pool_from', "TEXT DEFAULT ''"], ['pool_at', 'INTEGER']]) if (!ccols.includes(col)) { try { await run(db, `ALTER TABLE customers ADD COLUMN ${col} ${def}`); } catch (e) { } } // 18/11/2026 🧺 khách ĐÃ MUA sale tự trả về Kho chung: người trả + lúc trả
     const tcols = (await all(db, "PRAGMA table_info(targets)")).map(r => r.name); // 10/11/2026: mục tiêu khách tự tạo trong tháng (số khách, không tốn quảng cáo)
     if (!tcols.includes('self_n')) { try { await run(db, 'ALTER TABLE targets ADD COLUMN self_n INTEGER DEFAULT 0'); } catch (e) { } }
     const ucols = (await all(db, "PRAGMA table_info(users)")).map(r => r.name);
@@ -535,14 +536,14 @@ export async function srcList(x) {
 }
 export async function adsCfg(x) { return kvJson(x.db, 'ads_cfg', null); }
 
-const CUS_SQL = `SELECT phone, name, address, province, ward, orders, spent, first, last, products, runout, consent, source, owner, care_at, care_result, substr(note, 1, ${NOTE_MAX}) AS note, length(note) > ${NOTE_MAX} AS cut, callback, flag, tag, last_status, last_ca, zalo, community, dob, recv, ok_n, back_n, last_back, fam, addr_old, zone, stop, stop_by, stop_at, stop_ok, own_src, own_at, own_by, own_ok, own_flag, own_how, own_chk, CASE WHEN own_src = 'ref' THEN EXISTS (SELECT 1 FROM own_proof p WHERE p.phone = customers.phone) ELSE 0 END AS own_pf FROM customers`;
+const CUS_SQL = `SELECT phone, name, address, province, ward, orders, spent, first, last, products, runout, consent, source, owner, care_at, care_result, substr(note, 1, ${NOTE_MAX}) AS note, length(note) > ${NOTE_MAX} AS cut, callback, flag, tag, last_status, last_ca, zalo, community, dob, recv, ok_n, back_n, last_back, fam, addr_old, zone, stop, stop_by, stop_at, stop_ok, own_src, own_at, own_by, own_ok, own_flag, own_how, own_chk, pool_from, pool_at, CASE WHEN own_src = 'ref' THEN EXISTS (SELECT 1 FROM own_proof p WHERE p.phone = customers.phone) ELSE 0 END AS own_pf FROM customers`;
 const cusOut = (v, today, R) => ({
   phone: v.phone, name: v.name || '', address: v.address || '', province: v.province || '', ward: v.ward || '', orders: v.orders || 0, spent: v.spent || 0, first: v.first, last: v.last,
   products: String(v.products || '').split('; ').filter(String), runout: v.runout, group: groupOf(v.orders || 0, v.spent || 0, v.last, R), consent: !!v.consent, source: v.source || '', owner: v.owner || '',
   careAt: v.care_at, careResult: v.care_result || '', note: v.note || '', noteCut: !!v.cut, callback: v.callback, flag: v.flag || '', tag: v.tag || '', task: careTask(v, today, R), lastStatus: v.last_status || '', lastCa: v.last_ca || '',
   zalo: !!v.zalo, community: v.community || '', dob: v.dob || '', recv: v.recv || null, okN: v.ok_n || 0, backN: v.back_n || 0, lastBack: v.last_back || 0, fam: !!v.fam, addrOld: v.addr_old || '', zone: v.zone || 0,
   stop: v.stop || '', stopBy: v.stop_by || '', stopAt: v.stop_at || null, stopOk: !!v.stop_ok,
-  ownSrc: v.own_src === 'self' || v.own_src === 'ref' ? v.own_src : '', ownAt: v.own_at || null, ownBy: v.own_by || '', ownOk: Number(v.own_ok) || 0, ownFlag: v.own_flag || '', ownHow: v.own_how || '', ownChk: Number(v.own_chk) || 0, ownPf: Number(v.own_pf) || 0 // 🙋 khách sale tự mang về (ownTick)
+  ownSrc: v.own_src === 'self' || v.own_src === 'ref' ? v.own_src : '', ownAt: v.own_at || null, ownBy: v.own_by || '', ownOk: Number(v.own_ok) || 0, ownFlag: v.own_flag || '', ownHow: v.own_how || '', ownChk: Number(v.own_chk) || 0, ownPf: Number(v.own_pf) || 0, poolFrom: v.pool_from || '', poolAt: v.pool_at || null // 🙋 khách sale tự mang về (ownTick)
 });
 const logOut = l => ({ time: l.time, by: l.by_name || '', what: l.what || '', ref: l.ref || '', name: l.name || '', result: l.result || '', note: l.note || '' });
 const contactOut = r => ({ row: r.rid, time: r.time, name: r.name || '', phone: r.phone || '', email: r.email || '', message: r.message || '', page: r.page || '', done: !!r.done, note: r.note || '' });
@@ -884,7 +885,7 @@ async function crmPoolGive(x, u, d) {
     if (c.owner !== u.name && u.level < 2) return { ok: false, error: 'Chỉ người đang phụ trách hoặc quản lý trả được.' };
     const why = String(d.why || '').trim().slice(0, 300); if (why.length < 5) return { ok: false, error: 'Ghi lý do (vài chữ) để người nhận sau biết cách chăm khách.' };
     const now = Date.now(), n0 = String(c.note || '');
-    await run(x.db, "UPDATE customers SET owner = '', callback = NULL, note = ? WHERE phone = ?", (n0 ? n0 + '\n' : '') + fmtDate(now, 'dd/MM') + ': ↩ ' + u.name + ' trả về Kho chung: ' + why, ph);
+    await run(x.db, "UPDATE customers SET owner = '', callback = NULL, pool_from = ?, pool_at = ?, note = ? WHERE phone = ?", c.owner, now, (n0 ? n0 + '\n' : '') + fmtDate(now, 'dd/MM') + ': ↩ ' + u.name + ' trả về Kho chung: ' + why, ph);
     await crmLog(x, u, 'Về kho chung', ph, c.name, c.owner, 'Khách đã mua, tự trả: ' + why);
     return { ok: true };
   }
@@ -902,7 +903,7 @@ async function crmPoolGive(x, u, d) {
 async function crmClaim(x, u, d) {
   if (await assignMode(x) !== 'pool' && u.level < 2) return { ok: false, error: 'Đang không ở chế độ Kho chung.' };
   if (d.leadId) { const ld = await leadGet(x, d.leadId); if (!ld) return { ok: false, error: 'Không tìm thấy khách.' }; if (ld.owner && ld.owner !== u.name) return { ok: false, error: 'Khách này vừa được ' + ld.owner + ' nhận.' }; if (!ld.owner && ld.by_name === 'Website' && !ld.pool_n && u.level < 2) return { ok: false, error: 'Khách để lại số trên web: chờ quản lý giao người phụ trách.' }; if (u.level < 2) { const lim = await poolLimit(x, u); if (lim) return { ok: false, error: lim }; } await leadUpdate(x, d.leadId, { owner: u.name }); poolTaken(x, u, ld); }
-  if (d.phone) { const o = await ownerOf(x, d.phone); if (o && o !== u.name) return { ok: false, error: 'Khách này vừa được ' + o + ' nhận.' }; await setOwner(x, d.phone, u.name); }
+  if (d.phone) { const o = await ownerOf(x, d.phone); if (o && o !== u.name) return { ok: false, error: 'Khách này vừa được ' + o + ' nhận.' }; await setOwner(x, d.phone, u.name); const pc = await first(x.db, 'SELECT name, pool_from FROM customers WHERE phone = ?', normPhone(d.phone)); if (pc && pc.pool_from) { if (pc.pool_from !== u.name) poolTaken(x, u, { pool_from: pc.pool_from, name: pc.name, phone: normPhone(d.phone) }); await run(x.db, "UPDATE customers SET pool_from = '' WHERE phone = ?", normPhone(d.phone)); } }
   await crmLog(x, u, 'Nhận khách', normPhone(d.phone || ''), '', 'Kho chung', '');
   return { ok: true };
 }
