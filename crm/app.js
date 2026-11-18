@@ -9148,6 +9148,7 @@
     (j.log || []).forEach(function (r) { has[r.g || r.gn] = 1; });
     var zero = on.filter(function (g) { return !has[g.id]; });
     if (ed && j.upd) L.push(['📚 Bản insight mặc định có cập nhật mới từ tài liệu khoá học. Gộp vào không xoá gì anh chị đã sửa.', 'merge', '📚 Gộp ngay']);
+    if (lvl() >= 3 && j.st && j.st.n > j.st.ok) L.push(['📗 <b>' + (j.st.n - j.st.ok) + ' mục Sổ tay</b> chờ anh xác nhận: trợ lý đang dùng tạm, xác nhận để chắc nội dung đúng.', 'tab|nen|sot', '✅ Xác nhận']);
     if (ev) L.push(['📅 <b>' + esc(ev.n) + '</b> ' + (ev.in ? 'còn ' + ev.in + ' ngày' : 'là hôm nay') + ': đến lúc chuẩn bị bài gắn dịp.', 'tab|tao', '✍️ Tạo nội dung']);
     if (zero.length) L.push(['⚠️ <b>' + zero.length + ' nhóm khách</b> chưa có bài nào 30 ngày qua (' + esc(zero.slice(0, 2).map(function (g) { return g.name; }).join(', ')) + (zero.length > 2 ? '…' : '') + ').', 'vgo|' + esc(zero[0].id), '🎬 Viết video']);
     if (ed && !((j.kw && j.kw.list) || []).length) L.push(['🔑 Chưa có từ khoá cho bài web: Google và ChatGPT khó gợi ý Thực Dưỡng Lành.', 'tab|nen|kw', '🔑 Lập từ khoá']);
@@ -9253,7 +9254,7 @@
     } else if (tab === 'nen') {
       var st = j.st, kwL = (j.kw && j.kw.list) || [];
       h += inTabi('Tài liệu gốc trợ lý tra trước khi trả lời khách và viết bài: thông tin công ty, từ khoá bài web, cách viết theo khoá học. <b>Ít khi phải sửa.</b>', ['Công ty đổi chính sách, có câu hỏi mới: sửa <b>📗 Sổ tay</b>', 'Chưa có từ khoá bài web: bấm <b>🔑 Từ khoá</b> để AI lập 1 lần', '<b>📘 Phương pháp</b>: để nguyên']);
-      h += inAcc('sot', '📗 Sổ tay doanh nghiệp', stInfoLine(st), sotHtml(), false) +
+      h += inAcc('sot', '📗 Sổ tay doanh nghiệp', stInfoLine(st), sotHtml(), true) +
         inAcc('kw', '🔑 Từ khoá cho bài web', kwL.length ? kwL.length + ' từ khoá' : 'chưa có từ khoá', inKwHtml(j, ed), false) +
         inAcc('pp', '📘 Phương pháp trợ lý đang dùng', 'mặc định theo khoá học', inSkillsHtml(j, ed), false);
     } else {
@@ -9627,20 +9628,24 @@
     var d = SBK.d, its = d.items, q = SBK.q.trim().toLowerCase(), cnt = {}, due = its.filter(stDue);
     its.forEach(function (v) { cnt[v.group] = (cnt[v.group] || 0) + 1; });
     var L = its.filter(function (v) { return (!SBK.g || (SBK.g === 'due' ? stDue(v) : v.group === SBK.g)) && (!q || (v.title + ' ' + v.body).toLowerCase().indexOf(q) >= 0); });
+    // 19/11/2026: anh Sơn không thấy chỗ xác nhận (nút chỉ có khi mở từng mục) → hộp xác nhận luôn hiện đầu Sổ tay + nút ✅ ngay trên dòng mục
+    var nOn = its.filter(function (v) { return v.status !== 'Tắt'; }).length;
+    h += due.length ? '<div class="st-due"><p><b>🟡 ' + due.length + ' / ' + nOn + ' mục chờ ' + (d.adm ? 'anh' : 'Quản trị') + ' xác nhận.</b> ' + (d.adm ? 'Đọc từng mục, đúng thì bấm <b>✅ Xác nhận</b> ngay trên dòng đó. Chưa đúng thì bấm vào mục → <b>✏️ Sửa</b>.' : 'Trợ lý vẫn dùng tạm các mục này; chỉ Quản trị bấm được ✅ Xác nhận.') + '</p>' +
+      '<div class="lq-btns">' + (SBK.g === 'due' ? '<button class="btn sm" data-st="g|">📋 Xem tất cả mục</button>' : '<button class="btn sm' + (d.adm ? ' pri' : '') + '" data-st="g|due">👀 Chỉ xem ' + due.length + ' mục chờ</button>') + (d.adm ? '<button class="btn sm ghost" data-st="okall">✅ Xác nhận cả ' + due.length + ' mục</button>' : '') + '</div></div>'
+      : (its.length ? '<p class="st-due ok">✅ <b>Đã xác nhận hết ' + nOn + ' mục.</b> Sau ' + d.remind_days + ' ngày Telegram nhắc xác nhận lại.</p>' : '');
     h += '<div class="st-bar"><div class="voq-chips"><button type="button" class="chip' + (!SBK.g ? ' on' : '') + '" data-st="g|">Tất cả <em>' + its.length + '</em></button>' +
       (due.length ? '<button type="button" class="chip' + (SBK.g === 'due' ? ' on' : '') + '" data-st="g|due">🟡 Cần xác nhận <em>' + due.length + '</em></button>' : '') +
       d.groups.map(function (g) { return cnt[g] ? '<button type="button" class="chip' + (SBK.g === g ? ' on' : '') + '" data-st="g|' + esc(g) + '">' + esc(g.replace(' + câu trả lời đã duyệt', '')) + ' <em>' + cnt[g] + '</em></button>' : ''; }).join('') + '</div>' +
-      '<div class="st-tools"><input type="search" id="stQ" placeholder="🔍 Tìm trong Sổ tay" value="' + esc(SBK.q) + '">' + (d.ed ? '<button class="btn sm pri" data-st="new">➕ Thêm mục</button>' : '') +
-      (d.adm && SBK.g === 'due' && L.length ? '<button class="btn sm" data-st="okall">✅ Xác nhận ' + L.length + ' mục này</button>' : '') + '</div></div>';
+      '<div class="st-tools"><input type="search" id="stQ" placeholder="🔍 Tìm trong Sổ tay" value="' + esc(SBK.q) + '">' + (d.ed ? '<button class="btn sm" data-st="new">➕ Thêm mục</button>' : '') + '</div></div>';
     if (!L.length) h += '<p class="small muted">' + (its.length ? 'Không có mục nào khớp.' : 'Sổ tay chưa có mục nào. Bấm ➕ Thêm mục.') + '</p>';
     var gs = d.groups.filter(function (g) { return L.some(function (v) { return v.group === g; }); });
     h += gs.map(function (g) {
       return '<p class="st-gh">' + esc(g) + '</p>' + L.filter(function (v) { return v.group === g; }).map(function (v) {
-        var st = v.status === 'Tắt' ? '<span class="st-s off">⏸ Tắt</span>' : stDue(v) ? '<span class="st-s due">🟡 ' + (v.status === 'Đã xác nhận' ? 'Quá hạn xác nhận lại' : 'Chờ xác nhận') + '</span>' : '<span class="st-s ok">✅ Đã xác nhận</span>';
+        var st = v.status === 'Tắt' ? '<span class="st-s off">⏸ Tắt</span>' : stDue(v) ? '<span class="st-s due">🟡 ' + (v.status === 'Đã xác nhận' ? 'Quá hạn xác nhận lại' : 'Chờ xác nhận') + '</span>' + (d.adm ? '<button class="btn sm pri st-okb" data-st="ok|' + esc(v.id) + '">✅ Xác nhận</button>' : '') : '<span class="st-s ok">✅ Đã xác nhận' + (v.by ? ' · ' + esc(v.by) : '') + (v.date ? ' · ' + esc(v.date.slice(8, 10) + '/' + v.date.slice(5, 7)) : '') + '</span>';
         return '<details class="st-it' + (v.status === 'Tắt' ? ' bw-off' : '') + '"' + (SBK.open === v.id ? ' open' : '') + ' data-stid="' + esc(v.id) + '"><summary><b>' + esc(stFill(v.title)) + '</b>' + st + '</summary>' +
           '<div class="st-body small">' + esc(stFill(v.body)).replace(/\n/g, '<br>') + '</div>' +
           '<p class="small muted st-meta">' + (v.status === 'Đã xác nhận' ? 'Xác nhận: ' + esc(v.by || '') + ' ' + esc(v.date.split('-').reverse().join('/')) + ' · ' : '') + (v.upd ? 'Sửa lần cuối: ' + esc(v.ub || '') + ' ' + fDateTime(v.upd) : 'Chưa sửa trong CRM') + ((v.hist || []).length ? ' · ' + v.hist.length + ' bản trước' : '') + '</p>' +
-          (d.ed ? '<div class="lq-btns"><button class="btn sm" data-st="ed|' + esc(v.id) + '">✏️ Sửa</button>' + (d.adm && stDue(v) ? '<button class="btn sm pri" data-st="ok|' + esc(v.id) + '">✅ Xác nhận vẫn đúng</button>' : '') + (d.adm ? '<button class="btn sm ghost" data-st="del|' + esc(v.id) + '">🗑 Xoá</button>' : '') + '</div>' : '') + '</details>';
+          (d.ed ? '<div class="lq-btns"><button class="btn sm" data-st="ed|' + esc(v.id) + '">✏️ Sửa</button>' + (d.adm && stDue(v) ? '<button class="btn sm pri" data-st="ok|' + esc(v.id) + '">✅ Xác nhận đúng</button>' : '') + (d.adm ? '<button class="btn sm ghost" data-st="del|' + esc(v.id) + '">🗑 Xoá</button>' : '') + '</div>' : '') + '</details>';
       }).join('');
     }).join('');
     h += '<p class="small muted st-foot">' + (d.adm ? 'Nhắc anh xác nhận lại sau <input type="number" id="stDays" min="30" max="365" value="' + d.remind_days + '"> ngày (Telegram sáng thứ Hai). ' : 'Mục quá ' + d.remind_days + ' ngày chưa xác nhận lại thì Telegram nhắc anh Sơn sáng thứ Hai. ') + 'Chỉ Quản trị bấm được ✅ Xác nhận; sửa chữ mục đã xác nhận thì mục về 🟡 chờ xác nhận.</p>';
@@ -9678,6 +9683,7 @@
   }
   document.addEventListener('click', function (e) {
     var t = e.target.closest('[data-st]'); if (!t) return;
+    if (t.closest('summary')) e.preventDefault();
     var v = t.getAttribute('data-st').split('|'), a = v[0];
     if (a === 'reload') { SBK.err = ''; SBK.d = null; return render(); }
     if (!SBK.d) return;
@@ -9685,7 +9691,7 @@
     if (a === 'new') return stForm(null);
     if (a === 'ed') { SBK.open = v[1]; return stForm(v[1]); }
     var done = function (msg) { return function (r) { SBK.d = r.st; toast(msg); render(); }; }, fail = function (er) { t.disabled = false; toast(er.message, true); };
-    if (a === 'ok') { t.disabled = true; SBK.open = v[1]; return api('ins_stok', { id: v[1] }).then(done('✅ Đã xác nhận'), fail); }
+    if (a === 'ok') { t.disabled = true; if (!t.closest('summary')) SBK.open = v[1]; return api('ins_stok', { id: v[1] }).then(done('✅ Đã xác nhận'), fail); }
     if (a === 'okall') { var ids = SBK.d.items.filter(stDue).map(function (x) { return x.id; }); if (!confirm('Xác nhận ' + ids.length + ' mục là vẫn đúng? Nên đọc qua trước khi bấm.')) return; t.disabled = true; return api('ins_stok', { ids: ids }).then(done('✅ Đã xác nhận ' + ids.length + ' mục'), fail); }
     if (a === 'del') { var it = SBK.d.items.filter(function (x) { return x.id === v[1]; })[0]; if (!it || !confirm('Xoá hẳn mục “' + it.title + '”? Muốn trợ lý tạm không dùng thì bấm ✏️ Sửa → Tạm tắt.')) return; t.disabled = true; return api('ins_stdel', { id: v[1] }).then(done('Đã xoá mục'), fail); }
   });

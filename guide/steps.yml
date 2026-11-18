@@ -782,7 +782,7 @@ wb-sotay:
         - ["chips", ["🗣 Lời khách", "📅 Dịp", "📗 Tài liệu nền"], 2]
         - ["h", "📗 Sổ tay doanh nghiệp"]
         - ["card", "❓ Có dùng cho bà bầu được không?", "🟡 chờ xác nhận", "y"]
-        - ["btn2", "✏️ Sửa", "✅ Xác nhận vẫn đúng", ""]
+        - ["btn2", "✏️ Sửa", "✅ Xác nhận", ""]
       hi: 3
       text: "CRM → <b>🎯 Insight & nội dung</b> → thẻ <b>📗 Tài liệu nền</b> → <b>📗 Sổ tay doanh nghiệp</b>. Tìm mục cần sửa, bấm <b>✏️ Sửa</b>."
     - title: Sửa mục Sổ tay

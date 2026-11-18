@@ -156,6 +156,7 @@ Sổ tay có 5 nhóm:
 [[steps:wb-sotay]]
 
 > - Số tiền, hotline không gõ tay: trong hộp sửa bấm vào **nút số** (0966 326 522, 30.000 ₫…) để chèn ô tự điền. Đổi số ở *Cài đặt website → Thông tin liên hệ* là Sổ tay đổi theo. Dòng **👁 Trợ lý sẽ đọc thành** cho xem trước.
+> - **Xác nhận (anh Sơn):** đầu Sổ tay có ô cam **🟡 N mục chờ anh xác nhận**. Bấm **👀 Chỉ xem mục chờ**, bấm vào từng mục đọc nội dung, đúng thì bấm **✅ Xác nhận** ngay trên dòng tiêu đề (không cần mở). Ô **👉 Nên làm ngay** đầu trang Insight cũng nhắc khi còn mục chờ.
 > - Ai sửa được: Marketing, Quản lý, Quản trị, người có ô 🌐 Sửa website. **Chỉ Quản trị bấm ✅ Xác nhận.** Sửa chữ mục đã xác nhận thì mục về 🟡 chờ xác nhận.
 > - Lưu xong **khoảng 2 phút** sau mọi trợ lý dùng bản mới. Mỗi mục giữ **5 bản trước** (🕘), bấm **↩️ Dùng lại bản này** nếu sửa nhầm.
 > - Mục nào **quá 90 ngày** chưa xác nhận lại, sáng thứ Hai anh Sơn nhận tin Telegram kèm link mở thẳng Sổ tay.
