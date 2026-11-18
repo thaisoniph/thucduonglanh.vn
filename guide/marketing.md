@@ -224,35 +224,11 @@ File không đọc được: chụp màn hình gửi Quản trị. File .xls cũ
 
 ## Việc 11: Quảng cáo Biểu mẫu lấy số điện thoại
 
-> **Một câu dễ nhớ:** Quảng cáo nhắm **số điện thoại**, không nhắm "mua qua tin nhắn". Khách điền biểu mẫu → số tự vào CRM, tự chia sale, sale gọi trong 5 phút. CRM tự báo Facebook số nào gọi được, ai đã mua → Facebook học tìm đúng người.
+> **Một câu dễ nhớ:** Quảng cáo nhắm **số điện thoại**, không nhắm "mua qua tin nhắn". Số khách điền biểu mẫu tự vào CRM, CRM tự báo Facebook ai nghe máy, ai mua.
 
-**Vì sao đổi (số thật 01–18/11/2026):** mọi chiến dịch chạy "Mua qua tin nhắn", nhưng khách chốt qua điện thoại nên Facebook đếm **0 lượt mua** và không học được. Nhắm tệp hẹp làm giá 1.000 lượt thấy lên 450k–1,2 triệu (nhắm rộng chỉ ~65k). Facebook đếm 94 người để lại thông tin, file chỉ ghi 58 số.
+Cách tạo chiến dịch, cài biểu mẫu, luật tăng / giữ / tắt mỗi sáng: xem trang riêng **[Quảng cáo Biểu mẫu lấy số](/huong-dan/quang-cao-bieu-mau/)**.
 
-**Mức giá 1 số:** cứ 100 số sale chốt ~37 khách, mỗi khách mới lãi đơn đầu ~730k → **trần 270k / số** (hoà vốn ngay đơn đầu), **tốt dưới 175k** (có lãi khi tính khách mua lại).
-
-**Tạo chiến dịch (trong Trình quản lý quảng cáo Facebook):**
-
-1. Gom về **1 tài khoản quảng cáo chính**. Không rải nhiều tài khoản.
-2. Tạo chiến dịch, mục tiêu **Khách hàng tiềm năng**. Bật **ngân sách chiến dịch** khoảng 700k / ngày.
-3. Nhóm quảng cáo: nơi nhận = **Biểu mẫu tức thì**. Vị trí: tự động (Advantage+). Tuổi 40–65+, **không thêm sở thích**. Loại trừ tệp khách đã mua (**🧰 Công cụ → 👥 Tệp khách FB**).
-4. Biểu mẫu: chọn **Ý định cao hơn** (khách xem lại số trước khi gửi). Hỏi họ tên, số điện thoại (Facebook điền sẵn) và 1 câu chọn "Anh/chị đang quan tâm điều gì?". Quà: cẩm nang. Trang cảm ơn: "Nhân viên gọi cho mình trong 15 phút" + nút vào nhóm Zalo.
-5. Đưa 4–6 mẫu: video / ảnh có tỷ lệ bấm cao nhất (ví dụ Reel "Ăn thực dưỡng không kham khổ" CTR 9,3%).
-6. Chạy thêm 1 chiến dịch nhỏ (~300k / ngày) nơi nhận Messenger có mẫu hỏi số điện thoại để so. **Không** chọn "Mua qua tin nhắn".
-
-**Mỗi sáng làm theo luật, không theo cảm giác:**
-
-| Giá 1 số | Làm |
-| --- | --- |
-| 3 ngày đầu | Không sửa gì (Facebook đang học) |
-| Dưới 175k 🟢 | Tăng ngân sách 20%, 2 ngày tăng 1 lần |
-| 175k – 270k 🟠 | Giữ nguyên |
-| Trên 270k 🔴 (sau 3 ngày, đã chi ≥ 800k) | Tắt mẫu kém nhất, thay mẫu mới. Không tắt cả chiến dịch |
-
-Cứ 2 tuần thêm 2 mẫu mới.
-
-**Xem số biểu mẫu về CRM:** tab **📣 Marketing → 🧰 Công cụ → 📋 Biểu mẫu FB**: số về hôm nay / 7 ngày, % sale gọi được, 15 số gần nhất (Marketing chỉ thấy số đã che), số đã báo về Facebook. Bấm **🔄 Quét** nếu vừa có khách điền mà chưa thấy. Số biểu mẫu tự tính vào ô **📇** và **⭐ giá 1 số** như số trong file quảng cáo. **Không cần chép số biểu mẫu vào file**; lỡ chép thì CRM cũng không tạo trùng.
-
-**Báo kết quả về Facebook** (Quản trị bật trong hộp 📋 Biểu mẫu FB): CRM gửi Facebook 2 tín hiệu cho khách đến từ quảng cáo: **số gọi được** (sale ghi kết quả khác "Không nghe máy") và **đã mua** (kèm tiền). Số điện thoại được mã hoá trước khi gửi. Vì vậy **sale ghi kết quả cuộc gọi trong CRM ngay sau khi gọi**: đó là thứ dạy Facebook tìm đúng khách.
+Xem số biểu mẫu đã về: **🧰 Công cụ → 📋 Biểu mẫu FB** (Marketing chỉ thấy số đã che).
 
 ## Hiểu số kỹ hơn
 
@@ -292,7 +268,7 @@ Muốn biết chính xác khách đến từ kênh nào: khi đăng Zalo, gửi 
 
 ### 🧰 Công cụ (cuối trang)
 
-Bấm **🧰 Công cụ** ở hàng *Đi nhanh tới*: **📍 Link & QR**, **🗺 Hệ thống Marketing** (sơ đồ hệ thống marketing của công ty), **📋 Biểu mẫu FB** (số khách điền biểu mẫu quảng cáo, báo kết quả về Facebook – [Việc 11](#viec-11-quang-cao-bieu-mau-lay-so-dien-thoai)), **👥 Tệp khách FB** (chỉ Quản trị).
+Bấm **🧰 Công cụ** ở hàng *Đi nhanh tới*: **📍 Link & QR**, **🗺 Hệ thống Marketing** (sơ đồ hệ thống marketing của công ty), **📋 Biểu mẫu FB** (số khách điền biểu mẫu quảng cáo, báo kết quả về Facebook – [cách làm](/huong-dan/quang-cao-bieu-mau/)), **👥 Tệp khách FB** (chỉ Quản trị).
 
 ## Tin Telegram mỗi sáng
 

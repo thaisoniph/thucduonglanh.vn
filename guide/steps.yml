@@ -1163,3 +1163,112 @@ san-doi-thu:
         - ["btn", "✅ Đã làm", "g"]
       hi: 2
       text: "Đọc thay đổi, vị trí của mình và <b>phương án tuần này</b>. Làm xong bấm <b>✅ Đã làm</b>. Tuần sau CRM tự so với bảng tuần này."
+qcbm-camp:
+  title: Tạo chiến dịch Khách hàng tiềm năng
+  steps:
+    - title: Trình quản lý quảng cáo
+      els:
+        - ["h", "Chọn mục tiêu chiến dịch"]
+        - ["card", "Lưu lượng truy cập", "", ""]
+        - ["card", "Mức độ tương tác", "Không chọn: ra Mua qua tin nhắn", ""]
+        - ["card", "Khách hàng tiềm năng", "Chọn mục này", "g"]
+        - ["btn", "Tiếp tục", "g"]
+      hi: 2
+      text: "Vào <b>adsmanager.facebook.com</b>, chọn đúng <b>1 tài khoản quảng cáo chính</b> → bấm <b>+ Tạo</b> → chọn mục tiêu <b>Khách hàng tiềm năng</b> → <b>Tiếp tục</b>. Kiểu thiết lập chọn <b>Chiến dịch thủ công</b>."
+    - title: Chiến dịch
+      els:
+        - ["in", "Tên chiến dịch", "20/11 - Fucoidan - Form số - 45-65"]
+        - ["card", "Ngân sách Advantage+ chiến dịch", "Bật · 700.000đ / ngày", "g"]
+        - ["card", "Danh mục quảng cáo đặc biệt", "Để trống", ""]
+        - ["note", "Chiến lược giá thầu: Khối lượng cao nhất"]
+      hi: 1
+      text: "Đặt tên theo khuôn <b>Ngày - Sản phẩm - Form số - Tệp</b>. Bật <b>ngân sách chiến dịch</b> khoảng <b>700.000đ / ngày</b>, giá thầu để <b>Khối lượng cao nhất</b> (không đặt giới hạn giá)."
+qcbm-adset:
+  title: Cài nhóm quảng cáo
+  steps:
+    - title: Nhóm quảng cáo
+      els:
+        - ["h", "Vị trí chuyển đổi"]
+        - ["card", "Biểu mẫu tức thì", "Chọn mục này", "g"]
+        - ["card", "Messenger", "Chỉ dùng cho chiến dịch nhỏ để so", ""]
+        - ["note", "Trang: chọn fanpage đã nối CRM"]
+      hi: 1
+      text: "Vị trí chuyển đổi chọn <b>Biểu mẫu tức thì</b>. Chọn <b>Trang</b> là fanpage Thực Dưỡng Lành đã kết nối ở tab 📘 Fanpage trong CRM (nếu không, số không tự vào CRM)."
+    - title: Đối tượng
+      els:
+        - ["card", "Đối tượng Advantage+", "Bật · không thêm sở thích", "g"]
+        - ["in", "Tuổi", "40 – 65+"]
+        - ["in", "Vị trí", "Việt Nam"]
+        - ["card", "Loại trừ", "Tệp khách đã mua (CRM → 👥 Tệp khách FB)", "y"]
+      hi: 0
+      text: "Để <b>Đối tượng Advantage+</b>, tuổi <b>40–65+</b>, cả nước. <b>Không thêm sở thích</b>, không dùng tệp nhỏ. Loại trừ <b>tệp khách đã mua</b> để không tốn tiền cho khách cũ."
+    - title: Vị trí quảng cáo
+      els:
+        - ["card", "Vị trí Advantage+", "Để tự động", "g"]
+        - ["card", "Vị trí thủ công", "Không chọn", ""]
+        - ["note", "Facebook tự dồn tiền vào chỗ rẻ, ra số"]
+      hi: 0
+      text: "Vị trí để <b>Advantage+ (tự động)</b>. Không tự chọn tay từng vị trí: hẹp vị trí làm giá đắt."
+qcbm-form:
+  title: Tạo biểu mẫu tức thì
+  steps:
+    - title: Biểu mẫu tức thì
+      els:
+        - ["h", "Loại biểu mẫu"]
+        - ["card", "Số lượng nhiều hơn", "Dễ điền nhưng nhiều số ảo", ""]
+        - ["card", "Ý định cao hơn", "Khách xem lại số trước khi gửi · chọn", "g"]
+        - ["in", "Tên biểu mẫu", "Fucoidan - Nhận cẩm nang - 11/2026"]
+      hi: 2
+      text: "Ở phần quảng cáo, mục <b>Biểu mẫu tức thì</b> → <b>Tạo biểu mẫu</b> → loại <b>Ý định cao hơn</b> (ít số ảo hơn). Đặt tên rõ sản phẩm + quà + tháng."
+    - title: Lời mở đầu và câu hỏi
+      els:
+        - ["card", "Lời mở đầu", "Tặng cẩm nang Sống khỏe chủ động", "y"]
+        - ["card", "Họ tên + Số điện thoại", "Facebook tự điền sẵn", "g"]
+        - ["card", "Câu hỏi nhiều lựa chọn", "Anh/chị quan tâm điều gì nhất?", ""]
+        - ["in", "Chính sách quyền riêng tư", "thucduonglanh.vn/chinh-sach-bao-mat/"]
+      hi: 1
+      text: "Lời mở đầu nói rõ <b>quà</b> (cẩm nang Sống khỏe chủ động). Hỏi <b>họ tên + số điện thoại</b> và đúng <b>1 câu nhiều lựa chọn</b>. Dán link chính sách quyền riêng tư <b>thucduonglanh.vn/chinh-sach-bao-mat/</b>."
+    - title: Màn hình cảm ơn
+      els:
+        - ["h", "Cảm ơn anh/chị 💚"]
+        - ["card", "Nhân viên gọi trong 15 phút", "Để tặng quà và tư vấn", "g"]
+        - ["btn", "Vào nhóm Zalo Sống khỏe", "g"]
+        - ["note", "Nút: zalo.me/g/tvepjg478"]
+      hi: 1
+      text: "Màn hình cảm ơn ghi <b>\"Nhân viên Thực Dưỡng Lành sẽ gọi cho mình trong 15 phút\"</b> để khách chờ máy. Nút hành động mở nhóm Zalo <b>zalo.me/g/tvepjg478</b>."
+qcbm-luat:
+  title: Mỗi sáng tăng, giữ, tắt theo giá 1 số
+  steps:
+    - title: Marketing
+      els:
+        - ["h", "📇 Số điện thoại về cho sale"]
+        - ["card", "⭐ Giá 1 số: 160k 🟢", "Tốt: dưới 175k · trần 270k", "g"]
+        - ["note", "Đọc giá 1 số trong CRM, không đọc trên Facebook"]
+      hi: 1
+      text: "Mở CRM → <b>📣 Marketing</b>, đọc ô <b>⭐ Giá 1 số điện thoại</b>. 🟢 dưới 175k · 🟠 175k–270k · 🔴 trên 270k."
+    - title: Trình quản lý quảng cáo
+      els:
+        - ["card", "🟢 Dưới 175k", "Tăng ngân sách 20% · 2 ngày / lần", "g"]
+        - ["card", "🟠 175k – 270k", "Giữ nguyên", "y"]
+        - ["card", "🔴 Trên 270k (≥3 ngày, chi ≥800k)", "Tắt mẫu kém nhất, thêm mẫu mới", "r"]
+        - ["note", "3 ngày đầu không sửa gì"]
+      hi: 0
+      text: "Làm đúng 1 việc theo màu. <b>Không</b> đổi ngân sách quá 20–30% một lần, <b>không</b> tắt cả chiến dịch hằng ngày. 2 tuần thêm 2 mẫu mới."
+qcbm-crm:
+  title: Xem số biểu mẫu đã về CRM
+  steps:
+    - title: Marketing
+      els:
+        - ["h", "🧰 Công cụ"]
+        - ["btn2", "📍 Link & QR", "📋 Biểu mẫu FB", ""]
+        - ["note", "Kéo xuống cuối tab Marketing"]
+      hi: 1
+      text: "CRM → <b>📣 Marketing</b> → kéo xuống <b>🧰 Công cụ</b> → bấm <b>📋 Biểu mẫu FB</b>."
+    - title: 📋 Biểu mẫu Facebook → CRM
+      els:
+        - ["chips", ["Hôm nay 4", "7 ngày 23", "Gọi được 74%"], -1]
+        - ["bar", "🟢 Đang nhận: 2 fanpage, 2 biểu mẫu"]
+        - ["card", "15 số gần nhất", "Giờ · chiến dịch · sale · đã gọi được?", ""]
+        - ["btn", "🔄 Quét", ""]
+      hi: 1
+      text: "Xem số về <b>hôm nay / 7 ngày</b> và <b>% sale gọi được</b>. Dòng trạng thái 🟢 là đang nhận tốt, 🔴 thì báo Quản trị. Khách vừa điền mà chưa thấy thì bấm <b>🔄 Quét</b>."
