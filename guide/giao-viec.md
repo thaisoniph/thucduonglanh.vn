@@ -199,6 +199,7 @@ Máy chỉ ghi khi tên trong cuộc họp khớp **đúng 1 người** trong CR
 - **/viec**: việc của tôi
 - **/baocao**: báo cáo tuần của tôi
 - **/phong**: việc cả công ty (Quản lý)
+- **/so**: số quảng cáo hôm qua + 7 ngày; **/so** + câu hỏi để hỏi thêm (Quản trị, Quản lý, Marketing; chỉ trả lời trong chat riêng). Xem [Marketing → Hỏi số qua Telegram](/huong-dan/marketing/#hoi-so-quang-cao-qua-telegram)
 - **/help**: cách dùng
 
 ## Nhóm "🌿 Nhà Lành · Cùng làm"

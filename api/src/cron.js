@@ -8,6 +8,7 @@ import { sanAiMorning, sanAiEvening } from './sanai.js';
 import { shpTick } from './sanshp.js';
 import { mktTick, mktFbEdit } from './mkt.js';
 import { mkSchTick } from './mksch.js';
+import { mkSnapBuild } from './mktg.js';
 import { mktDailyMsgs } from './mktv.js';
 import { wbTick } from './wb.js';
 import { backfillCustomerExtras } from './migrate.js';
@@ -143,7 +144,8 @@ export async function scheduled(x, cron) {
   if (!await kvGet(x.db, 'migrated')) return;
   const now = Date.now(), vn = new Date(now + 7 * 3600e3);
   try { await mkSchTick(x, { mktFbEdit, crmLog, crmUsers, telegramUser }); } catch (e) { console.error('mkSchTick', e.message); } // 🕛 áp thay đổi quảng cáo lúc 0h theo múi giờ tài khoản (mksch.js), chạy cả đêm
-  if (vn.getUTCHours() < 7 || vn.getUTCHours() >= 22) return; // ban đêm (22h–7h) không ai làm việc → nghỉ, đỡ tốn lượt đọc
+  if (vn.getUTCHours() < 7 || vn.getUTCHours() >= 22) return; // ban đêm
+  if (vn.getUTCMinutes() >= 20 && vn.getUTCMinutes() < 30) x.later(mkSnapBuild(x).catch(e => console.error('mkSnap', e.message))); // 📊 bảng số cho lệnh /so Telegram (mktg.js), 1 tiếng / lần (22h–7h) không ai làm việc → nghỉ, đỡ tốn lượt đọc
   if (vn.getUTCDay() === 1 && vn.getUTCHours() >= 9) x.later(nccDriveTick(x).catch(e => console.error('nccDrive', e.message))); // ☁️ thứ Hai: chép chứng từ nhà cung cấp lên Google Drive (ncc.js)
   if (vn.getUTCHours() === 7 && vn.getUTCMinutes() >= 30 && vn.getUTCMinutes() < 50) { // 💼 7h30: tự đọc link Google Sheet kế toán (lượt riêng, lỗi không ảnh hưởng tin 8h)
     const fk = 'finsync_' + fmtDate(now, 'yyyyMMdd');

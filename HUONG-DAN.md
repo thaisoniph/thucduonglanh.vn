@@ -720,6 +720,15 @@ Chiến dịch đang chạy: bật / tắt / đổi ngân sách trong CRM chỉ 
 - CHƯA có tự chạy theo luật (tự tắt / tự tăng): chỉ đề xuất + duyệt, đo 2 tuần. Sau này CRM tạo chiến dịch / nhóm quảng cáo: vị trí bằng ghim + bán kính, không gõ tên tỉnh.
 - Thử 18/11 bản máy (wrangler dev --test-scheduled, D1 giả, mã FB giả): đặt lệnh, chặn > 20%, chặn lần 2, chặn đang học, tắt chiến dịch chờ duyệt, Marketing không duyệt được, huỷ, múi giờ −8 ra 15:00 giờ VN, lịch chạy: lỗi Facebook → error, quá hạn → bỏ, chưa duyệt → bỏ.
 
+
+## 6j. 📊 Hỏi số quảng cáo qua Telegram, chỉ đọc (18/11/2026, api `2026-11-18zz6`, giai đoạn 3)
+
+Code `api/src/mktg.js`. Dùng bot ✅ Việc tuần (giaoviec.js, đã có webhook `/gv/tg/<secret>`); bot báo đơn vẫn không bật webhook.
+- Lệnh `/so` (trong `onUpdate` của giaoviec.js): `mkSoOk(u)` = level ≥ 2 hoặc role Marketing (người phải được bật ✅ Việc tuần và nối bot). Hỏi trong nhóm → gửi vào chat riêng (`privChat`), nhóm chỉ nhận "đã nhắn riêng"; chưa nối chat riêng → nhắc /start.
+- `/so` không chữ → `plain` (không tốn AI). `/so <câu hỏi>` → Haiku (`claude-haiku-5-5`, mục chi phí `tg-so`), chỉ được đưa bảng `mk_snap` + câu hỏi; giới hạn 30 câu / người / ngày, 200 / ngày cả công ty (kv `mkso_<yyMMdd>[_email]`); không có khoá AI hoặc AI lỗi → gửi bản tóm tắt. Trả lời escape `&`, `<` (giữ `<b>`).
+- `mkSnapBuild` (cron.js, phút 20–29 mỗi giờ 7h–22h) → kv `mk_snap`: 14 ngày (chi Facebook, chi mọi kênh, tin nhắn / lead Meta, SĐT thật từ `ads_rows`, giá 1 SĐT thật, giá 1 tin), chiến dịch 7 ngày (`mkCampReal`), lệnh chờ 0h, mức tốt (`dash_cfg.kpi`). Không tên / SĐT khách. Lúc trả lời KHÔNG đọc D1 (chỉ kv).
+- Thử 18/11: `test-so.mjs` (node:sqlite, Telegram + AI giả) 9/9 đúng; `scripts/test-giaoviec.mjs` 81 đúng / 0 sai.
+
 ## 7. Tên miền, DNS, chuyển hướng
 
 - Nameserver: `liberty.ns.cloudflare.com`, `randy.ns.cloudflare.com`. **Mọi thay đổi DNS làm trên Cloudflare**, không làm ở Tenten.

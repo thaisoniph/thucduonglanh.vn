@@ -299,6 +299,18 @@ Muốn biết chính xác khách đến từ kênh nào: khi đăng Zalo, gửi 
 
 Bấm **🧰 Công cụ** ở hàng *Đi nhanh tới*: **📍 Link & QR**, **🗺 Hệ thống Marketing** (sơ đồ hệ thống marketing của công ty), **📋 Biểu mẫu FB** (số khách điền biểu mẫu quảng cáo, báo kết quả về Facebook – [cách làm](/huong-dan/quang-cao-bieu-mau/)), **👥 Tệp khách FB** (chỉ Quản trị).
 
+## Hỏi số quảng cáo qua Telegram
+
+> **Một câu dễ nhớ:** Nhắn **/so** cho bot ✅ Việc tuần (Lành) là có số quảng cáo hôm qua + 7 ngày. Hỏi thêm thì gõ câu hỏi sau chữ /so.
+
+1. Nối bot Việc tuần trước (CRM → **✅ Việc tuần → Kết nối Telegram**, [cách làm](/huong-dan/giao-viec/#noi-telegram-30-giay-lam-1-lan)).
+2. Mở **chat riêng** với bot, gõ **/so**: bot gửi chi Facebook, số tin nhắn Meta báo, **SĐT thật**, giá 1 SĐT thật, chiến dịch ⚠️ "Meta báo nhiều, SĐT thật ít", lệnh chờ 0h.
+3. Hỏi thêm: *“/so hôm qua chi quảng cáo bao nhiêu, giá 1 SĐT thật?”*, *“/so tuần này chiến dịch nào giá 1 SĐT thật rẻ nhất?”*.
+
+- Chỉ **Quản trị, Quản lý, Marketing** hỏi được. Hỏi trong nhóm thì bot **nhắn riêng**, nhóm không thấy số.
+- Bot **chỉ đọc**: không tắt, không sửa quảng cáo. Muốn sửa thì vào CRM đặt lệnh [hẹn 0h](/huong-dan/quang-cao-hen-0h/).
+- Số tính sẵn **1 tiếng 1 lần** (7h–22h), cuối tin ghi giờ tính. Không có tên / SĐT khách.
+
 ## Tin Telegram mỗi sáng
 
 Nối Telegram ở **⚙ Cài đặt → 📲 Thông báo Telegram riêng** (cách làm giống bên sale, xem [Đăng nhập](/huong-dan/crm/#dang-nhap)). 8h sáng bạn nhận tin **"📣 Marketing sáng nay"**: dòng đầu là **📇 Số điện thoại cho sale** (hôm qua về bao nhiêu số, giá 1 số, từ nay cần bao nhiêu số / ngày), rồi hạng thi đua của bạn, tiến độ mục tiêu, số hôm qua, việc nên làm. Muốn xem ngay: cuối tab Marketing bấm **Gửi thử cho tôi**.

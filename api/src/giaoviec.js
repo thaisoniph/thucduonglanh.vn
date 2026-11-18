@@ -16,6 +16,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import { aiFetch } from './airelay.js';
 import { run, all, first, esc, DAY, TZ_MS, CRM_URL, kvGet, kvSet, kvDel, kvJson, fmtDate, startOfDay, randHex, nrm, md5hex } from './lib.js';
 import { crmUsers } from './crm.js';
+import { mkSoOk, mkSoAnswer } from './mktg.js';
 
 const API = 'https://api.thucduonglanh.vn';
 const AI_MODEL = 'claude-haiku-5-5';
@@ -407,6 +408,13 @@ async function onUpdate(x, C, up) {
     C.group = String(chat.id); C.groupName = chat.title || ''; await cfgSet(x, C);
     return reply('✅ Từ giờ việc tuần sẽ hiện trong nhóm <b>' + esc(chat.title || '') + '</b> 🌿\n' + helpText(u, C));
   }
+  if (cmd === 'so') { // 📊 hỏi số quảng cáo, chỉ đọc (mktg.js, 18/11/2026): Quản trị / Quản lý / Marketing, chỉ trả lời trong chat riêng
+    if (!mkSoOk(u)) return reply('Lệnh /so chỉ dành cho Quản trị, Quản lý và Marketing.');
+    const ans = await mkSoAnswer(x, u, text.replace(/^\/so(@\w+)?/i, '').trim());
+    if (priv) return reply(ans);
+    const pc = await privChat(x, u); if (!pc) return reply('Số quảng cáo chỉ gửi riêng. Bạn bấm vào tên em → Nhắn tin → gõ /start, rồi hỏi lại trong chat riêng nhé.');
+    await say(x, C, pc, ans); return reply('📩 Em đã nhắn riêng số liệu cho bạn.');
+  }
   if (cmd === 'help' || cmd === 'huongdan') return reply(helpText(u, C));
   if (cmd === 'viec') return reply(await listText(x, C, u, 'me'));
   if (cmd === 'phong' || cmd === 'ca') return reply(await listText(x, C, u, 'all'));
@@ -485,7 +493,7 @@ async function onButton(x, C, q) {
 }
 function helpText(u, C) {
   const b = C.bot ? '@' + C.bot : 'em';
-  return '<b>Nhịp tuần của mình</b>\n• Trước <b>9h sáng thứ Ba</b>: chốt tối đa 3 việc ⭐ trọng tâm\n• Trước <b>21h thứ Năm</b>: cập nhật tiến độ\n• Trước <b>21h Chủ nhật</b>: kết quả + link minh chứng\n\n' +
+  return (mkSoOk(u) ? '📊 <b>Hỏi số quảng cáo</b> (chỉ trong chat riêng): <i>/so</i> = tóm tắt hôm qua + 7 ngày · <i>/so hôm qua giá 1 SĐT thật bao nhiêu?</i>\n\n' : '') + '<b>Nhịp tuần của mình</b>\n• Trước <b>9h sáng thứ Ba</b>: chốt tối đa 3 việc ⭐ trọng tâm\n• Trước <b>21h thứ Năm</b>: cập nhật tiến độ\n• Trước <b>21h Chủ nhật</b>: kết quả + link minh chứng\n\n' +
     '<b>Cách nhắn</b>\n• Chốt việc: <i>' + b + ' trọng tâm tuần: đăng 3 video trà DILVANG lên TikTok, hạn thứ Sáu</i>\n• Nhờ ai đó: <i>' + b + ' nhờ Trang gửi bảng lương trước 17h thứ Sáu</i>\n' +
     '• Bấm <b>🙋 Mình nhận</b> / <b>✅ Xong rồi</b> dưới tin việc\n• Trả lời (reply) tin việc: <i>xong, đăng 3 video https://…</i> · gửi ảnh kết quả · <i>xin lùi sang thứ Hai</i>\n• <i>+1 https://link</i>: cộng 1 vào 🎯 mục tiêu đếm được của bạn\n• /viec: việc của tôi · /baocao: báo cáo tuần của tôi' + (canAssign(u, C) ? ' · /phong: việc cả công ty' : '') + '\n• Xem đủ trong CRM: ' + VIEW_URL;
 }
