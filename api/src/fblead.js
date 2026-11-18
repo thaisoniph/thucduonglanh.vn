@@ -97,7 +97,7 @@ async function ingest(x, p, L, via) {
   if (!ok) { await telegram(x.env, '⚠️ <b>Biểu mẫu Facebook: số điện thoại không đúng</b> – trang ' + esc(p.name) + '\n👤 ' + esc(o.name || '?') + (o.answers ? '\n📝 ' + esc(o.answers) : '') + '\n👉 Xem trong Trung tâm khách hàng tiềm năng của Meta'); return true; }
   // danh sách số quảng cáo mọi báo cáo dùng (giá 1 số, số về cho sale, tỷ lệ chốt) – adsSync dựng lại sẽ gộp từ fl_leads
   const rows = await kvJson(x.db, 'ads_rows', []) || [];
-  if (!rows.some(r => r[1] === phone && Math.abs(Number(r[0]) - dayOf(at)) <= DAY)) { rows.push([dayOf(at), phone, owner, 'Form FB']); const js = JSON.stringify(rows); await kvSet(x.db, 'ads_rows', js); await kvSet(x.db, 'ads_rows_v', hashKey(js)); }
+  if (!rows.some(r => r[1] === phone && Math.abs(Number(r[0]) - dayOf(at)) <= DAY)) { rows.push([dayOf(at), phone, owner, 'Form FB', camp]); const js = JSON.stringify(rows); await kvSet(x.db, 'ads_rows', js); await kvSet(x.db, 'ads_rows_v', hashKey(js)); }
   try { await insertMany(x.db, 'phone_seen', ['phone', 'at', 'src'], [{ phone, at, src: 'Form FB' }], 'ON CONFLICT(phone) DO UPDATE SET at = excluded.at, src = excluded.src WHERE excluded.at < phone_seen.at'); } catch (e) { }
   const m = '📋 <b>SỐ MỚI TỪ BIỂU MẪU FACEBOOK</b>\n👤 ' + esc(o.name || 'Chưa có tên') + ' – <a href="https://zalo.me/' + phone + '">' + phone + '</a>' + (camp ? '\n📣 ' + esc(camp) : '') + (o.answers ? '\n📝 ' + esc(o.answers) : '')
     + (ld && ld.merged ? '\n🔁 Số này đang có khách hỏi mở – đã ghi nối' : '') + '\n👉 Gọi trong 5 phút: khách vừa điền xong, đang nhớ mình';
@@ -151,7 +151,7 @@ async function scan(x) {
 
 /** Số biểu mẫu để adsSync gộp khi dựng lại ads_rows: [ngày, sđt, sale, nguồn] */
 export async function flRegRows(x, from) {
-  try { await flSchema(x.db); return (await all(x.db, "SELECT at, phone, owner FROM fl_leads WHERE at >= ? AND phone != ''", from)).map(r => [dayOf(r.at), r.phone, r.owner || '', 'Form FB']); }
+  try { await flSchema(x.db); return (await all(x.db, "SELECT at, phone, owner, campaign FROM fl_leads WHERE at >= ? AND phone != ''", from)).map(r => [dayOf(r.at), r.phone, r.owner || '', 'Form FB', String(r.campaign || '')]); }
   catch (e) { return []; }
 }
 

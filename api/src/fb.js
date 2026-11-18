@@ -16,6 +16,7 @@ import { esc, run, all, first, kvGet, kvSet, kvDel, kvJson, normPhone, nrm, fmtD
 import { telegram } from './google.js';
 import { addLead, telegramUser } from './crm.js';
 import { insPick, insBlock, insParse, insLog, insBank, insRisk, insViet, insStyle, INS_HEAD, FUN } from './insight.js';
+import { mkAdRef } from './mkcamp.js';
 import { kb, safe, workNow, TRUTH_RULES, REF_RULES, REF_TXT, PHONE_RE } from './chat.js';
 import { botRef } from './partner.js';
 import { prodMap, zbotLead } from './zbot.js';
@@ -27,7 +28,7 @@ let GRAPH = 'https://graph.facebook.com/v23.0/';
 const useEnv = x => { if (x.env.FB_GRAPH) GRAPH = x.env.FB_GRAPH; }; // chạy thử trên máy: wrangler dev đặt FB_GRAPH = Facebook giả
 const HOOK_URL = 'https://api.thucduonglanh.vn/fb/hook', CB_URL = 'https://api.thucduonglanh.vn/fb/cb';
 const SCOPES = 'pages_show_list,pages_messaging,pages_manage_metadata,pages_read_engagement,pages_read_user_content,pages_manage_engagement,pages_manage_posts,business_management,leads_retrieval,pages_manage_ads'; // 18/11/2026: + đọc biểu mẫu tức thì (fblead.js)
-const FIELDS = 'feed,messages,messaging_postbacks,message_echoes,leadgen';
+const FIELDS = 'feed,messages,messaging_postbacks,message_echoes,leadgen,messaging_referrals'; // messaging_referrals (18/11/2026): khách bấm quảng cáo nhắn tin → mã quảng cáo (mkcamp.js)
 const PERMS = ['pages_messaging', 'pages_manage_metadata', 'pages_read_engagement', 'pages_read_user_content', 'pages_manage_engagement', 'pages_manage_posts']; // quyền bot cần (kiểm tra khi dán mã)
 const FAST = 'claude-haiku-5-5', WRITER = 'claude-sonnet-5-5'; // 13/11/2026: bài Fanpage hằng ngày Opus → Sonnet 5.5 (rẻ ½)
 const BOT = 'An Lành';
@@ -312,6 +313,7 @@ const ASK_PHONE = 'Dạ em gửi quà liền ạ 🎁 Mình cho em xin số đi�
 
 async function onMessage(x, p, m, app) {
   const now = Date.now(), msg = m.message || null;
+  await mkAdRef(x, p, m); // 🎯 khách đến từ quảng cáo nào + SĐT gõ trong Messenger (chạy cả khi trợ lý tắt)
   if (msg && msg.is_echo) { // tin trang gửi đi
     if (String(msg.app_id || '') === String(app.id) || msg.metadata === 'anlanh') return; // của bot
     const psid = String((m.recipient || {}).id || ''); if (!psid) return;

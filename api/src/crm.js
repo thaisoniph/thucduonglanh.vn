@@ -6,6 +6,7 @@ import { chatSchema } from './chat.js';
 import { zbotSchema, crmZbot } from './zbot.js';
 import { zsaleSchema, crmZsale } from './zsale.js'; // 👀 giám sát Zalo của sale
 import { fbSchema, crmFp } from './fb.js';
+import { mkCampSchema, mkCampCol } from './mkcamp.js';
 import { crmFl } from './fblead.js';
 import { crmBlog } from './blog.js';
 import { crmIns } from './insight.js';
@@ -47,7 +48,7 @@ import { wbQueue, wbOrderQueue, wbStatusQueue, wbEditQueue, wbDeleteQueue, wbInf
 
 let schemaDone = false, deltaOk = false; // deltaOk: đã có cột upd + trigger → cho CRM tải phần thay đổi
 const NOW_MS = "CAST((julianday('now') - 2440587.5) * 86400000 AS INTEGER)"; // giờ của máy chủ dữ liệu (ms)
-const SCHEMA_V = '2026-11-18a'; // + customers.pool_from/pool_at (khách đã mua tự trả về Kho chung, 18/11/2026) · orders.entered_at (🕐 giờ lên đơn thật khi sale chọn giờ chốt sớm hơn, 16/11/2026) · + users.gvsee (👀 theo dõi việc của ai, 16/11/2026) · users.gv (✅ Việc tuần) + sessions.seen / ua
+const SCHEMA_V = '2026-11-18b'; // + customers.pool_from/pool_at (khách đã mua tự trả về Kho chung, 18/11/2026) · orders.entered_at (🕐 giờ lên đơn thật khi sale chọn giờ chốt sớm hơn, 16/11/2026) · + users.gvsee (👀 theo dõi việc của ai, 16/11/2026) · users.gv (✅ Việc tuần) + sessions.seen / ua
 export async function ensureSchema(db) {
   if (schemaDone) return;
   // Đã kiểm tra với bản này rồi → chỉ hỏi 1 lần. Trước đây mỗi lần Cloudflare bật máy mới (rất thường xuyên) phải chạy ~25 lệnh nối tiếp, mất 3–5 giây.
@@ -177,6 +178,7 @@ export async function ensureSchema(db) {
     await zbotSchema(db); // 🤖 trợ lý nhóm Zalo (api/src/zbot.js)
     await zsaleSchema(db); // 👀 giám sát Zalo của sale (api/src/zsale.js)
     await fbSchema(db); // 📘 trợ lý Fanpage Facebook (api/src/fb.js)
+    await mkCampSchema(db); // 🎯 khách bấm quảng cáo nào (Messenger) → số thật theo chiến dịch (api/src/mkcamp.js)
     await tplRefSeed(db); // 14/11/2026: 2 mẫu tin 🌱 Mời giới thiệu bạn bè (1 lần, xoá ở Cài đặt → Mẫu tin thì không thêm lại)
     schemaDone = true;
     if (deltaOk) await run(db, "INSERT INTO kv (k, v) VALUES ('schema_v', ?) ON CONFLICT(k) DO UPDATE SET v = excluded.v, exp = NULL", SCHEMA_V);
@@ -2080,7 +2082,7 @@ async function crmSettings(x, u, d) {
   }
   if (d.kpi) { // mức "tốt" của chỉ số chiến dịch ở tab Marketing (chỉ Quản trị): CPM, CPC, giá 1 tin nhắn, giá 1 SĐT (đ, tốt khi dưới), CTR (%, tốt khi từ). 0 = chưa đặt → so với trung bình 7 ngày
     if (u.level < 3) return { ok: false, error: 'Chỉ Quản trị sửa được mục này.' };
-    const v = k => Math.min(1e9, Math.max(0, Number(String(d.kpi[k] == null ? '' : d.kpi[k]).replace(',', '.')) || 0)), K = { cpm: Math.round(v('cpm')), ctr: Math.min(100, Math.round(v('ctr') * 100) / 100), cpc: Math.round(v('cpc')), msg: Math.round(v('msg')), sdt: Math.round(v('sdt')), sdtMax: Math.round(v('sdtMax')) }; // sdtMax: trần giá 1 SĐT (18/11/2026)
+    const v = k => Math.min(1e9, Math.max(0, Number(String(d.kpi[k] == null ? '' : d.kpi[k]).replace(',', '.')) || 0)), K = { cpm: Math.round(v('cpm')), ctr: Math.min(100, Math.round(v('ctr') * 100) / 100), cpc: Math.round(v('cpc')), msg: Math.round(v('msg')), sdt: Math.round(v('sdt')), sdtMax: Math.round(v('sdtMax')), yx: Math.min(100, Math.round(v('yx'))) }; // sdtMax: trần giá 1 SĐT (18/11/2026) · yx: % SĐT thật / số Meta báo dưới mức này → cảnh báo (mkcamp.js)
     const D = Object.assign({}, await kvJson(x.db, 'dash_cfg', {}), { kpi: K }); await kvSet(x.db, 'dash_cfg', JSON.stringify(D));
     await crmLog(x, u, 'Cài đặt', '-', '', 'Mức tốt chỉ số quảng cáo: CPM dưới ' + (K.cpm || '–') + 'đ · CTR từ ' + (K.ctr || '–') + '% · CPC dưới ' + (K.cpc || '–') + 'đ · 1 tin nhắn dưới ' + (K.msg || '–') + 'đ', '');
     return { ok: true, dash: D };
@@ -2689,7 +2691,7 @@ async function crmKhoFind(x, u, d) {
     Date.now() - 180 * DAY, like, like, like, dg.length >= 4 ? dg : '', '%' + dg);
   return { ok: true, list: rows.map(khoRetOut) };
 }
-const MKT_ACTIONS = { guide_ask: 1, link_list: 1, link_save: 1, link_active: 1, load: 1, mktv: 1, mkt_tg_test: 1, mkt_goal: 1, mkt_import: 1, mkt_add: 1, mkt_list: 1, mkt_kpi: 1, mkt_fb_edit: 1, quiz_cms: 1, web_prods: 1, cms_sso: 1, mkt_del: 1, prefs: 1, tg_link: 1, tg_check: 1, tg_off: 1, perf: 1, usage: 1, feedback: 1, fb_list: 1, fb_img: 1, offers: 1, offer_save: 1, offer_del: 1, wall_hide: 1, zb_view: 1, zb_cfg: 1, zb_post: 1, zb_regen: 1, zb_other: 1, zb_send: 1, zb_cancel: 1, zb_recall: 1, zb_img: 1, zb_hist: 1, zb_logmore: 1, zb_done: 1, zb_time: 1, zb_plan_make: 1, zb_plan_set: 1, zb_plan_redo: 1, fl_view: 1, fl_scan: 1, fp_view: 1, fp_page: 1, fp_resub: 1, fp_scan: 1, fp_post: 1, fp_now: 1, fp_regen: 1, fp_send: 1, fp_logmore: 1, fp_done: 1, bl_view: 1, bl_post: 1, bl_act: 1, bl_cfg: 1, bl_stats: 1, ins_view: 1, ins_save: 1, ins_st: 1, ins_stsave: 1, ins_stok: 1, ins_stdel: 1, ins_stcfg: 1, ins_video: 1, ins_vdel: 1, ins_merge: 1, ins_import: 1, ins_skill: 1, ins_skilldel: 1, ins_odel: 1, ins_find: 1, ins_big: 1, ins_kw: 1, ins_kwsave: 1, ins_trend: 1, ins_trendai: 1, ins_img: 1, spf_list: 1, spf_used: 1, spf_write: 1, spf_save: 1, spf_del: 1, ins_offer: 1, ins_sview: 1, ins_score: 1, ins_stt: 1, ins_sres: 1, ins_sdel: 1, ins_vqlist: 1, ins_vqsave: 1, ins_vqdel: 1, ins_vqadd: 1, ins_vqrun: 1, ins_gate: 1, ins_yt: 1, ins_ytcfg: 1, ins_ytrun: 1 };
+const MKT_ACTIONS = { guide_ask: 1, link_list: 1, link_save: 1, link_active: 1, load: 1, mktv: 1, mkt_tg_test: 1, mkt_goal: 1, mkt_import: 1, mkt_add: 1, mkt_list: 1, mkt_kpi: 1, mkt_fb_edit: 1, mk_camp_col: 1, quiz_cms: 1, web_prods: 1, cms_sso: 1, mkt_del: 1, prefs: 1, tg_link: 1, tg_check: 1, tg_off: 1, perf: 1, usage: 1, feedback: 1, fb_list: 1, fb_img: 1, offers: 1, offer_save: 1, offer_del: 1, wall_hide: 1, zb_view: 1, zb_cfg: 1, zb_post: 1, zb_regen: 1, zb_other: 1, zb_send: 1, zb_cancel: 1, zb_recall: 1, zb_img: 1, zb_hist: 1, zb_logmore: 1, zb_done: 1, zb_time: 1, zb_plan_make: 1, zb_plan_set: 1, zb_plan_redo: 1, fl_view: 1, fl_scan: 1, fp_view: 1, fp_page: 1, fp_resub: 1, fp_scan: 1, fp_post: 1, fp_now: 1, fp_regen: 1, fp_send: 1, fp_logmore: 1, fp_done: 1, bl_view: 1, bl_post: 1, bl_act: 1, bl_cfg: 1, bl_stats: 1, ins_view: 1, ins_save: 1, ins_st: 1, ins_stsave: 1, ins_stok: 1, ins_stdel: 1, ins_stcfg: 1, ins_video: 1, ins_vdel: 1, ins_merge: 1, ins_import: 1, ins_skill: 1, ins_skilldel: 1, ins_odel: 1, ins_find: 1, ins_big: 1, ins_kw: 1, ins_kwsave: 1, ins_trend: 1, ins_trendai: 1, ins_img: 1, spf_list: 1, spf_used: 1, spf_write: 1, spf_save: 1, spf_del: 1, ins_offer: 1, ins_sview: 1, ins_score: 1, ins_stt: 1, ins_sres: 1, ins_sdel: 1, ins_vqlist: 1, ins_vqsave: 1, ins_vqdel: 1, ins_vqadd: 1, ins_vqrun: 1, ins_gate: 1, ins_yt: 1, ins_ytcfg: 1, ins_ytrun: 1 };
 export async function crmApi(x, d, sync, mgr) {
   await ensureSchema(x.db);
   const a = d.action;
@@ -2790,6 +2792,7 @@ export async function crmApi(x, d, sync, mgr) {
     return r;
   }
   if (a === 'mkt_budget') return u.level >= 3 ? mktBudgetSet(x, d) : { ok: false, error: 'Chỉ Quản trị đặt được ngân sách quảng cáo.' };
+  if (a === 'mk_camp_col') return mkCampCol(x, u, adsCfg, crmLog); // 🎯 thêm cột Chiến dịch + danh sách thả xuống vào file số quảng cáo (chỉ Quản trị, kiểm trong hàm)
   if (a === 'mkt_fb_edit') { // ✏️ bật / tắt / đổi ngân sách quảng cáo Facebook ngay trong CRM (Quản trị + Marketing), ghi Nhật ký
     if (!(u.level >= 3 || u.role === 'Marketing')) return { ok: false, error: 'Chỉ Quản trị và Marketing sửa được quảng cáo.' };
     const r = await mktFbEdit(x, d);

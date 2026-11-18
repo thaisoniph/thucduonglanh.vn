@@ -3703,3 +3703,15 @@ details.top-fold[open] > summary::after { transform: rotate(180deg); }
 /* 📌 Chọn trang theo dõi (18/11/2026, fpTrackOpen) */
 .fp-trk-list { max-height: 55vh; overflow: auto; }
 .fp-untrack summary { cursor: pointer; font-weight: 600; }
+
+/* 🎯 Số thật theo chiến dịch (18/11/2026): Meta báo → SĐT thật → ra đơn */
+.mk-cr { margin: 8px 0 4px; padding: 8px 10px; border-radius: 10px; background: var(--bg2, #f6f7f5); display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.mk-cr.bad { background: #fdecea; }
+.mk-cr-t { font-weight: 700; font-size: 13px; width: 100%; }
+.mk-cr-k { font-size: 12.5px; padding: 3px 8px; border-radius: 999px; background: #fff; border: 1px solid #e3e6e1; white-space: nowrap; }
+.mk-cr-k.ok { border-color: #8bc79a; background: #eef8f0; }
+.mk-cr-k.mid { border-color: #f0c27a; background: #fff6e8; }
+.mk-cr-k.bad { border-color: #e79a92; background: #fdecea; }
+.mk-cr-w { width: 100%; margin: 4px 0 0; font-size: 13px; color: #9b2c22; }
+.mk-cr-head { margin: 0 0 10px; padding: 10px 12px; border-radius: 10px; border: 1px dashed #c9d3c4; }
+.mk-cr-head p { margin: 0 0 6px; }

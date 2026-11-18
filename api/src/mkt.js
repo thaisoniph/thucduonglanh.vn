@@ -4,6 +4,7 @@
 //   file   – CSV xuất từ trình quản lý quảng cáo (Facebook, TikTok, Google…): CRM đọc file trên máy, gửi các dòng lên lệnh mkt_import.
 //   manual – nhập tay 1 khoản cho 1 khoảng ngày (KOL, in ấn…), chia đều theo ngày để xem theo kỳ nào cũng đúng.
 import { all, first, run, insertMany, kvJson, kvSet, randHex, startOfDay, fmtDate, DAY } from './lib.js';
+import { mkCampReal } from './mkcamp.js';
 
 const FX_USD = 26500; // tỷ giá USD mặc định, Quản trị sửa ở CRM (cfg.fb.fx) theo giá agency tính
 const FB_API = 'https://graph.facebook.com/v23.0/';
@@ -210,7 +211,8 @@ async function mktKpi(x, d) {
   ]);
   const data = {}, seen = {}; // số SĐT (data) về file số quảng cáo mỗi ngày, mỗi số 1 lần / ngày – để tính chi phí 1 SĐT (marketing ngành này nhìn số này là chính)
   (ads || []).forEach(a => { const tm = Number(a[0]) || 0, p = String(a[1] || ''); if (tm < t - 8 * DAY || !p) return; const d = iso(tm); if (seen[d + p]) return; seen[d + p] = 1; data[d] = (data[d] || 0) + 1; });
-  return { ok: true, today: iso(t), last: (c.fb || {}).last || null, data, live: live || null, fbOn: !!(c.fb || {}).token, rows: rows.map(r => [r.day, r.channel, r.campaign, accOf(c, r), r.s, r.i, r.c, r.m, r.p || 0]) };
+  const cr7 = await mkCampReal(x, iso(t - 6 * DAY), iso(t)).catch(e => { console.error('mkCampReal', e.message); return null; }); // 🎯 7 ngày: Meta báo → SĐT thật → ra đơn từng chiến dịch
+  return { ok: true, today: iso(t), last: (c.fb || {}).last || null, data, cr7, live: live || null, fbOn: !!(c.fb || {}).token, rows: rows.map(r => [r.day, r.channel, r.campaign, accOf(c, r), r.s, r.i, r.c, r.m, r.p || 0]) };
 }
 
 /** Tài khoản quảng cáo của 1 dòng chiến dịch: [tên hiện, mã act_… (Facebook, để mở Trình quản lý quảng cáo) hoặc '']. Dùng chung cho lệnh mkt và mktv. */

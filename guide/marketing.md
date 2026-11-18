@@ -230,6 +230,35 @@ Cách tạo chiến dịch, cài biểu mẫu, luật tăng / giữ / tắt mỗ
 
 Xem số biểu mẫu đã về: **🧰 Công cụ → 📋 Biểu mẫu FB** (Marketing chỉ thấy số đã che).
 
+## Việc 12: Số thật theo từng chiến dịch
+
+> **Một câu dễ nhớ:** Meta báo tin nhắn, CRM đếm **số điện thoại thật** và **đơn thật** của từng chiến dịch. Meta báo nhiều mà SĐT thật ít thì chiến dịch gắn ⚠️.
+
+**Mỗi chiến dịch có dòng 🎯 Số thật:**
+
+| Ô | Nghĩa |
+| --- | --- |
+| Meta báo | Số tin nhắn (chiến dịch biểu mẫu: số lead) Meta ghi nhận |
+| SĐT thật | Số điện thoại có trong file số quảng cáo ghi đúng chiến dịch này, (%) = SĐT thật ÷ Meta báo |
+| Ra đơn | Bao nhiêu số đó đã mua, tiền bao nhiêu |
+| Giá 1 SĐT thật | Tiền chiến dịch ÷ SĐT thật (đèn theo mức tốt / trần giá 1 SĐT) |
+| Giá 1 đơn thật | Tiền chiến dịch ÷ số ra đơn |
+
+- Ở **📘 Quảng cáo Facebook đang chạy**: số 7 ngày gần nhất.
+- Ở **🔎 Xem chi tiết → 2. Quảng cáo nào tốt, quảng cáo nào dở? → 🎬**: số theo kỳ đang chọn, đầu khối ghi đã gắn được bao nhiêu % SĐT với chiến dịch.
+- ⚠️ **Meta báo nhiều, SĐT thật ít**: tỷ lệ SĐT thật dưới mức Quản trị đặt (mặc định 30%). **Bước tiếp theo:** mở hộp thư Fanpage xem khách nhắn gì mà không để lại số.
+- Mới gắn được dưới 60% SĐT với chiến dịch thì CRM chưa tô đèn (số còn thiếu vì chưa ghi cột, không phải do Meta).
+
+**CRM biết số nào thuộc chiến dịch nào bằng 3 cách:**
+
+1. **Người trực chép số chọn ở cột "Chiến dịch"** trong file số quảng cáo (danh sách thả xuống, CRM tự cập nhật các chiến dịch đang chạy). Hộp thư Meta Business Suite ghi khách bấm từ quảng cáo nào. Không rõ thì **để trống**, đừng đoán.
+2. **Khách bấm quảng cáo nhắn tin rồi gõ số trong Messenger**: CRM tự biết (cần Meta duyệt quyền nhắn tin cho Fanpage).
+3. **Khách điền biểu mẫu Facebook**: CRM tự biết.
+
+Cách 2 và 3: CRM tự điền tên chiến dịch vào ô còn trống của file. Ô người trực đã chọn thì giữ nguyên. Số không biết được thì hiện **❔ Chưa rõ chiến dịch**.
+
+**Lần đầu (Quản trị):** bấm **🧩 Thêm cột "Chiến dịch" vào file số quảng cáo** ở đầu khối 🎬. CRM thêm cột vào cuối mọi tab đang đọc và tạo tab **DS chiến dịch (CRM)** (đừng sửa tab này). Mức cảnh báo đổi ở **⚙️ Cài đặt → 📊 Mức tốt chỉ số quảng cáo → 🎯 Tỷ lệ SĐT thật / số Meta báo**.
+
 ## Hiểu số kỹ hơn
 
 ### Xem chi tiết: 4 câu hỏi, đọc từ trên xuống

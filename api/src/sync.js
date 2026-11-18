@@ -5,11 +5,12 @@ import { sheetMeta, sheetValues, sheetWrite, a1, serialToMs } from './google.js'
 import { wbKeys, wbHas, wbPending } from './wb.js';
 import { adsTier, tierOf, TIER } from './salemkt.js';
 import { flRegRows } from './fblead.js';
+import { mkAutoCamp, mkAutoPick, mkListSync } from './mkcamp.js';
 import { phoneAlias, crmUsers, crmLog, recalc, deletedOrderIds, delMark, setCallbacks, caCfg, caOf, normLine, itemsText, shipText, ORDER_COLS, srcList, adsCfg, telegramUser, unifyNames, prodKey, canonItems } from './crm.js';
 
 const FIELD_LABEL = { date: 'Ngày', name: 'Tên khách', phone: 'SĐT', address: 'Địa chỉ', product: 'Sản phẩm', qty: 'Số lượng', gift1: 'Quà tặng 1', gift1qty: 'SL quà 1', gift2: 'Quà tặng 2', gift2qty: 'SL quà 2',
   status: 'Trạng thái', ctype: 'Phân loại khách / ca', line: 'Dòng SP (nguồn)', code: 'Mã đơn', amount: 'Số tiền', shipText: 'Lên đơn (mô tả)', callback: 'Lịch gọi lại', note: 'Ghi chú / nhật ký', health: 'Tình trạng sức khoẻ',
-  sale: 'Sale được chia', dup: 'Trùng sale', src: 'Nguồn quảng cáo' };
+  sale: 'Sale được chia', dup: 'Trùng sale', src: 'Nguồn quảng cáo', camp: 'Chiến dịch' };
 const LEAD_COLS = ['id', 'time', 'name', 'phone', 'channel', 'interest', 'status', 'owner', 'last_at', 'callback', 'reason', 'note', 'order_id', 'by_name'];
 
 export function fileIdOf(url) { const m = String(url || '').match(/\/d\/([a-zA-Z0-9_-]{20,})/) || String(url || '').match(/^([a-zA-Z0-9_-]{25,})$/); return m ? m[1] : ''; }
@@ -220,7 +221,7 @@ function detectMap(H, S, sheetName, ads) {
   set('phone', find(/sdt|so dt|dien thoai|so dien/));
   set('name', find(/^ten|ho ten|khach hang/));
   if (ads) {
-    set('src', find(/^nguon/)); set('sale', find(/^sale/)); set('dup', find(/trung/)); set('ctype', find(/^nguon|phan loai/)); set('amount', find(/don hang|so tien/)); set('note', find(/ghi chu/));
+    set('camp', find(/chien dich/)); set('src', find(/^nguon/)); set('sale', find(/^sale/)); set('dup', find(/trung/)); set('ctype', find(/^nguon|phan loai/)); set('amount', find(/don hang|so tien/)); set('note', find(/ghi chu/));
   } else {
     set('code', find(/ma don/)); set('amount', find(/so tien|thanh tien|tong tien/)); set('status', find(/tra?n?g thai/)); set('ctype', find(/phan loai khach/));
     set('line', find(/phan loai nguon|dong sp|^nguon/)); set('shipText', find(/^len don$/)); set('callback', find(/lich goi lai|hen goi/)); set('address', find(/dia chi/)); set('health', find(/tinh trang sk|suc khoe/));
@@ -809,16 +810,23 @@ export async function adsSync(x, u, dry) {
     });
   }
   const kres = await syncKeep(x, keep, rowsOf, users, dry); const odd = Object.values(keepRaw); if (odd.length) kres.unknown = [...new Set(odd)].slice(0, 20); // tên ở cột Trùng sale không khớp nhân sự nào
+  const auto = await mkAutoCamp(x, regFrom - 5 * DAY).catch(() => ({})), campW = []; // 🎯 chiến dịch máy biết (Messenger, biểu mẫu) → điền ô "Chiến dịch" còn trống (mkcamp.js)
   for (const { sc, m, hr, vals } of sheets) {
     const days = adsDays(vals.map(r => cell(r, m, 'date')));
     vals.forEach((r, i) => {
       const when = days[i], fp = toPhone(cell(r, m, 'phone')), phone = mp(fp); if (!when || !phone) return;
       for (const p of phone === fp ? [phone] : [phone, fp]) if (!seen[p] || when < seen[p][0]) seen[p] = [when, String(cell(r, m, 'src') || sc.name).trim().slice(0, 60)];
-      if (when >= regFrom) { const st = String(cell(r, m, 'sale') || '').trim(); reg.push([dayOf(when), phone, keep[phone] || who(st) || st, String(cell(r, m, 'src') || sc.name).trim()]); }
+      if (when >= regFrom) {
+        const st = String(cell(r, m, 'sale') || '').trim(); let cp = String(cell(r, m, 'camp') || '').trim().slice(0, 200);
+        if (!cp && m.camp !== undefined) { cp = mkAutoPick(auto, phone, dayOf(when)) || mkAutoPick(auto, fp, dayOf(when)); if (cp && campW.length < 300) campW.push({ range: a1(sc.name, colLetter(m.camp) + (hr + 1 + i)), values: [[cp]] }); }
+        reg.push([dayOf(when), phone, keep[phone] || who(st) || st, String(cell(r, m, 'src') || sc.name).trim(), cp]);
+      }
       if (when < since) return; scan.push({ sc, m, hr, r, i, when, phone, id: 'QC' + hashKey(sc.name + '|' + fp + '|' + fmtDate(when, 'yyyyMMdd')) });
     });
   }
   if (!dry) { const had = new Set(reg.map(r => r[1] + '|' + r[0])); (await flRegRows(x, regFrom)).forEach(r => { if (![0, DAY, -DAY].some(k => had.has(r[1] + '|' + (r[0] + k)))) reg.push(r); }); } // 📋 số biểu mẫu Facebook (fblead.js) không nằm trong file → vẫn tính là số quảng cáo
+  if (!dry && campW.length) try { await sheetWrite(x.env, cfg.fileId, campW); } catch (e) { console.error('mk camp write', e.message); } // ô trống → tên chiến dịch máy biết (lần sau đọc lại thấy có ghi, không ghi lại)
+  if (!dry && cfg.campTab) try { await mkListSync(x, cfg); } catch (e) { console.error('mkListSync', e.message); } // danh sách thả xuống: chỉ ghi khi đổi
   if (!dry) { const js = JSON.stringify(reg), v = hashKey(js); if ((await kvGet(x.db, 'ads_rows_v')) !== v) { await kvSet(x.db, 'ads_rows', js); await kvSet(x.db, 'ads_rows_v', v); } }
   if (!dry) try { // 11/11/2026: nhớ lần đầu mỗi số có trong file quảng cáo (mọi ngày) → bảng phone_seen cho crmSeen. Ghi cả file 1 lần / 7 ngày, còn lại chỉ dòng 10 ngày gần đây (đỡ ghi)
     const full = Date.now() - (Number(await kvGet(x.db, 'phone_seen_full')) || 0) >= 7 * DAY, from = full ? 0 : Date.now() - 10 * DAY;

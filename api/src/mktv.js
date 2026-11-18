@@ -3,6 +3,7 @@
 // Cách tính giống hệt tab Tổng quan (chanEff / orderChan / closeStats trong crm/app.js) để 2 nơi luôn ra cùng số. Sửa cách tính thì sửa cả 2 nơi.
 import { accOf } from './mkt.js';
 import { pledgeStats, quizStats } from './journey.js';
+import { adWon, mkCampCalc } from './mkcamp.js';
 import { all, allIn, first, kvGet, kvSet, kvJson, normPhone, nrm, esc, isVoid, startOfDay, fmtDate, DAY, MKT_URL } from './lib.js';
 
 const DAY_RE = /^\d{4}-\d\d-\d\d$/;
@@ -50,7 +51,7 @@ export async function mktView(x, u, d) {
    *  Tên / SĐT / mã đơn chỉ gửi cho Quản trị; tài khoản Marketing chỉ thấy phần không định danh (Nghị định 13/2023). */
   const admin = u.level >= 3;
   const webRow = (o, k) => [o.time, k, o.total, String(o.source || '').slice(0, 200), o.prov, String(o.items || '').split(/\n|;\s*/).map(l => l.replace(/\s*=\s*[\d.,]+\s*đ?\s*$/, '').trim()).filter(Boolean).join(' · ').slice(0, 160), o.vc, o.v ? 1 : 0, admin ? o.name : '', admin ? o.ph : '', admin ? o.id : ''];
-  const sfb = d.sfb !== false && d.sfb !== 0, key = 'mktv13_' + [d.from, d.to, d.pf, d.pt, sfb ? 1 : 0, u.level >= 3 ? 'a' : 'm'].join('_') + '_' + ((await kvGet(x.db, 'ads_rows_v')) || '');
+  const sfb = d.sfb !== false && d.sfb !== 0, key = 'mktv14_' + [d.from, d.to, d.pf, d.pt, sfb ? 1 : 0, u.level >= 3 ? 'a' : 'm'].join('_') + '_' + ((await kvGet(x.db, 'ads_rows_v')) || '');
   if (!d.fresh) { const c = await kvJson(x.db, key, null); if (c) return Object.assign(c, { cached: true }, await budgetOf(x)); }
   const R = [dayMs(d.from), dayMs(d.to) + DAY], P = [dayMs(d.pf), dayMs(d.pt) + DAY];
   const mid = iso(Math.floor((R[0] + R[1]) / 2 / DAY) * DAY); // chia đôi kỳ: tỷ lệ bấm nửa đầu ↔ nửa sau (quảng cáo có bị nhàm không)
@@ -66,7 +67,7 @@ export async function mktView(x, u, d) {
     all(x.db, "SELECT day, shop, SUM(CASE WHEN state = 'ok' THEN gmv - refund ELSE 0 END) AS g FROM san_orders WHERE day BETWEEN ? AND ? GROUP BY day, shop", d.pf, d.pt).catch(() => []),
     kvJson(x.db, 'ads_rows', []), kvJson(x.db, 'mkt_cfg', {})
   ]);
-  const ads = (adRows || []).map(a => [Number(a[0]) || 0, normPhone(a[1]), String(a[3] || ''), String(a[2] || '')]).filter(a => a[1]);
+  const ads = (adRows || []).map(a => [Number(a[0]) || 0, normPhone(a[1]), String(a[3] || ''), String(a[2] || ''), String(a[4] || '')]).filter(a => a[1]); // [ngày, sđt, nguồn, sale, chiến dịch]
   const adFirst = {}; ads.forEach(a => { if (!adFirst[a[1]] || a[0] < adFirst[a[1]]) adFirst[a[1]] = a[0]; });
   // marketing chấm trên DOANH SỐ khách mới: giữ cả đơn hoàn / huỷ (hoàn / huỷ là việc của sale, anh Sơn 26/10/2026); v = đơn hoàn / huỷ → newVoid để xem riêng
   const ords = ordAll.map(o => ({ ph: normPhone(o.phone), time: Number(o.time) || 0, total: Number(o.total) || 0, source: o.source || '', items: o.items || '', v: isVoid(o.status), id: o.id || '', name: o.name || '', prov: o.province || '', vc: o.voucher || '' }));
@@ -116,7 +117,7 @@ export async function mktView(x, u, d) {
     ads.forEach(([day, ph, src]) => {
       if (day < Rg[0] || day >= Rg[1] || seen[ph]) return; seen[ph] = 1; o.n++;
       const ls = (leadsBy[ph] || []).filter(l => (l.last_at || l.time || 0) >= day);
-      const won = (buyBy[ph] || []).some(t => t >= day) || ls.some(l => l.status === 'Đã chốt'), no = !won && ls.find(l => l.status === 'Không mua');
+      const won = adWon(day, ph, leadsBy, buyBy), no = !won && ls.find(l => l.status === 'Không mua'); // adWon dùng chung với 🎯 số thật theo chiến dịch (mkcamp.js)
       const dk = iso(day), dv = o.dd[dk] || (o.dd[dk] = [0, 0]); dv[0]++; if (won) dv[1]++; // theo ngày: [data, ra đơn]
       if (won) o.won++; else if (no) o[/rác/i.test(no.reason || '') ? 'junk' : 'lost']++;
       else if (day < today0 && !ls.some(l => l.status && l.status !== 'Mới hỏi')) o.idle++;
@@ -189,6 +190,8 @@ export async function mktView(x, u, d) {
     camps: camps.map(r => [r.channel, r.campaign, r.src, r.s, r.i, r.c, r.m, r.l, r.p, accOf(cfg, r), [r.i1 || 0, r.c1 || 0, r.last || '']]),
     eff: onlyPaid(EF), effPrev: onlyPaid(EP), newNDay: byDay(EF, spDays, 'dn'), newNDayPrev: byDay(EP, spPrev, 'dn'), newDay: byDay(EF, spDays), newDayPrev: byDay(EP, spPrev), ad, adPrev: ads.length ? adStat(P) : null,
     tot, totPrev: sumT(spPrev), cpr, mid,
+    // 🎯 số thật theo chiến dịch Facebook (mkcamp.js): { rows: [[tên, tài khoản, chi, Meta báo, SĐT thật, ra đơn, doanh thu]], none: [SĐT, đơn, doanh thu] chưa rõ chiến dịch, n }
+    cr: mkCampCalc(ads, R, camps.filter(r => r.channel === 'Facebook'), leadsBy, buyBy, ordBy),
     prod: Object.values(PR).filter(p => p.sp || p.n || p.rev).sort((a, b) => b.sp - a.sp || b.rev - a.rev),
     sale: saleFb(R, u.level >= 3), ltv: await ltvOf(x), cv: await commValOf(x).catch(() => null),
     // tiền khách mới mọi kênh marketing (kể cả kênh chưa có chi phí, vd sàn) → tiến độ mục tiêu từng kênh
