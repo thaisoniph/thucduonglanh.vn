@@ -10892,7 +10892,7 @@
       '<p class="muted small lq-intro">Trợ lý tự trả lời bình luận, tin nhắn và xin số điện thoại khách trên Fanpage. <b>Việc của bạn: duyệt bài và trả lời ca khó.</b> <a href="/huong-dan/fanpage/" target="_blank" rel="noopener">Xem hướng dẫn</a></p>' +
       '<details class="zb-info small"><summary>ⓘ Trợ lý này làm những gì?</summary><p>Khách bình luận bài đăng hoặc quảng cáo → trợ lý <b>An Lành</b> thích, trả lời và nhắn riêng → tư vấn trong Messenger → xin số Zalo → gửi quà + link nhóm Zalo, khách vào tab Khách hỏi. AI soạn bài đăng cho từng trang để bạn duyệt.</p></details>';
     if (!FP.d) return h + '<div class="box"><p class="muted">' + (FP.err ? '⚠️ ' + esc(FP.err) + ' <button class="link" data-fp="reload">Thử lại</button>' : '⏳ Đang tải…') + '</p></div>';
-    var j = FP.d, A = j.app, ps = j.pages || [], n = {}, on = ps.filter(function (p) { return p.active; }), bad = ps.filter(function (p) { return p.err; });
+    var j = FP.d, A = j.app, ps = j.pages || [], n = {}, on = ps.filter(function (p) { return p.active; }), bad = ps.filter(function (p) { return p.err && (p.track || p.active); }); // 📌 chỉ báo lỗi trang đang theo dõi
     (j.stats || []).forEach(function (r) { n[r.kind] = r.n; });
     var g = function (k) { return n[k] || 0; }, ready = A.id && A.secret && A.verified && ps.length;
     var lastEv = ps.reduce(function (m, p) { return Math.max(m, p.last_ev || 0); }, 0);
