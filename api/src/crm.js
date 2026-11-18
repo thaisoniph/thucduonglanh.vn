@@ -6,6 +6,7 @@ import { chatSchema } from './chat.js';
 import { zbotSchema, crmZbot } from './zbot.js';
 import { zsaleSchema, crmZsale } from './zsale.js'; // 👀 giám sát Zalo của sale
 import { fbSchema, crmFp } from './fb.js';
+import { crmFl } from './fblead.js';
 import { crmBlog } from './blog.js';
 import { crmIns } from './insight.js';
 import { crmSpf } from './spost.js';
@@ -2067,7 +2068,7 @@ async function crmSettings(x, u, d) {
   }
   if (d.kpi) { // mức "tốt" của chỉ số chiến dịch ở tab Marketing (chỉ Quản trị): CPM, CPC, giá 1 tin nhắn, giá 1 SĐT (đ, tốt khi dưới), CTR (%, tốt khi từ). 0 = chưa đặt → so với trung bình 7 ngày
     if (u.level < 3) return { ok: false, error: 'Chỉ Quản trị sửa được mục này.' };
-    const v = k => Math.min(1e9, Math.max(0, Number(String(d.kpi[k] == null ? '' : d.kpi[k]).replace(',', '.')) || 0)), K = { cpm: Math.round(v('cpm')), ctr: Math.min(100, Math.round(v('ctr') * 100) / 100), cpc: Math.round(v('cpc')), msg: Math.round(v('msg')), sdt: Math.round(v('sdt')) };
+    const v = k => Math.min(1e9, Math.max(0, Number(String(d.kpi[k] == null ? '' : d.kpi[k]).replace(',', '.')) || 0)), K = { cpm: Math.round(v('cpm')), ctr: Math.min(100, Math.round(v('ctr') * 100) / 100), cpc: Math.round(v('cpc')), msg: Math.round(v('msg')), sdt: Math.round(v('sdt')), sdtMax: Math.round(v('sdtMax')) }; // sdtMax: trần giá 1 SĐT (18/11/2026)
     const D = Object.assign({}, await kvJson(x.db, 'dash_cfg', {}), { kpi: K }); await kvSet(x.db, 'dash_cfg', JSON.stringify(D));
     await crmLog(x, u, 'Cài đặt', '-', '', 'Mức tốt chỉ số quảng cáo: CPM dưới ' + (K.cpm || '–') + 'đ · CTR từ ' + (K.ctr || '–') + '% · CPC dưới ' + (K.cpc || '–') + 'đ · 1 tin nhắn dưới ' + (K.msg || '–') + 'đ', '');
     return { ok: true, dash: D };
@@ -2676,7 +2677,7 @@ async function crmKhoFind(x, u, d) {
     Date.now() - 180 * DAY, like, like, like, dg.length >= 4 ? dg : '', '%' + dg);
   return { ok: true, list: rows.map(khoRetOut) };
 }
-const MKT_ACTIONS = { guide_ask: 1, link_list: 1, link_save: 1, link_active: 1, load: 1, mktv: 1, mkt_tg_test: 1, mkt_goal: 1, mkt_import: 1, mkt_add: 1, mkt_list: 1, mkt_kpi: 1, mkt_fb_edit: 1, quiz_cms: 1, web_prods: 1, cms_sso: 1, mkt_del: 1, prefs: 1, tg_link: 1, tg_check: 1, tg_off: 1, perf: 1, usage: 1, feedback: 1, fb_list: 1, fb_img: 1, offers: 1, offer_save: 1, offer_del: 1, wall_hide: 1, zb_view: 1, zb_cfg: 1, zb_post: 1, zb_regen: 1, zb_other: 1, zb_send: 1, zb_cancel: 1, zb_recall: 1, zb_img: 1, zb_hist: 1, zb_logmore: 1, zb_done: 1, zb_time: 1, zb_plan_make: 1, zb_plan_set: 1, zb_plan_redo: 1, fp_view: 1, fp_page: 1, fp_resub: 1, fp_scan: 1, fp_post: 1, fp_now: 1, fp_regen: 1, fp_send: 1, fp_logmore: 1, fp_done: 1, bl_view: 1, bl_post: 1, bl_act: 1, bl_cfg: 1, bl_stats: 1, ins_view: 1, ins_save: 1, ins_st: 1, ins_stsave: 1, ins_stok: 1, ins_stdel: 1, ins_stcfg: 1, ins_video: 1, ins_vdel: 1, ins_merge: 1, ins_import: 1, ins_skill: 1, ins_skilldel: 1, ins_odel: 1, ins_find: 1, ins_big: 1, ins_kw: 1, ins_kwsave: 1, ins_trend: 1, ins_trendai: 1, ins_img: 1, spf_list: 1, spf_used: 1, spf_write: 1, spf_save: 1, spf_del: 1, ins_offer: 1, ins_sview: 1, ins_score: 1, ins_stt: 1, ins_sres: 1, ins_sdel: 1, ins_vqlist: 1, ins_vqsave: 1, ins_vqdel: 1, ins_vqadd: 1, ins_vqrun: 1, ins_gate: 1, ins_yt: 1, ins_ytcfg: 1, ins_ytrun: 1 };
+const MKT_ACTIONS = { guide_ask: 1, link_list: 1, link_save: 1, link_active: 1, load: 1, mktv: 1, mkt_tg_test: 1, mkt_goal: 1, mkt_import: 1, mkt_add: 1, mkt_list: 1, mkt_kpi: 1, mkt_fb_edit: 1, quiz_cms: 1, web_prods: 1, cms_sso: 1, mkt_del: 1, prefs: 1, tg_link: 1, tg_check: 1, tg_off: 1, perf: 1, usage: 1, feedback: 1, fb_list: 1, fb_img: 1, offers: 1, offer_save: 1, offer_del: 1, wall_hide: 1, zb_view: 1, zb_cfg: 1, zb_post: 1, zb_regen: 1, zb_other: 1, zb_send: 1, zb_cancel: 1, zb_recall: 1, zb_img: 1, zb_hist: 1, zb_logmore: 1, zb_done: 1, zb_time: 1, zb_plan_make: 1, zb_plan_set: 1, zb_plan_redo: 1, fl_view: 1, fl_scan: 1, fp_view: 1, fp_page: 1, fp_resub: 1, fp_scan: 1, fp_post: 1, fp_now: 1, fp_regen: 1, fp_send: 1, fp_logmore: 1, fp_done: 1, bl_view: 1, bl_post: 1, bl_act: 1, bl_cfg: 1, bl_stats: 1, ins_view: 1, ins_save: 1, ins_st: 1, ins_stsave: 1, ins_stok: 1, ins_stdel: 1, ins_stcfg: 1, ins_video: 1, ins_vdel: 1, ins_merge: 1, ins_import: 1, ins_skill: 1, ins_skilldel: 1, ins_odel: 1, ins_find: 1, ins_big: 1, ins_kw: 1, ins_kwsave: 1, ins_trend: 1, ins_trendai: 1, ins_img: 1, spf_list: 1, spf_used: 1, spf_write: 1, spf_save: 1, spf_del: 1, ins_offer: 1, ins_sview: 1, ins_score: 1, ins_stt: 1, ins_sres: 1, ins_sdel: 1, ins_vqlist: 1, ins_vqsave: 1, ins_vqdel: 1, ins_vqadd: 1, ins_vqrun: 1, ins_gate: 1, ins_yt: 1, ins_ytcfg: 1, ins_ytrun: 1 };
 export async function crmApi(x, d, sync, mgr) {
   await ensureSchema(x.db);
   const a = d.action;
@@ -2792,6 +2793,7 @@ export async function crmApi(x, d, sync, mgr) {
   if (/^zb_/.test(a)) return crmZbot(x, u, d, crmLog); // 🤖 Trợ lý Zalo An Lành (Quản lý, Quản trị, Marketing)
   if (/^zs_/.test(a)) return crmZsale(x, u, d, crmLog); // 👀 Zalo của sale: Quản trị xem hết, Quản lý chỉ số + gợi ý, sale 💬 Zalo của tôi (17/11/2026)
   if (/^bl_/.test(a)) return crmBlog(x, u, d); // 📰 Trợ lý viết bài web (Quản lý, Quản trị, người bật Sửa website)
+  if (/^fl_/.test(a)) return crmFl(x, u, d, crmLog); // 📋 biểu mẫu Facebook + 📡 báo kết quả về Facebook (fblead.js)
   if (/^fp_/.test(a)) return crmFp(x, u, d, crmLog); // 📘 Trợ lý Fanpage (Quản lý, Quản trị, Marketing; kết nối: Quản trị)
   if (/^spf_/.test(a)) return crmSpf(x, u, d, crmLog); // 📣 bài viết sẵn cho sale đăng Facebook cá nhân (spost.js)
   if (/^ins_/.test(a)) return crmIns(x, u, d, crmLog); // 🎯 Insight & nội dung: ngân hàng insight chung + 🎬 kịch bản video (insight.js)

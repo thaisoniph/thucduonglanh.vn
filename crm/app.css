@@ -3694,3 +3694,9 @@ details.top-fold[open] > summary::after { transform: rotate(180deg); }
 .gv-ex { font-size: 13px; margin-bottom: 10px; } .gv-ex summary { cursor: pointer; color: var(--primary); } .gv-ex ul { padding-left: 18px; margin: 6px 0; display: grid; gap: 6px; }
 .gv-prc .chip { cursor: pointer; } .gv-prc .chip input { position: absolute; opacity: 0; pointer-events: none; }
 @media (max-width: 600px) { .gv-qk { padding-left: 14px; } .gv-tr { grid-template-columns: 96px 1fr; } }
+/* 📋 Biểu mẫu Facebook → CRM (18/11/2026, openFbForm) */
+.fl-tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 0 0 4px; }
+.fl-tiles > div { background: var(--primary-soft); border-radius: 10px; padding: 8px 10px; display: flex; flex-direction: column; }
+.fl-tiles span { font-size: 12px; color: var(--muted, #667); } .fl-tiles b { font-size: 18px; }
+.fl-list summary { cursor: pointer; font-weight: 600; margin: 4px 0; } .fl-row { padding: 4px 0; border-bottom: 1px solid var(--line, #e5e9e6); }
+.fl-cfg { margin-top: 8px; }

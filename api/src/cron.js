@@ -16,6 +16,7 @@ import { blogTick } from './blog.js';
 import { spRepurposeTick } from './spost.js';
 import { aiTick } from './aiuse.js';
 import { fpTick } from './fb.js';
+import { flTick } from './fblead.js';
 import { refAuto, refSaleAuto } from './partner.js';
 import { finSync, finMorning } from './fin.js';
 import { khoTick, khoMorning } from './kho.js';
@@ -203,6 +204,7 @@ export async function scheduled(x, cron) {
   try { await zbotTick(x); } catch (e) { console.error('zbotTick', e.message); } // 🤖 trợ lý Zalo: soạn bài đăng nhóm trước 3 ngày (cfg.lead), 📋 tự lập / nhắc duyệt kế hoạch chủ đề, báo khi mất kết nối
   try { await zsaleTick(x); } catch (e) { console.error('zsaleTick', e.message); } // 👀 Zalo của sale: báo khách chưa được trả lời, báo người đọc mất kết nối, dọn tin cũ
   try { await aiTick(x); } catch (e) { console.error('aiTick', e.message); } // 💳 tiền AI ước tính sắp hết → nhắc Telegram (aiuse.js)
+  try { await flTick(x); } catch (e) { console.error('flTick', e.message); } // 📋 quét biểu mẫu Facebook → CRM + 📡 báo kết quả về Facebook (fblead.js)
   try { await fpTick(x); } catch (e) { console.error('fpTick', e.message); } // 📘 trợ lý Fanpage: nhắc khách chưa để số, đăng bài tới giờ, soạn bài trước
   const last = Number(await kvGet(x.db, 'mirror_last') || 0);
   if (now - last > 6 * 3600e3 - 5 * 60e3) { try { // đọc toàn bộ dữ liệu → 6 tiếng 1 lần

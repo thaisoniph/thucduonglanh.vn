@@ -21,12 +21,13 @@ import { botRef } from './partner.js';
 import { prodMap, zbotLead } from './zbot.js';
 import { edAdd, edBlock, edCount } from './edlearn.js';
 import { gate } from './gate.js';
+import { flHook } from './fblead.js'; // 📋 biểu mẫu Facebook → CRM (18/11/2026)
 
 let GRAPH = 'https://graph.facebook.com/v23.0/';
 const useEnv = x => { if (x.env.FB_GRAPH) GRAPH = x.env.FB_GRAPH; }; // chạy thử trên máy: wrangler dev đặt FB_GRAPH = Facebook giả
 const HOOK_URL = 'https://api.thucduonglanh.vn/fb/hook', CB_URL = 'https://api.thucduonglanh.vn/fb/cb';
-const SCOPES = 'pages_show_list,pages_messaging,pages_manage_metadata,pages_read_engagement,pages_read_user_content,pages_manage_engagement,pages_manage_posts,business_management';
-const FIELDS = 'feed,messages,messaging_postbacks,message_echoes';
+const SCOPES = 'pages_show_list,pages_messaging,pages_manage_metadata,pages_read_engagement,pages_read_user_content,pages_manage_engagement,pages_manage_posts,business_management,leads_retrieval,pages_manage_ads'; // 18/11/2026: + đọc biểu mẫu tức thì (fblead.js)
+const FIELDS = 'feed,messages,messaging_postbacks,message_echoes,leadgen';
 const PERMS = ['pages_messaging', 'pages_manage_metadata', 'pages_read_engagement', 'pages_read_user_content', 'pages_manage_engagement', 'pages_manage_posts']; // quyền bot cần (kiểm tra khi dán mã)
 const FAST = 'claude-haiku-5-5', WRITER = 'claude-sonnet-5-5'; // 13/11/2026: bài Fanpage hằng ngày Opus → Sonnet 5.5 (rẻ ½)
 const BOT = 'An Lành';
@@ -140,6 +141,7 @@ async function hook(x, d, app) {
     const p = await pageGet(x, String(e.id)); if (!p) return;
     const now = Date.now();
     if (!p.last_ev || now - p.last_ev > 5 * 60e3) { p.last_ev = now; await run(x.db, 'UPDATE fp_pages SET last_ev = ? WHERE id = ?', now, p.id); } // CRM biết trang đang nhận sự kiện (ghi 5 phút / lần)
+    for (const c of e.changes || []) if (c.field === 'leadgen') await flHook(x, p, c.value || {}); // 📋 khách điền biểu mẫu quảng cáo → CRM ngay
     for (const c of e.changes || []) if (c.field === 'feed') { try { await onComment(x, p, c.value || {}); } catch (err) { console.error('fp cmt', err.message); await flog(x, p.id, 'error', { text: 'Bình luận: ' + err.message }); await pageErr(x, p, err); } }
     for (const m of e.messaging || []) { try { await onMessage(x, p, m, app); } catch (err) { console.error('fp msg', err.message); await flog(x, p.id, 'error', { text: 'Tin nhắn: ' + err.message }); await pageErr(x, p, err); } }
   }));

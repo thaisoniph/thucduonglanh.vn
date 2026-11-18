@@ -4,6 +4,7 @@ import { normPhone, esc, fmtDate, nrm, isVoid, hashKey, hashKeyLegacy, all, firs
 import { sheetMeta, sheetValues, sheetWrite, a1, serialToMs } from './google.js';
 import { wbKeys, wbHas, wbPending } from './wb.js';
 import { adsTier, tierOf, TIER } from './salemkt.js';
+import { flRegRows } from './fblead.js';
 import { phoneAlias, crmUsers, crmLog, recalc, deletedOrderIds, delMark, setCallbacks, caCfg, caOf, normLine, itemsText, shipText, ORDER_COLS, srcList, adsCfg, telegramUser, unifyNames, prodKey, canonItems } from './crm.js';
 
 const FIELD_LABEL = { date: 'Ngày', name: 'Tên khách', phone: 'SĐT', address: 'Địa chỉ', product: 'Sản phẩm', qty: 'Số lượng', gift1: 'Quà tặng 1', gift1qty: 'SL quà 1', gift2: 'Quà tặng 2', gift2qty: 'SL quà 2',
@@ -817,6 +818,7 @@ export async function adsSync(x, u, dry) {
       if (when < since) return; scan.push({ sc, m, hr, r, i, when, phone, id: 'QC' + hashKey(sc.name + '|' + fp + '|' + fmtDate(when, 'yyyyMMdd')) });
     });
   }
+  if (!dry) { const had = new Set(reg.map(r => r[1] + '|' + r[0])); (await flRegRows(x, regFrom)).forEach(r => { if (![0, DAY, -DAY].some(k => had.has(r[1] + '|' + (r[0] + k)))) reg.push(r); }); } // 📋 số biểu mẫu Facebook (fblead.js) không nằm trong file → vẫn tính là số quảng cáo
   if (!dry) { const js = JSON.stringify(reg), v = hashKey(js); if ((await kvGet(x.db, 'ads_rows_v')) !== v) { await kvSet(x.db, 'ads_rows', js); await kvSet(x.db, 'ads_rows_v', v); } }
   if (!dry) try { // 11/11/2026: nhớ lần đầu mỗi số có trong file quảng cáo (mọi ngày) → bảng phone_seen cho crmSeen. Ghi cả file 1 lần / 7 ngày, còn lại chỉ dòng 10 ngày gần đây (đỡ ghi)
     const full = Date.now() - (Number(await kvGet(x.db, 'phone_seen_full')) || 0) >= 7 * DAY, from = full ? 0 : Date.now() - 10 * DAY;
@@ -827,10 +829,11 @@ export async function adsSync(x, u, dry) {
   const ids = {}, openBy = {};
   (await allIn(x.db, 'SELECT id FROM leads WHERE id IN (SELECT value FROM json_each(?))', scan.map(s => s.id))).forEach(r => { ids[r.id] = 1; });
   const phones = [...new Set(scan.map(s => s.phone))];
-  (await allIn(x.db, "SELECT phone, owner FROM leads WHERE status IN ('Mới hỏi', 'Đang tư vấn') AND phone IN (SELECT value FROM json_each(?))", phones)).forEach(r => { openBy[r.phone] = r.owner || ''; });
+  const fbOpen = {}; (await allIn(x.db, "SELECT phone, owner, by_name, time FROM leads WHERE status IN ('Mới hỏi', 'Đang tư vấn') AND phone IN (SELECT value FROM json_each(?))", phones)).forEach(r => { openBy[r.phone] = r.owner || ''; if (r.by_name === 'Form FB' && Date.now() - (r.time || 0) < 5 * DAY) fbOpen[r.phone] = 1; });
   const owners = await ownersOf(x, phones), pool = users.filter(y => y.recv && y.alias).map(y => y.name);
   for (const s of scan) {
     const { sc, m, hr, r, i, when, phone, id } = s; if (ids[id]) continue;
+    if (fbOpen[phone]) { merged++; ids[id] = 1; continue; } // số biểu mẫu Facebook đã vào CRM (fblead.js), người trực chép lại vào file → không tạo trùng
     if (openBy[phone] !== undefined && cfg.mode !== 'crm') { merged++; ids[id] = 1; continue; } // số này đang được chăm sóc (tiềm năng còn mở) → không tạo trùng
     const saleTxt = String(cell(r, m, 'sale') || '').trim(); let owner = keep[phone] || who(saleTxt);
     if (cfg.mode === 'crm' && !saleTxt && !keep[phone]) { // CRM chia

@@ -8574,7 +8574,7 @@
       .then(function () { KP.busy = 0; if (route().view === 'marketing') softRender(true); });
   }
   /** Mức tốt Quản trị đặt. Chưa đặt lần nào → mức bạn marketing (Tùng) đề xuất 23/10/2026: 1 tin nhắn dưới 100k, 1 SĐT dưới 300k (200–300k là đẹp). */
-  function kpGoal() { var d = S.d && S.d.rules && S.d.rules.dash, c = (d && d.kpi) || { msg: 100000, sdt: 300000 }; return { cpm: Number(c.cpm) || 0, ctr: Number(c.ctr) || 0, cpc: Number(c.cpc) || 0, msg: Number(c.msg) || 0, sdt: Number(c.sdt) || 0 }; }
+  function kpGoal() { var d = S.d && S.d.rules && S.d.rules.dash, c = (d && d.kpi) || { msg: 100000, sdt: 175000, sdtMax: 270000 }; return { sdtMax: Number(c.sdtMax) || 0, cpm: Number(c.cpm) || 0, ctr: Number(c.ctr) || 0, cpc: Number(c.cpc) || 0, msg: Number(c.msg) || 0, sdt: Number(c.sdt) || 0 }; }
   function kpCalc(t) { return { cpm: t.i ? t.s * 1000 / t.i : null, ctr: t.i ? t.c * 100 / t.i : null, cpc: t.c ? t.s / t.c : null, msg: t.m ? t.s / t.m : null, sdt: t.d ? t.s / t.d : null }; }
   /** Đèn 1 chỉ số (hi = cao là tốt, như CTR). Có mức tốt: đạt = xanh, kém hơn tới 20% = cam. Chưa có: so trung bình 7 ngày, kém hơn tới 10% = xanh, tới 30% = cam. */
   function kpLv(v, goal, avg, hi) {
@@ -8669,7 +8669,7 @@
       { k: 'bm', l: '💬 Bấm vào → nhắn tin', v: bm !== null ? oneDec(bm) + '%' : '–', lv: hi(bm, FB_STD.bm), n: 'tốt: từ 15%', fix: 'Khách bấm mở Messenger nhưng không nhắn: cài 3–4 câu hỏi gợi sẵn ("Giá bao nhiêu?", "Nhận tư vấn miễn phí", "Nhận quà") và lời chào có quà ngay câu đầu.' },
       { k: 'msg', l: '💬 Giá 1 tin nhắn', v: cpmsg !== null ? moneyShort(Math.round(cpmsg)) : '–', lv: cpmsg === null ? '' : G.msg ? (cpmsg <= G.msg ? 'ok' : cpmsg <= G.msg * 1.3 ? 'mid' : 'bad') : '', n: G.msg ? 'tốt: dưới ' + moneyShort(G.msg) : '' },
       { k: 'ns', l: '📇 Nhắn tin → để số', v: ns !== null ? Math.round(ns) + '%' : '–', lv: hi(ns, FB_STD.ns), n: 'tốt: từ 40%', fix: 'Nhắn nhiều mà ít để số: trả lời trong 5 phút, xin số khéo (tặng cẩm nang, gọi tư vấn miễn phí), bật trợ lý fanpage trả lời ngoài giờ.' },
-      { k: 'sdt', l: '⭐ Giá 1 số điện thoại', v: cps !== null ? moneyShort(Math.round(cps)) : '–', lv: cps === null ? '' : G.sdt ? (cps <= G.sdt ? 'ok' : cps <= G.sdt * 1.3 ? 'mid' : 'bad') : '', n: G.sdt ? 'tốt: dưới ' + moneyShort(G.sdt) : '' },
+      { k: 'sdt', l: '⭐ Giá 1 số điện thoại', v: cps !== null ? moneyShort(Math.round(cps)) : '–', lv: cps === null ? '' : G.sdt ? (cps <= G.sdt ? 'ok' : cps <= (G.sdtMax || G.sdt * 1.3) ? 'mid' : 'bad') : '', n: G.sdt ? 'tốt: dưới ' + moneyShort(G.sdt) : '' },
       { k: 'pace', l: '🐢 Tiêu hết ngân sách (hôm qua)', v: pace !== null ? pace + '%' : '–', lv: hi(pace, FB_STD.pace), n: 'tốt: từ 85%', fix: 'Không tiêu hết tiền: xem các chiến dịch 🐢 bên dưới (thường do tối ưu cho Mua hàng, tệp nóng nhỏ, độ tuổi hẹp, giới hạn giá thầu).' }];
     var worst = S.filter(function (x) { return x.lv === 'bad' && x.fix; })[0] || S.filter(function (x) { return x.lv === 'mid' && x.fix; })[0];
     var acc = ((L && L.accs) || []).map(function (a) { return a.st && a.st !== 1 ? '⛔ Tài khoản <b>' + esc(a.n) + '</b> đang bị ' + (a.st === 2 ? 'vô hiệu hoá' : a.st === 3 ? 'nợ thanh toán' : 'hạn chế') + ': quảng cáo trong tài khoản này không chạy.' : a.cap && a.spent >= a.cap * 0.95 ? '💳 Tài khoản <b>' + esc(a.n) + '</b> ' + (a.spent >= a.cap ? 'đã chạm' : 'sắp chạm') + ' hạn mức chi tiêu (' + moneyShort(a.spent) + ' / ' + moneyShort(a.cap) + '): nâng hạn mức trong cài đặt thanh toán, không thì quảng cáo tự dừng.' : ''; }).filter(Boolean);
@@ -11457,7 +11457,7 @@
     var lack = need ? Math.max(0, need - have) : 0, perDay = C && C.isCur && lack ? Math.ceil(lack / Math.max(1, C.left)) : 0, cps = sp && have ? Math.round(sp / have) : 0;
     var pace = p7 !== null ? p7 : C && C.el ? have / C.el : 0, r1 = function (v) { return v >= 10 ? Math.round(v) : oneDec(v); };
     var lvN = !need ? '' : !lack ? 'ok' : pace >= perDay ? 'ok' : pace >= perDay * 0.8 ? 'mid' : 'bad';
-    var lvP = cps && G.sdt ? (cps <= G.sdt ? 'ok' : cps <= G.sdt * 1.3 ? 'mid' : 'bad') : '';
+    var lvP = cps && G.sdt ? (cps <= G.sdt ? 'ok' : cps <= (G.sdtMax || G.sdt * 1.3) ? 'mid' : 'bad') : '';
     var nf = function (n) { return Number(n).toLocaleString('vi-VN'); }, v;
     if (!f || !f.saleT) v = 'Sale chưa đặt mục tiêu ' + monthLabel(month) + ' nên chưa tính được cần bao nhiêu số. Tháng này đã về <b>' + nf(have) + ' số</b>.';
     else if (!need) v = 'Chưa đủ số liệu 3 tháng trước để tính cần bao nhiêu số. Tháng này đã về <b>' + nf(have) + ' số</b>.';
@@ -11467,7 +11467,7 @@
     var idle = ad ? ad.idle || 0 : 0, pT = spT && dT ? moneyShort(Math.round(spT / dT)) + ' / số' : '';
     var cells = cell('', '📅 Hôm nay đã về', dT === null ? '…' : nf(dT) + ' số', perDay ? 'cần ' + nf(perDay) + ' số / ngày' + (pT ? ' · ' + pT : '') : pT || 'số khách để lại hôm nay') +
       cell(lvN, '🗓 Tháng này đã về', need ? nf(have) + ' / ' + nf(need) + ' số' : nf(have) + ' số', need ? pct(have, need) + '% · tháng đã qua ' + Math.round(C.tp * 100) + '%' : 'chưa có số cần đạt') +
-      cell(lvP, '⭐ Giá 1 số điện thoại', cps ? moneyShort(cps) : '–', (G.sdt ? 'tốt: dưới ' + moneyShort(G.sdt) : 'tiền quảng cáo ÷ số về') + ' · tính cả tháng') +
+      cell(lvP, '⭐ Giá 1 số điện thoại', cps ? moneyShort(cps) : '–', (G.sdt ? 'tốt: dưới ' + moneyShort(G.sdt) + (G.sdtMax ? ' · trần ' + moneyShort(G.sdtMax) : '') : 'tiền quảng cáo ÷ số về') + ' · tính cả tháng') +
       (ad ? cell(idle >= 3 ? (have && idle / have > 0.2 ? 'bad' : 'mid') : 'ok', '⏳ Số sale chưa gọi xong', nf(idle) + ' số', idle ? 'về từ hôm qua trở về trước, chưa ghi kết quả gọi' : 'sale đã gọi hết số cũ') : '');
     var bar = C ? '<div class="bar"><i style="width:' + Math.min(100, C.p * 100).toFixed(1) + '%"></i>' + (C.isCur ? '<u style="left:' + (C.tp * 100).toFixed(1) + '%" title="Hôm nay"></u>' : '') + '</div><p class="bar-legend">Thanh xanh = số đã về · vạch đen = hôm nay' + (lack ? ' · còn thiếu <b>' + nf(lack) + ' số</b> trong ' + C.left + ' ngày' : '') + '</p>' : '';
     var m = '';
@@ -11559,6 +11559,38 @@
   var FBAUD_G = [['all', 'Tất cả khách đã mua'], ['live', '🟢 Đang dùng'], ['risk', '🟠 Sắp mất'], ['lost', '⚪ Lâu không mua'], ['vip', '⭐ VIP']];
   function fbAudList(g) {
     return (S.d.customers || []).filter(function (c) { return c.orders > 0 && c.consent && !coldOf(c) && (g === 'all' || (g === 'vip' ? isVip(c) : stageOf(c) === g)); });
+  }
+  /* ---------- 📋 Biểu mẫu Facebook → CRM + 📡 báo kết quả về Facebook (18/11/2026, api/src/fblead.js). Xem: Marketing, Quản lý, Quản trị · sửa: Quản trị */
+  function openFbForm() {
+    var m = modal('📋 Biểu mẫu Facebook → CRM', '<p class="muted">Đang tải…</p>', '<button class="btn" data-close>Đóng</button>');
+    var bad = function (e) { toast(e.message, true); };
+    var draw = function (j) {
+      var c = j.cfg || {}, cap = j.cap || {}, ad = j.admin, nf = function (n) { return Number(n || 0).toLocaleString('vi-VN'); };
+      var flSt = !j.pages.length ? '🔴 Chưa kết nối fanpage nào (tab 📘 Fanpage → Kết nối fanpage).' : j.err ? '🔴 ' + esc(j.err) : j.scanAt ? '🟢 Đang nhận: ' + j.pages.length + ' fanpage, ' + j.forms + ' biểu mẫu · quét lần cuối ' + fDateTime(j.scanAt) + (j.hookAt ? ' · tin tức thời gần nhất ' + fDateTime(j.hookAt) : '') : '🟠 Chưa quét lần nào. Bấm 🔄 Quét ngay.';
+      var h = '<p style="margin:0 0 10px">Khách điền <b>Biểu mẫu tức thì</b> trên quảng cáo Facebook → số tự vào <b>Khách hỏi</b> (kênh “Quảng cáo – Form FB”), tự chia sale và báo Telegram ngay để sale gọi trong 5 phút. Không cần chép số vào file nữa.</p>' +
+        '<div class="fl-tiles"><div><span>Hôm nay</span><b>' + nf(j.today) + ' số</b></div><div><span>7 ngày</span><b>' + nf(j.n7) + ' số</b></div><div><span>Gọi được</span><b>' + (j.n7 ? Math.round(j.c7 * 100 / j.n7) + '%' : '–') + '</b></div></div>' +
+        '<p class="small" style="margin:8px 0">' + flSt + '</p>';
+      if (j.list.length) h += '<details class="fl-list"><summary>15 số gần nhất</summary><div class="small">' + j.list.map(function (r) {
+        return '<div class="fl-row">' + fDateTime(r.at) + ' · <b>' + esc(r.name || '') + '</b> ' + esc(r.phone || '') + ' · ' + esc(r.camp || r.form || '') + ' → ' + (r.owner ? '👤 ' + esc(r.owner) : '⚠️ chưa giao') + (r.ok ? ' · ✅ đã gọi được' : r.junk ? ' · 🗑 số rác' : r.status ? ' · ' + esc(r.status) : '') + '</div>'; }).join('') + '</div></details>';
+      h += '<h3 style="margin:16px 0 6px">📡 Báo kết quả về Facebook</h3><p class="small" style="margin:0 0 8px">CRM tự báo cho Facebook <b>số nào sale gọi được</b> và <b>khách nào đã mua</b> (chỉ khách đến từ quảng cáo; số điện thoại được mã hoá, Facebook không thấy số thật). Nhờ vậy Facebook học tìm đúng người nghe máy và mua hàng, giá mỗi số giảm dần.</p>' +
+        '<p class="small" style="margin:0 0 8px">' + (c.on ? '🟢 Đang bật' : '⚪ Đang tắt') + ' · 7 ngày đã báo: <b>' + nf((cap.Contacted || {}).n) + '</b> số gọi được, <b>' + nf((cap.Purchase || {}).n) + '</b> đơn (' + moneyShort((cap.Purchase || {}).v || 0) + ')' + (c.has ? '' : ' · ⚠️ chưa có mã truy cập') + '</p>' +
+        (j.capiErr ? '<p class="small notice">🔴 Lỗi gần nhất: ' + esc(j.capiErr) + '</p>' : '');
+      if (ad) h += '<div class="box fl-cfg"><label class="f"><span><input type="checkbox" id="flOn"' + (c.on ? ' checked' : '') + '> Bật báo kết quả về Facebook</span></label>' +
+        '<label class="f"><span>Mã Pixel (Tập dữ liệu)</span><input type="text" inputmode="numeric" id="flPx" value="' + esc(c.pixel || '') + '"></label>' +
+        '<label class="f"><span>Mã truy cập Conversions API ' + (c.own ? '(đang dùng mã …' + esc(c.tail) + ')' : '(để trống = dùng mã Facebook Ads đã kết nối ở tab Marketing)') + '</span><input type="password" autocomplete="off" id="flKey" placeholder="Dán mã mới (Trình quản lý sự kiện → Cài đặt → Tạo mã truy cập)"></label>' +
+        '<label class="f"><span>Mã thử (Test events, để trống khi chạy thật)</span><input type="text" id="flTest" value="' + esc(c.test || '') + '" placeholder="vd TEST12345"></label>' +
+        '<div class="f"><span style="display:block;font-weight:600;margin-bottom:4px">Số biểu mẫu chia cho ai?</span><label class="mode"><input type="radio" name="flSplit" value="auto"' + (c.split !== 'staff' ? ' checked' : '') + '><span><b>CRM tự chia ngay</b> theo nhóm A/B/C (như file số quảng cáo), khách cũ về sale cũ. Nên chọn: khách được gọi nhanh nhất.</span></label>' +
+        '<label class="mode"><input type="radio" name="flSplit" value="staff"' + (c.split === 'staff' ? ' checked' : '') + '><span><b>Người trực chia tay</b> trong CRM → Khách hỏi.</span></label></div></div>';
+      m.querySelector('.sheet-b').innerHTML = h;
+      m.querySelector('.sheet-f').innerHTML = '<button class="btn" data-close>Đóng</button><button class="btn" id="flScan">🔄 Quét</button>' + (ad ? '<button class="btn" id="flTestB">📨 Thử</button><button class="btn pri" id="flSave">Lưu</button>' : '');
+      $('#flScan', m).onclick = function () { var b = this; b.disabled = true; api('fl_scan', {}).then(function (r) { toast(r.got ? 'Có ' + r.got + ' số mới từ biểu mẫu ✓' : 'Không có số mới (' + (r.forms || 0) + ' biểu mẫu).'); load1(); }, function (e) { b.disabled = false; bad(e); }); };
+      if (!ad) return;
+      var val = function () { var sp = $('input[name=flSplit]:checked', m); return { cfg: { on: $('#flOn', m).checked, pixel: $('#flPx', m).value.trim(), key: $('#flKey', m).value.trim(), test: $('#flTest', m).value.trim(), split: sp ? sp.value : 'auto' } }; };
+      $('#flSave', m).onclick = function () { var b = this; b.disabled = true; api('fl_save', val()).then(function () { toast('Đã lưu ✓'); load1(); }, function (e) { b.disabled = false; bad(e); }); };
+      $('#flTestB', m).onclick = function () { var b = this; b.disabled = true; api('fl_save', val()).then(function () { return api('fl_test', { test: $('#flTest', m).value.trim() }); }).then(function (r) { b.disabled = false; toast('Facebook đã nhận ' + (r.received || 0) + ' sự kiện thử ✓ (xem ở Trình quản lý sự kiện → Kiểm tra sự kiện)'); }, function (e) { b.disabled = false; bad(e); }); };
+    };
+    var load1 = function () { api('fl_view', {}).then(draw, function (e) { m.querySelector('.sheet-b').innerHTML = '<p class="notice">' + esc(e.message) + '</p>'; }); };
+    load1();
   }
   function openFbAud() {
     var g = 'all', cnt = {}; FBAUD_G.forEach(function (x) { cnt[x[0]] = fbAudList(x[0]).length; });
@@ -11688,14 +11720,14 @@
     h += mkGroup('2', '📣 Quảng cáo nào tốt, quảng cáo nào dở?', CB.line || 'Chưa có chiến dịch trong kỳ', mins(['camp', 'prod', 'fun']));
     h += mkGroup('3', '📇 Số điện thoại về sale có ra đơn không?', ad ? ad.n + ' số điện thoại · ' + pct(ad.won, ad.n) + '% đã mua' + (ad.idle ? ' · ⏳ ' + ad.idle + ' số sale chưa gọi xong' : '') : 'Chưa có file số quảng cáo của sale.', mins(['data', 'sale']));
     h += mkGroup('4', '🌱 Kênh tự có: website & nhóm Zalo (không tốn tiền quảng cáo)', [wb && wb.share !== null ? '🌐 Web = ' + oneDec(wb.share) + '% doanh số' : '', cm && cm.rev ? '👥 Nhóm Zalo mua lại ' + moneyShort(cm.rev) : ''].filter(Boolean).join(' · ') || 'Website, nhóm Zalo, hoạt động trên web', mins(['site', 'web', 'comm', 'pledge', 'quiz']));
-    h += '<div class="mk-tools" id="mk-cc"><b>🧰 Công cụ</b><div class="steps"><a class="btn ghost" href="#link-qr">📍 Link &amp; QR</a>' + mktDocBtn() + (lvl() >= 3 ? '<button class="btn ghost" data-mkv="aud">👥 Tệp khách FB</button>' : '') + '</div>' +
-      '<p class="small muted" style="margin:0">📍 <b>Link &amp; QR</b>: tạo link, mã QR cho tờ rơi, standee, quảng cáo và xem hiệu quả.' + (mktDoc().url ? ' 🗺 <b>Hệ thống Marketing</b>: sơ đồ cả hệ thống marketing của công ty.' : '') + (lvl() >= 3 ? ' 👥 <b>Tệp khách FB</b>: file số điện thoại khách cũ để tải lên Facebook.' : '') + '</p></div>';
+    h += '<div class="mk-tools" id="mk-cc"><b>🧰 Công cụ</b><div class="steps"><a class="btn ghost" href="#link-qr">📍 Link &amp; QR</a>' + mktDocBtn() + '<button class="btn ghost" data-mkv="flform">📋 Biểu mẫu FB</button>' + (lvl() >= 3 ? '<button class="btn ghost" data-mkv="aud">👥 Tệp khách FB</button>' : '') + '</div>' +
+      '<p class="small muted" style="margin:0">📍 <b>Link &amp; QR</b>: tạo link, mã QR cho tờ rơi, standee, quảng cáo và xem hiệu quả.' + (mktDoc().url ? ' 🗺 <b>Hệ thống Marketing</b>: sơ đồ cả hệ thống marketing của công ty.' : '') + ' 📋 <b>Biểu mẫu FB</b>: số khách điền biểu mẫu quảng cáo tự vào CRM, báo kết quả gọi / mua về Facebook.' + (lvl() >= 3 ? ' 👥 <b>Tệp khách FB</b>: file số điện thoại khách cũ để tải lên Facebook.' : '') + '</p></div>';
     h += '<p class="small mk-tgline">📲 Mỗi sáng 8h, Telegram gửi tin <b>📣 Marketing sáng nay</b> (tiến độ mục tiêu, hôm qua, việc nên làm) cho bạn marketing đã kết nối Telegram ở Cài đặt.' + (mkvOnly() ? '' : ' <button class="link" data-mkv="tgtest">Gửi thử cho tôi</button>') + '</p>';
     h += '<p class="small muted" style="margin-top:12px">' + (mj.fb.on ? '📘 Facebook Ads tự cập nhật' + (mj.fb.last ? ' · lần gần nhất ' + fDateTime(mj.fb.last) : '') + ' · ' : '') + 'Số tính lúc ' + fDateTime(mj.at) + (mj.cached ? ' (bấm ↻ để tính lại)' : '') + '. Tiền khách mới = tiền khách mua lần đầu mang về trong kỳ (cả các đơn sau của họ trong kỳ), gắn theo kênh đã đưa khách tới.</p>';
     return h;
   }
   function bindMkv() {
-    $$('[data-mkv]').forEach(function (el) { el.onclick = function () { var a = el.getAttribute('data-mkv'); if (a === 'aud') openFbAud(); else if (a === 'cost') openMkt(); else if (a === 'budget') { var bj = MV.cache[mvKey()]; if (bj) openBudget(bj.budget); } else if (a === 'call') { S.f.m.call = 1; render(); } else if (a === 'tgtest') { el.disabled = true; api('mkt_tg_test').then(function () { toast('📲 Đã gửi, mở Telegram để xem'); }, function (e) { toast(/Không rõ thao tác/.test(e.message) ? 'Máy chủ đang cập nhật bản mới, thử lại sau 2 phút.' : e.message, true); }).then(function () { el.disabled = false; }); } else if (a === 'goal') { var gj = MV.cache[mvKey()]; if (gj) openMkGoal(gj); } else if (a === 'fresh') { KP.err = ''; kpFetch(true); var mk0 = mvMonthKey(), k = mvKey(); delete MV.cache[k]; MV.err = ''; delete MV.pend[k]; mvFetch(k, true); if (mk0 !== k) { delete MV.cache[mk0]; delete MV.pend[mk0]; mvFetch(mk0, true); } render(); } }; });
+    $$('[data-mkv]').forEach(function (el) { el.onclick = function () { var a = el.getAttribute('data-mkv'); if (a === 'aud') openFbAud(); else if (a === 'flform') openFbForm(); else if (a === 'cost') openMkt(); else if (a === 'budget') { var bj = MV.cache[mvKey()]; if (bj) openBudget(bj.budget); } else if (a === 'call') { S.f.m.call = 1; render(); } else if (a === 'tgtest') { el.disabled = true; api('mkt_tg_test').then(function () { toast('📲 Đã gửi, mở Telegram để xem'); }, function (e) { toast(/Không rõ thao tác/.test(e.message) ? 'Máy chủ đang cập nhật bản mới, thử lại sau 2 phút.' : e.message, true); }).then(function () { el.disabled = false; }); } else if (a === 'goal') { var gj = MV.cache[mvKey()]; if (gj) openMkGoal(gj); } else if (a === 'fresh') { KP.err = ''; kpFetch(true); var mk0 = mvMonthKey(), k = mvKey(); delete MV.cache[k]; MV.err = ''; delete MV.pend[k]; mvFetch(k, true); if (mk0 !== k) { delete MV.cache[mk0]; delete MV.pend[mk0]; mvFetch(mk0, true); } render(); } }; });
     $$('#view [data-dash="sfb"]').forEach(function (el) { el.onclick = function () { var f = S.f.m; f.sfb = !f.sfb; store('dash_sfb', f.sfb ? '1' : '0'); render(); }; });
     $$('#view [data-dgo]').forEach(function (el) { el.onclick = function () { var g = el.getAttribute('data-dgo').replace(/^mk-/, ''), t = $('#mk-' + g); if (!t) return; if (t.tagName === 'DETAILS') t.open = true; t.scrollIntoView({ behavior: 'smooth', block: 'start' }); }; });
     $$('details[data-mk]').forEach(function (d) { d.addEventListener('toggle', function () { var o = S.f.m.open || (S.f.m.open = {}), k = d.getAttribute('data-mk'); if (d.open) o[k] = 1; else delete o[k]; store('mkt_open', JSON.stringify(o)); }); });
@@ -14223,7 +14255,7 @@
       var KG = kpGoal(), kf = function (id, l, v, ph) { return '<label class="f"><span>' + l + '</span><input type="text" inputmode="decimal" id="' + id + '" value="' + (v || '') + '" placeholder="' + ph + '"></label>'; };
       G.kpi = '<div class="box"><h3>📊 Mức tốt chỉ số quảng cáo</h3><p class="hint" style="margin:0 0 10px">Tab <b>📣 Marketing → 📊 Chỉ số chiến dịch hôm nay</b> tô đèn theo các mức này: 🟢 đạt · 🟠 kém hơn tới 20% · 🔴 kém hơn nhiều. Để trống ô nào thì ô đó so với trung bình 7 ngày trước của chiến dịch.</p><div class="row2c">' +
         kf('kpCpm', 'CPM tốt khi dưới (đ / 1.000 lượt thấy)', KG.cpm, 'vd 40000') + kf('kpCtr', 'CTR tốt khi từ (%)', KG.ctr, 'vd 1,5') + '</div><div class="row2c">' +
-        kf('kpCpc', 'CPC tốt khi dưới (đ / 1 lượt bấm)', KG.cpc, 'vd 3000') + kf('kpMsg', 'Giá 1 tin nhắn tốt khi dưới (đ)', KG.msg, 'vd 100000') + '</div><div class="row2c">' + kf('kpSdt', '⭐ Giá 1 SĐT tốt khi dưới (đ)', KG.sdt, 'vd 300000') + '</div>' +
+        kf('kpCpc', 'CPC tốt khi dưới (đ / 1 lượt bấm)', KG.cpc, 'vd 3000') + kf('kpMsg', 'Giá 1 tin nhắn tốt khi dưới (đ)', KG.msg, 'vd 100000') + '</div><div class="row2c">' + kf('kpSdt', '⭐ Giá 1 SĐT tốt khi dưới (đ)', KG.sdt, 'vd 175000') + kf('kpSdtMax', '🔴 Giá 1 SĐT trần (trên mức này là lỗ đơn đầu)', KG.sdtMax, 'vd 270000') + '</div>' +
         '<button class="btn pri" id="kpSave">Lưu mức tốt</button></div>'; }
     var md = mode(), staff = (S.d.users || []).filter(function (u) { return u.active !== false && u.role !== 'Marketing'; }), noOwner = S.d.customers.filter(function (c) { return !c.owner; }).length;
     G.mode = '<div class="box"><h3>👥 Chia khách & phân quyền</h3><p class="hint" style="margin:0 0 10px">Sale & CSKH chỉ thấy khách mình phụ trách. Quản lý thấy tất cả.</p>' +
@@ -14846,7 +14878,7 @@
       };
     }
     if ($('#kpSave')) $('#kpSave').onclick = function () {
-      var b = this, rd = function (id) { var v = $('#' + id).value.trim(); return v ? (id === 'kpCtr' ? Number(v.replace(',', '.')) : parseMoney(v)) : 0; }, K = { cpm: rd('kpCpm'), ctr: rd('kpCtr'), cpc: rd('kpCpc'), msg: rd('kpMsg'), sdt: rd('kpSdt') };
+      var b = this, rd = function (id) { var v = $('#' + id).value.trim(); return v ? (id === 'kpCtr' ? Number(v.replace(',', '.')) : parseMoney(v)) : 0; }, K = { cpm: rd('kpCpm'), ctr: rd('kpCtr'), cpc: rd('kpCpc'), msg: rd('kpMsg'), sdt: rd('kpSdt'), sdtMax: rd('kpSdtMax') };
       if (Object.keys(K).some(function (k) { return isNaN(K[k]) || K[k] < 0; }) || K.ctr > 100) { toast('Số chưa đúng. CTR nhập phần trăm, ví dụ 1,5.', true); return; }
       b.disabled = true;
       api('settings', { kpi: K }).then(function (j) { if (!j.dash || !j.dash.kpi) { toast('Máy chủ đang cập nhật bản mới, thử lại sau 2 phút.', true); b.disabled = false; return; } S.d.rules.dash = j.dash; toast('Đã lưu mức tốt ✓'); b.disabled = false; }, function (e) { toast(e.message, true); b.disabled = false; });
