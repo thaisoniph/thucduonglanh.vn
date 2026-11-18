@@ -6374,8 +6374,10 @@
     var T = { san: sn ? sn.g : 0, paid: b.paid + (sn ? sn.gp || 0 : 0), sanPaid: sn ? sn.gp || 0 : 0, rev: b.rev + (sn ? sn.g + sn.gv : 0), revP: bp.rev + (snp ? snp.g + snp.gv : 0), vRev: b.vRev + (sn ? sn.gv : 0), net: b.rev - b.vRev + (sn ? sn.g : 0), netP: bp.rev - bp.vRev + (snp ? snp.g : 0), sanV: sn ? sn.gv : 0, n: b.n + (sn ? sn.n + sn.c + sn.r : 0), nP: bp.n + (snp ? snp.n + snp.c + snp.r : 0), tr: dashSeries(R, P, sj), vs: voidStats(R), vsp: voidStats(P) };
     var h = '<div class="page-head"><h1>Tổng quan</h1><div class="grow"></div>' + askBtn() + '<button class="btn ghost" data-dash="fresh" title="Lấy số mới nhất (quảng cáo, website)">↻ Cập nhật số</button></div>' + perChips('g', f.p);
     h += dashNotes(T, b, g, f.p, M, sj, gl); // 👉 Cần anh xử lý hôm nay: đầu trang (anh Sơn 11/11/2026, PA A)
-    h += dashHero(T, b, bp, M, gl, month, sj, f.p); // câu kết luận + 4 số chính + mục tiêu tháng
-    h += dashHealth(T, b, bp, M, gl, sj, f.p); // 🩺 đỏ / cam hiện to, xanh gọn 1 hàng
+    // 19/11/2026 (anh Sơn: "làm tương tự" Insight / Marketing): 4 số chính + 🩺 vào thẻ 📊 Tình hình; 4 nhóm thu gọn cũ thành thẻ, chia 3 nhóm theo việc
+    var dt = dashTab(f);
+    h += grpMenu(DASH_G, dt, function (k) { return 'data-dgt="' + k + '"'; });
+    if (dt === 'tq') h += dashHero(T, b, bp, M, gl, month, sj, f.p) + dashHealth(T, b, bp, M, gl, sj, f.p); // câu kết luận + 4 số chính + mục tiêu tháng; 🩺 đỏ / cam hiện to
     // 15/11/2026: phần chi tiết chia 4 nhóm, mỗi nhóm 1 câu "nhóm này để làm gì"; mỗi mục thu gọn có dòng tóm tắt số chính, bấm mới mở
     var X = {};
     var DL = dashDaily(perRange(f.p), b, M, sj, f.p, month); if (DL) X.daily = dashMore('daily', '💵 Lãi lỗ thật từng ngày', dashDaily.line || 'Lãi / lỗ sau mọi chi phí', DL);
@@ -6465,10 +6467,11 @@
       ['staff', '👥', 'Đội ngũ', 'Ai đang bán tốt, ai cần kèm thêm, mỗi người có đáng đồng lương.', ['team', 'camp', 'nsv'], ''],
       ['grow', '📣', 'Khách mới & marketing', 'Tiền quảng cáo có đáng không, khách mới đến từ kênh nào, website.', ['mkt', 'lead', 'ref', 'web'], '']
     ];
-    h += '<div class="section-h dash-more-h"><h2>🔎 Muốn xem kỹ hơn?</h2><span class="tip">chọn 1 trong 4 nhóm</span></div>';
-    GR.forEach(function (gp, n) {
-      var body = gp[4].map(function (k) { return X[k] || ''; }).join(''); if (!body) return;
-      h += '<details class="dash-grp" data-dk="' + gp[0] + '" id="dg-' + gp[0] + '"' + (S.f.g.open[gp[0]] ? ' open' : '') + '><summary><span class="mk-grp-n">' + (n + 1) + '</span><span class="dash-grp-t"><b>' + gp[1] + ' ' + gp[2] + '</b><small>' + gp[3] + '</small>' + (gp[5] ? '<em>' + gp[5] + '</em>' : '') + '</span></summary><div class="dash-grp-b">' + body + '</div></details>';
+    GR.forEach(function (gp) {
+      gp[4].forEach(function (k) { DASH_OF[k] = gp[0]; }); // ô số ở thẻ 📊 bấm → biết mục nằm thẻ nào
+      if (dt !== gp[0]) return;
+      var body = gp[4].map(function (k) { return X[k] || ''; }).join('');
+      h += inTabi(gp[3] + (gp[5] ? ' <b>' + gp[5] + '.</b>' : ''), ['Đọc dòng số tóm tắt của từng mục', 'Muốn xem kỹ: bấm vào mục để mở']) + (body ? '<div class="dash-tabb">' + body + '</div>' : '<div class="box"><p class="muted">Kỳ này chưa có số.</p></div>');
     });
     h += '<div class="dash-go dash-go-end"><span>Mở tab:</span><a class="btn" href="#bao-cao">📊 Bán hàng</a><a class="btn" href="#marketing">📣 Marketing</a><a class="btn" href="#san">🛒 Sàn</a><a class="btn" href="#kho">📦 Kho</a><a class="btn" href="#link-qr">📍 Link & QR</a><a class="btn" href="#tro-ly-zalo">🤖 Trợ lý Zalo</a><a class="btn" href="#fanpage">📘 Fanpage</a><a class="btn" href="#bai-web">📰 Bài web</a></div>';
     h += '<p class="small muted">Doanh số, đơn, khách lấy từ CRM (đơn 13 tháng gần nhất) và file sàn. Lượt vào website đếm bằng Cloudflare (không cookie, đủ 100%); hành vi trên web lấy từ Google Analytics, chỉ đếm khách đã bấm “Đồng ý” cookie (Luật Bảo vệ dữ liệu cá nhân 91/2025) nên thấp hơn số thật.</p>' ;
@@ -13179,7 +13182,18 @@
     cs.forEach(function (r) { if ((r[3] || 0) < 2e6) return; var cpa = r[8] ? r[3] / r[8] : Infinity, x = cpa / avg; if (x >= 2 && (!w || x > w.x)) w = { r: r, cpa: cpa, x: x }; });
     return w;
   }
+  /** 📊 Tổng quan chia 3 nhóm thẻ (19/11/2026); mã thẻ nhóm = mã nhóm GR trong viewDash */
+  var DASH_G = [['📊 Xem nhanh', 'mỗi ngày', [['tq', '📊', 'Tình hình', '4 số chính, sức khỏe']]],
+    ['💵 Tiền & doanh số', 'mỗi tuần', [['money', '💵', 'Tiền & lãi lỗ', 'lãi hay lỗ, tiền còn'], ['sales', '📈', 'Doanh số', 'từ đâu, vì sao tăng giảm']]],
+    ['👥 Người & khách', 'mỗi tuần', [['staff', '👥', 'Đội ngũ', 'ai bán tốt, ai cần kèm'], ['grow', '📣', 'Khách mới', 'quảng cáo, website']]]];
+  var DASH_OF = {};
+  function dashTab(f) {
+    if (!f.tab) f.tab = store('dash_tab') || 'tq';
+    if (!DASH_G.some(function (g) { return g[2].some(function (x) { return x[0] === f.tab; }); })) f.tab = 'tq';
+    return f.tab;
+  }
   function bindDash() {
+    $$('[data-dgt]').forEach(function (el) { el.onclick = function () { S.f.g.tab = el.getAttribute('data-dgt'); store('dash_tab', S.f.g.tab); render(); }; });
     [['#nsvX', 'x'], ['#nsvKho', 'kho'], ['#nsvKt', 'kt']].forEach(function (z) { var e = $(z[0]); if (e) e.onchange = function () { var v = z[1] === 'x' ? lgtF(e.value) : lgtNum(e.value); store('nsv_' + z[1], v > 0 ? String(v) : null); NSV_C = {}; S.f.g.open.nsv = 1; render(); }; });
     var nvt = $('#nsvV'); if (nvt) nvt.onchange = function () { var v = lgtF(nvt.value); store('nsv_v', v >= 0 && v < 100 ? String(v) : null); NSV_C = {}; S.f.g.open.nsv = 1; render(); };
     $$('[data-nsvt]').forEach(function (c) { c.onchange = function () { var T = nsvTick(), v = (T.f ? 'f' : '') + (T.b ? 'b' : '') + (T.o ? 'o' : ''), k = c.getAttribute('data-nsvt'); v = c.checked ? v + k : v.replace(k, ''); store('nsv_t', v || '-'); NSV_C = {}; S.f.g.open.nsv = 1; render(); }; });
@@ -13225,7 +13239,11 @@
       d.addEventListener('toggle', function () { var o = S.f.g.open, k = d.getAttribute('data-dk'); if (d.open) o[k] = 1; else delete o[k]; store('dash_open', JSON.stringify(o)); });
     });
     $$('[data-dgo]').forEach(function (el) {
-      var go = function () { var d = $('#dm-' + el.getAttribute('data-dgo')); if (!d) return; var gp = d.closest('details.dash-grp'); if (gp) gp.open = true; d.open = true; d.scrollIntoView({ behavior: 'smooth', block: 'start' }); };
+      var go = function () {
+        var k = el.getAttribute('data-dgo'), d = $('#dm-' + k);
+        if (!d && route().view === 'tong-quan' && DASH_OF[k]) { S.f.g.tab = DASH_OF[k]; store('dash_tab', S.f.g.tab); S.f.g.open[k] = 1; render(); d = $('#dm-' + k); }
+        if (!d) return; var gp = d.closest('details.dash-grp'); if (gp) gp.open = true; d.open = true; d.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      };
       el.onclick = go; el.onkeydown = function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } };
     });
   }
