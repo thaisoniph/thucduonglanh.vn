@@ -5,6 +5,7 @@
 //   manual – nhập tay 1 khoản cho 1 khoảng ngày (KOL, in ấn…), chia đều theo ngày để xem theo kỳ nào cũng đúng.
 import { all, first, run, insertMany, kvJson, kvSet, randHex, startOfDay, fmtDate, DAY } from './lib.js';
 import { mkCampReal } from './mkcamp.js';
+import { mkSchList } from './mksch.js';
 
 const FX_USD = 26500; // tỷ giá USD mặc định, Quản trị sửa ở CRM (cfg.fb.fx) theo giá agency tính
 const FB_API = 'https://graph.facebook.com/v23.0/';
@@ -40,8 +41,8 @@ async function fbGet(token, path, params) {
  *  ∪ mã nhập tay (manual: số / act_…, cách nhau dấu phẩy). strict: mã nhập tay mở không được thì báo lỗi (lúc kết nối), không thì bỏ qua (lúc tự tìm lại).
  *  Mã Trang / ứng dụng: báo rõ loại mã. */
 async function fbAccounts(token, manual, strict) {
-  const one = a => ({ id: 'act_' + a.account_id, name: a.name || a.account_id, cur: a.currency || '', st: a.account_status });
-  const F = { fields: 'name,account_id,currency,account_status', limit: 100 }, seen = {}, out = [];
+  const one = a => ({ id: 'act_' + a.account_id, name: a.name || a.account_id, cur: a.currency || '', st: a.account_status, tz: a.timezone_offset_hours_utc, tzn: a.timezone_name || '' }); // tz: giờ lệch UTC → 0h của tài khoản (mksch.js)
+  const F = { fields: 'name,account_id,currency,account_status,timezone_offset_hours_utc,timezone_name', limit: 100 }, seen = {}, out = [];
   const add = a => { if (a && a.id && !seen[a.id]) { seen[a.id] = 1; out.push(a); } };
   const list = async path => { let j = await fbGet(token, path, F); for (let i = 0; i < 10; i++) { (j.data || []).forEach(a => add(one(a))); if (!j.paging || !j.paging.next) break; j = await fbGet(token, j.paging.next); } };
   const soft = async p => { try { await p; } catch (e) { if (/hết hạn/.test(e.message)) throw e; } }; // nhánh không có / thiếu quyền: bỏ qua, thử nhánh khác
@@ -174,14 +175,14 @@ export async function mktFbEdit(x, d) {
   if (!cp) return { ok: false, error: 'Không thấy mục này trong danh sách đang chạy. Bấm ↻ để lấy danh sách mới rồi thử lại.' };
   const info = (fb.all || []).find(a => a.id === cp.acc) || {}, rate = info.cur === 'USD' ? (fb.fx || FX_USD) / 100 : 1;
   const P = {}, nm = (kind === 'campaign' ? 'chiến dịch ' : kind === 'adset' ? 'nhóm quảng cáo ' : 'quảng cáo ') + '“' + (set ? set.n : ad ? ad.n : cp.n) + '”';
-  let log = '';
+  let log = '', oldV = 0, newV = 0;
   if (op === 'budget') {
     if (kind === 'ad' || (kind === 'campaign' && !cp.cbo) || (kind === 'adset' && cp.cbo)) return { ok: false, error: kind === 'campaign' ? 'Chiến dịch này đặt ngân sách ở từng nhóm quảng cáo: sửa ở nhóm quảng cáo.' : 'Chiến dịch này đặt ngân sách chung ở cấp chiến dịch.' };
     const old = kind === 'campaign' ? cp.bud[0] : set.b[0], amt = Math.round(Number(d.amount) || 0);
     if (!old) return { ok: false, error: 'Mục này dùng ngân sách trọn đợt, không phải ngân sách ngày: sửa trong Trình quản lý quảng cáo.' };
     if (amt < 20000) return { ok: false, error: 'Ngân sách ngày tối thiểu khoảng 20.000đ.' };
     if (!d.force && (amt > old * 3 || amt < old / 3)) return { ok: false, confirm: 1, error: 'Ngân sách mới khác quá xa (' + old.toLocaleString('vi-VN') + 'đ → ' + amt.toLocaleString('vi-VN') + 'đ). Kiểm tra lại số.' };
-    P.daily_budget = String(Math.max(1, Math.round(amt / rate)));
+    P.daily_budget = String(Math.max(1, Math.round(amt / rate))); oldV = old; newV = amt;
     log = 'Ngân sách ' + nm + ': ' + old.toLocaleString('vi-VN') + 'đ → ' + amt.toLocaleString('vi-VN') + 'đ / ngày';
     if (kind === 'campaign') cp.bud[0] = amt; else { set.b[0] = amt; cp.bud[0] = (cp.sets || []).filter(z => z.st === 'ACTIVE').reduce((a, z) => a + (z.b[0] || 0), 0); }
   } else {
@@ -189,6 +190,7 @@ export async function mktFbEdit(x, d) {
     log = (op === 'pause' ? 'Tắt ' : 'Bật lại ') + nm;
     (kind === 'campaign' ? cp : set || ad).st = P.status;
   }
+  if (d.dry) return { ok: true, dry: 1, log, cpObj: cp, objN: set ? set.n : ad ? ad.n : cp.n, old: oldV, amt: newV }; // 🕛 mksch.js: kiểm tra + chuẩn bị, chưa gửi Facebook
   const r = await fetch(FB_API + id, { method: 'POST', body: new URLSearchParams(Object.assign({ access_token: fb.token }, P)) });
   const j = await r.json().catch(() => ({}));
   if (j.error) {
@@ -212,7 +214,8 @@ async function mktKpi(x, d) {
   const data = {}, seen = {}; // số SĐT (data) về file số quảng cáo mỗi ngày, mỗi số 1 lần / ngày – để tính chi phí 1 SĐT (marketing ngành này nhìn số này là chính)
   (ads || []).forEach(a => { const tm = Number(a[0]) || 0, p = String(a[1] || ''); if (tm < t - 8 * DAY || !p) return; const d = iso(tm); if (seen[d + p]) return; seen[d + p] = 1; data[d] = (data[d] || 0) + 1; });
   const cr7 = await mkCampReal(x, iso(t - 6 * DAY), iso(t)).catch(e => { console.error('mkCampReal', e.message); return null; }); // 🎯 7 ngày: Meta báo → SĐT thật → ra đơn từng chiến dịch
-  return { ok: true, today: iso(t), last: (c.fb || {}).last || null, data, cr7, live: live || null, fbOn: !!(c.fb || {}).token, rows: rows.map(r => [r.day, r.channel, r.campaign, accOf(c, r), r.s, r.i, r.c, r.m, r.p || 0]) };
+  const sch = await mkSchList(x).catch(e => { console.error('mkSchList', e.message); return null; }); // 🕛 lệnh chờ áp lúc 0h
+  return { ok: true, today: iso(t), last: (c.fb || {}).last || null, data, cr7, sch, live: live || null, fbOn: !!(c.fb || {}).token, rows: rows.map(r => [r.day, r.channel, r.campaign, accOf(c, r), r.s, r.i, r.c, r.m, r.p || 0]) };
 }
 
 /** Tài khoản quảng cáo của 1 dòng chiến dịch: [tên hiện, mã act_… (Facebook, để mở Trình quản lý quảng cáo) hoặc '']. Dùng chung cho lệnh mkt và mktv. */

@@ -1,12 +1,13 @@
 // Việc chạy theo lịch: 8h sáng gửi danh sách chăm sóc + báo mức dùng CRM + tin Marketing sáng nay, 10 phút/lần lấy số quảng cáo, 30 phút/lần tự nhập file sale + Google Sheet báo cáo sàn, 6 tiếng 1 lần chép bản sao dữ liệu sang Google Sheet.
 import { normPhone, esc, fmtDate, startOfDay, all, kvGet, kvSet, kvDel, kvJson, CRM_URL, DAY } from './lib.js';
 import { telegram, telegramTo, gInfo, sheetMeta, sheetClear, sheetWrite, sheetAddTabs, sheetBatch, a1 } from './google.js';
-import { recalcAll, crmUsers, unifyNames, unifyProducts, autoCloseLeads, fixBestTiepNhan, rulesCfg, careTask, groupOf, leadsData, leadDue, adsCfg, usageAlert, poolTick, ownTick } from './crm.js';
+import { recalcAll, crmUsers, unifyNames, unifyProducts, autoCloseLeads, fixBestTiepNhan, rulesCfg, careTask, groupOf, leadsData, leadDue, adsCfg, usageAlert, poolTick, ownTick, crmLog, telegramUser } from './crm.js';
 import { adsSync, srcAutoTick, fixAdsLeads } from './sync.js';
 import { sanSheetTick } from './san.js';
 import { sanAiMorning, sanAiEvening } from './sanai.js';
 import { shpTick } from './sanshp.js';
-import { mktTick } from './mkt.js';
+import { mktTick, mktFbEdit } from './mkt.js';
+import { mkSchTick } from './mksch.js';
 import { mktDailyMsgs } from './mktv.js';
 import { wbTick } from './wb.js';
 import { backfillCustomerExtras } from './migrate.js';
@@ -141,6 +142,7 @@ async function refThanks(x) {
 export async function scheduled(x, cron) {
   if (!await kvGet(x.db, 'migrated')) return;
   const now = Date.now(), vn = new Date(now + 7 * 3600e3);
+  try { await mkSchTick(x, { mktFbEdit, crmLog, crmUsers, telegramUser }); } catch (e) { console.error('mkSchTick', e.message); } // 🕛 áp thay đổi quảng cáo lúc 0h theo múi giờ tài khoản (mksch.js), chạy cả đêm
   if (vn.getUTCHours() < 7 || vn.getUTCHours() >= 22) return; // ban đêm (22h–7h) không ai làm việc → nghỉ, đỡ tốn lượt đọc
   if (vn.getUTCDay() === 1 && vn.getUTCHours() >= 9) x.later(nccDriveTick(x).catch(e => console.error('nccDrive', e.message))); // ☁️ thứ Hai: chép chứng từ nhà cung cấp lên Google Drive (ncc.js)
   if (vn.getUTCHours() === 7 && vn.getUTCMinutes() >= 30 && vn.getUTCMinutes() < 50) { // 💼 7h30: tự đọc link Google Sheet kế toán (lượt riêng, lỗi không ảnh hưởng tin 8h)

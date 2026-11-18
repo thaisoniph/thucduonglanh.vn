@@ -19,7 +19,7 @@ binding = "AI" # Workers AI: Whisper nghe lời thoại video khi 🧪 chấm b�
 BRIDGE_URL = "https://script.google.com/macros/s/AKfycbylMjHmg2kXJZHcMSEzDWeI8YC_He35HcCrTTDgslYz8ftI9jMJ6fSFUx5qnPpTAnW-/exec"
 
 [triggers]
-crons = ["*/10 0-14 * * *"] # giờ UTC: 0h–14h = 7h–21h59 giờ Việt Nam. Ban đêm không chạy lịch (đơn web, tin Viettel Post vẫn nhận bình thường)
+crons = ["*/10 * * * *"] # giờ UTC, 10 phút / lần cả ngày đêm. Ban đêm (22h–7h giờ VN) chỉ chạy 🕛 áp thay đổi quảng cáo lúc 0h (mksch.js), mọi việc khác vẫn nghỉ (cron.js tự dừng)
 
 # Trạm chuyển tiếp gọi AI (api/src/airelay.js): đặt ở Bắc Mỹ vì Anthropic không nhận yêu cầu từ trạm Hồng Kông
 [[durable_objects.bindings]]

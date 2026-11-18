@@ -3715,3 +3715,13 @@ details.top-fold[open] > summary::after { transform: rotate(180deg); }
 .mk-cr-w { width: 100%; margin: 4px 0 0; font-size: 13px; color: #9b2c22; }
 .mk-cr-head { margin: 0 0 10px; padding: 10px 12px; border-radius: 10px; border: 1px dashed #c9d3c4; }
 .mk-cr-head p { margin: 0 0 6px; }
+
+/* 🕛 Lệnh chờ áp lúc 0h (18/11/2026) */
+.mk-sch { margin: 8px 0 12px; padding: 10px 12px; border-radius: 10px; border: 1px solid #d9e2d5; background: #f8faf6; }
+.mk-sch > p { margin: 0 0 6px; }
+.mk-sch-r { display: flex; flex-wrap: wrap; gap: 6px; justify-content: space-between; align-items: center; padding: 8px 0; border-top: 1px solid #e6ebe3; font-size: 13.5px; }
+.mk-sch-r.mid b:first-child { color: #9a5b00; }
+.mk-sch-r.bad b:first-child { color: #9b2c22; }
+.mk-sch-r.ok b:first-child { color: #22693a; }
+.mk-sch-err { color: #9b2c22; }
+.mk-sch-n { display: block; width: 100%; margin-top: 4px; }

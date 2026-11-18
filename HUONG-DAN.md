@@ -707,6 +707,19 @@ Mục tiêu: mỗi chiến dịch Facebook ra Meta báo X tin nhắn / lead → 
 - CRM: `mkCrLine` (dòng 🎯 trong thẻ `mkLiveBlock` và khối 🎬 `mkCampBlock`), `mkCrHead` (đã gắn bao nhiêu %, ❔ Chưa rõ chiến dịch, nút `data-mkcol`), CSS `.mk-cr…`. Ngưỡng `dash_cfg.kpi.yx` (Cài đặt → 📊 Mức tốt chỉ số quảng cáo, mặc định 30%); chỉ tô đèn khi đã gắn ≥ 60% SĐT (`MK_CR_COV`). Hướng dẫn `guide/marketing.md` Việc 12.
 - Thử 18/11 trên bản máy (wrangler dev + D1 giả + file Google giả): cột có sẵn được dùng lại, biểu mẫu + Messenger tự điền đúng chiến dịch, `mkt_kpi` và `mktv` ra cùng số, tổng ra đơn khớp `adStat`.
 
+
+## 6i. 🕛 Hẹn giờ thay đổi quảng cáo lúc 0h (18/11/2026, api `2026-11-18zz5`, `SCHEMA_V 2026-11-18c`, quy tắc của anh Sơn)
+
+Chiến dịch đang chạy: bật / tắt / đổi ngân sách trong CRM chỉ có hiệu lực lúc 0h theo múi giờ tài khoản quảng cáo. Code `api/src/mksch.js`, hướng dẫn `guide/quang-cao-hen-0h.md`.
+- Lệnh `mkt_fb_edit` giờ gọi `mkSchEdit` (crm.js, chỉ Quản trị + Marketing): `mktFbEdit(..., {dry: 1})` kiểm tra + chuẩn bị (trả `cpObj`, `objN`, `old`, `amt`, chưa gửi Facebook). Chiến dịch **chưa từng chạy** (`ranOf`: bắt đầu ≤ 9 ngày và không có dòng `ad_spend` chi > 0 từ lúc bắt đầu) → áp ngay (anh Sơn chọn). Còn lại → bảng `mk_sched` (acc, camp_id, camp_n, kind, obj_id, obj_n, op, old_v, new_v, why, by_name, at, due, tz, st wait/approve/done/error/cancel/expired, ok_by, ok_at, done_at, err).
+- Rào: công tắc tổng `dash_cfg.sch.off` (lệnh `settings {sch: {off}}`, chỉ Quản trị; tắt = không sửa gì, lệnh chờ bị bỏ); chiến dịch chạy dưới 3 ngày bị chặn; tăng ngân sách tối đa 20% (`UP_MAX`); 1 lệnh ngân sách / chiến dịch / ngày (kể cả lệnh đã áp 24 giờ qua); trùng mục + loại thao tác đang chờ bị chặn; tắt cả chiến dịch (`kind campaign` + `pause`) do Marketing đặt → `approve` + Telegram Quản trị, Quản trị đặt → `wait` luôn (ok_by = chính mình).
+- `due` = 0h kế tiếp theo `tzOf` (fb.all[].tz từ `fbAccounts`, thêm trường `timezone_offset_hours_utc,timezone_name`; thiếu thì hỏi Graph, lỗi thì +7).
+- Lệnh `mk_sch_act {id, op: cancel | ok}` (MKT_ACTIONS; duyệt chỉ Quản trị), chỉ trước `due`. `mkt_kpi` trả `sch` (`mkSchList`: lệnh chờ + 3 ngày gần đây).
+- Lịch: `wrangler.toml` crons `*/10 * * * *` (cả đêm). `scheduled` (cron.js) gọi `mkSchTick` TRƯỚC khúc nghỉ đêm: lệnh `due <= now` → approve = bỏ (chưa duyệt), công tắc tắt = bỏ, quá `due` 30 phút = bỏ (không áp muộn), còn lại `mktFbEdit({force: 1})`; lỗi ghi `error`, không thử lại. Nhật ký "Lịch 0h" + Telegram Quản trị + Marketing + người đặt.
+- CRM: `fbCampOf` / `fbRan` (giống `ranOf`) / `fbWhenL` (nhãn 🕛 Hẹn 0h / ⚡ Áp ngay), `fbDo` hỏi lý do (`why`, nút lời khuyên gửi sẵn `data-fbw`), `openFbBudget` chặn > 20% + nút "Hẹn áp lúc 0h", `mkSchBlock` (mục 🕛 Lệnh chờ áp lúc 0h đầu khối 📘, `data-msch`), công tắc `#schOn` / `#schSave` trong Cài đặt nhóm 📊. Thẻ đã có lệnh chờ thì ẩn nút. Lời khuyên "🟢 Nên tăng tiền" mà ô 🎯 Số thật đang ⚠️ → "🟠 Chưa tăng", bỏ nút tăng. CSS `.mk-sch…`.
+- CHƯA có tự chạy theo luật (tự tắt / tự tăng): chỉ đề xuất + duyệt, đo 2 tuần. Sau này CRM tạo chiến dịch / nhóm quảng cáo: vị trí bằng ghim + bán kính, không gõ tên tỉnh.
+- Thử 18/11 bản máy (wrangler dev --test-scheduled, D1 giả, mã FB giả): đặt lệnh, chặn > 20%, chặn lần 2, chặn đang học, tắt chiến dịch chờ duyệt, Marketing không duyệt được, huỷ, múi giờ −8 ra 15:00 giờ VN, lịch chạy: lỗi Facebook → error, quá hạn → bỏ, chưa duyệt → bỏ.
+
 ## 7. Tên miền, DNS, chuyển hướng
 
 - Nameserver: `liberty.ns.cloudflare.com`, `randy.ns.cloudflare.com`. **Mọi thay đổi DNS làm trên Cloudflare**, không làm ở Tenten.

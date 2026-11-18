@@ -107,7 +107,7 @@ Con số cạnh chữ **Marketing** trên thanh tab = số khách để lại s�
 
 Dòng màu cam: 🎨 khách bấm ít dần → làm hình / video mới; 💸 hôm nay giá thầu đắt → chưa tăng tiền.
 
-Mỗi chiến dịch chỉ hiện nhãn, dòng **👉 việc nên làm** và nút **👉 Làm ngay**. Muốn xem lý do kỹ hơn, số hôm nay, mẫu quảng cáo, hoặc tự sửa ngân sách / tắt: bấm **Xem thêm, sửa tay**.
+Mỗi chiến dịch chỉ hiện nhãn, dòng **👉 việc nên làm** và nút **👉 🕛 Hẹn 0h**: chiến dịch đang chạy thì thay đổi lưu chờ, máy tự áp lúc **0h** đêm nay (tăng tối đa 20% / lần, tắt cả chiến dịch cần Quản trị duyệt). Cách làm, xem / huỷ lệnh chờ: trang **[Hẹn giờ thay đổi quảng cáo lúc 0h](/huong-dan/quang-cao-hen-0h/)**. Muốn xem lý do kỹ hơn, số hôm nay, mẫu quảng cáo, hoặc tự sửa ngân sách / tắt: bấm **Xem thêm, sửa tay**.
 
 **🩺 Khám 7 ngày qua: tiền quảng cáo hở ở đâu?** (ngay dưới dòng tóm tắt): dòng **🔍 Chỗ hở lớn nhất** hiện sẵn; bấm **Xem 7 chỉ số** để mở 7 ô có đèn, đọc từ trái sang phải theo đường đi của khách: giá đấu thầu (CPM, tốt dưới 80k) → người thấy có bấm (CTR, tốt từ 1,5%) → bấm vào có nhắn tin (tốt từ 15%) → giá 1 tin → nhắn tin có để số (tốt từ 40%) → ⭐ giá 1 số điện thoại → tiêu hết ngân sách hôm qua (tốt từ 85%). Dòng **🔍 Chỗ hở lớn nhất** nói ô đỏ quan trọng nhất và cách sửa. Tài khoản bị khoá hoặc sắp chạm hạn mức chi cũng báo ở đây.
 
@@ -117,7 +117,7 @@ Lời khuyên còn xem: 🔁 **tần suất** (1 người thấy quảng cáo m�
 
 Số tự cập nhật 1 tiếng một lần (7h–22h). Trước 7h sáng hiện số hôm qua. Bấm **Hôm qua** để xem cả ngày hôm qua. Bấm **↻ Tính lại** để lấy ngay. Dòng **📊 Chỉ số hôm nay của mọi chiến dịch** ghi sẵn số điện thoại, giá 1 số, tin nhắn, CPM, CTR; bấm vào để xem từng ô.
 
-Sửa quảng cáo trong CRM chỉ có ở tài khoản **Marketing** và **Quản trị**; mọi lần sửa đều ghi vào **Nhật ký**.
+Sửa quảng cáo trong CRM chỉ có ở tài khoản **Marketing** và **Quản trị**; mọi lần đặt / huỷ / duyệt / áp đều ghi vào **Nhật ký**. Tin nhắn rẻ nhưng SĐT thật ít thì máy ghi **🟠 Chưa tăng**, không gợi ý tăng tiền.
 
 ## Việc 3: Đặt mục tiêu tháng
 

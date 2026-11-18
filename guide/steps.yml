@@ -395,19 +395,19 @@ mk-fb:
     - title: Chiến dịch SỮA-7-10
       els:
         - ["card", "👉 Giảm 30%: 600k → 420k / ngày", "Lời khuyên của máy", "y"]
-        - ["btn", "👉 Làm ngay", "g"]
+        - ["btn", "👉 🕛 Hẹn 0h", "g"]
         - ["btn", "▸ Xem thêm, sửa tay", ""]
         - ["note", "Trong đó: 💰 Sửa ngân sách · ⏸ Tắt · mẫu quảng cáo"]
       hi: 1
-      text: "Đồng ý với lời khuyên thì bấm <b>👉 Làm ngay</b>. Muốn số khác, muốn tắt hay xem mẫu quảng cáo: bấm <b>Xem thêm, sửa tay</b> rồi chọn <b>💰 Sửa ngân sách</b> hoặc <b>⏸ Tắt</b>."
+      text: "Đồng ý với lời khuyên thì bấm <b>👉 🕛 Hẹn 0h</b>: máy lưu chờ, tự áp lúc 0h đêm nay. Muốn số khác, muốn tắt hay xem mẫu quảng cáo: bấm <b>Xem thêm, sửa tay</b> rồi chọn <b>💰 Sửa ngân sách</b> hoặc <b>⏸ Hẹn tắt</b>."
     - title: Hỏi lại
       els:
         - ["h", "Giảm ngân sách SỮA-7-10?"]
         - ["card", "600.000đ → 420.000đ / ngày", "Mỗi lần chỉ đổi khoảng 20–30%", ""]
         - ["btn2", "Huỷ", "Đồng ý", "g"]
-        - ["note", "Máy ghi vào Nhật ký: ai sửa, lúc nào"]
+        - ["note", "Máy ghi vào Nhật ký: ai đặt, lúc nào áp"]
       hi: 2
-      text: "Máy luôn <b>hỏi lại</b> trước khi sửa. Bấm <b>Đồng ý</b>. Đổi xong chờ <b>2–3 ngày</b> rồi mới đổi tiếp (đổi mạnh Facebook phải học lại, giá tăng)."
+      text: "Máy luôn <b>hỏi lại</b> trước khi đặt lệnh. Bấm <b>Đồng ý</b>. Lệnh nằm ở mục <b>🕛 Lệnh chờ áp lúc 0h</b>, huỷ được trước 0h. Áp xong chờ <b>2–3 ngày</b> rồi mới đổi tiếp."
 mk-mt:
   title: Đặt mục tiêu tháng
   steps:
