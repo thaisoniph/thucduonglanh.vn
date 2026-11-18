@@ -189,7 +189,7 @@ export const funOf = s => (String(s || '').match(/TOFU|MOFU|BOFU/) || [''])[0];
 /* ---------------------------------------------------------------- ngân hàng */
 const cut = (s, n) => String(s == null ? '' : s).trim().slice(0, n);
 // Khoá Marketing Plan K218 (11/11/2026): 3 vai (người mua / người dùng / người quyết định), lý do nói ra → lý do thật ("Tôi biết mình nên… nhưng thật ra tôi…"), cái cớ để mua, khả năng chi trả. Giả thuyết, cần kiểm chứng với khách thật.
-const P4 = ['trust', 'kw', 'where', 'roles', 'real', 'excuse', 'pay'];
+const P4 = ['trust', 'kw', 'where', 'roles', 'real', 'excuse', 'pay', 'proof'];
 const K218P = {
   'me-bim': { roles: 'Mua: mẹ (hoặc chồng, bà mua giúp) · Dùng: mẹ · Quyết định: mẹ, hay hỏi ý mẹ ruột / mẹ chồng', real: 'Nói ra: "mình muốn ăn uống đủ chất cho con" → thật ra: "mình cần được nghỉ một chút mà không bị coi là lười, không bị bà chê"', excuse: '"Vì con": lo cho mẹ cũng là lo cho con; "bà ngày xưa cũng uống nước lá"', pay: 'Thu nhập giảm khi nghỉ sinh; chi cho mẹ thì cân nhắc, chi cho con dễ hơn; hợp giá theo ngày, gói nhỏ dùng thử' },
   'chong-vo-sinh': { roles: 'Mua: chồng · Dùng: vợ · Quyết định: vợ, mẹ vợ là người khen / chê', real: 'Nói ra: "mua cho vợ đủ chất" → thật ra: "muốn được ghi nhận là chồng chu đáo, không bị mẹ vợ chê vụng"', excuse: '"Quà cho vợ", "để mẹ đỡ vất vả"', pay: 'Sẵn sàng chi 300k–1 triệu cho món trông tử tế, ngại so giá, cần chọn nhanh' },
@@ -202,7 +202,20 @@ const K218P = {
   'quen-che-vang': { roles: 'Mua, dùng, quyết định: chính họ', real: 'Nói ra: "quen uống rồi" → thật ra: "muốn tiện hơn mà vẫn đúng vị, không phải đun nấu"', excuse: '"Như nước lá nhà nấu, chỉ là pha nhanh"', pay: 'So với giá lá khô ngoài chợ; cần thấy rõ tiện hơn đáng bao nhiêu' },
   'nam-tiep-khach': { roles: 'Mua: chính họ hoặc vợ mua giúp · Dùng: họ · Quyết định: vợ hay mua thay', real: 'Nói ra: "muốn uống thứ gì lành hơn" → thật ra: "muốn vẫn hợp hội, giữ được quan hệ mà vợ con bớt lo"', excuse: '"Thay trà đá, nước ngọt ở bàn làm việc"', pay: 'Chi tiêu thoải mái, ngại mất thời gian chọn' },
 };
-for (const g of INS0) Object.assign(g, K218P[g.id] || {});
+// 🏛 Tháp niềm tin (khoá K218, 19/11/2026 anh Sơn): mỗi nhóm khách tin tầng bằng chứng nào nhất → trợ lý đặt bằng chứng tầng đó lên trước. Giả thuyết, sửa theo khách thật.
+const PROOF0 = {
+  'me-bim': 'Trải nghiệm của mẹ đi trước (lời kể, ảnh có thật trong nhóm mẹ bỉm) → lời khuyên bác sĩ, chuyên gia dinh dưỡng → nguồn gốc nguyên liệu nói dễ hiểu (lá gì, hạt gì, từ đâu). Ít khi đọc giấy tờ.',
+  'chong-vo-sinh': 'Thương hiệu, hộp quà trông tử tế → số người đã mua, lời khen có thật (xã hội) → cam kết đổi trả rõ ràng. Cần chọn nhanh, không đọc giấy tờ dài.',
+  'ba-o-cu': 'Nguồn gốc (lá gì, vùng nào, giống nước lá ngày xưa) → người cùng thế hệ đã dùng (xã hội) → nhà máy sản xuất.',
+  'van-phong': 'Khoa học (thành phần có định lượng, nhãn dinh dưỡng, lượng đường / năng lượng) → review thật (xã hội) → dùng thử gói nhỏ.',
+  'trung-nien': 'Pháp lý (số bản tự công bố, nhà máy đạt GMP) → khoa học (phiếu kiểm nghiệm, thành phần) → người quen, bác sĩ giới thiệu. Cần thấy giấy tờ thật mới tin.',
+  'an-chay': 'Nguồn gốc (thuần thực vật, rõ từng nguyên liệu) → người ăn chay lâu năm, đạo tràng đã dùng (xã hội) → thành phần có định lượng.',
+  'mua-qua': 'Thương hiệu, bao bì → pháp lý (có công bố, nhà máy) để yên tâm khi biếu → người khác đã mua biếu (xã hội).',
+  'khach-cu': 'Trải nghiệm của chính họ → cam kết, ưu đãi khách cũ → người trong nhóm Zalo đang dùng.',
+  'quen-che-vang': 'Nguồn gốc (lá chè vằng, đinh lăng, nhà máy sản xuất) → trải nghiệm vị giống nước lá nhà nấu.',
+  'nam-tiep-khach': 'Xã hội (người cùng hội, đồng nghiệp đang dùng) → khoa học nói ngắn gọn (thành phần) → thương hiệu.',
+};
+for (const g of INS0) Object.assign(g, K218P[g.id] || {}, PROOF0[g.id] ? { proof: PROOF0[g.id] } : {});
 function clean(list) {
   const seen = {};
   return (Array.isArray(list) ? list : []).slice(0, 12).map((g, i) => {
@@ -211,7 +224,7 @@ function clean(list) {
     const tensions = (Array.isArray(g.tensions) ? g.tensions : String(g.tensions || '').split('\n')).map(t => cut(String(t).replace(/^[-•*\d.)\s]+/, ''), 300)).filter(Boolean).slice(0, 30);
     const prods = [...new Set((Array.isArray(g.prods) ? g.prods : String(g.prods || '').split(/[,;\s]+/)).map(spCode).filter(Boolean))].slice(0, 12);
     const bigs = (Array.isArray(g.bigs) ? g.bigs : []).slice(0, 4).map(b => ({ t: cut(b && b.t, 300), ang: (Array.isArray(b && b.ang) ? b.ang : String((b && b.ang) || '').split('\n')).map(a => cut(String(a).replace(/^[-•*\d.)\s]+/, ''), 200)).filter(Boolean).slice(0, 15), on: !b || b.on !== false, until: /^\d{4}-\d{2}-\d{2}$/.test(String(b && b.until || '')) ? b.until : '' })).filter(b => b.t);
-    return { id, name: cut(g.name, 80), on: g.on !== false, who: cut(g.who, 800), want: cut(g.want, 800), block: cut(g.block, 800), tensions, prods, note: cut(g.note, 1500), bigs, trust: cut(g.trust, 500), kw: cut(g.kw, 500), where: cut(g.where, 500), roles: cut(g.roles, 500), real: cut(g.real, 600), excuse: cut(g.excuse, 500), pay: cut(g.pay, 500) };
+    return { id, name: cut(g.name, 80), on: g.on !== false, who: cut(g.who, 800), want: cut(g.want, 800), block: cut(g.block, 800), tensions, prods, note: cut(g.note, 1500), bigs, trust: cut(g.trust, 500), kw: cut(g.kw, 500), where: cut(g.where, 500), roles: cut(g.roles, 500), real: cut(g.real, 600), excuse: cut(g.excuse, 500), pay: cut(g.pay, 500), proof: cut(g.proof, 500) };
   }).filter(g => g.name);
 }
 export async function insBank(x) {
@@ -340,7 +353,7 @@ export function insBlock(p, f, opt) {
       '\nKhông gây hai phe hay chạm định kiến (vùng miền, thế hệ, tôn giáo, giới tính) về sức khoẻ, ăn uống. Bài bắt trend là TOFU: tên sản phẩm không ở tiêu đề hay câu mở, tối đa 1 câu cầu nối cuối bài.' +
       '\nChỉ dùng khi nối được tự nhiên với tension của nhóm khách: KHÔNG đăng lại tin, mà đưa 1 góc nhìn mới gắn với nỗi lòng của nhóm khách (đăng chậm hơn người khác vẫn thắng nếu góc nhìn mới). Không dùng nếu là tin buồn, tai nạn, bệnh dịch, chính trị, chuyện riêng của người nổi tiếng; không gắn sản phẩm vào chuyện đó; không bịa chi tiết ngoài điều Marketing ghi.' : '',
     opt.light ? 'Bài này là bài theo dịp (chúc mừng / tương tác): giữ đúng chủ đề dịp, tension chỉ dùng để chọn góc chạm gần gũi (1–2 câu), không biến thành bài bán.' : '',
-    f !== 'TOFU' ? '🏛 THÁP NIỀM TIN (khoá Marketing Plan K218), áp dụng cho bài tạo niềm tin và bài bán: mỗi câu khen sản phẩm phải đi kèm 1 bằng chứng có thật trong TÀI LIỆU, ưu tiên theo thứ tự: pháp lý (số bản tự công bố, chứng nhận nhà máy) → khoa học (phiếu kiểm nghiệm, thành phần có định lượng) → nguồn gốc (vùng nguyên liệu, chỉ dẫn địa lý, nhà máy) → xã hội (số khách, cộng đồng có thật; không bịa) → trải nghiệm / cam kết (dùng thử, đổi trả đúng chính sách) → thương hiệu. Câu khen không có bằng chứng thì bỏ.' : '',
+    f !== 'TOFU' ? '🏛 THÁP NIỀM TIN (khoá Marketing Plan K218), áp dụng cho bài tạo niềm tin và bài bán: mỗi câu khen sản phẩm phải đi kèm 1 bằng chứng có thật trong TÀI LIỆU, ưu tiên theo thứ tự: pháp lý (số bản tự công bố, chứng nhận nhà máy) → khoa học (phiếu kiểm nghiệm, thành phần có định lượng) → nguồn gốc (vùng nguyên liệu, chỉ dẫn địa lý, nhà máy) → xã hội (số khách, cộng đồng có thật; không bịa) → trải nghiệm / cam kết (dùng thử, đổi trả đúng chính sách) → thương hiệu. Câu khen không có bằng chứng thì bỏ.' + (g && g.proof ? '\nNhóm khách này tin nhất: ' + g.proof + ' → đặt bằng chứng tầng họ tin lên trước (vẫn chỉ dùng bằng chứng có thật trong TÀI LIỆU, thiếu thì dùng tầng kế tiếp, không bịa).' : '') : '',
     F ? 'TẦNG PHỄU: ' + F.name + '. ' + F.rule + '\nCông thức viết hợp tầng này (chọn 1): ' + FORMULA[f] + '.' : 'TẦNG PHỄU: tự chọn 1 tầng hợp với tension và chủ đề:\n' + Object.entries(FUN).map(([k, v]) => '- ' + v.name + ': ' + v.rule + ' Công thức hợp: ' + FORMULA[k] + '.').join('\n'),
     'Đạo đức: nội dung phải GỠ tension, không khoét sâu nỗi sợ bệnh tật, mặc cảm cơ thể, áp lực gia đình để ép mua; không bịa lời khách, số liệu, khuyến mãi; không đóng vai khách tự hỏi tự trả lời.',
     LAW
@@ -395,7 +408,7 @@ export async function insText(x) {
     '4c. ' + VIET,
     '5. ' + LAW + ' Không dùng "chữa / điều trị / khỏi bệnh"; nhắc sản phẩm thì có dòng "Sản phẩm là thực phẩm, không phải là thuốc và không có tác dụng thay thế thuốc chữa bệnh."',
     '', 'NGÂN HÀNG INSIGHT (nhóm khách mục tiêu):',
-    ...bank.map(g => ['## ' + g.name + (g.on ? '' : ' (đang tạm tắt)'), g.who, 'Mong muốn: ' + g.want, 'Rào cản: ' + g.block, g.trust ? 'Họ tin ai: ' + g.trust : '', g.kw ? 'Từ khoá họ tìm: ' + g.kw : '', g.where ? 'Nơi họ tụ tập: ' + g.where : '', g.roles ? '3 vai: ' + g.roles : '', g.real ? 'Lý do nói ra → lý do thật: ' + g.real : '', g.excuse ? 'Cái cớ để mua: ' + g.excuse : '', g.pay ? 'Khả năng chi trả: ' + g.pay : '', g.prods.length ? 'Sản phẩm hợp: ' + g.prods.map(spName).join(', ') : '', 'Tension:', ...g.tensions.map(tenOf).map(x => '- ' + x.t + (x.sp.length ? ' [riêng: ' + x.sp.map(spName).join(', ') + ']' : ' [dùng chung]')), ...(g.bigs || []).map((b, k) => '🌟 Big idea' + (b.on ? ' (đang chạy)' : ' (để dành)') + ': ' + b.t + '\n' + b.ang.map(v => '   - ' + v).join('\n')), g.note ? 'Ghi chú: ' + g.note : ''].filter(Boolean).join('\n'))].join('\n');
+    ...bank.map(g => ['## ' + g.name + (g.on ? '' : ' (đang tạm tắt)'), g.who, 'Mong muốn: ' + g.want, 'Rào cản: ' + g.block, g.trust ? 'Họ tin ai: ' + g.trust : '', g.kw ? 'Từ khoá họ tìm: ' + g.kw : '', g.where ? 'Nơi họ tụ tập: ' + g.where : '', g.roles ? '3 vai: ' + g.roles : '', g.real ? 'Lý do nói ra → lý do thật: ' + g.real : '', g.excuse ? 'Cái cớ để mua: ' + g.excuse : '', g.pay ? 'Khả năng chi trả: ' + g.pay : '', g.proof ? 'Bằng chứng họ tin nhất (tháp niềm tin): ' + g.proof : '', g.prods.length ? 'Sản phẩm hợp: ' + g.prods.map(spName).join(', ') : '', 'Tension:', ...g.tensions.map(tenOf).map(x => '- ' + x.t + (x.sp.length ? ' [riêng: ' + x.sp.map(spName).join(', ') + ']' : ' [dùng chung]')), ...(g.bigs || []).map((b, k) => '🌟 Big idea' + (b.on ? ' (đang chạy)' : ' (để dành)') + ': ' + b.t + '\n' + b.ang.map(v => '   - ' + v).join('\n')), g.note ? 'Ghi chú: ' + g.note : ''].filter(Boolean).join('\n'))].join('\n');
 }
 
 /** Gộp INS0 vào ngân hàng đã sửa riêng: thêm nhóm chưa có, thêm tension chưa có, gắn nhãn sản phẩm cho tension trùng chữ, điền "sản phẩm hợp" còn trống */

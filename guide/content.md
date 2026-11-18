@@ -215,6 +215,7 @@ Thẻ **👥 Nhóm khách** → bấm tên nhóm → **✏️ Sửa**. Ngoài **
 
 - **👥 3 vai:** ai mua, ai dùng, ai quyết định. **🗣 Lý do nói ra → lý do thật.** **🎁 Cái cớ để mua.** **💰 Khả năng chi trả.**
 - **🤝 Họ tin ai**, **🔍 Họ hay tìm gì**, **📍 Nơi họ tụ tập** (nhóm Facebook, Zalo, CLB, chùa…).
+- **🏛 Bằng chứng họ tin nhất:** tháp niềm tin 6 tầng (pháp lý · khoa học · nguồn gốc · xã hội · trải nghiệm / cam kết · thương hiệu). Ghi tầng nhóm này tin nhất lên trước, vd bà ở cữ: "Nguồn gốc lá → người cùng thế hệ đã dùng". Trợ lý sẽ đặt bằng chứng tầng đó lên đầu trong bài tạo niềm tin và bài bán.
 - **Gắn nỗi lòng với 1 sản phẩm:** thêm cuối dòng `[SP: dilvang]` (mã: `bua-an`, `curcumin`, `ruoc`, `dilvang`, `xi-dau`). Không ghi = dùng chung mọi sản phẩm.
 - **⏸ Tạm tắt** nhóm chưa muốn nhắm, **➕ Thêm nhóm khách** khi có tệp mới. Thấy ô **📚 Bản mặc định có cập nhật mới** thì bấm **📚 Gộp vào ngân hàng** (không mất gì đã sửa).
 
