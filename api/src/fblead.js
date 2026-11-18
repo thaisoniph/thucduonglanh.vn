@@ -119,22 +119,22 @@ export async function flHook(x, p, v) {
 async function scan(x) {
   useEnv(x); await flSchema(x.db);
   const pages = await all(x.db, "SELECT id, name, token FROM fp_pages WHERE token != ''"); if (!pages.length) return { pages: 0, got: 0 };
-  let got = 0, forms = 0, err = '';
+  let got = 0, forms = 0, seen = 0, err = '';
   for (const p of pages) {
     const sk = 'fl_since_' + p.id, since = Number(await kvGet(x.db, sk)) || Date.now() - 2 * DAY, t0 = Date.now();
     try {
       const fl = await gget(p.id + '/leadgen_forms?fields=id,name,status&limit=100', p.token);
-      for (const f of (fl.data || []).filter(f => f.status !== 'ARCHIVED' && f.status !== 'DELETED')) {
+      for (const f of (fl.data || []).filter(f => f.status !== 'DELETED')) { // gồm cả biểu mẫu lưu trữ (18/11/2026: khách thử của biểu mẫu lưu trữ bị bỏ sót)
         forms++;
         const filt = encodeURIComponent(JSON.stringify([{ field: 'time_created', operator: 'GREATER_THAN', value: Math.floor((since - 10 * 60e3) / 1000) }]));
         const j = await gget(f.id + '/leads?fields=' + LEAD_FIELDS + '&filtering=' + filt + '&limit=200', p.token);
-        for (const L of j.data || []) { L.form_name = f.name; if (await ingest(x, p, L, 'quét')) got++; }
+        for (const L of j.data || []) { seen++; L.form_name = f.name; if (await ingest(x, p, L, 'quét')) got++; }
       }
       await kvSet(x.db, sk, String(t0));
     } catch (e) { if (!err) err = (p.name || p.id) + ': ' + permHint(e); }
   }
-  await kvSet(x.db, 'fl_scan_at', String(Date.now())); await kvSet(x.db, 'fl_forms', String(forms)); await setErr(x, err);
-  return { pages: pages.length, forms, got, err };
+  await kvSet(x.db, 'fl_scan_at', String(Date.now())); await kvSet(x.db, 'fl_forms', String(forms)); await kvSet(x.db, 'fl_diag', JSON.stringify({ at: Date.now(), pages: pages.length, forms, seen, got })); await setErr(x, err);
+  return { pages: pages.length, forms, seen, got, err };
 }
 
 /** Số biểu mẫu để adsSync gộp khi dựng lại ads_rows: [ngày, sđt, sale, nguồn] */
