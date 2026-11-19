@@ -6081,7 +6081,8 @@
     var bars = D.length < 2 ? '' : '<div class="dpl-bars" style="--up:' + (up / span * 100).toFixed(1) + '%">' + D.map(function (d) {
       var hh = (Math.abs(d.net) / (d.net < 0 ? dn || 1 : up || 1) * 100).toFixed(1), tip = fDate(d.a).slice(0, 5) + ': ' + lab(d.net) + ' · bán ' + ms(d.rev) + (d.a === td ? ' (đang chạy)' : '');
       return '<span class="dpl-c' + (d.a === td ? ' now' : '') + '" title="' + tip + '"><b>' + (d.net >= 0 ? '<i class="ok" style="height:' + hh + '%"></i>' : '') + '</b><u>' + (d.net < 0 ? '<i class="bad" style="height:' + hh + '%"></i>' : '') + '</u></span>';
-    }).join('') + '</div><div class="dpl-x"><span>' + fDate(D[0].a).slice(0, 5) + '</span><span>' + fDate(last.a).slice(0, 5) + '</span></div>';
+    }).join('') + '</div><div class="dpl-x2">' + D.map(function (d) { return '<span' + (d.a === td ? ' class="now"' : '') + '>' + (+fDate(d.a).slice(0, 2)) + '</span>'; }).join('') + '</div>' +
+      '<p class="rpm-lg"><span><i style="background:var(--primary)"></i>Ngày lãi</span><span><i style="background:var(--red)"></i>Ngày lỗ</span>' + (isT ? '<span><i style="background:var(--red);opacity:.45"></i>Hôm nay (đang chạy)</span>' : '') + '<span>Số dưới cột: ngày trong tháng ' + fDate(D[0].a).slice(3, 5) + ' · rê chuột / chạm vào cột để xem số</span></p>';
     var nOk = D.filter(function (d) { return d.net >= 0 && d.rev; }).length, nBad = D.filter(function (d) { return d.net < 0; }).length;
     var fxCell = function (F) {
       var t = F.act === null ? (F.est ? 'Sổ chi chưa ghi tới ngày này: tạm tính trung bình' : 'Chi phí tháng chia đều' + (ktClosed(isoDate(F.a0 || 0).slice(0, 7)) ? ' (đủ theo file kế toán)' : '')) : 'Chia đều (lương, thuê nhà, điện nước, ship…): ' + ms(F.per) + '\nPhát sinh trung bình 1 ngày (cả khoản trả tiền mặt): ' + ms(F.avg) + (F.ex ? '\nSổ chi vượt trung bình, trừ thêm: ' + ms(F.ex) : '') + (F.L.length ? '\nSổ chi ngày này:\n' + F.L.map(function (r) { return '• ' + r[1] + (r[3] ? ' – ' + r[3] : '') + ': ' + ms(r[2]); }).join('\n') : '');
@@ -6101,11 +6102,20 @@
     notes.push('Hôm nay đã trừ đủ chi phí cố định cả ngày, nên sáng sớm thường hiện lỗ, càng về tối càng đúng. Số tự cập nhật 15 phút / lần (bấm ↻ Cập nhật số để lấy ngay). Doanh số tính lúc lên đơn, đã trừ hoàn / huỷ; số chốt do kế toán đối chiếu.');
     // dòng tóm tắt cho mục thu gọn 💵 ở Tổng quan (15/11/2026): đọc được số lãi mà không cần mở
     dashDaily.line = C.map(function (c) { return c[0].replace(/<[^>]+>/g, '').replace(/\s*\(.*\)\s*$/, '').replace(/^Từ đầu .* tới nay$/, 'Từ đầu tháng').replace(/^Dự kiến cả .*/, 'Dự kiến cả tháng') + ': ' + lab(c[1]); }).join(' · ');
-    var tg = KR ? '<button class="btn sm ghost" data-dash="cogs" title="Đổi cách tính giá vốn">Giá vốn: ' + (X.KR ? '📑 theo kế toán ' + monthLabel(X.KR.m).replace(/^tháng /, 'T') + ' (' + Math.round(X.KR.r * 100) + '% doanh thu)' : '🏷️ theo bảng giá CRM') + ' ⇄</button>' : '';
+    var tg = KR ? '<button class="btn sm ghost" data-dash="cogs" title="Đổi cách tính giá vốn">Giá vốn: ' + (X.KR ? '📑 theo kế toán ' + monthLabel(X.KR.m).replace(/^tháng /, 'T') : '🏷️ theo bảng giá CRM') + ' ⇄</button>' : '';
+    // ⚖️ hoà vốn dạng thanh tiến độ (19/11/2026, anh Sơn: cho bộ phận kinh doanh xem để hiểu vì sao công ty cần điều chỉnh): TB bán / ngày so với mức hoà vốn, còn thiếu bao nhiêu / ngày, chia đều cho sale văn phòng
+    var avgD = full.length ? fRev / full.length : 0, nSale = (S.d.users || []).filter(function (u) { return u.role === 'Sale & CSKH' && !u.ctv; }).length, beH = '';
+    if (be) {
+      var pB = avgD / be, gap = be - avgD;
+      beH = '<div class="dpl-be2' + (pB >= 1 ? ' ok' : '') + '"><p class="dpl-be">⚖️ <b>Hoà vốn: mỗi ngày cần bán khoảng ' + ms(be) + '</b></p>' +
+        (full.length ? '<div class="dpl-meter" role="img" aria-label="Đạt ' + Math.round(pB * 100) + '% mức hoà vốn"><i style="width:' + Math.min(100, pB * 100).toFixed(1) + '%"><em>' + ms(avgD) + ' / ngày</em></i><span>' + Math.round(pB * 100) + '%</span></div>' +
+          '<p class="dpl-be">' + full.length + ' ngày qua bán trung bình <b>' + ms(avgD) + ' / ngày</b> = ' + Math.round(pB * 100) + '% mức hoà vốn' +
+          (pB >= 1 ? ': đã vượt hoà vốn 🎉 Giữ nhịp này là có lãi.' : ' → cả văn phòng cần bán thêm khoảng <b>' + ms(gap) + ' / ngày</b>' + (nSale > 1 ? ' (chia đều ' + nSale + ' sale ≈ <b>' + ms(gap / nSale) + ' / người / ngày</b>)' : '') + '.') + '</p>' : '') +
+        '<p class="small muted" style="margin:4px 0 0">Vì sao: mỗi ngày công ty phải trả khoảng ' + ms(fx1) + ' chi phí cố định (lương, mặt bằng, điện, ship…), bán ít hay nhiều cũng phải trả. Mỗi 1 triệu bán ra, trừ tiền hàng + quảng cáo còn khoảng ' + Math.round(cm * 1000) + ' nghìn để trả khoản này.' + (D.length > 1 ? ' ' + nOk + ' ngày lãi · ' + nBad + ' ngày lỗ.' : '') + '</p></div>';
+    } else if (cm !== null && cm <= 0) beH = '<p class="dpl-be">🔴 Tiền hàng + quảng cáo đang lớn hơn doanh số: bán càng nhiều càng lỗ, cần xem lại quảng cáo / giá bán.</p>';
     return '<div class="box dpl"><div class="dpl-h"><h3>💵 Lãi lỗ thật <small>(sau giá vốn, quảng cáo, lương, mặt bằng)</small></h3>' + tg + '</div>' +
       '<div class="dpl-n">' + C.map(function (c) { return '<div class="dpl-v ' + cl(c[1]) + '"><span>' + c[0] + '</span><b>' + lab(c[1]) + '</b><small>' + c[2] + '</small></div>'; }).join('') + '</div>' + bars +
-      '<p class="dpl-be">' + (be ? '⚖️ <b>Hoà vốn: mỗi ngày cần bán khoảng ' + ms(be) + '</b> (chi phí cố định ' + ms(fx1) + ' / ngày; 1 triệu doanh số còn lại ' + ms(cm * 1e6) + ' sau giá vốn + quảng cáo)' + (full.length ? '. ' + full.length + ' ngày qua bán trung bình <b>' + ms(fRev / full.length) + '</b> / ngày' : '') + '.' : cm !== null && cm <= 0 ? '🔴 Tiền hàng + quảng cáo đang lớn hơn doanh số: bán càng nhiều càng lỗ, cần xem lại quảng cáo / giá bán.' : '') +
-      (D.length > 1 ? ' <span class="muted">' + nOk + ' ngày lãi · ' + nBad + ' ngày lỗ.</span>' : '') + '</p>' +
+      beH +
       '<details class="dpl-more"><summary>Xem từng ngày</summary><div class="bcdt-wrap pnl-wrap"><table class="pnl-t"><thead><tr><th>Ngày</th><th>Doanh số</th><th>Lãi gộp</th><th>Quảng cáo</th><th>Chi phí</th><th>Lãi / lỗ</th><th>Cộng dồn</th></tr></thead><tbody>' + rows + '</tbody></table></div>' +
       '<ul class="small muted pnl-notes">' + notes.map(function (x) { return '<li>' + x + '</li>'; }).join('') + '</ul></details>' +
       (notes.length > 1 && notes[0].charAt(0) === '⚠' ? '<p class="small notice" style="margin:8px 0 0">' + notes[0] + '</p>' : '') + '</div>';

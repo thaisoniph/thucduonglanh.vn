@@ -525,7 +525,9 @@ Các thẻ còn lại: đầu thẻ có ô xanh **📌 Dùng để**, mỗi mụ
 - **💵 Lãi lỗ thật từng ngày** (thẻ 💵 Tiền & lãi lỗ, chỉ Quản trị thấy): trả lời *hôm nay lãi hay lỗ, từ đầu tháng tới giờ lãi hay lỗ*.
     - 3 ô: **Hôm nay** (tới giờ hiện tại, kèm "bán thêm khoảng … là hoà vốn") · **Từ đầu tháng tới nay** · **Dự kiến cả tháng** (nếu giữ nhịp các ngày đã qua). Xanh = lãi, đỏ = lỗ.
     - Mỗi ngày = lãi gộp (doanh số − giá vốn, cả sàn) − quảng cáo chạy ngày đó − **chi phí cố định 1 ngày** (lương, BHXH, mặt bằng, điện, ship… trong file kế toán ÷ số ngày của tháng). Tháng này kế toán chưa gửi file thì CRM **tạm lấy chi phí tháng trước**.
-    - Cột xanh / đỏ = lãi / lỗ từng ngày (cột mờ = hôm nay đang chạy). Dòng **⚖️ Hoà vốn** cho biết mỗi ngày cần bán bao nhiêu mới hết lỗ, so với số bán trung bình. Bấm **Xem từng ngày** để xem bảng chi tiết + cộng dồn.
+    - Cột xanh / đỏ = lãi / lỗ từng ngày (cột mờ = hôm nay đang chạy), số dưới cột là ngày trong tháng. Chạm vào cột để xem số.
+    - Khung **⚖️ Hoà vốn**: mỗi ngày cần bán bao nhiêu mới hết lỗ. Thanh cam là số bán trung bình 1 ngày, đầy thanh là hoà vốn (xanh khi đã vượt). Dòng dưới ghi cả văn phòng cần bán thêm bao nhiêu 1 ngày, chia đều mỗi sale bao nhiêu, và vì sao (chi phí cố định 1 ngày). Phần này dễ hiểu để cho bộ phận kinh doanh xem.
+    - Bấm **Xem từng ngày** để xem bảng chi tiết + cộng dồn.
     - Nút **Giá vốn: … ⇄** đổi giữa *bảng giá CRM* (giá nhập + 15%) và *tỷ lệ giá vốn trong file kế toán* (vd T10 = 31% doanh thu). Kế toán tính giá vốn cao hơn nên thường ra lỗ nhiều hơn; xem cả hai để biết khoảng thật.
     - Sáng sớm ô Hôm nay thường đỏ vì đã trừ đủ chi phí cả ngày; về tối mới đúng. Số tự cập nhật 15 phút / lần, bấm **↻ Cập nhật số** để lấy ngay.
     - Ô **💵 Tiền đã về** có thêm dòng **💤 … treo ở hãng** (đơn COD đã giao mà hãng chưa trả tiền) khi kế toán đã bắt đầu ghi tiền về ở tab **💼 Kế toán** (xem [trang Kế toán](/huong-dan/ke-toan/)).

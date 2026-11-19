@@ -3838,3 +3838,17 @@ details.top-fold.tf-focus .tf-all { display: block; }
 .ptr-t th:first-child, .ptr-t td:first-child { min-width: 132px; position: sticky; left: 0; z-index: 1; background: var(--card); }
 .ptr-t .pnl-sub td:first-child { background: var(--primary-soft); }
 @media (max-width: 560px) { .ptr-t th:first-child, .ptr-t td:first-child { min-width: 118px; font-size: 13px; } }
+/* 💵 lãi lỗ từng ngày: nhãn ngày + thanh hoà vốn (19/11/2026) */
+.dpl-x2 { display: flex; gap: 2px; font-size: 10.5px; color: var(--muted); margin-top: 3px; }
+.dpl-x2 span { flex: 1 1 0; min-width: 0; text-align: center; overflow: hidden; } .dpl-x2 span.now { color: var(--ink); font-weight: 700; }
+.dpl .rpm-lg { margin-top: 6px; }
+.dpl-be2 { margin-top: 12px; padding: 10px 12px; border-radius: var(--radius-sm); background: var(--orange-light); }
+.dpl-be2.ok { background: var(--primary-light); }
+.dpl-be2 .dpl-be { margin: 0; }
+.dpl-meter { position: relative; height: 26px; margin: 8px 0; border-radius: 13px; background: #fff; border: 1px dashed var(--red); overflow: hidden; }
+.dpl-be2.ok .dpl-meter { border-color: var(--primary); }
+.dpl-meter i { display: flex; align-items: center; height: 100%; border-radius: 13px; background: #e8913a; min-width: 2px; }
+.dpl-be2.ok .dpl-meter i { background: var(--primary); }
+.dpl-meter em { font-style: normal; font-size: 12px; font-weight: 700; color: #fff; padding-left: 10px; white-space: nowrap; }
+.dpl-meter span { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: 12px; font-weight: 700; color: var(--ink); }
+@media (max-width: 560px) { .dpl-x2 { font-size: 9px; } }
