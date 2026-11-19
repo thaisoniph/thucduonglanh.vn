@@ -169,7 +169,7 @@ Mỗi số điện thoại khách hỏi từ quảng cáo là **tiền thật c�
 - Thanh màu: 🔴 còn xa, 🟠 sắp tới, 🟢 đã qua mức hoà vốn, từ đó mỗi đơn là công ty có lãi.
 - **📵 Còn N số chưa gọi = … tiền công ty đã trả**: gọi ngay, khách vừa để số còn nhớ quảng cáo nên dễ chốt nhất.
 
-Muốn xem theo từng sản phẩm thì bấm **Xem chi tiết ›** (tab Hiệu quả → 📣 Từ quảng cáo).
+Muốn xem theo từng sản phẩm thì bấm **Xem chi tiết ›** (tab Hiệu quả → thẻ 📈 Bán hàng → 📣 Từ quảng cáo).
 
 **Chia số theo nhóm (từ 16/11/2026):** quảng cáo đắt nên công ty ưu tiên số cho bạn chốt tốt. CRM xếp nhóm mỗi tuần theo 60 ngày gần nhất, dựa trên câu hỏi: **1đ quảng cáo bạn mang về bao nhiêu đồng?**
 - 🟢 **Nhóm A** (từ 1,8đ): mỗi vòng chia số nhận **3 số**.

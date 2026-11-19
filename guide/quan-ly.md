@@ -125,8 +125,8 @@ Máy tính cũng gọn như điện thoại: thanh trên chỉ 4 mục + **Thêm
 **Chi tiết:**
 
 1. Mở tab **Hiệu quả**, chọn **Tất cả nhân sự**.
-2. Xem bảng **👥 Tiến độ nhân sự hôm nay**: mỗi người đã gọi bao nhiêu khách, còn bao nhiêu, việc nào bị trễ.
-3. Làm theo khung **👉 Quản lý làm 3 việc này trước** (bấm **＋ việc khác** để xem thêm). Ví dụ: ai đang chậm mục tiêu, số quảng cáo chưa ai gọi, khách VIP chưa ai gọi, đơn chưa có người bán (bấm **Gán**).
+2. Thẻ **👥 Từng người**: xem bảng **👥 Tiến độ nhân sự hôm nay**: mỗi người đã gọi bao nhiêu khách, còn bao nhiêu, việc nào bị trễ.
+3. Thẻ **🎯 Mục tiêu & việc**: làm theo khung **👉 Quản lý làm 3 việc này trước** (bấm **＋ việc khác** để xem thêm). Ví dụ: ai đang chậm mục tiêu, số quảng cáo chưa ai gọi, khách VIP chưa ai gọi, đơn chưa có người bán (bấm **Gán**).
 4. Mở tab **Hôm nay** → thẻ **👥 Từng người**, xem mục **🧺 Kho chung**. Đây là khách chưa ai phụ trách. Giao cho người phù hợp.
 5. Giao **đơn mới**: trên mỗi đơn mới có ô **Giao cho…**, chọn tên nhân viên. Nhân viên chỉ thấy đơn đã giao cho mình.
 
@@ -134,7 +134,17 @@ Máy tính cũng gọn như điện thoại: thanh trên chỉ 4 mục + **Thêm
 
 ## Đọc màn hình Hiệu quả của cả nhóm
 
-Đọc từ trên xuống:
+Dưới ô chọn kỳ là **các thẻ chia 3 nhóm** (từ 19/11/2026), mỗi lần xem 1 thẻ. Máy nhớ thẻ bạn xem lần trước:
+
+| Nhóm | Thẻ | Trong thẻ |
+| --- | --- | --- |
+| **🎯 Tình hình** (mỗi ngày) | 🎯 Mục tiêu & việc | Mục 0–4 dưới đây |
+| | 👥 Từng người | Mục 5: tiến độ hôm nay, thi đua, từng nhân viên, 📊 So sánh nhân viên |
+| **🔎 Vì sao** (mỗi tuần) | 📈 Bán hàng | Bán hàng theo ngày, 📣 Từ quảng cáo, chăm sóc khách |
+| | 🙅 Khách | Vì sao khách chưa mua, khách ở tỉnh nào |
+| **🧰 Công cụ** | 🧰 Báo cáo | Báo cáo ngày (bảng), bảng BCDT, link giới thiệu, KPI kế toán, bảng lương |
+
+Bấm 1 ô trong **🪜 Các bước bán hàng** thì máy tự mở đúng thẻ và mục chi tiết.
 
 0. **Mục tiêu từng người** (bấm tên 1 người): ngoài số tiền, từ 10/11/2026 có ô **🙋 Khách tự tạo trong tháng** (số khách sale tự thêm không từ quảng cáo + khách do khách cũ của sale giới thiệu). Nên đặt cho mỗi sale, ví dụ 8 khách / tháng, để phòng kinh doanh không lệ thuộc số quảng cáo. Dòng **🙋 Khách tự tạo tháng này: x / 8** hiện ngay dưới thanh mục tiêu.
 1. **🎯 Mục tiêu cả nhóm**: đã bán bao nhiêu so với mục tiêu, mỗi ngày cần bao nhiêu tiền **≈ bao nhiêu đơn**. Ngay dưới: 💰 Doanh số (đã trừ hoàn / huỷ, cùng số với Tổng quan) và 💵 Đã thu.
@@ -142,8 +152,8 @@ Máy tính cũng gọn như điện thoại: thanh trên chỉ 4 mục + **Thêm
 3. **🪜 Các bước bán hàng của cả nhóm**: 6 ô đánh số ① Khách hỏi nhận được → ② Gọi ngay trong ngày → ③ Chốt được → ④ Mỗi đơn → ⑤ Giao thành công → ⑥ Khách cũ mua lại. Dòng **"giỏi nhất …"** = mức của người làm tốt nhất nhóm ở bước đó. Ô đỏ là khâu cần sửa.
 4. **💡 Khâu cần sửa nhất**: 1 khâu yếu nhất của cả nhóm, cách sửa và số tiền thêm được nếu sửa. Dùng làm chủ đề họp nhóm.
 5. **👥 Tiến độ hôm nay** và **Từng nhân viên**: xếp theo doanh số. Viền màu: 🟢 đúng tiến độ · 🟠 hơi chậm · 🔴 đang chậm. Dòng **Cần kèm** chỉ ra tối đa 2 điểm yếu của người đó. Bấm vào để xem chi tiết và đặt mục tiêu.
-6. **Xem chi tiết**: **📊 So sánh nhân viên** (chọn chỉ số, vạch đậm = trung bình nhóm), bán hàng theo ngày, **📣 Từ quảng cáo** (công ty đã đầu tư cho cả nhóm, khách hỏi đi về đâu), chăm sóc khách, vì sao khách chưa mua, khách ở tỉnh nào.
-7. **🧰 Công cụ**: **📋 Báo cáo ngày (bảng)**: chọn *Cả nhóm* để xem mỗi sale 1 dòng như Excel (dòng TỔNG ở trên, dòng mờ = chưa có đơn/chưa ghi chăm sóc, lý do từ chối ghi kèm tên), chọn ngày khác để xem lại, **⬇️ Tải Excel** để lưu. Không cần đọc từng tin báo cáo trên Zalo nữa. Bảng BCDT, đơn khách tự đặt trên web.
+6. **Thẻ 📈 Bán hàng, 🙅 Khách**: **📊 So sánh nhân viên** (ở thẻ 👥 Từng người; chọn chỉ số, vạch đậm = trung bình nhóm), bán hàng theo ngày, **📣 Từ quảng cáo** (công ty đã đầu tư cho cả nhóm, khách hỏi đi về đâu), chăm sóc khách, vì sao khách chưa mua, khách ở tỉnh nào.
+7. **Thẻ 🧰 Báo cáo**: **📋 Báo cáo ngày (bảng)**: chọn *Cả nhóm* để xem mỗi sale 1 dòng như Excel (dòng TỔNG ở trên, dòng mờ = chưa có đơn/chưa ghi chăm sóc, lý do từ chối ghi kèm tên), chọn ngày khác để xem lại, **⬇️ Tải Excel** để lưu. Không cần đọc từng tin báo cáo trên Zalo nữa. Bảng BCDT, đơn khách tự đặt trên web.
 
 Sale chỉ thấy mức "giỏi nhất nhóm" dưới dạng % (không thấy tên, không thấy tiền của người khác).
 
@@ -155,7 +165,7 @@ Tài khoản Quản trị không nằm trong bảng so sánh nhân sự. Doanh s
 - Sale làm ở văn phòng: thấp nhất **100 triệu** hoặc tháng trước +10% (lấy số cao hơn).
 - Cộng tác viên tại nhà: vào **Cài đặt → Nhân sự**, tích ô **🏠 Cộng tác viên tại nhà**. Người đó được gợi ý theo **trung bình 3 tháng gần nhất +10–20%**, không áp mức 100 triệu.
 - Quản lý / Quản trị đặt hộ người khác được phép đặt thấp hơn mức tối thiểu (CRM hỏi lại một lần).
-- **Bảng thi đua đầy đủ** (mọi người, mọi hạng mục, cả số tiền) xem ở tab **Hiệu quả**, ngay trên mục 👥 Từng nhân viên. Tab Hôm nay của quản lý cũng có.
+- **Bảng thi đua đầy đủ** (mọi người, mọi hạng mục, cả số tiền) xem ở tab **Hiệu quả** → thẻ **👥 Từng người**. Tab Hôm nay của quản lý cũng có.
 
 ## Giao khách và chuyển khách
 
@@ -284,7 +294,7 @@ Mức cho người tự đăng ký sửa ở **⚙️ Cài đặt chung**, dòng
 - Thẻ CTV hiện ô đỏ ⚠️ khi: có khách đã được nhân sự gọi / ghi chăm sóc **trước** khi khách thuộc CTV; có lần đặt bị chặn như trên; CTV trùng SĐT, email, họ tên hoặc tài khoản ngân hàng mang tên nhân sự. Thấy ⚠️ thì xem kỹ trước khi bấm ✅ Đã chuyển tiền.
 - Để CRM nhận ra nhân sự: Quản trị điền **SĐT cá nhân**, **Họ tên đầy đủ**, **Số tài khoản** của từng người ở **Cài đặt → Nhân sự** rồi bấm Lưu. Người chưa có tài khoản CRM (kho, marketing mới…) ghi vào ô **Nhân sự chưa có tài khoản CRM** ngay bên dưới.
 
-**💰 Lương & hoa hồng tạm tính (Phụ lục 01, từ 30/10/2026):** mở **Hiệu quả → 📊 BCDT**. Xem 1 người: mục **💰 Thu nhập tạm tính** (lương cố định theo bậc doanh thu, hoa hồng khách cũ / khách mới theo thâm niên, phụ cấp thâm niên, còn bao nhiêu nữa thì lên bậc). Xem cả nhóm: bảng từng người.
+**💰 Lương & hoa hồng tạm tính (Phụ lục 01, từ 30/10/2026):** mở **Hiệu quả → thẻ 🧰 Báo cáo → 📊 BCDT**. Xem 1 người: mục **💰 Thu nhập tạm tính** (lương cố định theo bậc doanh thu, hoa hồng khách cũ / khách mới theo thâm niên, phụ cấp thâm niên, còn bao nhiêu nữa thì lên bậc). Xem cả nhóm: bảng từng người.
 
 - Đơn khách tự đặt trên web tính như đơn sale lên: khách cũ theo % khách cũ, khách mới đặt qua **link riêng của sale** theo % khách mới. Khách mới sale **đã gọi / nhắn chăm sóc trong 30 ngày trước khi đặt** (có ghi ở CRM) mà tự lên web đặt, không bấm link, vẫn tính **đủ % khách mới**. Ghi chú đơn có dòng *🤝 … đã chăm khách trước khi đặt*. Khách mới tự tìm đến web mà sale chưa chăm lần nào thì tính **50%** mức khách mới.
 - Đơn sale chốt **tối / Chủ nhật** (loại đơn Ngoài giờ): **6%** cố định. Đơn **ngày lễ**: **10%** cố định. **Chỉ áp dụng với khách mới từ quảng cáo** (kể cả khách cũ nhắn lên page); khách cũ nhắn Zalo sale tối / lễ thì tính % khách cũ (Phụ lục 01, Thủy xác nhận 11/11/2026). CRM tự gợi ý đúng loại đơn và Thu nhập tạm tính tự chuyển đơn tối / lễ của khách cũ về % khách cũ. Không theo bậc, thâm niên, vẫn cộng vào doanh thu để xét bậc. Đơn khách tự đặt web lúc tối / lễ tính như đơn web thường.

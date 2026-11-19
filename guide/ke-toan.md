@@ -380,7 +380,7 @@ Trong phiếu, làm từng nhóm việc:
 
 ### Quản lý chấm lại và chốt
 
-Chị Thủy (Quản lý) mở tab **Hiệu quả**, kéo xuống cuối trang. Anh Sơn (Quản trị) mở tab **💼 Kế toán** → thẻ **📅 Việc cuối tháng**. Bấm tên người kế toán.
+Chị Thủy (Quản lý) mở tab **Hiệu quả** → thẻ **🧰 Báo cáo**. Anh Sơn (Quản trị) mở tab **💼 Kế toán** → thẻ **📅 Việc cuối tháng**. Bấm tên người kế toán.
 
 ![Điểm kế toán tự chấm (1), chọn mức của quản lý (2), tổng điểm (3), chốt (4)](/huong-dan/img/ke-toan-kpi-chot.webp)
 
@@ -443,7 +443,7 @@ CRM chỉ lấy số tiền: lương cơ bản thực nhận, KPI, hoa hồng, p
 
 ### Quản lý duyệt bảng lương
 
-Chị Thủy mở tab **Hiệu quả** và kéo xuống cuối trang. Anh Sơn mở tab **💼 Kế toán** → thẻ **📅 Việc cuối tháng**. Xem bảng, bấm từng tên nếu cần, rồi bấm **✅ Duyệt bảng lương**. Sau khi duyệt, kế toán không sửa được nữa. Cần sửa thì bấm **🔓 Mở lại để sửa**. Bấm **↻ Lấy lại hoa hồng sale** khi vừa sửa đơn của tháng đó.
+Chị Thủy mở tab **Hiệu quả** → thẻ **🧰 Báo cáo**. Anh Sơn mở tab **💼 Kế toán** → thẻ **📅 Việc cuối tháng**. Xem bảng, bấm từng tên nếu cần, rồi bấm **✅ Duyệt bảng lương**. Sau khi duyệt, kế toán không sửa được nữa. Cần sửa thì bấm **🔓 Mở lại để sửa**. Bấm **↻ Lấy lại hoa hồng sale** khi vừa sửa đơn của tháng đó.
 
 ## Nhập chi phí và xem lãi lỗ
 

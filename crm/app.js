@@ -13336,7 +13336,7 @@
     cx.P = cmpRange(f.p);
     if (f.p.k === 'all') { cx.all = salesAllGet(); if (!cx.all) cx.allNote = S.salesAll ? '' : '<div class="notice">⏳ Đang lấy doanh số từ trước tới nay trên máy chủ…</div>'; else cx.allNote = '<p class="small muted">Mọi lúc: <b>doanh số, số đơn</b> tính đủ mọi đơn từ trước tới nay (cả đơn cũ nhập từ file sale). Các chỉ số khác (chăm sóc, tỷ lệ chốt, khách cũ) tính trên dữ liệu khoảng 13 tháng gần nhất.</p>'; }
     return '<div class="page-head"><h1>Hiệu quả</h1><div class="grow"></div>' + askBtn() + whoSel() + '</div>' + perChips('r', f.p, ['all'], false, who !== '-') +
-      (cx.allNote || '') + (!who && lvl() === 2 ? campBox() : '') + (!who ? viewTeam(cx) : who === '-' ? viewNoOwner(cx) : viewPerson(who, cx)) + (!who && lvl() === 2 && !isMkt() && !isKt() ? (kptLoad(), kptHTML() + (lgtLoad(), lgtHTML())) : ''); // 📋 KPI kế toán: Quản lý chấm lại ở đây (Quản trị ở 💼 Kế toán)
+      (cx.allNote || '') + (!who && lvl() === 2 ? campBox() : '') + (!who ? viewTeam(cx) : who === '-' ? viewNoOwner(cx) : viewPerson(who, cx)) + (!who && lvl() === 2 && !isMkt() && !isKt() && REP_TAB === 'cc' ? (kptLoad(), kptHTML() + (lgtLoad(), lgtHTML())) : ''); // 📋 KPI kế toán: Quản lý chấm lại ở đây (Quản trị ở 💼 Kế toán)
   }
   /** Tổng doanh số từ trước tới nay theo nhân viên bán (hỏi máy chủ, nhớ 10 phút). null = đang tải / máy chủ cũ chưa có. */
   function salesAllGet() {
@@ -13595,16 +13595,19 @@
     var h = (lvl() >= 2 && !me ? '<button class="btn ghost" data-who="team" style="margin-bottom:10px">← Quay lại cả nhóm</button>' : '') +
       targetBlock(name, month, ms, me || lvl() >= 2, c.avg || p.avg) + repMoneyLine(c, p, cx);
     h += '<section class="dash-hero">' + repTodo(c, p, me, mb) + repSteps(c, p, mk, mb, T) + repFix(c, p, mb, T, mk && mk.best) + '</section>';
-    h += refSaleBox(name);
-    h += '<h2 class="dash-more-h">Xem chi tiết <small class="muted">(bấm để mở)</small></h2>';
+    // 19/11/2026 (anh Sơn: "làm tương tự" Tổng quan / Kế toán): mục tiêu + việc cần làm + 6 bước ở thẻ đầu, chi tiết chia thẻ
+    var TQ = h, RSB = refSaleBox(name); h = '';
     h += repMore('rtrend', '📈 Bán hàng theo ngày', 'Doanh số, số đơn, lượt chăm sóc từng ngày, so với ' + (CMP_LABEL || 'kỳ trước'), repTrend(name, cx));
     h += smkMore(mk, mb, smkInvest(mk, mb, who, cx.label).replace(/<button class="link" data-rgo="mkt">[^<]*<\/button>/, '') + repFunnel(c, who));
     h += repMore('care', '💬 Chăm sóc khách', c.care + ' lượt' + (c.replyPct === null ? '' : ' · ' + c.replyPct + '% khách nghe máy') + (c.convPct === null ? '' : ' · ' + c.convPct + '% chăm sóc ra đơn'), careMetrics(c, p, me, name, cx.R));
+    var BAN = h; h = '';
     var why = whyBlock(name, cx), wt = (why.match(/<span class="bar-l" role="cell">([^<]*)</) || [])[1];
     h += repMore('why', '🙅 Vì sao khách chưa mua', wt ? 'Nhiều nhất: ' + wt : 'Ghi lý do khi chăm sóc để máy gom', why);
     var geo = geoBlock(name, cx), gt = (geo.match(/Nhiều nhất: <b>([^<]*)</) || [])[1];
     h += repMore('geo', '📍 Khách ở tỉnh nào', gt ? 'Nhiều nhất: ' + gt : 'Chưa có địa chỉ', geo);
+    var KH = h; h = '';
     h += '<h2 class="dash-more-h">🧰 Công cụ</h2><div class="steps" style="margin:0 0 10px"><button class="btn pri" data-daily="' + esc(name) + '">📋 Báo cáo ngày (bảng)</button><button class="btn" data-bcdt="' + esc(name) + '|' + month + '">📊 Bảng BCDT ' + monthLabel(month) + '</button>' + '</div>' + refBox(c, p, name);
+    var CC = RSB + h; h = repTabs(false, TQ, '', BAN, KH, CC);
     h += '<p class="small muted">🟢 Tốt · 🟠 Cần để ý · 🔴 Cần xử lý, so với ' + (CMP_LABEL || 'kỳ trước') + ' hoặc mức tốt ghi trong ô. Doanh số tính theo “Nhân viên bán” ghi trên từng đơn; đơn khách tự đặt trên web tính cho người đang phụ trách khách đó.</p>';
     return h;
   }
@@ -13613,12 +13616,40 @@
     var B = d && (b || d.team);
     return repMore('mkt', '📣 Từ quảng cáo', !d ? '⏳ đang tải…' : (B ? B.n + ' số' + (B.cost ? ' · công ty chi ' + moneyShort(B.cost) : '') + (smkSpeed(B) !== null ? ' · gọi trong ngày ' + smkSpeed(B) + '%' : '') : 'chưa có số') + ' · ưu đãi đang chạy', (top || '') + smkDetail(d, b));
   }
+  /** 📊 Hiệu quả chia nhóm thẻ (19/11/2026): bản cả nhóm có thêm thẻ 👥 Từng người */
+  var REP_TAB = '';
+  var REP_GO = { mkt: 'ban', rtrend: 'ban', care: 'ban', why: 'khach', geo: 'khach', cmp: 'nguoi' };
+  function repGroups(team) {
+    return [['🎯 Tình hình', 'mỗi ngày', [['tq', '🎯', 'Mục tiêu & việc', 'cần làm, 6 bước bán hàng']].concat(team ? [['nguoi', '👥', 'Từng người', 'tiến độ, thi đua, so sánh']] : [])],
+      ['🔎 Vì sao', 'mỗi tuần', [['ban', '📈', 'Bán hàng', 'theo ngày, quảng cáo, chăm sóc'], ['khach', '🙅', 'Khách', 'vì sao chưa mua, ở tỉnh nào']]],
+      ['🧰 Công cụ', 'khi cần', [['cc', '🧰', 'Báo cáo', 'báo cáo ngày, bảng BCDT']]]];
+  }
+  function repTabNow(team) {
+    var t = REP_TAB || store('rep_tab') || 'tq';
+    if (t === 'nguoi' && !team) t = 'tq';
+    if (['tq', 'nguoi', 'ban', 'khach', 'cc'].indexOf(t) < 0) t = 'tq';
+    return (REP_TAB = t);
+  }
+  function repTabs(team, TQ, NG, BAN, KH, CC) {
+    var t = repTabNow(team), h = grpMenu(repGroups(team), t, function (k) { return 'data-rpt="' + k + '"'; });
+    if (t === 'tq') h += TQ;
+    if (t === 'nguoi') h += inTabi('Hôm nay mỗi người đang làm tới đâu, bảng thi đua, kết quả từng người trong kỳ.', ['Người có đèn 🔴: bấm tên để xem cần kèm gì', 'So sánh theo chỉ số: mở <b>📊 So sánh nhân viên</b>']) + NG;
+    if (t === 'ban') h += inTabi('Bán hàng theo ngày, số quảng cáo được giao đi về đâu, chăm sóc khách ra đơn bao nhiêu.', ['Đọc dòng tóm tắt của từng mục', 'Muốn xem kỹ: bấm vào mục để mở']) + BAN;
+    if (t === 'khach') h += inTabi('Vì sao khách chưa mua, khách ở tỉnh nào.', ['Lý do nhiều nhất: tìm câu trả lời ở Kịch bản gọi', 'Muốn xem kỹ: bấm vào mục để mở']) + KH;
+    if (t === 'cc') h += inTabi('Báo cáo cuối ngày, bảng BCDT tháng, link giới thiệu.', ['Cuối ngày: bấm <b>📋 Báo cáo ngày (bảng)</b>', 'Cuối tháng: bấm <b>📊 Bảng BCDT</b>']) + CC;
+    return h;
+  }
   function bindRep() {
+    $$('[data-rpt]').forEach(function (el) { el.onclick = function () { REP_TAB = el.getAttribute('data-rpt'); store('rep_tab', REP_TAB); render(); }; });
     $$('details[data-rk]').forEach(function (d) {
       d.addEventListener('toggle', function () { var o = S.f.r.open || (S.f.r.open = {}), k = d.getAttribute('data-rk'); if (d.open) o[k] = 1; else delete o[k]; store('rep_open', JSON.stringify(o)); });
     });
     $$('#view [data-dgo], #view [data-rgo]').forEach(function (el) {
-      el.onclick = function () { var d = $('#rm-' + (el.getAttribute('data-dgo') || el.getAttribute('data-rgo'))); if (!d) return; d.open = true; d.scrollIntoView({ behavior: 'smooth', block: 'start' }); };
+      el.onclick = function () {
+        var k = el.getAttribute('data-dgo') || el.getAttribute('data-rgo'), d = $('#rm-' + k);
+        if (!d && REP_GO[k]) { REP_TAB = REP_GO[k]; store('rep_tab', REP_TAB); render(); d = $('#rm-' + k); }
+        if (!d) return; d.open = true; d.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      };
     });
   }
 
@@ -13688,20 +13719,23 @@
     all.name = null; all.cx = cx;
     var h = targetBlockTeam(ms, tt, month, all.avg || prev.avg) + repMoneyLine(all, prev, cx);
     // 29/10/2026: cùng thứ tự màn hình 1 người: mục tiêu → việc cần làm → 6 bước → khâu cần sửa nhất → từng người → chi tiết → công cụ
-    h += '<section class="dash-hero">' + repMgrTodo(rows, all, cx, noSeller) + repSteps(all, prev, mk, mk && mk.team, mk && mk.team) + repFix(all, prev, mk && mk.team, mk && mk.team, mk && mk.best) +
-      teamBlock() /* tiến độ hôm nay (việc trễ, đơn chưa xác nhận…) ngay trong Hiệu quả, quản lý không phải sang tab Hôm nay */ + raceBlock() /* 14/11/2026: Quản trị xem bảng thi đua ngay ở Hiệu quả (Hôm nay nằm trong Thêm) */ + repPeople(rows, all, cx) + '</section>';
-    h += refSaleBox(null);
-    h += '<h2 class="dash-more-h">Xem chi tiết <small class="muted">(bấm để mở)</small></h2>';
+    h += '<section class="dash-hero">' + repMgrTodo(rows, all, cx, noSeller) + repSteps(all, prev, mk, mk && mk.team, mk && mk.team) + repFix(all, prev, mk && mk.team, mk && mk.team, mk && mk.best) + '</section>';
+    // 19/11/2026: tiến độ hôm nay + thi đua + bảng từng người sang thẻ 👥 Từng người
+    var TQ = h, NG = '<section class="dash-hero">' + teamBlock() /* tiến độ hôm nay (việc trễ, đơn chưa xác nhận…) ngay trong Hiệu quả, quản lý không phải sang tab Hôm nay */ + raceBlock() /* 14/11/2026: Quản trị xem bảng thi đua ngay ở Hiệu quả (Hôm nay nằm trong Thêm) */ + repPeople(rows, all, cx) + '</section>'; h = '';
+    var RSB = refSaleBox(null);
     var lead = rows[0] && rows[0].sales ? rows[0] : null;
-    h += rows.length >= 2 ? repMore('cmp', '📊 So sánh nhân viên', 'Xếp hạng theo doanh số, số đơn, tỷ lệ chốt, % mục tiêu…' + (lead ? ' · dẫn đầu: ' + esc(lead.n) : ''), compareBlock(rows, cx)) : '';
+    NG += rows.length >= 2 ? repMore('cmp', '📊 So sánh nhân viên', 'Xếp hạng theo doanh số, số đơn, tỷ lệ chốt, % mục tiêu…' + (lead ? ' · dẫn đầu: ' + esc(lead.n) : ''), compareBlock(rows, cx)) : '';
     h += repMore('rtrend', '📈 Bán hàng theo ngày', 'Doanh số, số đơn, lượt chăm sóc từng ngày, so với ' + (CMP_LABEL || 'kỳ trước'), repTrend(null, cx));
     h += smkMore(mk, null, smkInvest(mk, mk && mk.team, 'cả nhóm', cx.label).replace(/<button class="link" data-rgo="mkt">[^<]*<\/button>/, '') + repFunnel(all, 'cả nhóm'));
     h += repMore('care', '💬 Chăm sóc khách', all.care + ' lượt' + (all.replyPct === null ? '' : ' · ' + all.replyPct + '% khách nghe máy') + (all.convPct === null ? '' : ' · ' + all.convPct + '% chăm sóc ra đơn'), careMetrics(all, prev, false, null, cx.R));
+    var BAN = h; h = '';
     var why = whyBlock(null, cx), wt = (why.match(/<span class="bar-l" role="cell">([^<]*)</) || [])[1];
     h += repMore('why', '🙅 Vì sao khách chưa mua', wt ? 'Nhiều nhất: ' + wt : 'Ghi lý do khi chăm sóc để máy gom', why + teamLostBlock(R));
     var geo = geoBlock(null, cx), gt = (geo.match(/Nhiều nhất: <b>([^<]*)</) || [])[1];
     h += repMore('geo', '📍 Khách ở tỉnh nào', gt ? 'Nhiều nhất: ' + gt : 'Chưa có địa chỉ', geo);
+    var KH = h; h = '';
     h += '<h2 class="dash-more-h">🧰 Công cụ</h2><div class="steps" style="margin:0 0 10px"><button class="btn pri" data-daily="">📋 Báo cáo ngày (bảng)</button><button class="btn" data-bcdt="|' + month + '">📊 Bảng BCDT cả nhóm ' + monthLabel(month) + '</button>' + '</div>' + refBox(all, prev, '');
+    var CC = RSB + h; h = repTabs(true, TQ, NG, BAN, KH, CC);
     h += '<p class="small muted">🟢 đúng tiến độ mục tiêu / tốt hơn ' + (CMP_LABEL || 'kỳ trước') + ' · 🟠 hơi chậm / giảm nhẹ · 🔴 đang chậm / giảm nhiều. 🥇🥈🥉 xếp theo doanh số trong kỳ đang chọn.</p>';
     return h;
   }
