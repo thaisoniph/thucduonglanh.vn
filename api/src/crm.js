@@ -27,7 +27,7 @@ import { crmHr } from './hr.js';
 import { crmHt } from './hrstaff.js'; // 🤝 Hiểu & Thương: mọi nhân sự tự điền 9 câu // 🧑‍💼 tuyển dụng – hr.thucduonglanh.vn đợt 1 (15/11/2026)
 import { crmLuong } from './luong.js';
 import { KT_ROLE_OK, ktSettingsOk, finOk, ktLoad, ktCfg, crmKt, ktKho, crmKtBatch } from './kt.js';
-import { crmSaleMkt, crmOffers, crmBeVrSet, crmAdsTier } from './salemkt.js';
+import { crmSaleMkt, crmOffers, crmBeVrSet, crmAdsTier, crmAdsDutySet } from './salemkt.js';
 import { cmsTokenSet, quizCms, webProds, cmsSso } from './cms.js';
 import { crmVoucher, voucherSchema } from './voucher.js';
 import { journeySchema, wallHide } from './journey.js';
@@ -2761,6 +2761,7 @@ export async function crmApi(x, d, sync, mgr) {
   if (a === 'sales_all') return crmSalesAll(x, u);
   if (a === 'race') return crmRace(x, u);
   if (a === 'sale_mkt') return crmSaleMkt(x, u, d); // 📣 Từ quảng cáo ở tab Hiệu quả
+  if (a === 'ads_duty_set') return crmAdsDutySet(x, u, d); // 🌙 người trực tối / CN / lễ nhận số quảng cáo
   if (a === 'ads_tier') return crmAdsTier(x, u, d); // 🅰️🅱️©️ nhóm chia số quảng cáo (salemkt.js)
   if (a === 'be_vr_set') return crmBeVrSet(x, u, d); // ⚖️ tỷ lệ gộp giá vốn + ship + VAT cho khung hoà vốn của sale (salemkt.js)
   if (a === 'offers' || a === 'offer_save' || a === 'offer_del') return crmOffers(x, u, d); // ưu đãi đang chạy (Marketing ghi, sale đọc)

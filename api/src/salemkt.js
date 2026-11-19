@@ -3,6 +3,7 @@
 // Nhân viên chỉ nhận số của chính mình + số tổng cả nhóm (không có tên người khác). Quản lý / Quản trị nhận đủ từng người.
 import { all, allIn, kvGet, kvJson, kvSet, normPhone, nrm, isVoid, startOfDay, randHex, DAY } from './lib.js';
 import { ddOffer } from './ngaydoi.js';
+import { caCfg, caOf } from './crm.js';
 
 const DAY_RE = /^\d{4}-\d\d-\d\d$/;
 const dayMs = s => new Date(s + 'T00:00:00+07:00').getTime();
@@ -111,7 +112,23 @@ export async function adsTier(x, force) {
 export async function crmAdsTier(x, u, d) {
   if (u.level < 2) return { ok: false, error: 'Chỉ Quản lý, Quản trị.' };
   const cfg = (await kvJson(x.db, 'ads_cfg', {})) || {}, w = (await kvJson(x.db, 'ads_wrr', {})) || {};
-  return { ok: true, t: await adsTier(x, !!d.force && u.level >= 3), W: TIER, sp: TIER_SP, minN: TIER_MINN, mode: cfg.mode || 'staff', today: w.cnt || {}, day: w.day || '' };
+  const ca = await caCfg(x);
+  return { ok: true, duty: ((await kvJson(x.db, 'ads_duty', null)) || {}).names || [], caNow: caOf(Date.now(), ca), evening: ca.evening || '17:30', t: await adsTier(x, !!d.force && u.level >= 3), W: TIER, sp: TIER_SP, minN: TIER_MINN, mode: cfg.mode || 'staff', today: w.cnt || {}, day: w.day || '' };
+}
+/** 🌙 19/11/2026 (anh Sơn): tối / Chủ nhật / lễ (theo Cài đặt → Ca làm việc) CRM chỉ chia số quảng cáo cho người trực (kv ads_duty { names }).
+ *  Chưa chọn ai thì chia như ban ngày. Trả { ca, pool }: pool = danh sách được chia lúc này. */
+export async function adsDutyPool(x, pool, users) {
+  const ca = caOf(Date.now(), await caCfg(x)); if (ca === 'Ngày') return { ca, pool };
+  const D = (await kvJson(x.db, 'ads_duty', null)) || {}, act = new Set(users.filter(y => y.active).map(y => y.name));
+  const duty = (D.names || []).filter(n => act.has(n));
+  return { ca, pool: duty.length ? duty : pool, duty: duty.length > 0 };
+}
+/** Lệnh 'ads_duty_set' { names: [] }: Quản trị chọn người trực tối / Chủ nhật / lễ. */
+export async function crmAdsDutySet(x, u, d) {
+  if (u.level < 3) return { ok: false, error: 'Chỉ Quản trị.' };
+  const names = (Array.isArray(d.names) ? d.names : []).map(n => String(n).trim()).filter(Boolean).slice(0, 10);
+  await kvSet(x.db, 'ads_duty', JSON.stringify({ names, at: Date.now(), by: u.name }));
+  return { ok: true, names };
 }
 /** Nhóm của 1 người (không có số liệu → B). */
 export function tierOf(t, name) { return (t && t.people && t.people[name]) || { g: 'B', nw: true }; }

@@ -195,6 +195,10 @@ Xếp loại: **A** từ 90 điểm, **B** 75–89, **C** 60–74, dưới 60 g�
 
 **Số quảng cáo chia theo nhóm 🟢 A / 🟠 B / 🔴 C** (từ 16/11/2026): xem ở **Cài đặt → Đồng bộ → 📣 File số quảng cáo chung → 🅰️🅱️©️ Chia số quảng cáo theo nhóm**. Bảng ghi từng sale: nhóm, 1đ quảng cáo mang về bao nhiêu (60 ngày gần nhất), % gọi trong ngày, phần số được chia. Chỉ chạy khi file để **CRM tự chia** (bấm **⚙️ Cài đặt** của file → chọn **CRM tự chia**): mỗi vòng nhóm A nhận 3 số, B nhận 2, C nhận 1, tối đa 10 số / người / ngày, khách cũ vẫn về sale cũ. CRM tự xếp lại nhóm 7 ngày / lần; Quản trị bấm **↻ Xếp lại ngay** khi cần. Ai không nên nhận số (nghỉ phép, kiêm kho) thì tắt **Nhận khách mới** ở Nhân sự.
 
+**🌙 Người trực tối / Chủ nhật / ngày lễ** (từ 19/11/2026): ngay dưới bảng nhóm, tích tên người trực rồi bấm **Lưu người trực**. Từ giờ ca tối (mặc định 17:30, đổi ở Cài đặt → 🕘 Ca tối & ngày lễ), cả ngày Chủ nhật và ngày lễ, CRM chỉ chia số mới cho người được tích (tích nhiều người thì chia lần lượt). Không tích ai thì tối / Chủ nhật vẫn chia cho mọi người như ban ngày.
+
+**Khi CRM tự chia, người nhặt số làm gì?** Chỉ dán ngày, tên, số điện thoại (và Nguồn, Chiến dịch) vào file, **để trống ô Sale**. Khoảng 10 phút sau CRM tự ghi tên sale vào ô Sale và nhắn Telegram cho sale. **Không gõ tên sale sẵn theo lượt** như trước: ô Sale đã có tên thì CRM giữ nguyên, không chia theo nhóm. Khách xin gặp đúng 1 bạn thì gõ tên bạn đó ngay lúc dán số. Cần nhanh thì Quản trị bấm **🔄 Lấy số mới ngay**.
+
 **Cài đặt → 🤝 Chia khách → 🔀 Khách mới giao cho ai:**
 
 - **Khách mới được giao thế nào:**

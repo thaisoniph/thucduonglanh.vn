@@ -3,7 +3,7 @@
 import { normPhone, esc, fmtDate, nrm, isVoid, hashKey, hashKeyLegacy, all, first, run, insertMany, allIn, kvGet, kvSet, kvDel, kvJson, CRM_URL, DAY } from './lib.js';
 import { sheetMeta, sheetValues, sheetWrite, a1, serialToMs } from './google.js';
 import { wbKeys, wbHas, wbPending } from './wb.js';
-import { adsTier, tierOf, TIER } from './salemkt.js';
+import { adsTier, tierOf, TIER, adsDutyPool } from './salemkt.js';
 import { flRegRows } from './fblead.js';
 import { mkAutoCamp, mkAutoPick, mkListSync } from './mkcamp.js';
 import { phoneAlias, crmUsers, crmLog, recalc, deletedOrderIds, delMark, setCallbacks, caCfg, caOf, normLine, itemsText, shipText, ORDER_COLS, srcList, adsCfg, telegramUser, unifyNames, prodKey, canonItems } from './crm.js';
@@ -838,7 +838,7 @@ export async function adsSync(x, u, dry) {
   (await allIn(x.db, 'SELECT id FROM leads WHERE id IN (SELECT value FROM json_each(?))', scan.map(s => s.id))).forEach(r => { ids[r.id] = 1; });
   const phones = [...new Set(scan.map(s => s.phone))];
   const fbOpen = {}; (await allIn(x.db, "SELECT phone, owner, by_name, time FROM leads WHERE status IN ('Mới hỏi', 'Đang tư vấn') AND phone IN (SELECT value FROM json_each(?))", phones)).forEach(r => { openBy[r.phone] = r.owner || ''; if (r.by_name === 'Form FB' && Date.now() - (r.time || 0) < 5 * DAY) fbOpen[r.phone] = 1; });
-  const owners = await ownersOf(x, phones), pool = users.filter(y => y.recv && y.alias).map(y => y.name);
+  const owners = await ownersOf(x, phones), pool = users.filter(y => y.recv && y.alias).map(y => y.name); let dutyP = null;
   for (const s of scan) {
     const { sc, m, hr, r, i, when, phone, id } = s; if (ids[id]) continue;
     if (fbOpen[phone]) { merged++; ids[id] = 1; continue; } // số biểu mẫu Facebook đã vào CRM (fblead.js), người trực chép lại vào file → không tạo trùng
@@ -846,7 +846,8 @@ export async function adsSync(x, u, dry) {
     const saleTxt = String(cell(r, m, 'sale') || '').trim(); let owner = keep[phone] || who(saleTxt);
     if (cfg.mode === 'crm' && !saleTxt && !keep[phone]) { // CRM chia
       const old = (owners[phone] && owners[phone].owner) || openBy[phone] || '';
-      owner = old || (pool.length ? await pickW(pool) : ''); // trước 16/11/2026: chia đều lần lượt từng tab (nextFrom)
+      if (!old && pool.length && !dutyP) dutyP = (await adsDutyPool(x, pool, users)).pool; // 🌙 tối / CN / lễ: chỉ người trực
+      owner = old || (pool.length ? await pickW(dutyP) : ''); // trước 16/11/2026: chia đều lần lượt từng tab (nextFrom)
       if (owner) { const ux = users.find(y => y.name === owner); writes.push({ sheet: sc.name, row: hr + 1 + i, col: m.sale, val: (String(ux.alias || '').split(',')[0].trim() || owner), dupCol: old ? m.dup : undefined }); }
     }
     if (!owner) { skipped++; continue; } // sale chưa có trong CRM (giai đoạn thử nghiệm) → bỏ qua

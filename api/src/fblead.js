@@ -18,7 +18,7 @@
 import { esc, run, all, first, allIn, kvGet, kvSet, kvJson, normPhone, fmtDate, insertMany, hashKey, CRM_URL, DAY } from './lib.js';
 import { telegram } from './google.js';
 import { addLead, telegramUser, crmUsers, mainPhone, ownerOf } from './crm.js';
-import { adsTier, tierOf, TIER } from './salemkt.js';
+import { adsTier, tierOf, TIER, adsDutyPool } from './salemkt.js';
 import { fpTracked } from './fb.js';
 
 let GRAPH = 'https://graph.facebook.com/v23.0/';
@@ -54,7 +54,8 @@ const permHint = e => /leads_retrieval|permission|\(#200\)|\(#10\)|pages_manage_
 
 /* ---------------------------------------------------------------- chia sale: giống file số QC khi CRM chia (nhóm A 3 lượt, B 2, C 1; trần 10 số / người / ngày) */
 async function adsPick(x) {
-  const users = (await crmUsers(x)).filter(y => y.active && y.recv && y.alias), pool = users.map(y => y.name); if (!pool.length) return '';
+  const all0 = await crmUsers(x), users = all0.filter(y => y.active && y.recv && y.alias); let pool = users.map(y => y.name); if (!pool.length) return '';
+  pool = (await adsDutyPool(x, pool, all0)).pool; // 🌙 tối / CN / lễ: chỉ người trực
   const wrr = (await kvJson(x.db, 'ads_wrr', null)) || {}; wrr.cur = wrr.cur || {};
   const tier = await adsTier(x), day = fmtDate(Date.now(), 'yyyyMMdd'); if (wrr.day !== day) { wrr.day = day; wrr.cnt = {}; }
   let cand = pool.filter(n => (wrr.cnt[n] || 0) < 10); if (!cand.length) cand = pool;

@@ -14407,8 +14407,23 @@
       rows.map(function (r) { var p = r[1]; return '<tr><td>' + esc(r[0]) + '</td><td><b>' + TIER_IC[p.g] + '</b>' + (p.nw ? ' <small class="muted">(chưa đủ ' + j.minN + ' số)</small>' : '') + '</td><td>' + (p.roi != null ? oneDec(p.roi) + 'đ' : '–') + '</td><td>' + (p.sp != null ? p.sp + '%' : '–') + '</td><td>' + (p.n || 0) + '</td><td>' + Math.round(W[p.g].w * 100 / tot) + '%</td>' + (on && j.day ? '<td>' + ((j.today || {})[r[0]] || 0) + '</td>' : '') + '</tr>'; }).join('') +
       '</tbody></table></div>' +
       '<p class="small muted" style="margin:8px 0 0">Xếp nhóm theo số quảng cáo từ ' + esc(fDate(new Date(T.from + 'T00:00:00+07:00').getTime())) + ' tới ' + esc(fDate(new Date(T.to + 'T00:00:00+07:00').getTime())) + ', tự xếp lại 7 ngày / lần (lần này ' + when(T.at) + '). 🟢 A: 1đ quảng cáo mang về từ ' + oneDec(W.A.min) + 'đ (gần hoặc qua mức khoảng 2đ là đủ bù quảng cáo sau tiền hàng, ship, thuế, hoa hồng) · 🟠 B: từ ' + oneDec(W.B.min) + 'đ · 🔴 C: dưới ' + oneDec(W.B.min) + 'đ. Cột Gọi trong ngày để quản lý nhắc nhở (gọi mà không ghi CRM thì không được tính). Người mới (dưới ' + j.minN + ' số) để nhóm B. Tắt <b>Nhận khách mới</b> ở Nhân sự thì không nhận số.</p>' +
-      (lvl() >= 3 ? '<button class="btn" data-retier style="margin-top:8px">↻ Xếp lại ngay</button>' : '') + '</div>';
+      (lvl() >= 3 ? '<button class="btn" data-retier style="margin-top:8px">↻ Xếp lại ngay</button>' : '') + adsDutyBox(j) + '</div>';
   }
+  /* 🌙 19/11/2026: tối (từ giờ ca tối) / Chủ nhật / ngày lễ CRM chỉ chia số cho người trực (lệnh ads_duty_set, kv ads_duty). */
+  function adsDutyBox(j) {
+    var duty = j.duty || [], act = (S.d.users || []).filter(function (u) { return u.active !== false; }).map(function (u) { return u.name; });
+    var now = j.caNow === 'Ngày' ? '☀️ Bây giờ là giờ hành chính: chia theo nhóm cho mọi người nhận số.' : '🌙 Bây giờ là ' + (j.caNow === 'Lễ' ? 'ngày lễ' : 'tối / Chủ nhật') + ': ' + (duty.length ? 'chỉ chia cho ' + esc(duty.join(', ')) + '.' : 'chưa chọn người trực nên vẫn chia cho mọi người.');
+    return '<div class="adt-duty" style="margin-top:14px;padding-top:12px;border-top:1px solid var(--line)"><h4 style="margin:0 0 6px">🌙 Người trực tối / Chủ nhật / ngày lễ</h4>' +
+      '<p class="hint" style="margin:0 0 8px">Từ <b>' + esc(j.evening || '17:30') + '</b> tối, cả ngày Chủ nhật và ngày lễ (giờ lấy ở Cài đặt → <b>🕘 Ca tối & ngày lễ</b>), số quảng cáo mới <b>chỉ chia cho người được tích</b>. Tích nhiều người thì chia lần lượt. Không tích ai thì chia cho mọi người như ban ngày. Khách cũ vẫn về sale cũ.</p>' +
+      '<p class="small" style="margin:0 0 8px">' + now + '</p>' +
+      (lvl() >= 3 ? '<div class="steps" style="flex-wrap:wrap">' + act.map(function (n) { return '<label style="display:inline-flex;align-items:center;gap:4px;margin:0 14px 6px 0"><input type="checkbox" data-duty value="' + esc(n) + '"' + (duty.indexOf(n) >= 0 ? ' checked' : '') + '> ' + esc(n) + '</label>'; }).join('') + '</div>' +
+        '<button class="btn pri" data-dutysave style="margin-top:8px">Lưu người trực</button>' : '<p class="small muted">Người trực: ' + esc(duty.join(', ') || 'chưa chọn') + '</p>') + '</div>';
+  }
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest && e.target.closest('[data-dutysave]'); if (!b) return; b.disabled = true;
+    var names = [].slice.call(document.querySelectorAll('[data-duty]:checked')).map(function (c) { return c.value; });
+    api('ads_duty_set', { names: names }).then(function () { toast(names.length ? 'Tối / Chủ nhật / lễ chỉ chia cho ' + names.join(', ') + ' ✓' : 'Đã bỏ người trực: tối / Chủ nhật chia cho mọi người ✓'); S.adt = null; tierLoad(); }, function (e) { toast(e.message, true); b.disabled = false; });
+  });
   document.addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('[data-retier]'); if (!b) return; b.disabled = true; tierLoad(true); });
   function caBox() {
     var ca = (S.d.rules && S.d.rules.ca) || {};
