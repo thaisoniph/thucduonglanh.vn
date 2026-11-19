@@ -12,7 +12,7 @@ description: Thông báo và văn bản quan trọng của công ty nằm ở đ
 
 > **Mỗi ngày chỉ cần:** thấy thẻ **📢 Thông báo** ở đầu CRM thì đọc, mở văn bản nếu có, rồi bấm **✅ Tôi đã đọc**.
 
-Vì sao? Trên Facebook, tin dễ bị trôi và không biết ai đã đọc. Trong CRM, có tin chưa đọc thì dòng lời chào trên cùng hiện nhãn cam **📢 … thông báo mới** cho tới khi bạn đọc xong. Bấm nhãn là mở tin.
+Vì sao? Trên Facebook, tin dễ bị trôi và không biết ai đã đọc. Trong CRM, có tin chưa đọc thì khung lời chào trên cùng **tự mở ra và hiện luôn tin đó**, kèm nhãn cam **📢 … thông báo mới**, cho tới khi bạn bấm **✅ Tôi đã đọc**. Đọc xong thì khung tự thu gọn.
 
 | Việc | Xem ở đâu |
 | --- | --- |

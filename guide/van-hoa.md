@@ -16,7 +16,9 @@ description: Mỗi ngày CRM nhắc 1 quy tắc kèm 1 việc nhỏ để làm. 
 
 ## ☀️ Lời chào và lời chúc mỗi ngày
 
-Mở CRM ra, dòng trên cùng là **lời chào có tên bạn** (Chào buổi sáng / trưa / chiều / tối). Ngay dưới là **một câu chúc** cho ngày hôm nay.
+Mở CRM ra, dòng trên cùng là **lời chào có tên bạn** (Chào buổi sáng / trưa / chiều / tối). Ngay dưới là **dòng xem trước** màu xanh: cứ 7 giây đổi một tin (điều hôm nay, câu chúc, tin vui), không cần bấm vẫn đọc được. Muốn đọc kỹ thì bấm vào dòng đó.
+
+**Khi có việc cần bạn làm** (thông báo mới chưa đọc, thiếu thông tin cá nhân, việc tuần mới hoặc quá hạn, sinh nhật đồng đội hôm nay), khung lời chào **tự mở ra** và chỉ hiện đúng việc đó, dòng xem trước chuyển **màu cam**. Làm xong (bấm **✅ Tôi đã đọc**, **Để sau**…) thì khung tự thu gọn. Chưa muốn làm thì bấm mũi tên ▴ để đóng, hôm đó CRM không tự mở lại cho việc đó nữa.
 
 - Cả công ty cùng thấy **một câu chúc** mỗi ngày. Hôm sau sẽ là câu khác.
 - Thứ Hai có câu chúc đầu tuần, thứ Bảy có câu chúc cuối tuần.
@@ -34,7 +36,7 @@ CRM → **⚙️ Cài đặt** → nhóm **👥 Nhân sự** → **🌿 Văn ho�
 
 ## Quy tắc của ngày trong CRM
 
-Mỗi ngày làm việc, khi mở CRM, bấm nhãn **🌿 Điều hôm nay** ở dòng lời chào trên cùng để thấy **🌿 Hôm nay cả nhà mình cùng giữ điều …**. Cả công ty cùng giữ **một điều**, để mọi người cùng nói về một chuyện. Cứ 10 ngày làm việc là đi hết 10 điều, rồi quay lại từ đầu với gợi ý mới.
+Mỗi ngày làm việc, khi mở CRM, đọc dòng xem trước dưới lời chào (hoặc bấm nhãn **🌿 Điều hôm nay**) để thấy **🌿 Hôm nay cả nhà mình cùng giữ điều …**. Cả công ty cùng giữ **một điều**, để mọi người cùng nói về một chuyện. Cứ 10 ngày làm việc là đi hết 10 điều, rồi quay lại từ đầu với gợi ý mới.
 
 Dòng này gồm: tên quy tắc, **1 câu nói thân thiện** dễ nhớ, và **chuỗi 10 hạt** (hạt đậm là hôm nay, hạt nhạt là các điều đã đi qua trong vòng).
 

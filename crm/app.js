@@ -15234,37 +15234,98 @@
   function hiwMount(el) { var t = hiwText(); el.insertAdjacentHTML('afterbegin', '<div class="hiw-box"><p class="hiw-hi">' + hiGreet() + '</p><p class="hiw-wish" id="hiwLine"' + (t ? '' : ' hidden') + '>' + esc(t) + '</p><p class="hiw-bday" id="hiwBday"' + (hiwBday() ? '' : ' hidden') + '>' + esc(hiwBday()) + '</p></div>'); }
   function hiwPaint() { var b = $('#hiwLine'), t = hiwText(), c = $('#hiwBday'), d = hiwBday(); if (c && d) { c.textContent = d; c.hidden = false; } if (!b || !t) return; b.textContent = t; b.hidden = false; }
   /* ---------- ☀️ Gộp thẻ đầu trang (16/11/2026, anh Sơn "Gộp gọn lại"): lời chào, Việc tuần, điều văn hoá, thông báo, sinh nhật, cập nhật thông tin, tin vui
-   * trước đây 6–7 thẻ chồng nhau đẩy 👉 Việc hôm nay xuống gần 1 màn điện thoại. Nay chỉ còn 1 dòng chào + nhãn nhỏ; nhãn tô màu = có việc cần bạn (tin chưa đọc,
-   * thông tin chưa điền, việc tuần chưa chốt). Bấm dòng / nhãn để mở. Các khung giữ nguyên id (btBox, tbBox…) nên tự vẽ lại khi có số mới, nhãn tự đếm lại (MutationObserver). */
-  var TF = { open: false, mo: null };
+   * trước đây 6–7 thẻ chồng nhau đẩy 👉 Việc hôm nay xuống gần 1 màn điện thoại. Nay chỉ còn 1 dòng chào + nhãn nhỏ. Các khung giữ nguyên id (btBox, tbBox…) nên tự vẽ lại khi có số mới (MutationObserver).
+   * 19/11/2026 Phương án C (anh Sơn: "để gọn thì đa số nhân sự sẽ không mở"):
+   *  1) Dòng xem trước: dưới lời chào hiện luôn 1 dòng chữ THẬT (điều hôm nay, lời chúc, tin vui, thông báo…), 7 giây đổi 1 tin, rê chuột / chạm thì dừng. Không bấm vẫn đọc được.
+   *  2) Tự mở khi có việc thật cho người đó: thông báo chưa đọc, thiếu thông tin cá nhân, việc tuần mới / quá hạn, sinh nhật đồng đội hôm nay.
+   *     Tự mở chỉ hiện đúng thẻ cần làm (tf-focus), bấm "✅ Tôi đã đọc" / "Để sau" xong hết thì khung tự thu gọn. Bấm đóng = cả ngày không tự mở lại cho đúng việc đó (tf_shut).
+   *  3) Đo: lượt tự mở / tự bấm mở ghi vào 📈 Mức dùng CRM như 1 màn hình ("☀️ Khung chào: tự mở" / "☀️ Khung chào: bấm mở"). */
+  var TF = { open: false, mo: null, sig: null, auto: 0, pi: 0, hold: 0, timer: 0, focus: 0 };
   function topFold(el) {
     var hi = $('.hiw-box', el), ids = ['gvHome', 'vhBox', 'tbBox', 'snhBox', 'htBox', 'btBox'];
     var parts = ids.map(function (i) { return $('#' + i, el); }).filter(Boolean); if (!hi && !parts.length) return;
-    var d = document.createElement('details'); d.className = 'top-fold'; d.id = 'topFold'; if (TF.open) d.open = true;
-    d.innerHTML = '<summary><span class="tf-hi">' + hiGreet() + '</span><span class="tf-chips" id="tfChips"></span><span class="tf-arrow" aria-hidden="true"></span></summary><div class="tf-body"></div>';
+    var d = document.createElement('details'); d.className = 'top-fold' + (TF.open && TF.focus ? ' tf-focus' : ''); d.id = 'topFold'; if (TF.open) { d._prog = 1; d.open = true; } // vẽ lại trang: giữ trạng thái, không tính là người bấm
+    d.innerHTML = '<summary><span class="tf-hi">' + hiGreet() + '</span><span class="tf-chips" id="tfChips"></span><span class="tf-peek" id="tfPeek" hidden></span></summary><div class="tf-body"></div>';
     el.insertBefore(d, el.firstChild);
-    var body = $('.tf-body', d); if (hi) { var g = $('.hiw-hi', hi); if (g) g.remove(); body.appendChild(hi); }
-    ['gvHome', 'vhBox', 'tbBox', 'snhBox', 'htBox', 'btBox'].forEach(function (i) { var x = $('#' + i, el); if (x) body.appendChild(x); });
-    d.addEventListener('toggle', function () { TF.open = d.open; });
-    $('#tfChips', d).addEventListener('click', function (e) {
-      var c = e.target.closest('[data-tfgo]'); if (!c) return; e.preventDefault(); d.open = true; TF.open = true;
-      var t = $('#' + c.getAttribute('data-tfgo')); if (t) setTimeout(function () { t.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 30);
+    var body = $('.tf-body', d); if (hi) { var g = $('.hiw-hi', hi); if (g) g.parentNode.removeChild(g); body.appendChild(hi); }
+    ids.forEach(function (i) { var x = $('#' + i, el); if (x) body.appendChild(x); });
+    body.insertAdjacentHTML('beforeend', '<button type="button" class="tf-all">Xem cả lời chúc, điều hôm nay, tin vui ▾</button>');
+    d.addEventListener('toggle', function () {
+      if (!d.isConnected) return; // khung cũ đã bị vẽ lại
+      TF.open = d.open;
+      if (d._prog) { d._prog = 0; return; } // máy tự mở / tự đóng: không tính là người bấm
+      TF.auto = 0; TF.focus = 0; d.classList.remove('tf-focus');
+      if (d.open) U.scr['☀️ Khung chào: bấm mở'] = 1;
+      else if (TF.sig) store('tf_shut', vhDay() + '|' + TF.sig); // đóng khi còn việc → hôm nay không tự mở lại cho đúng những việc này
     });
+    $('summary', d).addEventListener('click', function (e) {
+      var c = e.target.closest('[data-tfgo]'); if (!c) return; e.preventDefault();
+      if (!d.open) d.open = true; // sự kiện toggle ghi "bấm mở", bỏ chế độ chỉ hiện thẻ cần làm
+      var t = $('#' + c.getAttribute('data-tfgo')); if (t) setTimeout(function () { t.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 60);
+    });
+    $('.tf-all', d).onclick = function () { TF.focus = 0; TF.auto = 0; d.classList.remove('tf-focus'); };
+    var pk = $('#tfPeek', d); // rê chuột: tfTick tự xem :hover (không dùng cờ, vì khung mở thì dòng ẩn, mouseleave không chạy)
+    pk.ontouchstart = function () { TF.hold = 1; clearTimeout(TF.holdT); TF.holdT = setTimeout(function () { TF.hold = 0; }, 15000); };
     tfChips();
     if (TF.mo) TF.mo.disconnect(); if (window.MutationObserver) { TF.mo = new MutationObserver(function () { tfChips(); }); TF.mo.observe(body, { childList: true, subtree: true, characterData: true }); }
+    if (!TF.timer) TF.timer = setInterval(tfTick, 7000);
+  }
+  /** Việc thật cần người này làm, theo thứ tự: [id khung, chữ xem trước]. Rỗng = không có gì gấp. */
+  function tfHot() {
+    var H = [], has = function (i) { var x = $('#' + i); return x && x.textContent.trim() ? x : null; };
+    var bd = $('#hiwBday'); if (bd && !bd.hidden) H.push(['hiwBday', esc(bd.textContent)]);
+    var un = S.tb && S.tb.posts ? S.tb.posts.filter(function (p) { return !p.mine && !p.wait && !p.gone; }) : [];
+    if (un.length && has('tbBox')) H.push(['tbBox', '📢 <b>Thông báo mới' + (un.length > 1 ? ' (' + un.length + ' tin)' : '') + ':</b> ' + esc(un[0].title) + ' · <u>bấm để đọc</u>']);
+    if ($('#htBox .pf-card')) H.push(['htBox', '📝 <b>Bạn còn thiếu thông tin cá nhân:</b> điền giúp công ty khoảng 3 phút · <u>bấm để điền</u>']);
+    else if ($('#htBox .ht-card')) H.push(['htBox', '🤝 <b>Hiểu & Thương:</b> 9 câu để đội hiểu bạn hơn · <u>bấm để điền</u>']);
+    var x = has('gvHome') && typeof gvSum === 'function' ? gvSum() : null;
+    if (x && (x.newN || x.late)) H.push(['gvHome', '✅ <b>Việc tuần:</b> ' + [x.newN ? x.newN + ' việc mới cần nhận' : '', x.late ? x.late + ' việc quá hạn' : ''].filter(Boolean).join(', ') + ' · <u>bấm để xem</u>']);
+    return H;
+  }
+  /** Tin để lướt (không cần làm gì): điều hôm nay, lời chúc, tin vui. */
+  function tfSoft() {
+    var L = [], r = S.vh && S.vh.day === vhDay() ? S.vh : null, vb = $('#vhBox');
+    if (r && vb && vb.textContent.trim()) L.push(['vhBox', '🌿 Cả nhà mình cùng giữ <b>điều ' + r.n + ': ' + esc(r.t) + '</b>' + (r.s ? ' · ' + esc(r.s) : '')]);
+    var w = hiwText(); if (w) L.push(['hiwLine', '☀️ ' + esc(w)]);
+    var B = S.bt && S.bt.items && $('#btBox') ? S.bt.items.slice(0, 6) : [];
+    B.forEach(function (i) { L.push(['btBox', '📣 ' + i.ic + ' ' + esc(btMe(i)) + ' <small>· ' + btAgo(i.at) + '</small>']); });
+    return L;
+  }
+  function tfPeek(fade) {
+    var pk = $('#tfPeek'); if (!pk) return;
+    var hot = tfHot(), L = hot.concat(tfSoft()); if (!L.length) { pk.hidden = true; return; }
+    var k = TF.pi % L.length, it = L[k];
+    pk.hidden = false; pk.className = 'tf-peek' + (k < hot.length ? ' hot' : '') + (fade ? ' tf-fade' : '');
+    var html = '<span class="tf-pk-t" data-tfgo="' + it[0] + '">' + it[1] + '</span>' + (L.length > 1 ? '<span class="tf-pk-n" aria-hidden="true">' + (k + 1) + '/' + L.length + '</span>' : '');
+    if (pk.innerHTML !== html) pk.innerHTML = html;
+    if (fade) requestAnimationFrame(function () { requestAnimationFrame(function () { pk.classList.remove('tf-fade'); }); });
+  }
+  function tfTick() {
+    var d = $('#topFold'), pk = $('#tfPeek'); if (!d || !pk || pk.hidden || d.open || TF.hold || document.hidden || pk.matches(':hover')) return;
+    pk.classList.add('tf-fade'); setTimeout(function () { TF.pi++; tfPeek(true); }, 300);
   }
   function tfChips() {
-    var box = $('#tfChips'); if (!box) return;
-    var has = function (i) { var x = $('#' + i); return x && x.textContent.trim() ? x : null; }, C = [];
-    var chip = function (id, txt, hot) { C.push('<button type="button" class="tf-chip' + (hot ? ' hot' : '') + '" data-tfgo="' + id + '">' + txt + '</button>'); };
+    var box = $('#tfChips'), d = $('#topFold'); if (!box || !d) return;
+    var has = function (i) { var x = $('#' + i); return x && x.textContent.trim() ? x : null; }, C = [], hot = tfHot(), hotId = {};
+    hot.forEach(function (h) { hotId[h[0] === 'hiwBday' ? 'hiwBox' : h[0]] = 1; });
+    var chip = function (id, txt, on) { C.push('<button type="button" class="tf-chip' + (on ? ' hot' : '') + '" data-tfgo="' + id + '">' + txt + '</button>'); };
     var tb = has('tbBox'); if (tb) { var m = (tb.textContent.match(/(\d+) tin chưa đọc/) || [])[1]; chip('tbBox', m ? '📢 ' + m + ' thông báo mới' : '📢 Thông báo', !!m); }
-    var pf = has('htBox'); if (pf) chip('htBox', '📝 Điền thông tin', true);
-    var gv = has('gvHome'); if (gv) { var gh = $('.gv-home', gv); chip('gvHome', '✅ Việc tuần', !!(gh && gh.classList.contains('hot'))); }
+    if (has('htBox')) chip('htBox', '📝 Điền thông tin', true);
+    if (has('gvHome')) chip('gvHome', '✅ Việc tuần', !!hotId.gvHome);
     if (has('vhBox')) chip('vhBox', '🌿 Điều hôm nay', false);
     if (has('snhBox')) chip('snhBox', '🎂 Sinh nhật', false);
     if (has('btBox')) chip('btBox', '📣 Tin vui', false);
-    var bd = $('#hiwBday'); if (bd && !bd.hidden) C.unshift('<button type="button" class="tf-chip hot" data-tfgo="hiwBday">🎂 Sinh nhật đồng đội</button>');
+    if (hotId.hiwBox) C.unshift('<button type="button" class="tf-chip hot" data-tfgo="hiwBday">🎂 Sinh nhật đồng đội</button>');
     var html = C.join(''); if (box.innerHTML !== html) box.innerHTML = html;
+    // đánh dấu thẻ cần làm (chế độ tự mở chỉ hiện các thẻ này)
+    $$('.tf-body > *', d).forEach(function (x) { var id = x.classList.contains('hiw-box') ? 'hiwBox' : x.id; x.classList.toggle('tf-hot', !!hotId[id]); });
+    var sig = hot.map(function (h) { return h[0]; }).join(',');
+    if (sig !== TF.sig) {
+      if (sig && !d.open && store('tf_shut') !== vhDay() + '|' + sig) { d._prog = 1; TF.open = true; TF.auto = 1; TF.focus = 1; d.classList.add('tf-focus'); d.open = true; U.scr['☀️ Khung chào: tự mở'] = 1; }
+      else if (!sig && TF.auto && d.open) { d._prog = 1; TF.open = false; TF.auto = 0; TF.focus = 0; d.classList.remove('tf-focus'); d.open = false; toast('👍 Xong việc cần làm, khung chào đã thu gọn'); }
+      TF.sig = sig; TF.pi = 0;
+    }
+    tfPeek();
   }
   function hiGreet() {
     var hr = new Date(Date.now() + 7 * 3600e3).getUTCHours(), g = hr < 11 ? ['Chào buổi sáng', '🌞'] : hr < 13 ? ['Chào buổi trưa', '☀️'] : hr < 18 ? ['Chào buổi chiều', '🌤️'] : ['Chào buổi tối', '🌙'];

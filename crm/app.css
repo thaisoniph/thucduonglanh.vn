@@ -3549,6 +3549,22 @@ details.top-fold[open] > summary::after { transform: rotate(180deg); }
 .tf-chip.hot { background: #fff4e5; border-color: #f0c27a; color: #8a4b00; font-weight: 600; }
 .tf-body { padding: 0 12px 12px; }
 .tf-body > * { margin-top: 10px; }
+/* 19/11/2026 Phương án C: dòng xem trước chữ thật (7 giây đổi tin) + tự mở chỉ hiện thẻ cần làm */
+.tf-peek { flex: 1 1 100%; display: flex; align-items: flex-start; gap: 8px; min-width: 0; font-size: 15px; line-height: 1.45; color: var(--ink); background: linear-gradient(90deg, #eef6ef, #f8fbf6); border-left: 4px solid var(--primary); border-radius: 10px; padding: 7px 10px; transition: opacity .3s; }
+.tf-peek[hidden] { display: none; }
+.tf-peek.hot { background: #fff4e5; border-left-color: #f0a030; }
+.tf-peek.tf-fade { opacity: 0; }
+.tf-pk-t { flex: 1; min-width: 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.tf-pk-t small { color: var(--muted); }
+.tf-pk-t u { text-decoration: none; color: var(--primary); font-weight: 600; white-space: nowrap; }
+.tf-peek.hot .tf-pk-t u { color: #8a4b00; }
+.tf-pk-n { flex: none; font-size: 12px; color: var(--muted); padding-top: 2px; }
+details.top-fold[open] > summary .tf-peek { display: none; }
+details.top-fold.tf-focus .tf-body > :not(.tf-hot):not(.tf-all) { display: none; }
+.tf-all { display: none; background: none; border: 0; padding: 4px 0; font: inherit; font-size: 14px; color: var(--primary); cursor: pointer; }
+details.top-fold.tf-focus .tf-all { display: block; }
+@media (prefers-reduced-motion: reduce) { .tf-peek { transition: none; } }
+@media (max-width: 600px) { details.top-fold:not([open]) .tf-chip:not(.hot) { display: none; } } /* điện thoại: dòng xem trước đã nói đủ, chỉ giữ nhãn cam "cần làm" */
 
 /* ⚖️ Số của bạn đã đủ hoà vốn chưa (tab Hôm nay sale, 16/11/2026) */
 .be-sale { background: var(--card, #fff); border: 1px solid var(--line); border-left: 6px solid var(--line); border-radius: 12px; padding: 12px 14px; }
