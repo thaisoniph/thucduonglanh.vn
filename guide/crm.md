@@ -171,6 +171,17 @@ Mỗi số điện thoại khách hỏi từ quảng cáo là **tiền thật c�
 
 Muốn xem theo từng sản phẩm thì bấm **Xem chi tiết ›** (tab Hiệu quả → thẻ 📈 Bán hàng → 📣 Từ quảng cáo).
 
+### ⚡ Nhập số quảng cáo (người trực page)
+
+Khách nhắn page để lại số: vào **Khách hỏi → ⚡ Nhập số quảng cáo** (hoặc **Thêm → ⚡ Nhập số quảng cáo**, hoặc nút **⚡ Nhập số** ở dòng ca trực đầu tab Hôm nay).
+
+1. **Dán nguyên tin nhắn của khách** vào ô trên cùng. CRM tự tách số điện thoại và tên (sửa lại được).
+2. CRM báo ngay: **🔁 khách cũ của ai** (giao lại người đó) hay **🆕 khách mới** (CRM chia theo nhóm).
+3. Bấm đúng **sản phẩm** khách hỏi (CRM nhớ lần trước), ghi chú nếu có.
+4. Bấm **⚡ Giao ngay**: sale nhận Telegram trong vài giây, CRM tự ghi 1 dòng vào file số quảng cáo. Ô trống lại để nhập số tiếp.
+
+Không cần mở file. Ai vẫn quen dán vào file thì vẫn được: CRM đọc file **mỗi phút** (7h – 22h), để trống ô Sale.
+
 ### 🎯 Hôm nay bạn cần bán
 
 Mở tab **Hôm nay** là thấy ngay thẻ **🎯 Hôm nay bạn cần bán** (dưới lời chào):

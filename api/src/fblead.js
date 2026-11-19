@@ -53,7 +53,7 @@ const permHint = e => /leads_retrieval|permission|\(#200\)|\(#10\)|pages_manage_
   ? 'Mã trang chưa có quyền đọc biểu mẫu (leads_retrieval, pages_manage_ads). Vào tab 📘 Fanpage → Kết nối fanpage lại và tích đủ quyền. (' + e.message + ')' : e.message;
 
 /* ---------------------------------------------------------------- chia sale: giống file số QC khi CRM chia (nhóm A 3 lượt, B 2, C 1; trần 10 số / người / ngày) */
-async function adsPick(x) {
+export async function adsPick(x) {
   const all0 = await crmUsers(x), users = all0.filter(y => y.active && y.recv && y.alias); let pool = users.map(y => y.name); if (!pool.length) return '';
   pool = (await adsDutyPool(x, pool, all0)).pool; // 🌙 tối / CN / lễ: chỉ người trực
   const wrr = (await kvJson(x.db, 'ads_wrr', null)) || {}; wrr.cur = wrr.cur || {};

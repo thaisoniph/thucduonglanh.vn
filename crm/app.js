@@ -948,6 +948,7 @@
       group('Khác',
         vrow(VIEWS.filter(function (v) { return v.id === 'cai-dat'; })[0]) +
         row('<a class="mr-row" href="/huong-dan/' + (isMkt() ? 'marketing' : isKho() ? 'kho' : isKt() ? 'ke-toan' : 'crm') + '/" target="_blank" rel="noopener">', I.help, '#30b0c7', 'Hướng dẫn sử dụng', 'Cách dùng từng màn hình, có hình', 0) + '</a>' +
+        (isKho() || isKt() ? '' : row('<button type="button" class="mr-row" data-mr="qcq">', '⚡', '#c26a00', 'Nhập số quảng cáo', 'Dán tin nhắn khách → giao sale ngay', 0) + '</button>') +
         row('<button type="button" class="mr-row" data-mr="duty">', '🗓', '#1f5fa8', 'Lịch trực số quảng cáo', 'Ai trực tối, Chủ nhật, ngày lễ', 0) + '</button>' +
         (htForms().pf ? row('<button type="button" class="mr-row" data-mr="pf">', '📝', '#3a7bd5', 'Thông tin của tôi', 'Cập nhật để công ty hỗ trợ, chăm sóc bạn', 0) + '</button>' : '') +
         (htForms().ht ? row('<button type="button" class="mr-row" data-mr="ht">', '🤝', '#2f7d5b', 'Hiểu & Thương của tôi', '9 câu để đội hiểu bạn, ghép Đệ nhị thân', 0) + '</button>' : '') +
@@ -987,6 +988,7 @@
       group('④ Công cụ & trợ giúp',
         pick(['hoi-so-lieu']) +
         row('<a class="mr-row" href="/huong-dan/crm/" target="_blank" rel="noopener">', I.help, '#30b0c7', 'Hướng dẫn sử dụng', 'Từng bước làm, có hình minh hoạ', 0) + '</a>' +
+        (isKho() || isKt() ? '' : row('<button type="button" class="mr-row" data-mr="qcq">', '⚡', '#c26a00', 'Nhập số quảng cáo', 'Dán tin nhắn khách → giao sale ngay', 0) + '</button>') +
         row('<button type="button" class="mr-row" data-mr="duty">', '🗓', '#1f5fa8', 'Lịch trực số quảng cáo', 'Ai trực tối, Chủ nhật, ngày lễ', 0) + '</button>' +
         vrow(VIEWS.filter(function (v) { return v.id === 'cai-dat'; })[0]) +
         (fb ? '' : row('<button type="button" class="mr-row" data-mr="fb">', '💡', '#ffcc00', 'Góp ý', 'Báo lỗi, chỗ khó dùng, ý tưởng', 0) + '</button>') +
@@ -994,7 +996,7 @@
   }
   function bindMore() {
     $$('[data-mr]').forEach(function (b) {
-      b.onclick = function () { var k = b.getAttribute('data-mr'); if (k === 'search') openGlobalSearch(); else if (k === 'duty') openDuty(); else if (k === 'ht') openHtForm(); else if (k === 'pf') openPfForm(); else if (k === 'fb') openFeedback(); else if (k === 'inst') openInstall(); else if (k === 'use') openUsage(null); else { load(); toast('Đang tải lại dữ liệu…'); } };
+      b.onclick = function () { var k = b.getAttribute('data-mr'); if (k === 'search') openGlobalSearch(); else if (k === 'duty') openDuty(); else if (k === 'qcq') openQcq(); else if (k === 'ht') openHtForm(); else if (k === 'pf') openPfForm(); else if (k === 'fb') openFeedback(); else if (k === 'inst') openInstall(); else if (k === 'use') openUsage(null); else { load(); toast('Đang tải lại dữ liệu…'); } };
     });
   }
   function meHTML() { return '<b>' + esc(S.user.name) + '</b>'; } // chỉ tên: mỗi người là chủ công việc của mình
@@ -4420,7 +4422,7 @@
     var base = dedupLeads((S.d.leads || []).filter(function (l) { return (lvl() < 2 || whoOk(l.owner)) && (!f.ch || chLabel(l.channel) === f.ch) && (!q || leadHit(l, words) || (qd.length >= 3 && (l._phoneDigits || l.phone).indexOf(qd) >= 0)); }));
     if ((lvl() >= 2 || isMkt()) && f.k === 'mine') f.k = 'due';
     var cur = LF.filter(function (x) { return x.k === f.k; })[0] || LF[0], list = sortLeads(base.filter(function (l) { return leadInChip(cur, l); }));
-    return '<div class="page-head"><h1>Khách hỏi</h1><span class="muted" id="tCount">' + esc(leadsCountText(base)) + '</span><div class="grow"></div>' + whoSel() + (isMkt() ? '' : '<button class="btn pri" data-newlead>＋ Thêm khách hỏi</button>') + '</div>' + (isMkt() ? '<p class="small muted">Khách để lại số trên web (nhận ebook, vào nhóm Zalo, form liên hệ). Bạn chỉ xem; quản lý giao khách cho sale ở tab Hôm nay → 🧺 Kho chung.</p>' : '') +
+    return '<div class="page-head"><h1>Khách hỏi</h1><span class="muted" id="tCount">' + esc(leadsCountText(base)) + '</span><div class="grow"></div>' + whoSel() + (isKho() || isKt() ? '' : '<button class="btn qcq-btn" data-qcq>⚡ Nhập số quảng cáo</button>') + (isMkt() ? '' : '<button class="btn pri" data-newlead>＋ Thêm khách hỏi</button>') + '</div>' + (isMkt() ? '<p class="small muted">Khách để lại số trên web (nhận ebook, vào nhóm Zalo, form liên hệ). Bạn chỉ xem; quản lý giao khách cho sale ở tab Hôm nay → 🧺 Kho chung.</p>' : '') +
       '<div class="tools"><div class="search">' + I.search + '<input type="search" id="tq" placeholder="Tìm tên, SĐT, sản phẩm…" value="' + esc(f.q) + '"><button type="button" class="search-x" aria-label="Xoá chữ tìm kiếm" title="Xoá">✕</button></div>' +
         '<select id="tch" class="' + (f.ch ? 'on' : '') + '" style="flex:0 0 auto;width:auto" title="Lọc theo kênh khách hỏi"><option value="">📣 Mọi kênh</option>' + chs.map(function (x) { return '<option' + (f.ch === x ? ' selected' : '') + '>' + esc(x) + '</option>'; }).join('') + '</select></div>' +
       offerBanner() + '<div id="tChips">' + renderLeadsChips(base, cur) + '</div>' +
@@ -14488,6 +14490,55 @@
     if (S.dty && Date.now() - S.dty.at0 < 60e3) show(); else dutyLoad(show);
   }
   document.addEventListener('click', function (e) { if (e.target.closest && e.target.closest('[data-dutyopen]')) openDuty(); });
+  /* ⚡ Nhập số nhanh (19/11/2026): dán tin nhắn khách → CRM tách tên + số, báo khách cũ / mới, bấm Giao → sale có Telegram trong vài giây, CRM tự ghi dòng vào file. Máy chủ: sync.js qc_info / qc_quick. */
+  function qcqParse(t) {
+    t = String(t || ''); var m = t.match(/(?:\+?84|0)[\s.\-]*\d(?:[\s.\-]*\d){8,9}/), ph = '';
+    if (m) { ph = m[0].replace(/\D/g, ''); if (ph.indexOf('84') === 0) ph = '0' + ph.slice(2); }
+    var nm = t.replace(m ? m[0] : '', ' ').replace(/(số điện thoại|sđt|sdt|zalo|điện thoại|đt|họ tên|tên|là)\s*[:：]?/gi, ' ').replace(/[\n\r,;:]+/g, ' ').replace(/\s+/g, ' ').trim();
+    if (nm.length > 40) nm = ''; // đoạn chat dài → để người nhập tự gõ tên
+    return { phone: /^0\d{9,10}$/.test(ph) ? ph : '', name: nm };
+  }
+  function qcqInfo(m) {
+    var ph = $('#qcqPhone', m).value.replace(/\D/g, ''), box = $('#qcqWho', m); if (!/^0\d{9,10}$/.test(ph)) { box.innerHTML = ph ? '<span class="bad">⚠️ Số chưa đủ 10 chữ số</span>' : ''; S.qcqPh = ''; return; }
+    if (S.qcqPh === ph) return; S.qcqPh = ph; box.innerHTML = '⏳ Đang kiểm tra số…';
+    api('qc_info', { phone: ph }).then(function (j) { if (S.qcqPh !== ph) return;
+      box.innerHTML = j.owner ? '🔁 <b>Khách cũ' + (j.cust && j.cust.orders ? ' (đã mua ' + j.cust.orders + ' lần)' : j.open ? ' (đang là khách hỏi)' : '') + '</b> của <b>' + esc(j.owner) + '</b> → giao lại cho ' + esc(j.owner) + '.' : '🆕 <b>Khách mới</b> → CRM chia theo lượt nhóm A/B/C (tối, Chủ nhật, lễ: người trực).'; }, function (e) { box.textContent = e.message; });
+  }
+  function openQcq() {
+    var go = function (j) {
+      var last = ''; try { last = localStorage.getItem('qcqTab') || ''; } catch (e) { }
+      if (j.tabs.indexOf(last) < 0) last = j.tabs[0] || '';
+      var users = (S.d.users || []).filter(function (u) { return u.active !== false && u.recv; });
+      var body = '<p class="hint" style="margin:0 0 8px">Khách nhắn page để lại số → <b>dán nguyên tin nhắn</b> vào ô dưới, CRM tự tách tên và số. Bấm <b>⚡ Giao ngay</b>: sale có Telegram trong vài giây, CRM tự ghi 1 dòng vào file số quảng cáo (không cần mở file).</p>' +
+        '<label class="f"><span>Dán tin nhắn của khách</span><textarea id="qcqTxt" rows="3" placeholder="Ví dụ: Chị Hoa 0912 345 678 tư vấn giúp chị gói Fucoidan"></textarea></label>' +
+        '<div class="row2c"><label class="f"><span>Số điện thoại</span><input id="qcqPhone" inputmode="tel" autocomplete="off"></label><label class="f"><span>Tên khách</span><input id="qcqName" autocomplete="off"></label></div>' +
+        '<p id="qcqWho" class="small" style="min-height:1.4em;margin:2px 0 8px"></p>' +
+        '<div class="f"><span>Sản phẩm khách hỏi (tab trong file)</span><div class="chips qcq-tabs">' + j.tabs.map(function (t) { return '<button type="button" class="chip' + (t === last ? ' on' : '') + '" data-qtab="' + esc(t) + '">' + esc(intLabel(t)) + '</button>'; }).join('') + '</div></div>' +
+        '<label class="f"><span>Ghi chú (không bắt buộc)</span><input id="qcqNote" placeholder="Ví dụ: hỏi cho mẹ, muốn gọi sau 19h" autocomplete="off"></label>' +
+        (j.pick ? '<label class="f"><span>Giao cho</span><select id="qcqSale"><option value="">⚙️ CRM tự chia (khuyên dùng)</option>' + users.map(function (u) { return '<option>' + esc(u.name) + '</option>'; }).join('') + '</select></label>' : '') +
+        '<div id="qcqDone"></div>';
+      var m = modal('⚡ Nhập số quảng cáo', body, '<button class="btn" data-close>Đóng</button><button class="btn pri" id="qcqGo">⚡ Giao ngay</button>');
+      var tab = last, typed = false; S.qcqPh = '';
+      $('#qcqTxt', m).addEventListener('input', function () { var p = qcqParse(this.value); if (p.phone) $('#qcqPhone', m).value = p.phone; if (p.name && !typed) $('#qcqName', m).value = p.name; qcqInfo(m); });
+      $('#qcqName', m).addEventListener('input', function () { typed = true; });
+      $('#qcqPhone', m).addEventListener('input', function () { qcqInfo(m); });
+      m.addEventListener('click', function (e) { var b = e.target.closest('[data-qtab]'); if (!b) return; tab = b.getAttribute('data-qtab'); $$('[data-qtab]', m).forEach(function (x) { x.classList.toggle('on', x === b); }); try { localStorage.setItem('qcqTab', tab); } catch (er) { } });
+      setTimeout(function () { $('#qcqTxt', m).focus(); }, 50);
+      $('#qcqGo', m).onclick = function () {
+        var b = this, ph = $('#qcqPhone', m).value.replace(/\D/g, '');
+        if (!/^0\d{9,10}$/.test(ph)) { toast('Số điện thoại chưa đúng (10 số, bắt đầu bằng 0).', true); $('#qcqPhone', m).focus(); return; }
+        if (!tab) { toast('Chọn sản phẩm khách hỏi.', true); return; }
+        b.disabled = true; b.textContent = '⏳ Đang giao…';
+        api('qc_quick', { phone: ph, name: $('#qcqName', m).value, tab: tab, note: $('#qcqNote', m).value, sale: $('#qcqSale', m) ? $('#qcqSale', m).value : '' }).then(function (r) {
+          $('#qcqDone', m).insertAdjacentHTML('afterbegin', '<p class="qcq-ok">✅ ' + esc(ph) + ' → <b>' + esc(r.owner) + '</b>' + (r.old ? ' (khách cũ)' : '') + ' · đã báo Telegram' + (r.fileErr ? ' · ⚠️ chưa ghi được vào file: ' + esc(r.fileErr) : ' · ghi dòng ' + r.row + ' tab ' + esc(intLabel(r.tab))) + '</p>');
+          ['#qcqTxt', '#qcqPhone', '#qcqName', '#qcqNote'].forEach(function (k) { $(k, m).value = ''; }); typed = false; $('#qcqWho', m).innerHTML = ''; S.qcqPh = '';
+          b.disabled = false; b.textContent = '⚡ Giao ngay'; $('#qcqTxt', m).focus(); toast('Đã giao cho ' + r.owner + ' ✓');
+        }, function (e) { toast(e.message, true); b.disabled = false; b.textContent = '⚡ Giao ngay'; });
+      };
+    };
+    api('qc_info', {}).then(go, function (e) { toast(e.message, true); });
+  }
+  document.addEventListener('click', function (e) { if (e.target.closest && e.target.closest('[data-qcq]')) openQcq(); });
   /** Dòng tóm tắt (Cài đặt, bảng nhóm A/B/C). */
   function adsDutyBox(j) {
     var d = S.dty; if (!d) { if (!S.dtyBusy) { S.dtyBusy = 1; dutyLoad(function () { S.dtyBusy = 0; if (route().view === 'cai-dat') softRender(true); }); } return '<p class="small muted" style="margin-top:12px">⏳ Đang tải lịch trực…</p>'; }
@@ -14505,7 +14556,7 @@
     if (!mine.length && !boss && !dpMine.length) return '';
     var lbl = function (s) { return (s.k === d.today ? '<b>' + (s.all ? 'Hôm nay' : 'Tối nay') + '</b>' : (s.dow === 0 ? 'CN ' : (s.all ? '' : 'Tối ') + 'T' + (s.dow + 1) + ' ') + s.dm); };
     var dl = function (s) { return s.k === d.today ? '<b>hôm nay</b>' : 'T' + (s.dow + 1) + ' ' + s.dm; };
-    return '<section class="section dty-mine"><p>' + (dpToday ? '☀️ <b>Hôm nay bạn phụ trách nhặt số ban ngày</b>: dán số vào file, để trống ô Sale.<br>' : '') + '🌙 <b>Ca trực số của bạn:</b> ' + (mine.length ? mine.map(lbl).join(' · ') : 'không có trong 7 ngày tới') + (dpMine.length && !(dpToday && dpMine.length === 1) ? ' · ☀️ ban ngày nhặt số: ' + dpMine.map(dl).join(', ') : '') + (boss ? ' · 👤 bạn phụ trách chia số' : '') + '</p><button type="button" class="btn sm" data-dutyopen>🗓 Lịch trực' + (boss ? ' (xếp lịch)' : '') + '</button></section>';
+    return '<section class="section dty-mine"><p>' + (dpToday ? '☀️ <b>Hôm nay bạn phụ trách nhặt số ban ngày</b>: dán số vào file, để trống ô Sale.<br>' : '') + '🌙 <b>Ca trực số của bạn:</b> ' + (mine.length ? mine.map(lbl).join(' · ') : 'không có trong 7 ngày tới') + (dpMine.length && !(dpToday && dpMine.length === 1) ? ' · ☀️ ban ngày nhặt số: ' + dpMine.map(dl).join(', ') : '') + (boss ? ' · 👤 bạn phụ trách chia số' : '') + '</p><span class="dty-mine-b">' + (dpToday || mine.some(function (s) { return s.k === d.today; }) ? '<button type="button" class="btn sm pri" data-qcq>⚡ Nhập số</button>' : '') + '<button type="button" class="btn sm" data-dutyopen>🗓 Lịch trực' + (boss ? ' (xếp lịch)' : '') + '</button></span></section>';
   }
   function caBox() {
     var ca = (S.d.rules && S.d.rules.ca) || {};

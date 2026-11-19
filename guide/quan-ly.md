@@ -203,6 +203,8 @@ Xếp loại: **A** từ 90 điểm, **B** 75–89, **C** 60–74, dưới 60 g�
 - **📅 4 tuần tới**: đi theo lịch tuần. Đổi riêng 1 ngày (đổi ca, nghỉ phép) thì bấm tên ở ngày đó, có nhãn ✏️; bấm ↺ để về lịch tuần. Ngày lễ (theo Cài đặt → 🕘 Ca tối & ngày lễ) tính cả ngày.
 - Bấm **💾 Lưu lịch**. Ca nào trống thì CRM chia cho mọi người như ban ngày. Người trực được Telegram nhắc lúc vào ca (tối: giờ ca tối; Chủ nhật / lễ: 8h). Mỗi sale thấy ca của mình ở đầu tab Hôm nay.
 
+**⚡ Nhập số quảng cáo** (từ 19/11/2026): người trực page dán tin nhắn khách vào **Khách hỏi → ⚡ Nhập số quảng cáo**, bấm **⚡ Giao ngay** → sale có Telegram trong vài giây, CRM tự ghi dòng vào file (cột Ngày, Tên, SĐT, Sale, Trùng sale nếu khách cũ, Ghi chú; ghi ngay sau dòng cuối có số điện thoại). Khách cũ / đang là khách hỏi → về người đang phụ trách; khách mới → chia theo nhóm A/B/C (tối / Chủ nhật / lễ: người trực). Quản lý / Quản trị chọn tay được người nhận. Cùng số nhập 2 lần trong ngày vào cùng sản phẩm thì CRM chặn. Xem ai nhập ở Nhật ký "Nhập số nhanh". File số quảng cáo giờ được đọc **mỗi phút** từ 7h đến 22h (trước đây 10 phút).
+
 **Khi CRM tự chia, người nhặt số làm gì?** Chỉ dán ngày, tên, số điện thoại (và Nguồn, Chiến dịch) vào file, **để trống ô Sale**. Khoảng 10 phút sau CRM tự ghi tên sale vào ô Sale và nhắn Telegram cho sale. **Không gõ tên sale sẵn theo lượt** như trước: ô Sale đã có tên thì CRM giữ nguyên, không chia theo nhóm. Khách xin gặp đúng 1 bạn thì gõ tên bạn đó ngay lúc dán số. Cần nhanh thì Quản trị bấm **🔄 Lấy số mới ngay**.
 
 **Cài đặt → 🤝 Chia khách → 🔀 Khách mới giao cho ai:**

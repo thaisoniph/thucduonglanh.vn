@@ -1,12 +1,12 @@
 // Đồng bộ dữ liệu từ file Google Sheet của sale (lên đơn, cop số, từ chối) và file số quảng cáo chung.
 // Đọc bằng Google Sheets API (nhanh, không phải mở cả file như Apps Script). Nhập nhiều lần không trùng.
 import { normPhone, esc, fmtDate, nrm, isVoid, hashKey, hashKeyLegacy, all, first, run, insertMany, allIn, kvGet, kvSet, kvDel, kvJson, CRM_URL, DAY } from './lib.js';
-import { sheetMeta, sheetValues, sheetWrite, a1, serialToMs } from './google.js';
+import { sheetMeta, sheetValues, sheetBatchGet, sheetWrite, sheetAppend, a1, serialToMs } from './google.js';
 import { wbKeys, wbHas, wbPending } from './wb.js';
 import { adsTier, tierOf, TIER, adsDutyPool } from './salemkt.js';
-import { flRegRows } from './fblead.js';
+import { flRegRows, adsPick } from './fblead.js';
 import { mkAutoCamp, mkAutoPick, mkListSync } from './mkcamp.js';
-import { phoneAlias, crmUsers, crmLog, recalc, deletedOrderIds, delMark, setCallbacks, caCfg, caOf, normLine, itemsText, shipText, ORDER_COLS, srcList, adsCfg, telegramUser, unifyNames, prodKey, canonItems } from './crm.js';
+import { addLead, ownerOf, mainPhone, phoneAlias, crmUsers, crmLog, recalc, deletedOrderIds, delMark, setCallbacks, caCfg, caOf, normLine, itemsText, shipText, ORDER_COLS, srcList, adsCfg, telegramUser, unifyNames, prodKey, canonItems } from './crm.js';
 
 const FIELD_LABEL = { date: 'Ngày', name: 'Tên khách', phone: 'SĐT', address: 'Địa chỉ', product: 'Sản phẩm', qty: 'Số lượng', gift1: 'Quà tặng 1', gift1qty: 'SL quà 1', gift2: 'Quà tặng 2', gift2qty: 'SL quà 2',
   status: 'Trạng thái', ctype: 'Phân loại khách / ca', line: 'Dòng SP (nguồn)', code: 'Mã đơn', amount: 'Số tiền', shipText: 'Lên đơn (mô tả)', callback: 'Lịch gọi lại', note: 'Ghi chú / nhật ký', health: 'Tình trạng sức khoẻ',
@@ -775,7 +775,7 @@ export async function fixAdsLeads(x) {
   await kvSet(x.db, 'fix_qc_1012', JSON.stringify({ at: Date.now(), dates: fix.length, closed: r.meta.changes || 0 }));
 }
 /** Lấy số quảng cáo vào "Khách tiềm năng". Nhân sự chia: đọc tên sale ở cột Sale. CRM chia: số chưa có sale → giao theo lượt từng sheet (trùng số → sale cũ) và ghi tên vào cột Sale. */
-export async function adsSync(x, u, dry) {
+export async function adsSync(x, u, dry, fast) { // fast: lượt 1 phút (cron.js adsFast) → bỏ việc ghi nặng (phone_seen, danh sách chiến dịch)
   const cfg = await adsCfg(x); if (!cfg || !cfg.fileId) return { ok: false, error: 'Chưa cài file số quảng cáo.' };
   const users = (await crmUsers(x)).filter(y => y.active), byAlias = {};
   users.forEach(y => { [y.name].concat(String(y.alias || '').split(',')).forEach(a => { a = nrm(a); if (a) byAlias[a] = y.name; }); });
@@ -796,11 +796,14 @@ export async function adsSync(x, u, dry) {
   };
   const scan = [], reg = [], seen = {}, regFrom = Date.now() - 100 * DAY; // reg: mọi dòng có SĐT trong 100 ngày → đếm data quảng cáo (tỷ lệ chốt), không phụ thuộc việc tạo khách hỏi
   const keep = {}, keepRaw = {}, rowsOf = {}, AL = await phoneAlias(x), mp = p => AL[p] || p; // mp: số phụ của khách đã gộp → số chính. Cột Trùng sale: {sđt: sale phụ trách khách} (dòng dưới cùng có ghi thắng) – không phụ thuộc file sale nào nhập trước
-  const sheets = [], missing = [];
-  for (const sc of (cfg.sheets || []).filter(s => s.on)) {
+  const sheets = [], missing = [], onS = (cfg.sheets || []).filter(s => s.on);
+  let pre = null; // ⚡ 19/11/2026: đọc mọi tab bằng 1 lần gọi (lượt 1 phút không vượt hạn mức Google 60 lần / phút); tab bị xoá → đọc từng tab như cũ
+  try { pre = await sheetBatchGet(x.env, cfg.fileId, onS.map(sc => { const m = sc.map || cfg.map || {}, hr = sc.header || 1; return a1(sc.name, 'A' + (hr + 1) + ':' + colLetter(neededCols({ map: m }) - 1)); })); } catch (e) { if (!/Unable to parse range/i.test(e.message)) throw e; pre = null; }
+  for (const [si, sc] of onS.entries()) {
     const m = sc.map || cfg.map || {}, hr = sc.header || 1;
     let vals;
-    try { vals = await sheetValues(x.env, cfg.fileId, a1(sc.name, 'A' + (hr + 1) + ':' + colLetter(neededCols({ map: m }) - 1)), 'UNFORMATTED_VALUE'); }
+    if (pre) vals = pre[si] || [];
+    else try { vals = await sheetValues(x.env, cfg.fileId, a1(sc.name, 'A' + (hr + 1) + ':' + colLetter(neededCols({ map: m }) - 1)), 'UNFORMATTED_VALUE'); }
     catch (e) { if (!/Unable to parse range/i.test(e.message)) throw e; missing.push(sc.name); continue; } // tab bị xoá / đổi tên (26/10/2026: xoá tab "Sữa CurCumin" làm dừng cả file 10 ngày) → bỏ qua tab đó, các tab khác vẫn chạy
     sheets.push({ sc, m, hr, vals });
     if (m.dup !== undefined) vals.forEach((r, i) => {
@@ -826,21 +829,21 @@ export async function adsSync(x, u, dry) {
   }
   if (!dry) { const had = new Set(reg.map(r => r[1] + '|' + r[0])); (await flRegRows(x, regFrom)).forEach(r => { if (![0, DAY, -DAY].some(k => had.has(r[1] + '|' + (r[0] + k)))) reg.push(r); }); } // 📋 số biểu mẫu Facebook (fblead.js) không nằm trong file → vẫn tính là số quảng cáo
   if (!dry && campW.length) try { await sheetWrite(x.env, cfg.fileId, campW); } catch (e) { console.error('mk camp write', e.message); } // ô trống → tên chiến dịch máy biết (lần sau đọc lại thấy có ghi, không ghi lại)
-  if (!dry && cfg.campTab) try { await mkListSync(x, cfg); } catch (e) { console.error('mkListSync', e.message); } // danh sách thả xuống: chỉ ghi khi đổi
+  if (!dry && !fast && cfg.campTab) try { await mkListSync(x, cfg); } catch (e) { console.error('mkListSync', e.message); } // danh sách thả xuống: chỉ ghi khi đổi
   if (!dry) { const js = JSON.stringify(reg), v = hashKey(js); if ((await kvGet(x.db, 'ads_rows_v')) !== v) { await kvSet(x.db, 'ads_rows', js); await kvSet(x.db, 'ads_rows_v', v); } }
-  if (!dry) try { // 11/11/2026: nhớ lần đầu mỗi số có trong file quảng cáo (mọi ngày) → bảng phone_seen cho crmSeen. Ghi cả file 1 lần / 7 ngày, còn lại chỉ dòng 10 ngày gần đây (đỡ ghi)
+  if (!dry && !fast) try { // 11/11/2026: nhớ lần đầu mỗi số có trong file quảng cáo (mọi ngày) → bảng phone_seen cho crmSeen. Ghi cả file 1 lần / 7 ngày, còn lại chỉ dòng 10 ngày gần đây (đỡ ghi)
     const full = Date.now() - (Number(await kvGet(x.db, 'phone_seen_full')) || 0) >= 7 * DAY, from = full ? 0 : Date.now() - 10 * DAY;
     const sv = Object.keys(seen).filter(p => seen[p][0] >= from).map(p => ({ phone: p, at: seen[p][0], src: seen[p][1] }));
     await insertMany(x.db, 'phone_seen', ['phone', 'at', 'src'], sv, 'ON CONFLICT(phone) DO UPDATE SET at = excluded.at, src = excluded.src WHERE excluded.at < phone_seen.at');
     if (full) await kvSet(x.db, 'phone_seen_full', String(Date.now()));
   } catch (e) { console.error('phone_seen', e.message); }
-  const ids = {}, openBy = {};
+  const ids = {}, openBy = {}, qd = (await kvJson(x.db, 'qc_done', null)) || {};
   (await allIn(x.db, 'SELECT id FROM leads WHERE id IN (SELECT value FROM json_each(?))', scan.map(s => s.id))).forEach(r => { ids[r.id] = 1; });
   const phones = [...new Set(scan.map(s => s.phone))];
   const fbOpen = {}; (await allIn(x.db, "SELECT phone, owner, by_name, time FROM leads WHERE status IN ('Mới hỏi', 'Đang tư vấn') AND phone IN (SELECT value FROM json_each(?))", phones)).forEach(r => { openBy[r.phone] = r.owner || ''; if (r.by_name === 'Form FB' && Date.now() - (r.time || 0) < 5 * DAY) fbOpen[r.phone] = 1; });
   const owners = await ownersOf(x, phones), pool = users.filter(y => y.recv && y.alias).map(y => y.name); let dutyP = null;
   for (const s of scan) {
-    const { sc, m, hr, r, i, when, phone, id } = s; if (ids[id]) continue;
+    const { sc, m, hr, r, i, when, phone, id } = s; if (ids[id] || qd[id]) continue; // qd: dòng do ⚡ Nhập số nhanh ghi (đã tạo khách hỏi + báo sale)
     if (fbOpen[phone]) { merged++; ids[id] = 1; continue; } // số biểu mẫu Facebook đã vào CRM (fblead.js), người trực chép lại vào file → không tạo trùng
     if (openBy[phone] !== undefined && cfg.mode !== 'crm') { merged++; ids[id] = 1; continue; } // số này đang được chăm sóc (tiềm năng còn mở) → không tạo trùng
     const saleTxt = String(cell(r, m, 'sale') || '').trim(); let owner = keep[phone] || who(saleTxt);
@@ -875,6 +878,58 @@ export async function adsSync(x, u, dry) {
   return res;
 }
 
+/* ⚡ Nhập số nhanh (19/11/2026, anh Sơn): người nhặt số dán tin nhắn khách vào CRM → giao sale ngay (vài giây) + Telegram + tự ghi 1 dòng vào file số quảng cáo.
+ * Khách cũ / đang có khách hỏi mở → về người đang phụ trách; khách mới → adsPick (nhóm A/B/C, tối / CN / lễ người trực, chung kv ads_wrr). Quản lý / Quản trị chọn tay được.
+ * Mã dòng 'QC' + hash(tab, SĐT, ngày) giống adsSync, ghi vào kv qc_done (giữ 3 ngày) → lượt đọc file bỏ qua, không tạo trùng / chia lại. */
+async function qcCan(x, u) {
+  if (u.role === 'Kho' || u.role === 'Kế toán') return false;
+  return true; // sale đang cùng trực page → ai cũng nhập được; CRM chia, người nhập không tự chọn được sale (trừ Quản lý / Quản trị)
+}
+async function qcInfo(x, u, d) {
+  if (!await qcCan(x, u)) return { ok: false, error: 'Bạn chưa có quyền nhập số quảng cáo.' };
+  const cfg = await adsCfg(x); if (!cfg || !cfg.fileId) return { ok: false, error: 'Chưa kết nối file số quảng cáo (Cài đặt → Đồng bộ).' };
+  const tabs = (cfg.sheets || []).filter(s => s.on).map(s => s.name), out = { ok: true, tabs, mode: cfg.mode || 'staff', pick: u.level >= 2 };
+  const p0 = toPhone(d.phone); if (!p0) return out;
+  const phone = await mainPhone(x, p0), owner = await ownerOf(x, phone);
+  const open = await first(x.db, "SELECT owner, status, time, interest FROM leads WHERE phone = ? AND status IN ('Mới hỏi', 'Đang tư vấn') ORDER BY rid DESC LIMIT 1", phone);
+  const cust = await first(x.db, 'SELECT name, orders, last FROM customers WHERE phone = ?', phone);
+  return Object.assign(out, { phone, owner: owner || (open && open.owner) || '', open: open || null, cust: cust || null });
+}
+async function qcQuick(x, u, d) {
+  if (!await qcCan(x, u)) return { ok: false, error: 'Bạn chưa có quyền nhập số quảng cáo.' };
+  const cfg = await adsCfg(x); if (!cfg || !cfg.fileId) return { ok: false, error: 'Chưa kết nối file số quảng cáo.' };
+  const fp = toPhone(d.phone); if (!fp) return { ok: false, error: 'Số điện thoại chưa đúng (10 số, bắt đầu bằng 0).' };
+  const sc = (cfg.sheets || []).find(s => s.on && s.name === d.tab); if (!sc) return { ok: false, error: 'Chọn sản phẩm (tab trong file).' };
+  const m = sc.map || cfg.map || {}, hr = sc.header || 1, name = String(d.name || '').trim().slice(0, 80), note = String(d.note || '').trim().slice(0, 300);
+  if (m.phone === undefined) return { ok: false, error: 'Tab ' + sc.name + ' chưa khai cột SĐT (Cài đặt → File số quảng cáo).' };
+  for (let i = 0; i < 10 && await kvGet(x.db, 'qc_lock'); i++) await new Promise(r => setTimeout(r, 400)); // 2 người bấm cùng lúc → lần lượt, không ghi đè cùng 1 dòng
+  await kvSet(x.db, 'qc_lock', '1', 15e3);
+  try {
+    const now = Date.now(), id = 'QC' + hashKey(sc.name + '|' + fp + '|' + fmtDate(now, 'yyyyMMdd'));
+    const qd = (await kvJson(x.db, 'qc_done', null)) || {};
+    if (qd[id] || await first(x.db, 'SELECT 1 FROM leads WHERE id = ?', id)) return { ok: false, error: 'Số này hôm nay đã nhập vào tab ' + sc.name + ' rồi.' };
+    const phone = await mainPhone(x, fp), users = (await crmUsers(x)).filter(y => y.active);
+    const open = await first(x.db, "SELECT owner FROM leads WHERE phone = ? AND status IN ('Mới hỏi', 'Đang tư vấn') ORDER BY rid DESC LIMIT 1", phone);
+    const old = (await ownerOf(x, phone)) || (open && open.owner) || '';
+    const manual = u.level >= 2 && d.sale && users.some(y => y.name === d.sale) ? d.sale : '';
+    const owner = manual || old || await adsPick(x); if (!owner) return { ok: false, error: 'Chưa có sale nào bật Nhận khách mới (Cài đặt → Nhân sự).' };
+    const ld = await addLead(x, { name: name || 'Khách nhắn page', phone, channel: 'Quảng cáo – ' + sc.name, interest: sc.name, owner, by: 'Nhập nhanh', addInterest: true, note: [note, 'Nhập nhanh bởi ' + u.name].filter(String).join(' · ') });
+    const realOwner = ld.owner || owner, ux = users.find(y => y.name === realOwner), alias = (ux && String(ux.alias || '').split(',')[0].trim()) || realOwner;
+    // dòng mới trong file: sau dòng cuối cùng có SĐT (giữ ô thả xuống / định dạng có sẵn, chỉ ghi các cột cần)
+    const cols = neededCols({ map: m }), vals = await sheetValues(x.env, cfg.fileId, a1(sc.name, 'A' + (hr + 1) + ':' + colLetter(cols - 1)), 'UNFORMATTED_VALUE');
+    let last = -1; vals.forEach((r, i) => { if (toPhone(cell(r, m, 'phone'))) last = i; });
+    const row = hr + 2 + last, w = [], put = (k, v) => { if (m[k] !== undefined && v !== '') w.push({ range: a1(sc.name, colLetter(m[k]) + row), values: [[v]] }); };
+    put('date', fmtDate(now, 'dd/MM/yyyy')); put('name', name); put('phone', "'" + fp); put('sale', alias); if (old && !manual) put('dup', alias); put('note', note);
+    let fileErr = '';
+    try { await sheetWrite(x.env, cfg.fileId, w, 'USER_ENTERED'); } catch (e) { fileErr = e.message; console.error('qcQuick write', e.message); }
+    qd[id] = now; for (const k of Object.keys(qd)) if (now - qd[k] > 3 * DAY) delete qd[k];
+    await kvSet(x.db, 'qc_done', JSON.stringify(qd));
+    const msg = '⚡ <b>Số quảng cáo mới cho bạn</b>' + (ld.merged || old ? ' (khách cũ của bạn nhắn lại)' : '') + '\n👤 ' + esc(name || 'Khách nhắn page') + ' – <a href="https://zalo.me/' + phone + '">' + phone + '</a> · ' + esc(sc.name.replace(/^N\d+_+/i, '').replace(/_+/g, ' ')) + (note ? '\n📝 ' + esc(note) : '') + '\n👉 Gọi ngay: khách vừa nhắn page, đang nhớ mình\n' + CRM_URL + '/#tiem-nang';
+    try { await telegramUser(x, realOwner, msg); } catch (e) { console.error('qcQuick tg', e.message); }
+    await crmLog(x, u, 'Nhập số nhanh', phone, name, 'Giao ' + realOwner + (old ? ' (khách cũ)' : manual ? ' (chọn tay)' : ''), sc.name + ' · dòng ' + row);
+    return { ok: true, owner: realOwner, old: !!old, merged: !!ld.merged, row, tab: sc.name, fileErr };
+  } finally { await kvDel(x.db, 'qc_lock'); }
+}
 export async function srcAutoTick(x, force) {
   const now = Date.now(), vn = new Date(now + 7 * 3600e3), h = vn.getUTCHours();
   if (force !== true && (h < 7 || h > 21)) return;
@@ -990,5 +1045,6 @@ export const DUPS = { dups: x => dupList(x), dup_scan: dupScan, dup_set: dupSet 
 export const SYNC = {
   src_inspect: (x, u, d) => inspect(x, u, d, false), ads_inspect: (x, u, d) => inspect(x, u, d, true),
   src_save: srcSave, src_delete: srcDelete, src_sync: srcSync, src_finish: srcFinish,
+  qc_info: qcInfo, qc_quick: qcQuick, // ⚡ Nhập số nhanh (ai cũng gọi được, crm.js cho qua trước khi chặn Quản trị)
   ads_save: adsSave, ads_sync: (x, u, d) => adsSync(x, u, !!d.dry)
 };

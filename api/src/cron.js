@@ -141,7 +141,20 @@ async function refThanks(x) {
 }
 
 /** Mỗi 10 phút từ 7h đến 22h (giờ VN), ban đêm nghỉ. 8h sáng: gửi danh sách chăm sóc. */
+/** ⚡ 19/11/2026 (anh Sơn): số quảng cáo đắt → 7h–22h đọc file số quảng cáo mỗi phút (cron '* * * * *'), sale có Telegram ≤ 1 phút sau khi dán số.
+ *  Phút chẵn 10 để lượt 10 phút làm. Khoá kv ads_lock 55 giây: 2 lượt không chạy chồng (tránh chia 1 số 2 lần). */
+async function adsRun(x, fast) {
+  if (await kvGet(x.db, 'ads_lock')) return;
+  await kvSet(x.db, 'ads_lock', '1', 55e3);
+  try { await adsSync(x, { name: 'Tự động', level: 3 }, false, fast); } catch (e) { console.error('ads', e.message); } finally { await kvDel(x.db, 'ads_lock'); }
+}
+export async function adsFast(x) {
+  const vn = new Date(Date.now() + 7 * 3600e3); if (vn.getUTCHours() < 7 || vn.getUTCHours() >= 22 || vn.getUTCMinutes() % 10 === 0) return;
+  if (!await kvGet(x.db, 'migrated')) return;
+  const ads = await adsCfg(x); if (ads && ads.auto) { await adsRun(x, true); await kvSet(x.db, 'ads_fast_at', String(Date.now())); } // ads_fast_at: biết lượt 1 phút có chạy
+}
 export async function scheduled(x, cron) {
+  if (cron === '* * * * *') return adsFast(x);
   if (!await kvGet(x.db, 'migrated')) return;
   const now = Date.now(), vn = new Date(now + 7 * 3600e3);
   try { await mkSchTick(x, { mktFbEdit, crmLog, crmUsers, telegramUser }); } catch (e) { console.error('mkSchTick', e.message); } // 🕛 áp thay đổi quảng cáo lúc 0h theo múi giờ tài khoản (mksch.js), chạy cả đêm
@@ -178,7 +191,7 @@ export async function scheduled(x, cron) {
   }
   try { await dutyTick(x, telegramUser); } catch (e) { console.error('dutyTick', e.message); }
   const ads = await adsCfg(x);
-  if (ads && ads.auto) { try { await adsSync(x, { name: 'Tự động', level: 3 }, false); } catch (e) { console.error('ads', e.message); } }
+  if (ads && ads.auto) await adsRun(x, false);
   const lastAuto = Number(await kvGet(x.db, 'auto_tick_last') || 0);
   if (now - lastAuto > 25 * 60e3 && vn.getUTCHours() >= 7 && vn.getUTCHours() <= 21) {
     await kvSet(x.db, 'auto_tick_last', String(now));

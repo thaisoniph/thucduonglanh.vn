@@ -2766,6 +2766,7 @@ export async function crmApi(x, d, sync, mgr) {
   if (a === 'ads_tier') return crmAdsTier(x, u, d); // 🅰️🅱️©️ nhóm chia số quảng cáo (salemkt.js)
   if (a === 'be_vr_set') return crmBeVrSet(x, u, d); // ⚖️ tỷ lệ gộp giá vốn + ship + VAT cho khung hoà vốn của sale (salemkt.js)
   if (a === 'offers' || a === 'offer_save' || a === 'offer_del') return crmOffers(x, u, d); // ưu đãi đang chạy (Marketing ghi, sale đọc)
+  if ((a === 'qc_info' || a === 'qc_quick') && sync[a]) return sync[a](x, u, d); // ⚡ Nhập số nhanh (sync.js tự kiểm quyền)
   if (sync[a]) { if (u.level < 3) return { ok: false, error: 'Chỉ Quản trị làm được việc này.' }; return sync[a](x, u, d); }
   if (mgr && mgr[a]) { if (u.level < 2) return { ok: false, error: 'Bạn không có quyền làm việc này.' }; return mgr[a](x, u, d); }
   if (a === 'tg_link') return crmTgLink(x, u);

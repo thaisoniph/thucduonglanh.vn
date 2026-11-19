@@ -3905,3 +3905,9 @@ details.top-fold.tf-focus .tf-all { display: block; }
 .dty-sel { font: inherit; font-size: .9rem; padding: 5px 8px; border: 1px solid var(--line); border-radius: 8px; max-width: 100%; background: #fff; }
 .dty-dp { margin-top: 6px; font-size: .85rem; color: var(--muted); }
 .dty-dp .dty-sel { font-size: .85rem; padding: 3px 6px; }
+/* ⚡ Nhập số quảng cáo (19/11/2026) */
+.qcq-btn { border-color: #c26a00; color: #9a4d00; }
+.qcq-tabs { margin-top: 4px; }
+.qcq-ok { margin: 6px 0 0; padding: 8px 10px; background: var(--primary-light); border-radius: 10px; font-size: .9rem; }
+#qcqWho .bad { color: var(--red); }
+.dty-mine-b { display: inline-flex; gap: 6px; }
