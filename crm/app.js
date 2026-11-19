@@ -15183,6 +15183,15 @@
     box.innerHTML = '<p class="hint">Đang tải…</p>';
     api('vh_admin', {}).then(function (j) { S.vhAdm = j; vhAdminPaint(); }, function (e) { box.innerHTML = '<p class="hint">⚠️ ' + esc(/Không rõ thao tác/.test(e.message) ? 'Máy chủ đang cập nhật bản mới, thử lại sau 2 phút.' : e.message) + '</p>'; });
   }
+  /** 🌐 Lời chúc cho khách web (19/11/2026): câu hôm nay + số lượt 14 ngày (api loichuc.js lcStats). Máy chủ cũ chưa có → không hiện. */
+  function lcStatHtml(j) {
+    if (!j.webToday) return '';
+    var R = j.lcStat || [], sum = function (k) { return R.reduce(function (a, r) { return a + (+r[k] || 0); }, 0); }, se = sum('seen'), ck = sum('click'), sh = sum('shut');
+    var pc = function (n) { return se ? Math.round(n * 100 / se) + '%' : '–'; };
+    return '<div class="lcs-box"><p><b>🌐 Khách trên website hôm nay thấy:</b> “' + esc(j.webToday.t) + '”</p>' +
+      (se ? '<p>14 ngày qua: <b>' + se + '</b> lượt khách thấy lời chúc · <b>' + ck + '</b> lượt bấm “Gợi ý sống lành hôm nay” (' + pc(ck) + ') · <b>' + sh + '</b> lượt bấm ✕ đóng (' + pc(sh) + ').</p>' +
+        '<p class="hint">Bấm gợi ý nhiều = khách thích, nên giữ. Bấm ✕ trên một nửa = khách thấy phiền, nên xem lại câu chữ hoặc chỗ hiện.</p>' : '<p class="hint">Chưa có lượt khách nào. Số lượt thấy, bấm, đóng sẽ hiện ở đây sau khi khách vào trang chủ.</p>') + '</div>';
+  }
   function vhAdminPaint() {
     var box = $('#vhAdm'), j = S.vhAdm; if (!box || !j) return;
     var by = {}, t = j.today, todayRows = j.rows.filter(function (r) { return r.day === t.day; });
@@ -15204,9 +15213,9 @@
       }).join('') + '<button class="btn pri" id="vhSave" style="margin-top:8px">Lưu câu chữ</button></details>';
     if (j.wish) h += '<details class="vh-ed"><summary><b>☀️ Lời chúc mỗi ngày</b> (hiện dưới lời chào ở đầu CRM)</summary><p class="hint">Hôm nay mọi người thấy: “' + esc(j.wishToday ? j.wishToday.t : '') + '”</p>' + (j.canEdit ?
       '<p class="hint">Mỗi dòng 1 câu chúc, cả công ty cùng 1 câu / ngày, xoay vòng theo thứ tự. Ngày lễ, rằm, mùng 1 có câu riêng sẵn. Xoá trắng 1 ô = dùng lại câu gốc. Nên viết ấm áp, ngắn 1 dòng, không nhắc doanh số.</p>' +
-      [['daily', 'Ngày thường (thứ 3 – thứ 6)'], ['mon', 'Thứ Hai (đầu tuần)'], ['sat', 'Thứ Bảy (cuối tuần)'], ['sun', 'Chủ nhật (người trực)']].map(function (k) {
+      [['daily', 'Ngày thường (thứ 3 – thứ 6)'], ['mon', 'Thứ Hai (đầu tuần)'], ['sat', 'Thứ Bảy (cuối tuần)'], ['sun', 'Chủ nhật (người trực)']].concat(j.wish.web ? [['web', '🌐 Cho khách trên website (trang chủ thucduonglanh.vn + lời mở chat An Lành). Không nhắc công việc, sản phẩm hay công dụng']] : []).map(function (k) {
         return '<label class="hiw-ed">' + k[1] + ' · <span data-hiwn="' + k[0] + '">' + j.wish[k[0]].length + '</span> câu<textarea rows="' + (k[0] === 'daily' ? 10 : 4) + '" data-hiwe="' + k[0] + '">' + esc(j.wish[k[0]].join('\n')) + '</textarea></label>';
-      }).join('') + '<button class="btn pri" id="hiwSave" style="margin-top:8px">Lưu lời chúc</button>' : '<p class="hint">Chỉ Quản trị sửa được câu chúc.</p>') + '</details>';
+      }).join('') + '<button class="btn pri" id="hiwSave" style="margin-top:8px">Lưu lời chúc</button>' : '<p class="hint">Chỉ Quản trị sửa được câu chúc.</p>') + lcStatHtml(j) + '</details>';
     box.innerHTML = h;
     $$('[data-hiwe]', box).forEach(function (el) { el.oninput = function () { var n = $('[data-hiwn="' + el.getAttribute('data-hiwe') + '"]', box); if (n) n.textContent = el.value.split('\n').filter(function (x) { return x.trim(); }).length; }; });
     var hs = $('#hiwSave');

@@ -2435,3 +2435,16 @@ body.ch-on .float-widget,body.ch-on .gd-btn,body.ch-on .bvb,body.ch-on .to-top{o
 .qtet .qtet-form{border:1px solid var(--ox-line)}
 .qtet-grid{margin-top:8px}
 @media (max-width:860px){.qtet-hg{grid-template-columns:1fr;gap:24px}.qtet-why{grid-template-columns:1fr}}
+
+/* 🌐 Lời chúc mỗi ngày cho khách ở trang chủ (19/11/2026, main.js initLc) */
+.lc-bar{background:linear-gradient(90deg,#fff8e6,#fffdf6);border-bottom:1px solid #f3e0ad;color:#5a4a1f;transition:opacity .25s}
+.lc-bar.lc-off{opacity:0}
+.lc-in{display:flex;align-items:center;gap:6px 14px;padding-top:10px;padding-bottom:10px;flex-wrap:wrap;position:relative;padding-right:44px}
+.lc-t{margin:0;flex:1 1 320px;font-size:15px;line-height:1.5}
+.lc-t b{color:#8a5a00;margin-right:2px}
+.lc-go{font-size:14px;font-weight:600;color:var(--primary);white-space:nowrap}
+.lc-x{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:36px;height:36px;border:0;background:none;font-size:22px;line-height:1;color:#8a7a50;cursor:pointer;border-radius:50%}
+.lc-x:hover{background:rgba(0,0,0,.05)}
+.ch-m.lc-ch{background:#fff8e6;border:1px solid #f3e0ad;color:#5a4a1f}
+@media (max-width:640px){.lc-t{font-size:14.5px;flex-basis:100%}.lc-x{top:6px;transform:none}}
+@media (prefers-reduced-motion:reduce){.lc-bar{transition:none}}

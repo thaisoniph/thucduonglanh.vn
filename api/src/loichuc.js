@@ -4,7 +4,7 @@
  * Câu chúc ấm áp, 1 dòng, không nhắc doanh số / tiền / bán hàng. Quản trị sửa ở Cài đặt → 👥 Nhân sự → 🌿 Văn hoá (kv 'vh_wish': mỗi ô 1 câu / dòng, ô trống = câu gốc).
  * Không dùng AI → không tốn tiền. Gửi kèm lệnh vh_today (vanhoa.js).
  * 19/11/2026: anh Sơn nhờ duyệt → sửa 10 câu (câu dịch máy, câu chỉ hợp với sale, câu nói "buổi sáng"/thời tiết trong khi CRM mở cả ngày, câu lặp ý, gần với nói công dụng). */
-import { all, kvJson, kvSet, fmtDate, DAY } from './lib.js';
+import { all, run, kvJson, kvSet, fmtDate, DAY } from './lib.js';
 import { eventsAhead } from './zday.js';
 
 export const WISH0 = {
@@ -90,6 +90,70 @@ export const WISH0 = {
     'Chủ nhật mà bạn vẫn có mặt, cảm ơn bạn nhiều lắm! Chúc bạn một ngày nhẹ nhàng và được nghỉ ngơi thật xứng đáng 💚',
     'Chúc bạn một Chủ nhật bình yên, có thời gian cho gia đình và cho chính mình 🏡',
     'Chủ nhật là ngày nạp năng lượng. Chúc bạn ăn ngon, ngủ đủ và thật thảnh thơi 🌿'
+  ],
+  // 🌐 19/11/2026 anh Sơn: câu chúc cho KHÁCH trên website (trang chủ + lời mở chat An Lành). Không nói chuyện công việc / đồng đội,
+  // không nhắc sản phẩm hay công dụng, không gắn buổi (lời chào theo buổi do web tự thêm). Mỗi ngày 1 câu, xoay vòng.
+  web: [
+    'Chúc bạn và gia đình một ngày an lành, ăn ngon, ngủ yên và lòng thật nhẹ 🌿',
+    'Mong hôm nay bạn được bình an, khoẻ mạnh và có thật nhiều lý do để mỉm cười 😊',
+    'Một bữa ăn lành, một giấc ngủ sâu, một lời hỏi han người thân. Chúc bạn một ngày đủ đầy như thế 🍵',
+    'Chúc bạn hôm nay sống chậm lại một chút, để thấy những điều bình dị cũng thật đáng quý 🍃',
+    'Sức khoẻ là món quà quý nhất. Chúc bạn và người thương luôn mạnh khoẻ, bình an 🍀',
+    'Chúc bạn có một ngày nhẹ nhàng: việc gì cũng thuận, gặp ai cũng vui 🌼',
+    'Hít một hơi thật sâu, uống một cốc nước ấm. Chúc bạn một ngày tràn đầy năng lượng tích cực ☀️',
+    'Mong hôm nay bạn được yêu thương, được lắng nghe và được nghỉ ngơi đủ 💚',
+    'Chúc gian bếp nhà bạn hôm nay thơm mùi cơm lành và rộn tiếng cười 🍚',
+    'Mỗi ngày sống lành hơn một chút là đã rất tuyệt rồi. Chúc bạn một ngày an vui 🌱',
+    'Chúc bạn hôm nay bình tâm trước mọi chuyện, vì lòng an thì việc gì cũng nhẹ 🙏',
+    'Gửi bạn một lời chúc nhỏ: ăn ngon miệng, cười thật tươi, ngủ thật sâu 🌙',
+    'Chúc bạn một ngày có thời gian cho gia đình và cả cho chính mình 🏡',
+    'Mong lòng bạn hôm nay trong xanh, dù ngoài trời nắng hay mưa 🌤️',
+    'Chúc bạn và gia đình một ngày ấm áp, sum vầy bên mâm cơm nhà 🍲',
+    'Hãy dịu dàng với chính mình hôm nay nhé. Chúc bạn một ngày thật thong thả 🌸',
+    'Chúc bạn hôm nay gặp toàn người dễ thương và nghe toàn chuyện vui 🌻',
+    'Thân khoẻ, tâm an, nhà vui. Chúc bạn một ngày như thế 🌿',
+    'Chúc ông bà, cha mẹ trong nhà bạn luôn mạnh khoẻ, ăn ngon, vui vẻ mỗi ngày 🧡',
+    'Một nụ cười có thể sưởi ấm cả nhà. Chúc bạn một ngày thật nhiều nụ cười 😊',
+    'Chúc bạn hôm nay nhẹ lòng với những điều chưa như ý, vì ngày mai sẽ tốt hơn 🌈',
+    'Chúc bạn có một ngày đủ: đủ khoẻ, đủ vui và đủ những người thương bên cạnh 💛',
+    'Ăn chậm, nhai kỹ, sống thong thả. Chúc bạn một ngày sống lành trọn vẹn 🥢',
+    'Chúc những người mẹ hôm nay con ngoan, mẹ được nghỉ ngơi thêm một chút và thật nhiều niềm vui 👶',
+    'Chúc bạn hôm nay làm được một việc tốt nhỏ và nhận lại thật nhiều bình an 🌾',
+    'Mỗi bữa ăn lành là một lời cảm ơn gửi tới cơ thể mình. Chúc bạn một ngày khoẻ khoắn 🥗',
+    'Chúc bạn một ngày an nhiên: không vội, không lo, chỉ có niềm vui giản dị 🍵',
+    'Chúc bạn hôm nay được nghe một tin vui từ người thân yêu 🎈',
+    'Lành từ bữa ăn, lành từ suy nghĩ, lành từ cách mình thương nhau. Chúc bạn một ngày Sống Lành 🌱',
+    'Chúc bạn hôm nay có chút thời gian hít thở không khí trong lành và đi bộ vài bước thật thư thái 🚶',
+    'Chúc bạn hôm nay giữ được nụ cười từ lúc thức dậy tới khi đi ngủ 😄',
+    'Biết ơn những điều nhỏ bé là cách để thấy đời đẹp hơn. Chúc bạn một ngày nhiều biết ơn 🙏',
+    'Chúc bạn và gia đình một ngày bình yên, việc nhà nhẹ nhàng, việc ngoài thuận lợi 🍀',
+    'Chúc bạn hôm nay được nghỉ ngơi đủ, để ngày mai lại tràn đầy năng lượng 🌙',
+    'Chăm sóc bản thân không phải là ích kỷ, mà là thương mình đúng cách. Chúc bạn một ngày thật thương mình 💚',
+    'Chúc bạn hôm nay có một khoảnh khắc thật đáng nhớ để kể cho người thân nghe 🌼',
+    'Một cốc trà ấm, một cuốn sách hay, một người để trò chuyện. Chúc bạn một ngày thật an yên 📖',
+    'Chúc bạn có một ngày tràn đầy năng lượng tích cực và gặp nhiều điều may mắn ✨',
+    'Chúc mâm cơm nhà bạn hôm nay thật nhiều rau xanh và thật nhiều tiếng cười 🥬',
+    'Chúc bạn hôm nay đủ kiên nhẫn với người khác và đủ dịu dàng với chính mình 🌸',
+    'Mỗi ngày là một trang mới. Chúc bạn viết lên đó thật nhiều điều đẹp 📒',
+    'Chúc bạn và gia đình luôn khoẻ từ bên trong, vui từ trong lòng 🌺',
+    'Chúc bạn hôm nay mọi sự hanh thông, lòng nhẹ như mây 🌤️',
+    'Uống đủ nước, ăn đủ bữa, ngủ đủ giấc. Chúc bạn một ngày chăm mình thật tốt 💧',
+    'Chúc bạn hôm nay được ôm người thương thật lâu 🤗',
+    'Chúc bạn một ngày không phải vội vàng, để kịp thấy những điều tốt đẹp quanh mình 🍃',
+    'Chúc bạn hôm nay mạnh khoẻ, an vui và lan toả điều tử tế tới người bên cạnh 🤝',
+    'Bình an không ở đâu xa, chỉ cần lòng mình thong thả. Chúc bạn một ngày an lành 🪷',
+    'Chúc bạn hôm nay có một bữa cơm ngon, một câu chuyện vui và một giấc ngủ yên 🍚',
+    'Chúc người lớn tuổi trong nhà bạn hôm nay ăn được, ngủ được, cười được 💐',
+    'Chúc bạn hôm nay tự hào về chính mình, dù chỉ vì một việc nhỏ làm thật tốt ⭐',
+    'Chúc bạn một ngày nhẹ đầu, vui tim, việc nào cũng trôi chảy 💫',
+    'Sống lành là sống chậm, ăn sạch, nghĩ thiện. Chúc bạn một ngày thật lành 🌿',
+    'Chúc bạn hôm nay có thật nhiều khoảnh khắc khiến mình mỉm cười 😊',
+    'Chúc bạn một ngày bình yên giữa bộn bề, vui vẻ giữa bận rộn 🍃',
+    'Chúc gia đình bạn luôn đầm ấm, thuận hoà, ai cũng mạnh khoẻ 🏡',
+    'Mỗi ngày khoẻ hơn một chút, vui hơn một chút, tử tế hơn một chút. Chúc bạn một ngày như thế 🌱',
+    'Cảm ơn bạn đã ghé thăm Thực Dưỡng Lành. Chúc bạn một ngày thật nhiều sức khoẻ và niềm vui 💚',
+    'Chúc bạn hôm nay biết mỉm cười với cả những điều nhỏ nhất 🌼',
+    'Chúc bạn một ngày an lành, để khi nhìn lại thấy mình đã sống thật trọn vẹn 🌅'
   ]
 };
 
@@ -121,13 +185,45 @@ const OCC = {
 };
 
 const EPOCH = Date.UTC(2026, 10, 14); // 14/11/2026 = câu đầu tiên
-const LISTS = ['daily', 'mon', 'sat', 'sun'];
+const LISTS = ['daily', 'mon', 'sat', 'sun', 'web'];
 
 /** Bản đang dùng: Quản trị đã sửa (kv 'vh_wish') thì lấy, ô trống thì lấy câu gốc. */
 export async function wishes(db) {
   const o = await kvJson(db, 'vh_wish', null), r = {};
   for (const k of LISTS) { const L = o && Array.isArray(o[k]) ? o[k].map(s => String(s || '').trim()).filter(Boolean) : []; r[k] = L.length ? L : WISH0[k]; }
   return r;
+}
+
+/* ================================================================ 🌐 Lời chúc cho khách trên website (19/11/2026, anh Sơn)
+ * Trang chủ thucduonglanh.vn hiện 1 dòng chúc (mỗi khách thấy 1 lần / ngày, bấm ✕ ẩn tới mai) + lời mở đầu chat An Lành.
+ * GET /api/loi-chuc (index.js, lưu đệm 10 phút) → webWishOfDay. Không AI, không cookie, không ghi thông tin khách.
+ * Đếm lượt: website gửi { type: 'lc_ev', ev: 'seen' | 'click' | 'shut' } → bảng lc_stat theo ngày; Quản trị xem ở CRM → Cài đặt → Văn hoá. */
+const OCC_WEB = { // ngày lễ: câu riêng cho khách khi câu của nhân sự (OCC) nói chuyện công việc
+  tao: 'Hôm nay 23 tháng Chạp, tiễn ông Công ông Táo. Chúc nhà bạn khép lại năm cũ êm ấm và đón năm mới thật nhiều an lành 🏮',
+  nhagiao: 'Hôm nay Ngày Nhà giáo Việt Nam 20/11. Chúc bạn một ngày nhớ về những người thầy, người cô đã dạy mình nên người 📚',
+  ram: 'Hôm nay ngày rằm. Chúc bạn tâm an, thân khoẻ và có một bữa cơm thanh đạm thật ấm lòng bên gia đình 🌕',
+  mung1: 'Hôm nay mùng 1 âm lịch. Chúc bạn và gia đình một tháng mới bình an, khoẻ mạnh, mọi việc hanh thông 🌙'
+};
+export async function webWishOfDay(db, t) {
+  const day = fmtDate(t || Date.now(), 'yyyy-MM-dd'), [y, m, d] = day.split('-').map(Number), ut = Date.UTC(y, m - 1, d);
+  let ev = null; try { ev = eventsAhead(day.replace(/-/g, ''), 1)[0] || null; } catch (e) { }
+  if (ev) return { day, t: OCC_WEB[ev.id] || OCC[ev.id] || ('Hôm nay là ' + ev.n + '. Chúc bạn và gia đình một ngày thật vui và bình an 🌿'), occ: ev.n };
+  const L = (await wishes(db)).web, n = Math.max(0, Math.round((ut - EPOCH) / DAY));
+  return { day, t: L[n % L.length] };
+}
+let lcReady = false;
+async function lcSchema(db) { if (lcReady) return; await run(db, 'CREATE TABLE IF NOT EXISTS lc_stat (day TEXT PRIMARY KEY, seen INTEGER DEFAULT 0, click INTEGER DEFAULT 0, shut INTEGER DEFAULT 0)'); lcReady = true; }
+/** Website báo 1 lượt: thấy câu chúc / bấm "Gợi ý sống lành" / bấm ✕. Chỉ đếm số, không lưu gì về khách. */
+export async function lcEvent(x, d) {
+  const ev = { seen: 'seen', click: 'click', shut: 'shut' }[d && d.ev]; if (!ev) return { ok: false };
+  await lcSchema(x.db);
+  await run(x.db, `INSERT INTO lc_stat (day, ${ev}) VALUES (?, 1) ON CONFLICT(day) DO UPDATE SET ${ev} = ${ev} + 1`, fmtDate(Date.now(), 'yyyy-MM-dd'));
+  return { ok: true };
+}
+/** 14 ngày gần nhất cho CRM: [{ day, seen, click, shut }]. */
+export async function lcStats(db) {
+  await lcSchema(db);
+  return all(db, 'SELECT day, seen, click, shut FROM lc_stat WHERE day >= ? ORDER BY day DESC', fmtDate(Date.now() - 13 * DAY, 'yyyy-MM-dd'));
 }
 
 /** Câu chúc hôm nay (cả công ty như nhau): { day, t, occ? }. */

@@ -1567,7 +1567,8 @@ def page_home():
   <p class="blf-join">{blf_join}</p>
   <div class="blf-acts"><a class="blf-btn" href="{lp("/san-pham/")}" data-cta="belief_shop">{t("Xem sản phẩm")} →</a>{join_btn}<a class="blf-link" href="/gioi-thieu/" data-cta="belief_story">{t("Đọc câu chuyện của chúng tôi")} →</a></div>{bv_hero_btn()}
 </div></section>'''
-    body = f'''{belief}
+    lc_bar = '<div class="lc-bar" id="lcBar" hidden></div>' if IS_VI else ""  # 🌐 lời chúc mỗi ngày cho khách (19/11/2026, main.js initLc)
+    body = f'''{lc_bar}{belief}
 {hero}{bv_float()}
 {hub_strip("home_top")}
 {needs_html()}

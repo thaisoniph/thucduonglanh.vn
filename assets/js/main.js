@@ -1585,6 +1585,29 @@
     $('#fwClose').addEventListener('click', function () { w.classList.remove('open'); ss('tdl_fw', '1'); stopAuto(); });
   }
 
+  /* ---------- 🌐 Lời chúc mỗi ngày cho khách (19/11/2026, anh Sơn): dòng chúc đầu trang chủ (#lcBar, build.py page_home) + lời mở chat An Lành.
+     Câu lấy từ api /loi-chuc (api/src/loichuc.js, Quản trị sửa ở CRM → Cài đặt → Văn hoá). Không cookie, không ghi gì về khách:
+     localStorage tdl_lc = ngày đã thấy (mỗi khách thấy dòng chúc 1 lần / ngày), tdl_lcw = câu hôm nay. Đếm số lượt thấy / bấm / đóng (lc_ev). ---------- */
+  function lcDay() { return new Date(Date.now() + 7 * 36e5).toISOString().slice(0, 10); }
+  function lcGet(cb) {
+    if (LANG !== 'vi' || !CFG.endpoint) return;
+    var c = load('tdl_lcw', null); if (c && c.day === lcDay() && c.t) return cb(c);
+    fetch(CFG.endpoint + '/loi-chuc').then(function (r) { return r.json(); }).then(function (j) { if (j && j.t && j.day === lcDay()) { save('tdl_lcw', { day: j.day, t: j.t }); cb(j); } }).catch(function () { });
+  }
+  function lcEv(ev) { try { fetch(CFG.endpoint, { method: 'POST', keepalive: true, headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ type: 'lc_ev', ev: ev }) }).catch(function () { }); } catch (e) { } }
+  function lcHi() { var h = new Date(Date.now() + 7 * 36e5).getUTCHours(); return h < 11 ? 'Chào buổi sáng!' : h < 13 ? 'Chào buổi trưa!' : h < 18 ? 'Chào buổi chiều!' : 'Chào buổi tối!'; }
+  function initLc() {
+    var bar = $('#lcBar'); if (!bar) return;
+    if ((load('tdl_lc', {}) || {}).day === lcDay()) return; // hôm nay khách đã thấy rồi
+    lcGet(function (j) {
+      bar.innerHTML = '<div class="container lc-in"><p class="lc-t"><b>' + lcHi() + '</b> ' + esc(j.t) + '</p>' +
+        '<a class="lc-go" href="/goc-song-lanh/" data-cta="lc_go">Gợi ý sống lành hôm nay ›</a><button type="button" class="lc-x" aria-label="Đóng lời chúc">×</button></div>';
+      bar.hidden = false; save('tdl_lc', { day: lcDay() }); lcEv('seen');
+      $('.lc-go', bar).addEventListener('click', function () { lcEv('click'); });
+      $('.lc-x', bar).addEventListener('click', function () { lcEv('shut'); bar.classList.add('lc-off'); setTimeout(function () { bar.hidden = true; }, 250); });
+    });
+  }
+
   /* ---------- 💬 Trợ lý chat An Lành (26/10/2026): khung chat góc phải, AI trả lời từ kiến thức web (api/src/chat.js, build.py chat_kb).
      Mở bằng mọi nút [data-chat] (giá trị = câu điền sẵn). Lịch sử lưu localStorage tdl_chat 3 ngày; hỏi đủ CFG.chat.after câu thì mời nhận quà (tên + số Zalo). ---------- */
   function initChat() {
@@ -1647,6 +1670,7 @@
     function scroll() { body.scrollTop = body.scrollHeight; }
     function render() {
       body.innerHTML = '';
+      var lw = LANG === 'vi' ? load('tdl_lcw', null) : null; if (lw && lw.day === lcDay() && lw.t) bubble('a lc-ch', '☀️ ' + esc(lw.t)); // 🌐 lời chúc hôm nay mở đầu khung chat
       bubble('a', md(C.greet || ('Dạ em là ' + C.name + ', anh/chị cần em hỗ trợ gì ạ?')));
       st.msgs.forEach(function (m) { bubble(m.r, m.r === 'u' ? md(m.t) : botHTML(m.t)); });
       if (st.gift === 1 && !st.done) giftCard(); else if (st.done) doneCard();
@@ -1727,6 +1751,7 @@
     }
     function open(trigger, prefill) {
       build(); if (!box.hidden) { if (prefill) { inp.value = prefill; grow(); inp.focus(); } return; }
+      lcGet(function () { if (!$('.lc-ch', body)) render(); }); // chưa có câu chúc hôm nay → lấy rồi vẽ lại
       box.hidden = false; document.body.classList.add('ch-on'); requestAnimationFrame(function () { box.classList.add('on'); });
       var fw = $('#floatWidget'); if (fw) { fw.classList.remove('open', 'dial'); }
       if (prefill) { inp.value = prefill; grow(); }
@@ -1756,7 +1781,7 @@
     captureSource(); initConsent(); trackPageEvents();
     renderCounts(); renderMini(); markWish();
     initHeader(); initClicks(); initRail(); initLightbox(); initProduct(); initCerts(); initProof(); initTabs(); initReadmore(); initSort();
-    initDD(); initVoucherLink(); initCartPage(); initCartUpsell(); initCheckout(); initThanks(); renderWishPage(); initSearchPage(); initContact(); initGiftForm(); initGiftStatus(); initGiftPop(); initFloat(); initFlipbook(); initJourney(); initJourneyMap(); initPledge(); initRef(); initCtv(); initCtvJoin(); initWall(); initWallStrip(); initQuiz(); initGiftDock(); initZaloGate(); initOcx(); initQtet(); initMusic(); initBrandVideo(); initChat();
+    initDD(); initVoucherLink(); initCartPage(); initCartUpsell(); initCheckout(); initThanks(); renderWishPage(); initSearchPage(); initContact(); initGiftForm(); initGiftStatus(); initGiftPop(); initFloat(); initFlipbook(); initJourney(); initJourneyMap(); initPledge(); initRef(); initCtv(); initCtvJoin(); initWall(); initWallStrip(); initQuiz(); initGiftDock(); initZaloGate(); initOcx(); initQtet(); initMusic(); initBrandVideo(); initChat(); initLc();
     window.addEventListener('storage', function (e) { if (e.key === 'tdl_cart') { cart = load('tdl_cart', []); cleanCart(); renderCounts(); renderMini(); } });
   }
   // ===== Hành trình 10 triệu người Việt sống khỏe hơn: bộ đếm [data-jr] + trang "Tôi chọn sống lành" /toi-chon-song-lanh/ (api journey.js) =====

@@ -3805,3 +3805,6 @@ details.top-fold.tf-focus .tf-all { display: block; }
 .ks-it small { display: block; color: var(--muted); } .ks-it b { white-space: nowrap; } .ks-na b { color: var(--muted); font-weight: 400; }
 .ks-mq { margin: 8px 0 2px; }
 @media (max-width: 560px) { .ks-g { grid-template-columns: 1fr auto; } .ks-g .ks-bar { grid-column: 1 / -1; grid-row: 2; } }
+/* 🌐 Lời chúc cho khách web: câu hôm nay + số lượt (Cài đặt → Văn hoá, 19/11/2026) */
+.lcs-box { margin-top: 12px; background: #fff8e6; border: 1px solid #f3e0ad; border-radius: 10px; padding: 10px 12px; font-size: 14px; }
+.lcs-box p { margin: 4px 0; }

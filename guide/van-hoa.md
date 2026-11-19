@@ -32,7 +32,16 @@ CRM → **⚙️ Cài đặt** → **👥 Nhân sự** → ở dòng của từn
 
 <p id="h-sua-loi-chuc" class="g-q"><strong>Sửa hoặc thêm câu chúc ở đâu? (Quản trị)</strong></p>
 
-CRM → **⚙️ Cài đặt** → nhóm **👥 Nhân sự** → **🌿 Văn hoá: Quy tắc của ngày + ☀️ Lời chúc** → bấm **Xem** → mở mục **☀️ Lời chúc mỗi ngày**. Có 4 ô: ngày thường, thứ Hai, thứ Bảy, Chủ nhật. Mỗi dòng là 1 câu chúc. Sửa xong bấm **Lưu lời chúc**. Nếu xoá trắng một ô thì CRM dùng lại các câu có sẵn.
+CRM → **⚙️ Cài đặt** → nhóm **👥 Nhân sự** → **🌿 Văn hoá: Quy tắc của ngày + ☀️ Lời chúc** → bấm **Xem** → mở mục **☀️ Lời chúc mỗi ngày**. Có 5 ô: ngày thường, thứ Hai, thứ Bảy, Chủ nhật, và **🌐 cho khách trên website**. Mỗi dòng là 1 câu chúc. Sửa xong bấm **Lưu lời chúc**. Nếu xoá trắng một ô thì CRM dùng lại các câu có sẵn.
+
+<p id="h-loi-chuc-web" class="g-q"><strong>Khách vào website cũng được chúc? (từ 19/11/2026)</strong></p>
+
+Có. Khách mở **trang chủ thucduonglanh.vn** thấy một dòng màu vàng ngay dưới menu, ví dụ: *“Chào buổi sáng! Chúc bạn và gia đình một ngày an lành…”*, kèm link **Gợi ý sống lành hôm nay ›** sang Góc Sống Lành.
+
+- Mỗi khách thấy **1 lần mỗi ngày**. Bấm ✕ là ẩn tới hôm sau. Trang sản phẩm, giỏ hàng, thanh toán không hiện, để khách mua không bị phân tâm.
+- Khung chat **An Lành** cũng mở đầu bằng câu chúc hôm nay.
+- Câu chúc cho khách là bộ **60 câu riêng**: không nhắc công việc, sản phẩm hay công dụng. Ngày rằm, mùng 1, ngày lễ có câu riêng.
+- Ngay dưới ô sửa câu, Quản trị xem được **14 ngày qua** có bao nhiêu lượt khách thấy, bấm gợi ý, bấm ✕. Website chỉ đếm số, không ghi gì về khách.
 
 ## Quy tắc của ngày trong CRM
 

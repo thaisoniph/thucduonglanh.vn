@@ -1,7 +1,7 @@
 // Máy chủ CRM + nhận đơn Thực Dưỡng Lành trên Cloudflare Workers (api.thucduonglanh.vn), dữ liệu ở Cloudflare D1.
 // Giao diện gửi POST (text/plain, JSON) giống hệt Apps Script trước đây: {type:'crm', action, token, …} / {type:'order'} / {type:'contact'}.
 import { shpRoute } from './sanshp.js';
-import { esc, run, first, kvGet, normPhone, CRM_URL } from './lib.js';
+import { esc, run, first, kvGet, normPhone, CRM_URL, fmtDate } from './lib.js';
 import { gvRoute } from './giaoviec.js';
 import { pmRoute } from './phongai.js';
 import { crmApi, crmUsers, saveOrder, addLead, telegramUser, vtpWebhook, ensureSchema, adminByToken, userByToken } from './crm.js';
@@ -16,6 +16,7 @@ import { cmsRoute } from './cms.js';
 import { voucherCheck, voucherApply } from './voucher.js';
 import { qrGo } from './links.js';
 import { journeyCounts, pledge, quiz, wall } from './journey.js';
+import { webWishOfDay, lcEvent } from './loichuc.js'; // 🌐 lời chúc cho khách trên website (19/11/2026)
 import { apply } from './apply.js';
 import { hrRoute } from './hr.js'; // 🧑‍💼 trang ứng viên xác nhận lịch phỏng vấn / nhận việc (/tm/<mã>)
 import { chat, chatLead } from './chat.js';
@@ -58,6 +59,7 @@ async function website(x, data) {
   if (data.website) return { ok: true }; // chống spam (honeypot)
   if (data.type === 'vtp') return await vtpWebhook(x, data.payload);
   if (data.type === 'pledge') return await pledge(x, data); // lời cam kết "Tôi chọn sống lành" (journey.js)
+  if (data.type === 'lc_ev') return await lcEvent(x, data); // 🌐 đếm lượt thấy / bấm lời chúc ở trang chủ (loichuc.js)
   if (data.type === 'quiz') return await quiz(x, data); // trò chơi "Bạn còn mấy ngón tay?" (journey.js)
   if (data.type === 'voucher') return await voucherCheck(x, data); // khách bấm "Áp dụng" mã ưu đãi (gõ SĐT người giới thiệu cũng được)
   if (data.type === 'ctv_me') return await ctvMe(x, data); // 🤝 trang CTV tự xem hoa hồng /ctv/#<link bí mật> (partner.js)
@@ -169,6 +171,13 @@ export default {
           const ck = new Request(key.toString()), cache = caches.default;
           let r = await cache.match(ck);
           if (!r) { await ensureSchema(x.db); r = new Response(JSON.stringify(await wall(x, key.searchParams.get('q'), key.searchParams.get('p'), key.searchParams.get('b'))), { headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'public, max-age=120' } }); x.later(cache.put(ck, r.clone())); }
+          const h = new Headers(r.headers); h.set('Access-Control-Allow-Origin', '*');
+          return new Response(r.body, { headers: h });
+        }
+        if (path === '/api/loi-chuc') { // 🌐 lời chúc hôm nay cho khách (loichuc.js): lưu đệm 10 phút, khoá theo ngày VN để qua 0h là đổi câu
+          const ck = new Request('https://api.thucduonglanh.vn/api/loi-chuc?d=' + fmtDate(Date.now(), 'yyyy-MM-dd')), cache = caches.default;
+          let r = await cache.match(ck);
+          if (!r) { await ensureSchema(x.db); r = new Response(JSON.stringify(await webWishOfDay(x.db)), { headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'public, max-age=600' } }); x.later(cache.put(ck, r.clone())); }
           const h = new Headers(r.headers); h.set('Access-Control-Allow-Origin', '*');
           return new Response(r.body, { headers: h });
         }

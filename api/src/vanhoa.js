@@ -6,7 +6,7 @@
  * Quản lý / Quản trị xem ai đã bấm, chuyện hay trong tuần (Cài đặt → 🌿 Văn hoá); Quản trị sửa câu chữ gợi ý (lưu kv 'vh_rules').
  * Tin Telegram 8h (cron.js dailyCare) có thêm 1 dòng quy tắc hôm nay. Không dùng AI → không tốn tiền. */
 import { run, all, kvJson, kvSet, fmtDate, DAY, TZ_MS } from './lib.js';
-import { wishOfDay, wishFor, wishes, wishSave, bdayStaff } from './loichuc.js'; // ☀️ lời chúc mỗi ngày (14/11/2026) đi kèm vh_today
+import { wishOfDay, wishFor, wishes, wishSave, bdayStaff, webWishOfDay, lcStats } from './loichuc.js'; // ☀️ lời chúc mỗi ngày (14/11/2026) đi kèm vh_today
 
 export const VH_RULES = [
   { t: 'Luôn sát cánh cùng đồng đội', s: 'Ai đang vướng thì mình đỡ một tay, đi cùng nhau mới đi được xa.', q: 'Đi một mình có thể nhanh. Đi cùng đội ngũ mới có thể đi xa.', tips: [
@@ -109,7 +109,7 @@ export async function vhAdmin(x, u) {
   const since = fmtDate(Date.now() - 30 * DAY, 'yyyy-MM-dd'), today = await vhOfDay(x.db);
   const rows = await all(x.db, 'SELECT day, email, name, rule, note, at FROM vh_ack WHERE day >= ? ORDER BY day DESC, at', since);
   let days = 0; for (let t = Date.now() - 29 * DAY; t <= Date.now(); t += DAY) if (new Date(t + TZ_MS).getUTCDay() !== 0) days++; // số ngày làm việc trong 30 ngày
-  return { ok: true, today, days, rows, rules: await rules(x.db), canEdit: u.level >= 3, wish: await wishes(x.db), wishToday: await wishOfDay(x.db) };
+  return { ok: true, today, days, rows, rules: await rules(x.db), canEdit: u.level >= 3, wish: await wishes(x.db), wishToday: await wishOfDay(x.db), webToday: await webWishOfDay(x.db), lcStat: await lcStats(x.db) }; // 🌐 lời chúc khách web + số lượt 14 ngày
 }
 
 /** Quản trị sửa câu chữ gợi ý: d.rules = [[{w,l} ×3] ×10]. Ô để trống = dùng lại câu gốc. */
