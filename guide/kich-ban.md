@@ -41,7 +41,7 @@ Bạn **không cần học thuộc**. Mở ra, đọc theo, nói bằng giọng 
 
 1. Mục **💬 Kịch bản gọi** nằm ngay dưới nút **📞 Gọi** / **💬 Nhắn Zalo**. Bấm vào dòng chữ xanh để mở hoặc đóng. Lần sau CRM nhớ bạn để mở hay đóng.
 2. Ở mốc hỏi nhận hàng, hỏi thăm và sắp hết hàng, ô **📋 Cách dùng** ghi cách dùng **đúng sản phẩm khách đã mua**. Đọc ô này cho khách nghe. Tin Zalo mẫu cũng đã có sẵn cách dùng.
-3. Đọc lần lượt từng bước. Câu trong khung trắng là **câu nói mẫu**. Dòng 👉 bên dưới là **việc bạn làm**.
+3. Đọc lần lượt từng bước. Câu trong khung trắng là **câu nói mẫu**. Dòng 👉 bên dưới là **việc bạn làm**. Chỗ có tên khách, nhớ thêm **cô / chú / anh / chị** cho đúng tuổi (ví dụ “chị Lan”), và nói tự nhiên theo giọng mình.
 
 ## Khách nói gì thì làm gì
 

@@ -2696,7 +2696,7 @@
    * Cách dùng lấy theo trang sản phẩm thucduonglanh.vn và hồ sơ công ty (skill vtg). Không nói chữa / điều trị / khỏi bệnh. */
   var PROD_USE = [
     [/progomax|promax/, 'Fucoidan Progomax', 'Pha 5 muỗng (khoảng 45g) với 200ml nước ấm 60–70°C, khuấy đều. Uống 1 ly, 2–3 lần mỗi ngày. Mở nắp dùng trong 30 ngày.'],
-    [/gafo/, 'Gafo Fucoidan', 'Pha theo hướng dẫn in trên hộp. Uống buổi sáng sau ăn 30 phút, hoặc buổi tối trước khi ngủ 1 tiếng. Mở hộp dùng trong 30–45 ngày.'],
+    [/gafo/, 'Gafo Fucoidan', 'Pha 5 muỗng gạt ngang (khoảng 30g) với 150ml nước đun sôi để nguội còn 60–70°C, khuấy tan hết, uống ngay khi còn ấm (pha xong dùng trong 1 tiếng). Ngày 2–3 lần. Dành cho người trên 18 tuổi. Mở nắp dùng trong 4 tuần.'], // 19/11/2026: theo hồ sơ tự công bố GAFO (trang 8)
     [/curcumin|sua hat c/, 'Dinh Dưỡng Từ Hạt và Curcumin', 'Pha 3 muỗng (khoảng 30g) với 150–180ml nước ấm 60–70°C, khuấy đều. Uống 1 ly, 2–3 lần mỗi ngày. Người mới dùng nên bắt đầu nửa liều rồi tăng dần. Mở nắp dùng trong 30 ngày.'],
     [/bua an|vitagreen/, 'Bữa Ăn Dinh Dưỡng VitaGreen', 'Mỗi lần xé 1 gói 25g (đã chia sẵn, không cần đong), pha với 150–180ml nước khoảng 60°C, khuấy đều, uống ngay. Ngày 2–3 gói. Có thể xay sinh tố cùng hoa quả.'],
     [/dilvang|che vang|dinh lang/, 'Trà DILVANG', 'Cho 1 gói vào cốc, thêm 300–400ml nước ấm 40–50°C, khuấy đều là uống được (không cần đun sôi, không cần hãm). Ngày 2–3 gói.'],
@@ -2726,7 +2726,7 @@
     d1: { t: 'hỏi nhận hàng, hướng dẫn dùng', use: 1, s: [
       ['1. Chào và hỏi nhận hàng', 'Dạ em chào anh/chị [Tên], em là [NV] bên Thực Dưỡng Lành. [Tên] đã nhận được [Sản phẩm] chưa ạ? Hàng tới nơi có nguyên vẹn không ạ?', ''],
       ['2. Hướng dẫn cách dùng', 'Em hướng dẫn nhanh để mình dùng cho ngon và đều nhé ạ.', 'Đọc tiếp cho khách đúng phần <b>📋 Cách dùng</b> ở trên. Nói chậm, hỏi lại “mình nghe rõ không ạ”.'],
-      ['3. Hỏi ai dùng, muốn cải thiện gì', 'Sản phẩm này mình mua để dùng cho mình hay cho người nhà ạ? Mình đang mong ăn uống, sức khoẻ thay đổi điều gì nhất ạ?', 'Ghi câu trả lời vào ô <b>Khách nói gì</b> (vd “mua cho mẹ 70 tuổi, ăn kém”). Lần gọi sau đọc lại là biết hỏi gì.'],
+      ['3. Hỏi ai dùng, muốn cải thiện gì', 'Sản phẩm này mình mua để dùng cho mình hay cho người nhà ạ? Mình mong ăn uống, sức khoẻ tốt lên ở điểm nào nhất ạ?', 'Ghi câu trả lời vào ô <b>Khách nói gì</b> (vd “mua cho mẹ 70 tuổi, ăn kém”). Lần gọi sau đọc lại là biết hỏi gì.'],
       ['4. Xin kết bạn Zalo, mời vào nhóm', 'Em xin kết bạn Zalo với [Tên] để gửi hướng dẫn bằng hình, có gì mình nhắn em lúc nào cũng được ạ. Bên em còn có nhóm Zalo chia sẻ thực đơn lành mạnh, em mời [Tên] vào cùng nhé.', 'Kết bạn xong bấm <b>➕ Đã kết bạn Zalo</b>. Mời nhóm ở khung <b>👥 Mời vào nhóm Zalo cộng đồng</b> bên dưới.'],
       ['5. Ghi kết quả', '', 'Bấm <b>📦 Đã nhận, đã hướng dẫn dùng</b>. CRM tự nhắc bạn hỏi thăm sau 1 tuần.']
     ], c: [
@@ -2810,6 +2810,7 @@
     var row = function (x) { return '<div class="cs-case"><p class="cs-q">🗣 ' + esc(f(x[0])) + '</p>' + say(x[1]) + (x[2] ? '<p class="rs-tip">👉 ' + f(x[2]) + '</p>' : '') + '</div>'; };
     return '<details class="rf-script k-scr"' + (store('care_scr') === '0' ? '' : ' open') + '><summary>💬 Kịch bản gọi: ' + esc(k.t) + ' <small>(bấm để ' + (store('care_scr') === '0' ? 'mở' : 'đóng') + ')</small></summary>' +
       (k.use ? '<div class="cs-use"><b>📋 Cách dùng</b>' + (uses.length ? uses.map(function (u) { return '<p><b>' + esc(u.n) + ':</b> ' + esc(u.u) + '</p>'; }).join('') : '<p class="muted">Chưa nhận ra sản phẩm. Xem cách dùng in trên hộp hoặc trang sản phẩm trên thucduonglanh.vn.</p>') + '</div>' : '') +
+      '<p class="rs-tip">👉 Chỗ có tên khách, nhớ thêm <b>cô / chú / anh / chị</b> cho đúng tuổi khách (vd “chị Lan”, “cô Hoa”). Đọc tự nhiên theo giọng mình, không cần đọc y nguyên.</p>' +
       k.s.map(function (x) { return '<div class="rs-step"><b>' + x[0] + '</b>' + say(x[1]) + (x[2] ? '<p class="rs-tip">👉 ' + f(x[2]) + '</p>' : '') + '</div>'; }).join('') +
       '<div class="rs-step"><b>Khách nói gì thì làm gì</b>' + k.c.concat(CS_COMMON).map(row).join('') + '</div>' +
       '<div class="cs-alert"><b>🚨 Báo quản lý ngay khi</b><ul>' + CS_ALERT.map(function (x) { return '<li>' + x + '</li>'; }).join('') + '</ul><p>Nói với khách: “Dạ em ghi lại đầy đủ và báo quản lý gọi lại cho ' + esc(f('[Tên]')) + ' trong hôm nay ạ.” Ghi vào ô <b>Khách nói gì</b>, bấm <b>📅 Mai</b>.</p></div>' +
