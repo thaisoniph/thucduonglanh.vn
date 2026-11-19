@@ -4,7 +4,7 @@ nav: Việc tuần
 group: chung
 short: Chốt 3 việc tuần, báo xong có minh chứng
 order: 1.7
-updated: 2026-11-16
+updated: 2026-11-19
 description: Mỗi tuần mỗi người chốt tối đa 3 việc trọng tâm, cập nhật tiến độ, chốt kết quả có minh chứng. Thứ Hai họp dùng báo cáo có sẵn. Đọc trang này khoảng 4 phút.
 ---
 
@@ -56,6 +56,8 @@ Người theo dõi (Quản trị, chị Thủy…) mở tab **👀 Nhóm tôi th
 - **Nút ✅ trên đầu màn hình** (cạnh 🔍 ❓ ⚙), màn nào cũng có. **Số đỏ** = số việc đang chờ bạn: việc mới cần nhận, việc quá hạn, việc đến lúc cập nhật, việc trong nhóm bạn theo dõi bị trễ hoặc cần hỗ trợ.
 - **Nhãn ✅ Việc tuần** ở dòng lời chào trên cùng màn hình đầu tiên: nhãn tô cam là có việc cần bạn. Bấm nhãn để mở dòng Việc tuần, bấm tiếp là vào việc.
 - Màn **Thêm** → mục **Việc của tôi** (đầu danh sách).
+
+Trong trang, các thẻ chia 2 nhóm (từ 19/11/2026): **✅ Việc** (Việc của tôi · Mình nhờ · Cả công ty / Nhóm tôi theo dõi) và **📋 Cuối tuần** (Báo cáo tuần · Đã xong). Dưới mỗi thẻ ghi số việc.
 
 ## 🎯 Mục tiêu đếm được (vd 100 video / tháng)
 

@@ -4,7 +4,7 @@ nav: Zalo của sale
 group: quan-ly
 short: Trợ lý Zalo nhắc khách chờ, khách muốn mua
 order: 9
-updated: 2026-11-18
+updated: 2026-11-19
 description: Trợ lý nhắc sale không bỏ sót khách nhắn Zalo, khách muốn mua thì lên đơn 1 chạm. Quản lý xem con số và gợi ý hỗ trợ.
 roles: [sale, ql]
 ---
@@ -86,7 +86,7 @@ Gắn số xong, tin Zalo vào đúng **hồ sơ khách**, lần sau mở hồ s
 
 ## Dành cho Quản lý: 👀 Zalo của sale
 
-Mở **••• Thêm → 👀 Zalo của sale**:
+Mở **••• Thêm → 👀 Zalo của sale**. Từ 19/11/2026 trang chia thẻ: **👀 Mỗi ngày** (💡 Gợi ý hỗ trợ, 💬 Khách đang chờ) · **📊 Kết quả** (Con số từng sale, Trò chuyện gần đây) · **⚙️ Cài đặt** (Quản trị):
 
 - **💡 Gợi ý hỗ trợ chị em**: CRM tự gợi ý từ con số. Ví dụ: bạn đang có nhiều khách chờ → hỏi bạn có cần người đỡ không; bạn trả lời rất nhanh → khen bạn.
 - **📊 Con số từng sale**: hôm nay và 7 ngày (số khách nhắn, số lần trả lời, trả lời sau bao lâu, đang chờ mấy khách).

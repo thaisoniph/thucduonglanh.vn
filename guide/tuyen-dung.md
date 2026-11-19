@@ -4,7 +4,7 @@ nav: Tuyển dụng
 group: quan-ly
 short: Lọc CV, hẹn phỏng vấn, thư mời nhận việc
 order: 4.2
-updated: 2026-11-15
+updated: 2026-11-19
 description: Xem ứng viên nộp ở trang tuyển dụng, đọc điểm AI chấm CV, hẹn phỏng vấn qua email, chấm phiếu phỏng vấn, gửi thư mời nhận việc. Dành cho Quản lý và Quản trị.
 roles: [ql]
 ---
@@ -35,7 +35,9 @@ Mở **[hr.thucduonglanh.vn](https://hr.thucduonglanh.vn)** (đăng nhập bằn
 
 ## Đọc hồ sơ
 
-1. Mở mục **Cần làm** (số đỏ là số hồ sơ đang chờ bạn).
+Các mục chia 3 nhóm (từ 19/11/2026): **📞 Cần làm** · **🗂 Theo bước** (Hồ sơ mới → Hẹn phỏng vấn → Đã phỏng vấn → Đã gửi thư mời → Đã nhận việc) · **🔎 Khác** (Không tiếp tục, Tất cả). Dưới mỗi mục ghi số hồ sơ.
+
+1. Mở mục **Cần làm** (số dưới mục là số hồ sơ đang chờ bạn).
 2. Mỗi thẻ có **% phù hợp** và **hạng**:
    - 🟢 **A** từ 75%: nên hẹn phỏng vấn sớm.
    - 🟡 **B** 55–74%: gọi hỏi thêm rồi mới quyết.

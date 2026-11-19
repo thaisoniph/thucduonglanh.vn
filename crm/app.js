@@ -10330,6 +10330,7 @@
       (!j.gh ? '<p class="small">⚠️ Chưa có mã GitHub (Cài đặt → 🌐 Trang quản trị website) nên trợ lý chưa đăng được bài.</p>' : '') +
       '<p class="small">👤 Người duyệt: ' + (j.approvers || []).map(function (a) { return esc(a.name) + (a.tg ? '' : ' <span class="muted">(chưa nối Telegram, chỉ duyệt được ở đây)</span>'); }).join(', ') + '</p></div>';
     if (waits.length) h += '<div class="box bw-todo"><b>👉 Có ' + waits.length + ' bài chờ bạn duyệt.</b> Đọc rồi bấm ✅ Đăng, hoặc ghi ý kiến để trợ lý viết lại.' + (noTg.length ? '' : '') + '</div>';
+    var TOP = h; h = ''; // 19/11/2026: chia thẻ (Bài sắp đăng · Kết quả · Đã viết · Chủ đề)
     h += '<details class="zb-info small"><summary>ⓘ Cách hoạt động</summary><ol>' +
       '<li><b>Trước ngày đăng 1 ngày</b>, trợ lý lấy chủ đề trên cùng trong 💡 Chủ đề chờ viết. Hết chủ đề thì tự chọn theo tệp khách và phễu 3 tầng: 🔵 Nhận biết (thu hút người mới), ⚪ Cân nhắc (tạo niềm tin), 🟠 Mua hàng (hướng dẫn dùng, chốt đơn).</li>' +
       '<li>Mọi bài (kể cả chủ đề được giao) đều qua bước <b>🎯 insight</b>: chọn 1 nhóm khách + 1 tension (điều họ mong ↔ điều đang cản họ) rồi mới viết. Thẻ bài có dòng 🎯 để bạn kiểm tra. Sửa nhóm khách ở tab <a href="#noi-dung">🎯 Insight & nội dung</a>.</li>' +
@@ -10353,7 +10354,8 @@
         (m.fb ? '<p class="small muted">✍️ Đã viết lại theo ý kiến: “' + esc(m.fb) + '”</p>' : '') + (p.err ? '<p class="small">⚠️ ' + esc(p.err) + '</p>' : '') + bwBtns(p) + '</div>';
     });
     if (later.length) h += '<p class="small muted">Các ngày đăng tiếp theo: ' + later.map(bwDay).join(' · ') + '</p>';
-    h += bwStatsHtml();
+    var POSTS = h; h = '';
+    var STATS = bwStatsHtml();
     // 💡 chủ đề
     var tp = (c && c.topics) || [], wait = tp.filter(function (t) { return !t.status || t.status === 'Chờ viết'; }).length;
     h += '<div class="zb-done-h"><h2 class="zb-h">💡 Chủ đề chờ viết</h2><span class="small">' + (wait ? wait + ' chủ đề chờ, trợ lý lấy chủ đề trên cùng trước' : 'Trống: trợ lý tự chọn theo tệp khách và phễu') + '</span></div>';
@@ -10364,11 +10366,20 @@
         (t.note ? '<br><span class="small muted">' + esc(t.note) + '</span>' : '') + (t.link ? '<br><a class="small" href="' + esc(t.link) + '" target="_blank" rel="noopener">Xem bài đã đăng</a>' : '') + '</div>' +
         '<div class="bw-tb">' + (i ? '<button class="btn sm" data-bw="tup|' + i + '" title="Đưa lên trên">⬆️ Lên</button>' : '') + '<button class="btn sm" data-bw="ted|' + i + '">✏️ Sửa</button><button class="btn sm" data-bw="tdel|' + i + '">🗑 Xoá</button></div></div>';
     }).join('') + '</div>';
+    var TOPICS = h; h = '';
     // 📚 đã viết
     var done = (j.posts || []).filter(function (p) { return p.status === 'published' || p.status === 'dropped'; });
     if (done.length) h += '<details class="zb-info small"><summary>📚 Bài trợ lý đã viết (' + done.length + ')</summary><div class="box bw-topics">' + done.slice(0, 40).map(function (p) {
       return '<div class="bw-trow"><div class="bw-tx">' + bwDay(p.day) + ' · ' + (p.url && !p.hidden ? '<a href="' + esc(p.url) + '" target="_blank" rel="noopener">' + esc(p.title) + '</a>' : esc(p.title)) + '<br><span class="small muted">' + bwFun(p.funnel) + ' ' + esc(p.st) + (p.by_name ? ' · ' + esc(p.by_name) : '') + '</span></div></div>';
     }).join('') + '</div></details>';
+    var DONE = h.replace('<details class="zb-info small"><summary>', '<details class="zb-info small" open><summary>');
+    var bt = pgTab('blog', ['posts', 'stats', 'done', 'topics'], 'posts');
+    h = TOP + grpPick([['📝 Mỗi ngày', 'duyệt bài', ['posts']], ['📊 Xem kết quả', 'mỗi tuần', ['stats', 'done']], ['🛠 Chuẩn bị', 'khi cần', ['topics']]],
+      { posts: ['📝', 'Bài sắp đăng', waits.length ? waits.length + ' bài chờ duyệt' : 'đọc rồi bấm Đăng'], stats: ['📊', 'Kết quả', 'bài nào được đọc nhiều'], done: ['📚', 'Đã viết', done.length + ' bài'], topics: ['💡', 'Chủ đề chờ viết', wait ? wait + ' chủ đề' : 'giao chủ đề'] }, bt, pgAt('blog'));
+    if (bt === 'posts') h += inTabi('Bài trợ lý sắp đăng lên Góc Sống Lành. Bài chờ duyệt thì đọc rồi bấm <b>✅ Đăng</b>.', ['Đọc bài', 'Ưng: bấm <b>✅ Đăng</b>; chưa ưng: <b>✍️ Viết lại</b> kèm ý kiến']) + POSTS;
+    if (bt === 'stats') h += inTabi('Bài nào được đọc nhiều, đọc lâu, nhiều người bấm mua. Trợ lý học theo bài tốt.', ['Mỗi tuần xem 1 lần']) + (STATS || '<div class="box"><p class="muted">Chưa đủ bài đã đăng để so.</p></div>');
+    if (bt === 'done') h += inTabi('Các bài trợ lý đã viết và đăng.', ['Bấm tên bài để mở trên web']) + (DONE || '<div class="box"><p class="muted">Chưa có bài nào.</p></div>');
+    if (bt === 'topics') h += inTabi('Muốn trợ lý viết về điều gì thì giao chủ đề; trợ lý lấy chủ đề trên cùng trước.', ['Bấm <b>➕ Giao chủ đề</b> trên cùng', 'Bấm <b>⬆️ Lên</b> để viết trước']) + TOPICS;
     return h;
   }
   function bwSaveTopics(tp, msg) { return api('bl_cfg', { topics: tp }).then(function () { toast(msg); bwFetch(); }, function (e) { toast(e.message, true); bwFetch(); }); }
@@ -13306,6 +13317,13 @@
     cs.forEach(function (r) { if ((r[3] || 0) < 2e6) return; var cpa = r[8] ? r[3] / r[8] : Infinity, x = cpa / avg; if (x >= 2 && (!w || x > w.x)) w = { r: r, cpa: cpa, x: x }; });
     return w;
   }
+  /** Menu nhóm từ danh sách mục (19/11/2026, các trang còn lại): G = [[tên nhóm, để làm gì, [mã…]]], it[mã] = [icon, tên, dòng nhỏ]; mã không có trong it thì bỏ */
+  function grpPick(G, it, cur, at) { return grpMenu(G.map(function (g) { return [g[0], g[1], g[2].filter(function (k) { return it[k]; }).map(function (k) { return [k, it[k][0], it[k][1], it[k][2]]; })]; }), cur, at); }
+  /** 1 thẻ đang xem cho trang k (nhớ trên máy) */
+  var PG_TAB = {};
+  function pgTab(k, ok, dflt) { var t = PG_TAB[k] || store('pg_' + k) || dflt; if (ok.indexOf(t) < 0) t = ok.indexOf(dflt) >= 0 ? dflt : ok[0]; return (PG_TAB[k] = t); }
+  document.addEventListener('click', function (e) { var t = e.target.closest('[data-pgt]'); if (!t) return; var v = t.getAttribute('data-pgt').split('|'); PG_TAB[v[0]] = v[1]; store('pg_' + v[0], v[1]); render(); });
+  function pgAt(k) { return function (x) { return 'data-pgt="' + k + '|' + x + '"'; }; }
   /** 📊 Tổng quan chia 3 nhóm thẻ (19/11/2026); mã thẻ nhóm = mã nhóm GR trong viewDash */
   var DASH_G = [['📊 Xem nhanh', 'mỗi ngày', [['tq', '📊', 'Tình hình', '4 số chính, sức khỏe']]],
     ['💵 Tiền & doanh số', 'mỗi tuần', [['money', '💵', 'Tiền & lãi lỗ', 'lãi hay lỗ, tiền còn'], ['sales', '📈', 'Doanh số', 'từ đâu, vì sao tăng giảm']]],
@@ -16413,7 +16431,9 @@
     var boss = lvl() >= 3; // 📣 Phòng Marketing AI: chỉ Quản trị (anh Sơn, anh Hiếu) – anh Sơn 16/11/2026
     if (!AIT.d || Date.now() - AIT.at > 60e3) aitFetch();
     if (boss && (!PMA.d || Date.now() - PMA.at > 30e3)) pmaFetch();
-    var h = '<div class="ait-wrap"><div class="page-head"><h1>🤖 Đội nhân sự AI</h1></div>' + (boss ? pmaHTML() : '') +
+    var at = boss ? pgTab('ait', ['pma', 'auto'], 'pma') : 'auto'; // 19/11/2026: Quản trị chia 2 thẻ
+    if (boss && at === 'pma') return '<div class="ait-wrap"><div class="page-head"><h1>🤖 Đội nhân sự AI</h1></div>' + grpPick([['🤖 Đội AI', 'giao việc, xem trợ lý', ['pma', 'auto']]], { pma: ['📣', 'Phòng Marketing AI', 'giao việc, duyệt'], auto: ['⚙️', 'Trợ lý tự động', 'đang chạy, lỗi, tiền AI'] }, at, pgAt('ait')) + pmaHTML() + '</div>';
+    var h = '<div class="ait-wrap"><div class="page-head"><h1>🤖 Đội nhân sự AI</h1></div>' + (boss ? grpPick([['🤖 Đội AI', 'giao việc, xem trợ lý', ['pma', 'auto']]], { pma: ['📣', 'Phòng Marketing AI', 'giao việc, duyệt'], auto: ['⚙️', 'Trợ lý tự động', 'đang chạy, lỗi, tiền AI'] }, at, pgAt('ait')) : '') + 
       '<section class="aiq"><div class="aiq-head"><h2>⚙️ Trợ lý AI chạy tự động</h2><button class="btn aiq-re" data-ait="re">🔄 Tải lại</button></div>' +
       '<p class="aiq-intro">Các trợ lý tự làm việc mỗi ngày, không cần ai giao. Mở màn này <b>không tốn tiền AI</b>.</p>';
     if (AIT.err && !AIT.d) return h + '<p class="err">' + esc(AIT.err) + '</p></section></div>';
@@ -16489,10 +16509,13 @@
         (D.admin ? '<button type="button" class="zs-x" data-zsoff="' + esc(s.sale) + '|' + esc(s.name) + '" title="Ngắt theo dõi">✕</button>' : '') + '</span>';
     }).join('') + '</div>';
     if (D.sales && D.sales.some(function (s) { return s.on && !s.online; })) h += '<p class="zs-warn">🔴 = đang mất kết nối (Zalo bắt đăng nhập lại / máy chủ mất mạng). 🟡 = chờ sale quét mã QR.</p>';
+    var TOP = h; h = ''; // 19/11/2026: chia thẻ
     // 💡 gợi ý hỗ trợ (cả Quản lý và Quản trị)
     if (D.tips && D.tips.length) h += '<section class="zs-sec"><h2>💡 Gợi ý hỗ trợ chị em</h2><div class="zs-tips">' + D.tips.map(function (t) { return '<p class="zs-tip zs-tip-' + t.k + '">' + esc(t.t) + '</p>'; }).join('') + '</div></section>';
+    var TIPS = h; h = '';
     // khách đang chờ trả lời (chỉ Quản trị thấy tên khách)
     if (D.waiting && D.waiting.length) h += '<section class="zs-sec"><h2>💬 Khách đang chờ trả lời (' + D.waiting.length + ')</h2><div class="zs-list">' + D.waiting.map(zsWaitRow).join('') + '</div></section>';
+    var WAIT = h; h = '';
     // con số từng sale: hôm nay + 7 ngày
     h += '<section class="zs-sec"><h2>📊 Con số từng sale</h2><div class="zs-cards">' + (D.perSale || []).map(function (p) {
       var t = p.today, w = p.week;
@@ -16503,14 +16526,42 @@
         '<p class="zs-wk">7 ngày: <b>' + w.threads + '</b> khách · trả lời sau <b>' + ZS_MIN(w.avgMin) + '</b>' + (w.slow ? ' · <b>' + w.slow + '</b> lần khách chờ hơn 1 giờ' : '') +
         (D.admin && D.priv && D.priv[p.sale] ? ' · 🔒 ' + D.priv[p.sale] + ' cuộc "không phải khách"' : '') + '</p></article>';
     }).join('') + '</div><p class="small muted">"Trả lời sau" = trung bình từ lúc khách nhắn đến lúc sale trả lời, chỉ tính tin khách nhắn trong giờ làm (8h–21h).</p></section>';
+    var NUMS = h; h = '';
     // cuộc trò chuyện gần đây (chỉ Quản trị)
     if (D.recent && D.recent.length) h += '<section class="zs-sec"><h2>🕐 Trò chuyện gần đây</h2><div class="zs-list">' + D.recent.map(zsThreadRow).join('') + '</div></section>';
-    if (D.admin) h += '<details class="zs-sec zs-cfg"><summary>⚙️ Cài đặt</summary><div class="box">' +
+    var REC = h; h = '';
+    if (D.admin) h += '<details class="zs-sec zs-cfg" open><summary>⚙️ Cài đặt</summary><div class="box">' +
       '<label class="zs-ck"><input type="checkbox" id="zsOn"' + (D.cfg.on ? ' checked' : '') + '> Bật Zalo của sale</label>' +
       '<label class="f"><span>Nhắc sale (Telegram riêng) khi khách chờ quá (phút)</span><input type="number" id="zsMins" min="5" max="240" value="' + (D.cfg.replyMins || 30) + '"></label>' +
       '<button class="btn pri" data-zs="save">Lưu cài đặt</button></div></details>';
+    var CFG = h, it = { tips: ['💡', 'Gợi ý hỗ trợ', (D.tips || []).length ? D.tips.length + ' gợi ý' : 'không có'], nums: ['📊', 'Con số từng sale', 'hôm nay, 7 ngày'] };
+    if (WAIT) it.wait = ['💬', 'Khách đang chờ', D.waiting.length + ' khách'];
+    if (REC) it.rec = ['🕐', 'Trò chuyện gần đây', 'chỉ Quản trị'];
+    if (CFG) it.cfg = ['⚙️', 'Cài đặt', 'nhắc sale'];
+    var zt = pgTab('zsale', Object.keys(it), 'tips');
+    h = TOP + grpPick([['👀 Mỗi ngày', 'hỗ trợ chị em', ['tips', 'wait']], ['📊 Kết quả', 'mỗi tuần', ['nums', 'rec']], ['⚙️ Cài đặt', 'ít khi sửa', ['cfg']]], it, zt, pgAt('zsale'));
+    if (zt === 'tips') h += TIPS || '<div class="box"><p>✅ Hôm nay chưa có gợi ý nào. Chị em đang trả lời khách tốt.</p></div>';
+    if (zt === 'wait') h += WAIT;
+    if (zt === 'nums') h += NUMS;
+    if (zt === 'rec') h += REC;
+    if (zt === 'cfg') h += CFG;
     h += '<p class="zs-foot"><button class="btn" data-zs="re">🔄 Tải lại</button> <small>Cập nhật ' + esc(when(ZS.at)) + '</small></p></div>';
     return h;
+  }  /** gắn nút trang 👀 Zalo của sale (khôi phục 19/11/2026: lần sửa 17/11 lỡ xoá hàm này, render() lỗi, các nút không chạy) */
+  function bindZsale() {
+    $$('[data-zs="re"]').forEach(function (b) { b.onclick = function () { ZS.at = 0; zsFetch(); }; });
+    $$('[data-zst]').forEach(function (b) { b.onclick = function () { var p = b.getAttribute('data-zst').split('|'); zsOpen(p[0], p[1], p[2], p[3]); }; });
+    var add = $('[data-zs="add"]'); if (add) add.onclick = zsAddOpen;
+    $$('[data-zsqr]').forEach(function (b) { b.onclick = function () { var p = b.getAttribute('data-zsqr').split('|'); zsQrOpen(p[0], p[1]); }; });
+    $$('[data-zsoff]').forEach(function (b) { b.onclick = function () { var p = b.getAttribute('data-zsoff').split('|');
+      if (!confirm('Ngắt theo dõi Zalo của ' + p[1] + '? (Có thể kết nối lại sau.)')) return;
+      api('zs_disconnect', { sale: p[0] }).then(function () { toast('Đã ngắt ✓'); ZS.at = 0; zsFetch(); }, function (e) { toast(e.message, true); }); }; });
+    var rd = $('#zsRead'); if (rd) rd.onchange = function () { rd.disabled = true;
+      api('zs_cfg', { read: rd.checked ? 1 : 0 }).then(function (j) { toast(j.read ? '👁 Đã bật xem nội dung, tự tắt sau 24 giờ' : 'Đã tắt xem nội dung ✓'); ZS.at = 0; zsFetch(); }, function (e) { rd.disabled = false; rd.checked = !rd.checked; toast(e.message, true); }); };
+    var sv = $('[data-zs="save"]'); if (sv) sv.onclick = function () {
+      sv.disabled = true; api('zs_cfg', { on: $('#zsOn').checked ? 1 : 0, replyMins: +$('#zsMins').value || 30 })
+        .then(function (j) { ZS.d.cfg = j.cfg; toast('Đã lưu ✓'); sv.disabled = false; }, function (e) { toast(e.message, true); sv.disabled = false; });
+    };
   }
   /** 💬 Mở 1 cuộc trò chuyện. Quản trị (khi được xem): mọi sale. Sale: chỉ Zalo của mình (máy chủ tự lọc). autoAi = mở là chạy ✨ gợi ý luôn. */
   function zsOpen(sale, uid, phone, title, autoAi) {
@@ -16819,7 +16870,8 @@
     h += gvRhythm() + gvSetup(D) + gvMyWeek(D) + gvGoals(D);
     h += '<div class="gv-new2"><button class="btn pri lg" data-gv="new|tt">⭐ Chốt việc trọng tâm</button><button class="btn lg" data-gv="new|ps">＋ Việc phát sinh / nhờ ai đó</button></div>';
     var T = gvTabs(D); if (!GV.tab || !T.some(function (x) { return x[0] === GV.tab; })) GV.tab = 'mine';
-    h += '<div class="chips gv-chips" role="tablist">' + T.map(function (x) { return '<button class="chip' + (x[0] === GV.tab ? ' on' : '') + '" data-gv="tab|' + x[0] + '">' + x[1] + (x[2] ? ' <span class="gv-n">' + x[2].length + '</span>' : '') + '</button>'; }).join('') + '</div>';
+    var gi = {}, gic = { mine: '🙋', gave: '🤝', all: '👀', rep: '📋', done: '✅' }; T.forEach(function (x) { gi[x[0]] = [gic[x[0]] || '', x[1].replace(/^\S+\s(?=[A-ZĐÁÀẢÃẠ])/, '').replace(/^[^A-Za-zÀ-ỹĐđ]+/, ''), x[2] ? x[2].length + ' việc' : 'tuần này']; });
+    h += grpPick([['✅ Việc', 'mỗi ngày', ['mine', 'gave', 'all']], ['📋 Cuối tuần', 'báo cáo, đã xong', ['rep', 'done']]], gi, GV.tab, function (k) { return 'data-gv="tab|' + k + '"'; }); // 19/11/2026: chip → thẻ nhóm
     if (GV.tab === 'rep') return h + gvRepView() + gvAdmin(D) + '</div>';
     var list = T.filter(function (x) { return x[0] === GV.tab; })[0][2];
     if (GV.tab === 'all' || GV.tab === 'done') {
@@ -17825,7 +17877,8 @@
     R.forEach(function (r) { jobs[r.job] = (jobs[r.job] || 0) + 1; });
     h += '<p class="tuy-lead">Ứng viên nộp ở <a href="https://congsu.thucduonglanh.vn" target="_blank" rel="noopener">congsu.thucduonglanh.vn</a> tự vào đây. AI đọc CV, so với mô tả công việc rồi cho <b>% phù hợp</b> (AI 60% + bài trắc nghiệm văn hoá 40%). Hạng <b>A</b> ≥ 75% nên hẹn sớm · <b>B</b> 55–74% gọi hỏi thêm · <b>C</b> dưới 55%.' + (TUY.d.ai ? '' : ' <b>⚠️ Máy chủ chưa có khoá AI nên mới có điểm trắc nghiệm.</b>') + '</p>';
     var cnt = function (k) { return R.filter(function (r) { return tuyIn(r, k); }).length; };
-    h += '<div class="chips tuy-chips" role="tablist">' + TUY_TABS.map(function (t) { var n = cnt(t[0]); return '<button class="chip' + (t[0] === TUY.st ? ' on' : '') + '" data-tuy="tab|' + t[0] + '">' + t[1] + (n ? ' <span class="tuy-n' + (t[0] === 'todo' ? ' hot' : '') + '">' + n + '</span>' : '') + '</button>'; }).join('') + '</div>';
+    var ti = {}, tic = { todo: '📞', 'Mới': '🆕', 'Hẹn phỏng vấn': '📅', 'Đã phỏng vấn': '🗣', 'Mời nhận việc': '✉️', 'Đã nhận việc': '✅', out: '⏸', all: '📋' }; TUY_TABS.forEach(function (t) { ti[t[0]] = [tic[t[0]] || '', t[1], cnt(t[0]) + ' hồ sơ']; });
+    h += grpPick([['📞 Cần làm', 'mỗi ngày', ['todo']], ['🗂 Theo bước', 'ứng viên đang ở đâu', ['Mới', 'Hẹn phỏng vấn', 'Đã phỏng vấn', 'Mời nhận việc', 'Đã nhận việc']], ['🔎 Khác', 'khi cần tìm', ['out', 'all']]], ti, TUY.st, function (k) { return 'data-tuy="tab|' + esc(k) + '"'; }); // 19/11/2026: chip → thẻ nhóm
     h += '<div class="tuy-filter">' + (Object.keys(jobs).length > 1 ? '<select data-tuysel="job"><option value="">Mọi vị trí (' + R.length + ')</option>' + Object.keys(jobs).sort().map(function (j) { return '<option value="' + esc(j) + '"' + (j === TUY.job ? ' selected' : '') + '>' + esc(j) + ' (' + jobs[j] + ')</option>'; }).join('') + '</select>' : '') +
       '<input type="search" data-tuysel="q" placeholder="🔍 Tìm tên, số điện thoại, email" value="' + esc(TUY.q) + '"></div>';
     var L = R.filter(function (r) { return tuyIn(r, TUY.st) && (!TUY.job || r.job === TUY.job) && (!TUY.q || norm(r.name + ' ' + r.phone + ' ' + r.email).indexOf(norm(TUY.q)) >= 0); });
@@ -18010,7 +18063,8 @@
     if (up.length) h += '<div class="box hso-up"><h3>📅 30 ngày tới</h3>' + up.map(function (u) { return '<button class="hso-up-i" data-hso="open|' + esc(u[2].email) + '">' + u[1] + ' <b>' + esc(u[2].name) + '</b> ' + esc(u[3]) + ' <span class="hso-when' + (u[0] <= 1 ? ' now' : '') + '">' + (u[0] === 0 ? 'hôm nay' : u[0] === 1 ? 'ngày mai' : 'còn ' + u[0] + ' ngày') + '</span></button>'; }).join('') + '</div>';
     if (D.qt) h = h.replace('<button class="btn ghost" data-hso="reload">', '<button class="btn ghost" data-hso="ctcfg">⚙️ Mẫu hợp đồng</button><button class="btn ghost" data-hso="reload">') + hctBox(D) + hsoNtBox(D) + hsoFbBox(D);
     var tabs = [['on', 'Đang làm'], ['bd', 'Sinh nhật, kỷ niệm'], ['miss', 'Thiếu thông tin']].concat(D.forms && D.forms.pf ? [['pf', 'Chưa cập nhật thông tin']] : []).concat(D.forms && D.forms.ht ? [['ht', 'Chưa điền Hiểu & Thương']] : []).concat(D.qt ? [['hd', 'Hợp đồng cần xử lý'], ['off', 'Đã nghỉ']] : []);
-    h += '<div class="chips hso-chips">' + tabs.map(function (t) { var n = D.staff.filter(function (s) { return hsoIn(s, t[0]); }).length; return '<button class="chip' + (HSO.f === t[0] ? ' on' : '') + '" data-hso="tab|' + t[0] + '">' + t[1] + ' <span class="tuy-n' + (t[0] === 'miss' && n ? ' hot' : '') + '">' + n + '</span></button>'; }).join('') + '</div>';
+    var hi = {}, hic = { on: '👥', bd: '🎂', miss: '⚠️', pf: '📝', ht: '🤝', hd: '📄', off: '⏸' }; tabs.forEach(function (t) { hi[t[0]] = [hic[t[0]] || '', t[1], D.staff.filter(function (s) { return hsoIn(s, t[0]); }).length + ' người']; });
+    h += grpPick([['👥 Nhân sự', 'đang làm', ['on', 'bd']], ['⚠️ Cần bổ sung', 'thiếu gì', ['miss', 'pf', 'ht', 'hd']], ['🔎 Khác', 'khi cần', ['off']]], hi, HSO.f, function (k) { return 'data-hso="tab|' + k + '"'; }); // 19/11/2026: chip → thẻ nhóm
     if (HSO.f === 'bd') h += snhHrBox(D);
     h += '<div class="tuy-filter"><input type="search" data-hsosel="q" placeholder="🔍 Tìm tên, vị trí, số điện thoại" value="' + esc(HSO.q) + '"></div>';
     var L = D.staff.filter(function (s) { return hsoIn(s, HSO.f) && (!HSO.q || norm(s.name + ' ' + s.full + ' ' + s.pos + ' ' + s.phone + ' ' + s.role).indexOf(norm(HSO.q)) >= 0); });

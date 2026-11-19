@@ -233,7 +233,9 @@ Web có bản tiếng Anh tại [thucduonglanh.vn/en/](https://thucduonglanh.vn/
 
 ## Trợ lý viết bài: hiệu quả và cài đặt
 
-**Xem hiệu quả:** CRM → 📰 Bài web → 📊 Hiệu quả bài viết (chọn 7, 30 hoặc 90 ngày):
+Trang **📰 Bài web** chia thẻ (từ 19/11/2026): **📝 Bài sắp đăng** · **📊 Kết quả**, **📚 Đã viết** · **💡 Chủ đề chờ viết**.
+
+**Xem hiệu quả:** CRM → 📰 Bài web → thẻ **📊 Kết quả** → 📊 Hiệu quả bài viết (chọn 7, 30 hoặc 90 ngày):
 
 - **Lượt xem, thời gian đọc, bấm mua trong bài**: lấy từ Google Analytics, chỉ đếm người bấm Đồng ý cookie nên số thật cao hơn.
 - **Đơn sau khi đọc**: khách đọc bài rồi đặt hàng trên web trong 7 ngày (tính cho bài đọc gần nhất, không tính đơn huỷ, hoàn).

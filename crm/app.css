@@ -3483,7 +3483,7 @@ details.dash-grp[open] > summary::after { transform: rotate(180deg); }
 .ktd-grp .ktv-sec { margin-top: 0; }
 #tChips .inx-menu { margin: 4px 0 6px; } .lf-use { margin: 0 0 10px; color: var(--muted); }
 #cChips .inx-menu { grid-template-columns: 1fr 1fr; margin: 4px 0 6px; }
-@media (max-width: 720px) { #tChips .inx-mg, #oTabs .inx-mg, #cChips .inx-mg, #setMenu .inx-mg { grid-column: 1 / -1; } }
+@media (max-width: 720px) { #tChips .inx-mg, #oTabs .inx-mg, #cChips .inx-mg, #setMenu .inx-mg, .gv-wrap .inx-mg, .tuy-wrap .inx-mg, .hso-wrap .inx-mg { grid-column: 1 / -1; } }
 .ktd-per { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 14px 0 0; } .ktd-per .chips { margin: 0; }
 .ktd-tabb > .ktv-sec:first-child { margin-top: 0; }
 .ktd-tools { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin: 12px 0 0; }
