@@ -4340,12 +4340,22 @@
   }
   function provNames() { var o = {}; Object.keys(PROV_MERGE).forEach(function (nw) { o[nw] = 1; PROV_MERGE[nw].forEach(function (x) { if (!/^(HCM|TPHCM|TP HCM|HN|HP|Kontum|Daklak|Đaklak|Đăk .*|Dak .*|Bắc Cạn)$/.test(x)) o[x] = 1; }); }); return Object.keys(o).sort(function (a, b) { return a.localeCompare(b, 'vi'); }); }
   function leadsCountText(base) { var f = S.f.t || {}; if (f.q && f.q.trim()) return searchCount(base.length, 'khách hỏi', f.q.trim()); return base.length + ' lượt hỏi · ' + base.filter(isOpenLead).length + ' người đang theo dõi (chưa mua)'; }
+  /** 19/11/2026 (anh Sơn: "làm tương tự" các trang khác): 11 nút lọc một hàng → 3 nhóm thẻ có tên + dòng "dùng để" cho mục đang chọn */
+  var LF_G = [['📞 Cần làm', 'mỗi ngày', ['due', 'mine', 'nogiao', 'pool']], ['🗂 Theo bước', 'khách đang ở đâu', ['Mới hỏi', 'Đang tư vấn', 'Đã chốt', 'Không mua']], ['🔎 Khác', 'khi cần tìm', ['open', 'noorder', 'all']]];
+  var LF_IC = { due: '📞', mine: '🙋', nogiao: '🧺', pool: '🧺', 'Mới hỏi': '🆕', 'Đang tư vấn': '💬', 'Đã chốt': '✅', 'Không mua': '😴', open: '👀', noorder: '⚠️', all: '📋' };
+  var LF_USE = { due: 'Khách đến hẹn, mới hỏi chưa ai gọi, hoặc lâu chưa liên hệ. Gọi lần lượt từ trên xuống.', mine: 'Mọi khách hỏi bạn đang phụ trách.', nogiao: 'Khách chưa ai phụ trách (khách web chờ quản lý giao). Mở khách → chọn người phụ trách.',
+    pool: 'Số chưa ai chốt, ai nhận cũng được. Đọc ghi chú người trước rồi bấm ✋ Nhận khách này.', 'Mới hỏi': 'Khách vừa để lại số, chưa tư vấn.', 'Đang tư vấn': 'Khách đang được tư vấn, chưa chốt.', 'Đã chốt': 'Khách đã chốt mua.', 'Không mua': 'Khách đã nói không mua (gọi lại sau bằng lý do mới).',
+    open: 'Mọi khách chưa chốt, chưa bỏ: đang theo dõi.', noorder: 'Khách đã ghi Đã chốt nhưng chưa có đơn trong CRM. Mở khách → lên đơn.', all: 'Tất cả khách hỏi.' };
   function renderLeadsChips(base, cur) {
-    return LF.filter(function (x) { return x.k === 'mine' ? lvl() < 2 && !isMkt() : x.k === 'nogiao' ? lvl() >= 2 || isMkt() : x.k === 'pool' ? isPoolStaff() && poolOn() : true; }).map(function (x) {
-      var n = base.filter(function (l) { return leadInChip(x, l); }).length; if ((x.k === 'noorder' || x.k === 'nogiao') && !n && cur.k !== x.k) return '';
-      return '<button class="chip' + (x.k === cur.k ? ' on' : '') + '" data-tf="' + esc(x.k) + '">' + x.l + ' <em>' + n + '</em></button>';
-    }).join('');
+    var vis = {};
+    LF.filter(function (x) { return x.k === 'mine' ? lvl() < 2 && !isMkt() : x.k === 'nogiao' ? lvl() >= 2 || isMkt() : x.k === 'pool' ? isPoolStaff() && poolOn() : true; }).forEach(function (x) {
+      var n = base.filter(function (l) { return leadInChip(x, l); }).length; if ((x.k === 'noorder' || x.k === 'nogiao') && !n && cur.k !== x.k) return;
+      vis[x.k] = [x.k, LF_IC[x.k] || '', ({ nogiao: 'Chờ giao', pool: 'Kho chung', noorder: 'Chốt chưa có đơn' })[x.k] || x.l, n + ' khách'];
+    });
+    var G = LF_G.map(function (g) { return [g[0], g[1], g[2].filter(function (k) { return vis[k]; }).map(function (k) { return vis[k]; })]; });
+    return grpMenu(G, cur.k, function (k) { return 'data-tf="' + esc(k) + '"'; }) + (LF_USE[cur.k] ? '<p class="small lf-use">📌 ' + esc(LF_USE[cur.k]) + '</p>' : '');
   }
+
   function renderLeadsList(list, n, curK) {
     var sq = S.f.t && S.f.t.q && S.f.t.q.trim();
     var tail = curK === 'due' ? leadPoolTail(list.length) : '', top = curK === 'pool' && poolSplit() ? poolRuleBar().replace('class="kc-rule"', 'class="kc-rule" style="margin:0 0 10px"') : '';
@@ -4390,7 +4400,7 @@
     return '<div class="page-head"><h1>Khách hỏi</h1><span class="muted" id="tCount">' + esc(leadsCountText(base)) + '</span><div class="grow"></div>' + whoSel() + (isMkt() ? '' : '<button class="btn pri" data-newlead>＋ Thêm khách hỏi</button>') + '</div>' + (isMkt() ? '<p class="small muted">Khách để lại số trên web (nhận ebook, vào nhóm Zalo, form liên hệ). Bạn chỉ xem; quản lý giao khách cho sale ở tab Hôm nay → 🧺 Kho chung.</p>' : '') +
       '<div class="tools"><div class="search">' + I.search + '<input type="search" id="tq" placeholder="Tìm tên, SĐT, sản phẩm…" value="' + esc(f.q) + '"><button type="button" class="search-x" aria-label="Xoá chữ tìm kiếm" title="Xoá">✕</button></div>' +
         '<select id="tch" class="' + (f.ch ? 'on' : '') + '" style="flex:0 0 auto;width:auto" title="Lọc theo kênh khách hỏi"><option value="">📣 Mọi kênh</option>' + chs.map(function (x) { return '<option' + (f.ch === x ? ' selected' : '') + '>' + esc(x) + '</option>'; }).join('') + '</select></div>' +
-      offerBanner() + '<div class="chips" id="tChips">' + renderLeadsChips(base, cur) + '</div>' +
+      offerBanner() + '<div id="tChips">' + renderLeadsChips(base, cur) + '</div>' +
       '<div id="tArea">' + (areaBox(q, 'lead') + crossHint(q, qd, false)) + '</div>' +
       '<div id="tList">' + renderLeadsList(list, f.n, f.k) + '</div>';
   }

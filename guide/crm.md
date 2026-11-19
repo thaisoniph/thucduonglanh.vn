@@ -319,6 +319,16 @@ Lưu đơn xong, CRM **ở lại chỗ bạn đang làm** (hồ sơ khách, tab 
 
 ![Tab Khách hỏi](/huong-dan/img/crm-leads.webp)
 
+**Các nút lọc chia 3 nhóm** (từ 19/11/2026), dưới mỗi nút ghi số khách. Bấm 1 nút thì dòng **📌** ngay dưới cho biết mục đó dùng để làm gì:
+
+| Nhóm | Nút | Dùng để |
+| --- | --- | --- |
+| **📞 Cần làm** (mỗi ngày) | Cần liên hệ · Của tôi · Kho chung | Khách cần gọi hôm nay, khách bạn phụ trách, số ai nhận cũng được |
+| **🗂 Theo bước** | Mới hỏi · Đang tư vấn · Đã chốt · Không mua | Khách đang ở bước nào |
+| **🔎 Khác** | Đang theo dõi · Chốt chưa có đơn · Tất cả | Khi cần tìm thêm |
+
+Quản lý và Marketing thấy nút **🧺 Chờ giao** (khách chưa ai phụ trách) thay cho **Của tôi**.
+
 **Thêm người mới hỏi:**
 
 1. Vào tab **Khách hỏi**, bấm **＋ Thêm khách hỏi**.
