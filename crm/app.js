@@ -6103,7 +6103,7 @@
     // dòng tóm tắt cho mục thu gọn 💵 ở Tổng quan (15/11/2026): đọc được số lãi mà không cần mở
     dashDaily.line = C.map(function (c) { return c[0].replace(/<[^>]+>/g, '').replace(/\s*\(.*\)\s*$/, '').replace(/^Từ đầu .* tới nay$/, 'Từ đầu tháng').replace(/^Dự kiến cả .*/, 'Dự kiến cả tháng') + ': ' + lab(c[1]); }).join(' · ');
     var tg = KR ? '<button class="btn sm ghost" data-dash="cogs" title="Đổi cách tính giá vốn">Giá vốn: ' + (X.KR ? '📑 theo kế toán ' + monthLabel(X.KR.m).replace(/^tháng /, 'T') : '🏷️ theo bảng giá CRM') + ' ⇄</button>' : '';
-    // ⚖️ hoà vốn dạng thanh tiến độ (19/11/2026, anh Sơn: cho bộ phận kinh doanh xem để hiểu vì sao công ty cần điều chỉnh): TB bán / ngày so với mức hoà vốn, còn thiếu bao nhiêu / ngày, chia đều cho sale văn phòng
+    // ⚖️ Hoà vốn dạng thanh tiến độ (19/11/2026, anh Sơn: cho bộ phận kinh doanh xem để hiểu vì sao công ty cần điều chỉnh): TB bán / ngày so với mức hoà vốn, còn thiếu bao nhiêu / ngày, chia đều cho sale văn phòng
     var avgD = full.length ? fRev / full.length : 0, nSale = (S.d.users || []).filter(function (u) { return u.role === 'Sale & CSKH' && !u.ctv; }).length, beH = '';
     if (be) {
       var pB = avgD / be, gap = be - avgD;
