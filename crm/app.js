@@ -6112,7 +6112,7 @@
           '<p class="dpl-be">' + full.length + ' ngày qua bán trung bình <b>' + ms(avgD) + ' / ngày</b> = ' + Math.round(pB * 100) + '% mức hoà vốn' +
           (pB >= 1 ? ': đã vượt hoà vốn 🎉 Giữ nhịp này là có lãi.' : ' → cả văn phòng cần bán thêm khoảng <b>' + ms(gap) + ' / ngày</b>' + (nSale > 1 ? ' (chia đều ' + nSale + ' sale ≈ <b>' + ms(gap / nSale) + ' / người / ngày</b>)' : '') + '.') + '</p>' : '') +
         '<p class="small muted" style="margin:4px 0 0">Vì sao: mỗi ngày công ty phải trả khoảng ' + ms(fx1) + ' chi phí cố định (lương, mặt bằng, điện, ship…), bán ít hay nhiều cũng phải trả. Mỗi 1 triệu bán ra, trừ tiền hàng + quảng cáo còn khoảng ' + Math.round(cm * 1000) + ' nghìn để trả khoản này.' + (D.length > 1 ? ' ' + nOk + ' ngày lãi · ' + nBad + ' ngày lỗ.' : '') + '</p></div>';
-      if (p.k === 'month' && full.length >= 3 && lvl() >= 3) coPush({ m: month, be: be, avg: avgD, nd: full.length, fx: fx1 }); // 🏢 gửi cho khung hoà vốn của sale (mức A)
+      if (p.k === 'month' && full.length >= 3 && lvl() >= 3 && M && sj && (X.KR || !ktCogsRate())) coPush({ m: month, be: be, avg: avgD, nd: full.length, fx: fx1 }); // 🏢 gửi cho khung hoà vốn của sale (mức A)
     } else if (cm !== null && cm <= 0) beH = '<p class="dpl-be">🔴 Tiền hàng + quảng cáo đang lớn hơn doanh số: bán càng nhiều càng lỗ, cần xem lại quảng cáo / giá bán.</p>';
     return '<div class="box dpl"><div class="dpl-h"><h3>💵 Lãi lỗ thật <small>(sau giá vốn, quảng cáo, lương, mặt bằng)</small></h3>' + tg + '</div>' +
       '<div class="dpl-n">' + C.map(function (c) { return '<div class="dpl-v ' + cl(c[1]) + '"><span>' + c[0] + '</span><b>' + lab(c[1]) + '</b><small>' + c[2] + '</small></div>'; }).join('') + '</div>' + bars +
@@ -13870,7 +13870,7 @@
     S.beSent = 1; api('be_vr_set', { r: g.r + Math.min(0.2, sh) + v / (1 + v) }).then(function () { }, function () { });
   }
   /* ---------- 🏢 Hoà vốn cả văn phòng cho sale (19/11/2026, anh Sơn chọn mức A: chỉ hiện việc cần bán, không có số lỗ, giá vốn).
-   * Quản trị mở Tổng quan (khung 💵 chọn Tháng này, ≥3 ngày trọn) → coPush gửi: cần bán / ngày (be), TB đang bán / ngày (avg), số ngày (nd), chi phí cố định / ngày (fx), phần chia mỗi sale văn phòng theo mục tiêu tháng (sh; chưa ai đặt thì chia đều).
+   * Quản trị mở Tổng quan (khung 💵 chọn Tháng này, ≥3 ngày trọn, ĐÃ tải xong quảng cáo + sàn, giá vốn theo kế toán) → coPush gửi: cần bán / ngày (be), TB đang bán / ngày (avg), số ngày (nd), chi phí cố định / ngày (fx), phần chia mỗi sale văn phòng theo mục tiêu tháng (sh; chưa ai đặt thì chia đều).
    * Máy chủ lưu kv be_co; sale_mkt trả co (sale chỉ nhận phần của mình: my). Khung hiện dưới khung 💸 ở tab Hôm nay (beCoBlock). Gửi tối đa 30 phút / lần. */
   function coPush(c) {
     if (S.coSent && Date.now() - S.coSent < 1800e3) return; S.coSent = Date.now();
