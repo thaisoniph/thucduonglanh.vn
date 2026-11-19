@@ -2,7 +2,8 @@
  * Ai đăng nhập CRM cũng thấy "Chào buổi sáng, <tên>" + 1 câu chúc ở đầu màn hình đầu tiên. Cả công ty cùng 1 câu / ngày (giống 🌿 Quy tắc của ngày)
  * để mọi người có chuyện nói với nhau. Thứ tự ưu tiên: ngày lễ / rằm / mùng 1 (lịch zday.js) → thứ Hai → thứ Bảy → Chủ nhật → ngày thường.
  * Câu chúc ấm áp, 1 dòng, không nhắc doanh số / tiền / bán hàng. Quản trị sửa ở Cài đặt → 👥 Nhân sự → 🌿 Văn hoá (kv 'vh_wish': mỗi ô 1 câu / dòng, ô trống = câu gốc).
- * Không dùng AI → không tốn tiền. Gửi kèm lệnh vh_today (vanhoa.js). */
+ * Không dùng AI → không tốn tiền. Gửi kèm lệnh vh_today (vanhoa.js).
+ * 19/11/2026: anh Sơn nhờ duyệt → sửa 10 câu (câu dịch máy, câu chỉ hợp với sale, câu nói "buổi sáng"/thời tiết trong khi CRM mở cả ngày, câu lặp ý, gần với nói công dụng). */
 import { all, kvJson, kvSet, fmtDate, DAY } from './lib.js';
 import { eventsAhead } from './zday.js';
 
@@ -20,12 +21,12 @@ export const WISH0 = {
     'Chúc bạn hôm nay gặp toàn người dễ thương và chuyện dễ chịu 🌸',
     'Sức khoẻ là món quà quý nhất. Chúc bạn và gia đình luôn mạnh khoẻ, bình an 🍀',
     'Chúc bạn một ngày làm việc tập trung, xong việc sớm và về nhà thật vui 🏡',
-    'Người ta nhớ cách mình làm họ cảm thấy. Chúc bạn hôm nay lan toả thật nhiều điều ấm áp 🤝',
+    'Người ta có thể quên lời mình nói, nhưng sẽ nhớ mãi cảm giác mình mang lại. Chúc bạn hôm nay lan toả thật nhiều điều ấm áp 🤝',
     'Chúc bạn hôm nay tự hào về chính mình, dù chỉ vì một việc nhỏ làm thật tốt ⭐',
     'Trời có thể nắng hay mưa, mong lòng bạn luôn trong xanh. Chúc bạn một ngày an vui 🌤️',
     'Chúc bạn hôm nay học được một điều mới và kể lại cho đồng đội cùng nghe 📚',
-    'Mỗi cuộc gọi là một người được quan tâm. Chúc bạn một ngày gieo thật nhiều yêu thương 📞',
-    'Chúc bạn ăn sáng ngon miệng, làm việc hăng say và ngủ thật ngon tối nay 🌙',
+    'Việc mình làm hôm nay, dù nhỏ, đều có người được nhờ. Chúc bạn một ngày gieo thật nhiều yêu thương 💚',
+    'Chúc bạn hôm nay làm việc hăng say, tối về nghỉ ngơi thật ngon giấc 🌙',
     'Chậm lại một chút, mỉm cười nhiều hơn một chút. Chúc bạn một ngày thật bình yên 🍃',
     'Chúc bạn hôm nay có thật nhiều khoảnh khắc khiến mình mỉm cười 😄',
     'Cảm ơn bạn đã có mặt ở đây hôm nay. Chúc bạn một ngày thật nhiều niềm vui 💐',
@@ -39,7 +40,7 @@ export const WISH0 = {
     'Niềm vui nhân đôi khi được chia sẻ. Chúc bạn có một ngày thật nhiều chuyện vui để kể 🎈',
     'Chúc bạn hôm nay luôn bình tĩnh trước khó khăn và biết ơn trước những điều tốt đẹp 🙏',
     'Chúc bạn một ngày mà khi nhìn lại, bạn thấy mình đã sống thật trọn vẹn 🌅',
-    'Gửi bạn một nụ cười buổi sáng 😊 Chúc bạn hôm nay mọi sự hanh thông',
+    'Gửi bạn một nụ cười thật tươi. Chúc bạn hôm nay mọi sự hanh thông 😊',
     'Chúc bạn hôm nay được làm điều mình giỏi nhất và được ghi nhận xứng đáng 🏅',
     'Lành từ bữa ăn, lành từ suy nghĩ, lành từ cách mình đối xử với nhau. Chúc bạn một ngày Sống Lành 🌱',
     'Chúc bạn hôm nay có đủ thời gian cho công việc và cả cho chính mình 🕊️',
@@ -49,19 +50,19 @@ export const WISH0 = {
     'Hôm qua là bài học, hôm nay là món quà. Chúc bạn trân trọng từng phút giây 🎁',
     'Chúc bạn hôm nay được ai đó nói lời cảm ơn, và bạn cũng nói lời cảm ơn với ai đó 🤗',
     'Chúc bạn có một ngày tràn đầy cảm hứng, ý tưởng hay cứ thế mà đến 💡',
-    'Mỗi người mình chăm sóc đều là một gia đình được khoẻ hơn. Chúc bạn một ngày thật ý nghĩa 💚',
+    'Mỗi việc mình làm đều góp một phần cho thêm nhiều gia đình sống lành. Chúc bạn một ngày thật ý nghĩa 💚',
     'Chúc bạn hôm nay tâm an, thân khoẻ, việc thuận 🌿',
     'Cùng nhau thì việc gì cũng nhẹ hơn. Chúc cả nhà mình một ngày làm việc thật ăn ý 🤝',
     'Chúc bạn hôm nay mỉm cười với cả những điều chưa như ý, vì ngày mai sẽ tốt hơn 🌈',
-    'Chúc bạn một ngày nhiều nắng ấm trong lòng, dù ngoài trời có ra sao ☀️',
+    'Chúc bạn hôm nay có một khoảnh khắc nhỏ thật đáng nhớ để tối về kể cho người thân nghe ☀️',
     'Hãy dịu dàng với chính mình hôm nay nhé. Chúc bạn một ngày thật thong thả 🌸',
-    'Chúc bạn hôm nay hoàn thành việc quan trọng nhất trước tiên, rồi thảnh thơi tận hưởng phần còn lại ✅',
+    'Chúc bạn hôm nay làm xong việc quan trọng nhất trước, rồi thảnh thơi với phần còn lại ✅',
     'Có bạn là một may mắn của cả đội. Chúc bạn một ngày thật vui 🍀',
     'Chúc bạn hôm nay ăn ngon, ngủ đủ, cười nhiều và lo ít 😊',
     'Điều tốt mình làm hôm nay, ngày mai sẽ quay về với mình. Chúc bạn một ngày gieo hạt lành 🌾',
     'Chúc bạn có một ngày mà mỗi việc nhỏ đều được làm bằng cả trái tim 💗',
     'Chúc bạn hôm nay được bình yên giữa bộn bề, được vui vẻ giữa bận rộn 🍃',
-    'Sáng nay trời đẹp, mong lòng bạn cũng đẹp như vậy. Chúc bạn một ngày an lành 🌤️',
+    'Ai cũng có ngày mệt, và nghỉ một chút cũng không sao. Chúc bạn một ngày được thương và được hiểu 🌤️',
     'Chúc bạn hôm nay vững tin vào chính mình. Bạn làm được nhiều hơn bạn nghĩ đấy 💪',
     'Chúc bạn một ngày được đồng đội nâng đỡ và được khách hàng tin yêu 💚',
     'Mỗi ngày khoẻ hơn một chút, vui hơn một chút, tử tế hơn một chút. Chúc bạn một ngày như thế 🌱',
@@ -78,8 +79,8 @@ export const WISH0 = {
     'Đầu tuần uống một cốc nước ấm, đặt một mục tiêu nhỏ rồi bắt đầu nhé. Chúc bạn tuần mới thật vui 💧'
   ],
   sat: [
-    'Thứ Bảy rồi! Cảm ơn bạn đã đồng hành cả tuần. Chúc bạn một ngày làm việc nhẹ nhàng và một cuối tuần thật ấm áp 🏡',
-    'Chúc bạn khép lại tuần làm việc thật trọn vẹn và có một ngày Chủ nhật nghỉ ngơi thật trọn vẹn 🌿',
+    'Thứ Bảy rồi! Cảm ơn bạn đã đồng hành cả tuần. Chúc bạn một cuối tuần thật ấm áp 🏡',
+    'Chúc bạn khép lại tuần làm việc thật trọn vẹn và có một ngày Chủ nhật nghỉ ngơi thật thảnh thơi 🌿',
     'Cuối tuần rồi, mình cùng nhìn lại một điều làm tốt trong tuần nhé. Chúc bạn một thứ Bảy vui vẻ 😊',
     'Chúc bạn một thứ Bảy thật thong thả, và hẹn gặp lại bạn sau một ngày nghỉ thật khoẻ 🍵',
     'Một tuần đã qua với bao cố gắng. Chúc bạn tối nay được quây quần bên người thương 💛',
