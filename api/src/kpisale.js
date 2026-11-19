@@ -31,7 +31,7 @@ const outRow = r => ({ month: r.month, name: r.name, mgr: parse(r.mgr), mgrBy: r
 /** sale_kpi {op}: list {month} · mgr {month, name, s, done, snap} (Quản lý / Quản trị) · reopen {month, name}. Sale chỉ đọc phiếu của mình. */
 export async function crmSaleKpi(x, u, d, log) {
   const mgr = u.level >= 2;
-  if (u.level < 1) return { ok: false, error: 'Chỉ sale, Quản lý và Quản trị xem được KPI sale.' };
+  if (!mgr) return { ok: false, error: 'Phiếu KPI sale tạm chỉ Quản lý và Quản trị xem.' }; // 20/11/2026 anh Sơn: sale chưa thấy phiếu
   await ksSchema(x.db);
   const op = String(d.op || 'list'), now = Date.now(), month = String(d.month || '');
   if (!MON.test(month)) return { ok: false, error: 'Chọn tháng.' };

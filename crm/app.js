@@ -14124,7 +14124,7 @@
     var h = (lvl() >= 2 && !me ? '<button class="btn ghost" data-who="team" style="margin-bottom:10px">← Quay lại cả nhóm</button>' : '') +
       targetBlock(name, month, ms, me || lvl() >= 2, c.avg || p.avg) + repMoneyLine(c, p, cx);
     h += '<section class="dash-hero">' + repTodo(c, p, me, mb) + repSteps(c, p, mk, mb, T) + repFix(c, p, mb, T, mk && mk.best) + '</section>';
-    h += ksCard(name, month); // 📋 Phiếu KPI tháng (19/11/2026)
+    if (lvl() >= 2) h += ksCard(name, month); // 📋 Phiếu KPI tháng (19/11/2026); 20/11 anh Sơn: tạm chỉ Quản lý / Quản trị xem, sale chưa thấy
     // 19/11/2026 (anh Sơn: "làm tương tự" Tổng quan / Kế toán): mục tiêu + việc cần làm + 6 bước ở thẻ đầu, chi tiết chia thẻ
     var TQ = h, RSB = refSaleBox(name); h = '';
     h += repMore('rtrend', '📈 Bán hàng theo ngày', 'Doanh số, số đơn, lượt chăm sóc từng ngày, so với ' + (CMP_LABEL || 'kỳ trước'), repTrend(name, cx));
