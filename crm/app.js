@@ -7607,12 +7607,14 @@
      * mọi phần còn lại cất vào nhóm gập (data-dk kt_g_*, nhớ nhóm đang mở). Trước đây 11 mục mở sẵn liền nhau, 6 nút to ngang nhau. */
     var h = '<div class="ktv-wrap"><div class="page-head"><h1>💼 Kế toán</h1><div class="grow"></div><button class="btn ghost" data-dash="fresh" title="Lấy số mới nhất">↻ Cập nhật số</button></div>';
     knLoad(); h += ktTodayHTML(L, old);
-    h += '<h2 class="ktv-h ktd-h2">💵 Tiền của công ty <small>' + esc(perLabel(f.p).toLowerCase()) + ' · bấm ô để xem từng đơn</small></h2>' + perChips('g', f.p) + '<div class="ktv-n">' +
+    // 19/11/2026 (anh Sơn: "làm tương tự" Tổng quan / Marketing): 4 ô tiền + 6 mục gập + cài đặt → thẻ chia 3 nhóm theo khi nào làm; mỗi lần xem 1 thẻ
+    var kt = ktTab(); KTG_OUT = {};
+    h += '<div class="ktd-per"><span class="small muted">Xem số của:</span>' + perChips('g', f.p) + '</div>' + grpMenu(KT_G, kt, function (x) { return 'data-ktt="' + x + '"'; });
+    if (kt === 'tien') h += inTabi('Tiền đã về, tiền hãng vận chuyển chưa trả, chuyển khoản chờ tích, tiền sắp về (' + esc(perLabel(f.p).toLowerCase()) + ').', ['Ô vàng / đỏ: bấm vào để xem từng đơn', 'Thấy tiền trên sao kê thì tích đơn đó']) + '<div class="ktv-n">' +
       card('ok', '✅ Đã về tài khoản', moneyShort(gv), got.length + ' đơn đã ghi tiền về', got.length ? 'got' : '') +
       card(old.length ? 'bad' : L.treo.length ? 'mid' : 'ok', '💤 Hãng chưa trả', moneyShort(tv), L.treo.length ? L.treo.length + ' đơn đã giao, hãng chưa trả tiền' + (old.length ? ' · <b>⚠️ ' + old.length + ' đơn quá ' + KTV_OLD + ' ngày</b>' : '') : 'Không có đơn nào', L.treo.length ? 'treo' : '') +
       card(L.bank.length ? 'mid' : 'ok', '🏦 Chuyển khoản chờ tích', moneyShort(bv), L.bank.length ? L.bank.length + ' đơn: xem sao kê rồi tích' : 'Không có đơn nào', L.bank.length ? 'bank' : '') +
       card('', '🚚 Tiền sắp về', moneyShort(ktvSum(L.ship)), L.ship.length + ' đơn thu hộ đang giao', '') + '</div>';
-    h += '<p class="ktd-more-h">📂 <b>Xem thêm khi cần</b> <span>bấm vào từng mục để mở</span></p>';
     var nW = (KTB.d || []).filter(function (x) { return x.st === 'wait'; }).length;
     h += ktGrp('kt_g_tien', '🧾', 'Phiếu đối soát & tiền treo ở hãng', nW ? nW + ' phiếu đang chờ tiền' : 'Không có phiếu nào đang chờ', ktbHTML() +
       (byL.length ? '<div class="box ktv-by"><h3>💤 Tiền treo theo hãng <small>bấm để xem từng đơn</small></h3>' + byL.map(function (x) {
@@ -7627,14 +7629,38 @@
       dashMore('rpm', '📊 Báo cáo 3 · 6 · 12 tháng & 🎯 KPI sale', rpmLine(), rpmHtml()) + (CO ? dashMore('cost', '📊 Chi phí lớn & cách tối ưu', CO.line, CO.body) : '') +
       '<h3 class="ktd-sub">🏦 Tiền & công nợ</h3>' + dashFin());
     ktkLoad(); h += ktGrp('kt_g_kho', '📦', 'Hàng tồn kho (tính bằng tiền)', 'Số còn × giá nhập · chọn Cuối tháng để chốt sổ', ktkHTML());
-    h += '<details class="box ktv-more"><summary>⚙️ Cài đặt kế toán</summary><p class="small">Theo dõi tiền về cho đơn đặt <b>từ ngày</b>: <input type="date" id="ktvFrom" value="' + esc(ktvCfg().from) + '"> <button class="btn sm" id="ktvFromSave">Lưu</button></p><p class="small muted">Đơn trước ngày này không tính vào tiền treo (thường là đơn đã đối soát xong ở sổ sách cũ).</p><p class="small" style="margin-top:12px"><b>Tài khoản nhận tiền</b> (mỗi dòng 1 tài khoản, hiện ở ô chọn khi ghi tiền về):</p><textarea id="ktvAccts" rows="4" style="width:100%;max-width:360px">' + esc(ktvAccts().join('\n')) + '</textarea><p><button class="btn sm" id="ktvAcctSave">Lưu tài khoản</button></p><p class="small muted">💰 Giá vốn sản phẩm sửa ở <a href="#cai-dat">Cài đặt</a>. Lương, mặt bằng… nhập ở 📊 Lãi lỗ & báo cáo → 🧮 Lãi lỗ sau mọi chi phí.</p></details>';
+    var KX = KTG_OUT[{ doi: 'kt_g_tien', shopee: 'kt_g_shopee', ncc: 'kt_g_ncc', kho: 'kt_g_kho', thang: 'kt_g_thang', lai: 'kt_g_lai' }[kt]], KI = KT_INFO[kt];
+    if (KX) h += inTabi(KI[0], KI[1], KX.line) + '<div class="ktd-tabb" id="dg-' + KX.k + '">' + KX.body + '</div>';
+    if (kt === 'cai') h += inTabi('Cài đặt dùng chung cho trang Kế toán. <b>Ít khi phải sửa.</b>', ['Đổi ô cần đổi, bấm <b>Lưu</b>']) + '<details class="box ktv-more" open><summary>⚙️ Cài đặt kế toán</summary><p class="small">Theo dõi tiền về cho đơn đặt <b>từ ngày</b>: <input type="date" id="ktvFrom" value="' + esc(ktvCfg().from) + '"> <button class="btn sm" id="ktvFromSave">Lưu</button></p><p class="small muted">Đơn trước ngày này không tính vào tiền treo (thường là đơn đã đối soát xong ở sổ sách cũ).</p><p class="small" style="margin-top:12px"><b>Tài khoản nhận tiền</b> (mỗi dòng 1 tài khoản, hiện ở ô chọn khi ghi tiền về):</p><textarea id="ktvAccts" rows="4" style="width:100%;max-width:360px">' + esc(ktvAccts().join('\n')) + '</textarea><p><button class="btn sm" id="ktvAcctSave">Lưu tài khoản</button></p><p class="small muted">💰 Giá vốn sản phẩm sửa ở <a href="#cai-dat">Cài đặt</a>. Lương, mặt bằng… nhập ở 📊 Lãi lỗ & báo cáo → 🧮 Lãi lỗ sau mọi chi phí.</p></details>';
     return h + '</div>';
   }
   /* ---------- 👉 Việc hôm nay của kế toán (16/11/2026). 3 việc đều đặn (Best, sao kê, phiếu COD thứ 2·4·6) + việc phát sinh lấy từ số liệu.
    * Việc đều đặn: làm xong (lưu thành công) thì ktMark ghi ngày vào máy này → ✅. Việc phát sinh: hết việc thì tự biến mất. */
+  /** 💼 Kế toán chia 3 nhóm thẻ (19/11/2026) */
+  var KT_G = [['💵 Mỗi ngày', 'tiền về, tiền treo', [['tien', '💵', 'Tiền công ty', '4 ô tiền'], ['doi', '🧾', 'Phiếu đối soát', 'tiền treo ở hãng'], ['shopee', '🟠', 'Shopee', 'tiền về từng đơn']]],
+    ['🧾 Khi có hoá đơn', 'nhập hàng, kiểm kho', [['ncc', '🧾', 'Nhà cung cấp', 'công nợ, đối chiếu'], ['kho', '📦', 'Hàng tồn kho', 'tính bằng tiền']]],
+    ['📅 Cuối tháng', 'chốt sổ', [['thang', '📅', 'Việc cuối tháng', 'doanh số sale, lương, KPI'], ['lai', '📊', 'Lãi lỗ', 'và báo cáo'], ['cai', '⚙️', 'Cài đặt', 'ít khi sửa']]]];
+  var KT_INFO = {
+    doi: ['Phiếu tiền thu hộ (COD) hãng chuyển về và tiền còn treo ở từng hãng.', ['Thấy <b>đúng số tiền</b> của phiếu trên sao kê thì bấm <b>✅ Đã về</b>', 'Hãng nợ quá lâu: bấm tên hãng xem đơn, gọi hỏi hãng']],
+    shopee: ['Tải file Shopee, máy tự đối chiếu tiền về từng đơn (thay VLOOKUP).', ['Tải file đơn hàng + Số dư tài khoản Shopee', 'Đọc dòng lệch tiền, chép bảng nếu cần']],
+    ncc: ['Ghi hoá đơn nhập hàng; máy tự trừ khi sao kê có khoản trả, nhắc khoản sắp đến hạn.', ['Có hoá đơn nhập hàng: ghi hoá đơn (hoặc 📷 chụp để AI đọc)', 'Đầu tháng: đối chiếu công nợ với nhà cung cấp']],
+    kho: ['Hàng còn trong kho tính bằng tiền: số còn × giá nhập.', ['Cuối tháng: chọn <b>Cuối tháng</b> để chốt sổ']],
+    thang: ['Chốt doanh số theo sale, đơn hạ COD, bảng lương, KPI tháng.', ['Chọn kỳ <b>Tháng trước</b> ở trên', 'Làm lần lượt từ trên xuống, chép bảng gửi anh/chị']],
+    lai: ['Công ty lãi hay lỗ, tiền & công nợ, chi phí lớn, báo cáo nhiều tháng (cùng số với Tổng quan).', ['Đọc dòng tóm tắt của từng mục', 'Muốn xem kỹ: bấm vào mục để mở']]
+  };
+  var KT_GO = { kt_g_tien: 'doi', kt_g_shopee: 'shopee', kt_g_ncc: 'ncc', kt_g_kho: 'kho', kt_g_thang: 'thang', kt_g_lai: 'lai' };
+  var KT_TAB = '';
+  function ktTab() {
+    if (!KT_TAB) KT_TAB = store('kt_tab') || 'tien';
+    if (!KT_G.some(function (g) { return g[2].some(function (x) { return x[0] === KT_TAB; }); })) KT_TAB = 'tien';
+    return KT_TAB;
+  }
   function ktMark(k) { store('kt_d_' + k, isoDate(Date.now())); }
   function ktDid(k) { return store('kt_d_' + k) === isoDate(Date.now()); }
-  function ktGrp(k, ic, t, line, body) {
+  /** 19/11/2026: chia thẻ → ktGrp chỉ ghi lại mục (KTG_OUT), viewKt vẽ mục của thẻ đang chọn */
+  var KTG_OUT = {};
+  function ktGrp(k, ic, t, line, body) { KTG_OUT[k] = { k: k, line: line, body: body }; return ''; }
+  function ktGrpOld(k, ic, t, line, body) {
     return '<details class="dash-grp ktd-grp" data-dk="' + k + '" id="dg-' + k + '"' + (S.f.g.open[k] ? ' open' : '') + '><summary><span class="ktd-ic" aria-hidden="true">' + ic + '</span><span class="dash-grp-t"><b>' + t + '</b><small>' + line + '</small></span></summary><div class="dash-grp-b">' + body + '</div></details>';
   }
   /** Bỏ tiêu đề h2 đầu của 1 khối khi khối đã nằm trong nhóm gập có tên (khỏi lặp chữ). */
@@ -8492,7 +8518,11 @@
     var ks = $('#ktkSel'); if (ks) ks.onchange = function () { KTK.sel = ks.value; softRender(true); };
     var kr = $('[data-ktk="re"]'); if (kr) kr.onclick = function () { ktkLoad(true); softRender(true); };
     bindKtb(); bindKsp(); bindKn();
-    $$('[data-ktgo]').forEach(function (el) { el.onclick = function () { var k = el.getAttribute('data-ktgo'), d = $('#dg-' + k); if (!d) return; d.open = true; S.f.g.open[k] = 1; store('dash_open', JSON.stringify(S.f.g.open)); d.scrollIntoView({ behavior: 'smooth', block: 'start' }); }; });
+    $$('[data-ktt]').forEach(function (el) { el.onclick = function () { KT_TAB = el.getAttribute('data-ktt'); store('kt_tab', KT_TAB); render(); }; });
+    $$('[data-ktgo]').forEach(function (el) { el.onclick = function () {
+      var k = el.getAttribute('data-ktgo'); if (KT_GO[k] && KT_TAB !== KT_GO[k]) { KT_TAB = KT_GO[k]; store('kt_tab', KT_TAB); render(); }
+      var d = $('#dg-' + k); if (d) d.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }; });
     var ki = $('.ktk-in'); if (ki) ki.ontoggle = function () { KTK.openIn = ki.open; };
     $$('[data-ktv]').forEach(function (el) {
       el.onclick = function () { var a = el.getAttribute('data-ktv').split('|'); if (a[0] === 'cod') openKtvCod(); else if (a[0] === 'vcb') openKts(); else if (a[0] === 'chi') openKtch(); else openKtvList(a[0], a[1] || ''); };

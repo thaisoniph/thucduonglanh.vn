@@ -907,7 +907,7 @@ kt-shopee:
         - ["note", "Chọn cùng lúc: Order.all + Số dư TK"]
         - ["note", "(+ Tiếp thị liên kết nếu có)"]
       hi: 1
-      text: "Tab <b>💼 Kế toán</b> → mục <b>🟠 Shopee – tiền về từng đơn</b> → <b>📤 Tải file Shopee</b>. Chọn <b>cùng lúc</b> file Đơn hàng và file Số dư TK Shopee (tuần 1 lần)."
+      text: "Tab <b>💼 Kế toán</b> → thẻ <b>🟠 Shopee</b> (nhóm 💵 Mỗi ngày) → <b>📤 Tải file Shopee</b>. Chọn <b>cùng lúc</b> file Đơn hàng và file Số dư TK Shopee (tuần 1 lần)."
     - title: Shopee – tiền về từng đơn
       els:
         - ["chips", ["✅ Đã trả", "🔴 Quá hạn", "⏳ Chờ trả"], 1]

@@ -4,7 +4,7 @@ nav: Kế toán
 group: kho-ke-toan
 short: Đối soát tiền, công nợ, lãi lỗ, KPI
 order: 4.6
-updated: 2026-11-16
+updated: 2026-11-19
 description: Ghi tiền về tài khoản (tải file đối soát COD Best / Viettel Post hoặc tích tay), đối soát Shopee từng đơn, ghi công nợ nhà cung cấp, tự chấm KPI tháng, xem tiền còn treo ở hãng vận chuyển, nhập chi phí, xem lãi lỗ theo ngày / tuần / tháng. Có hình từng bước.
 roles: [kt]
 ---
@@ -49,14 +49,27 @@ Mở tab **💼 Kế toán**: khung **👉 Việc hôm nay** trên cùng đã x�
 
 ## Màn hình 💼 Kế toán
 
-Màn hình có 3 phần, đọc từ trên xuống:
+Trên cùng luôn là **👉 Việc hôm nay**. Bên dưới là ô chọn kỳ (Hôm nay, Tháng này, Tháng trước…) và **các thẻ chia 3 nhóm theo khi nào làm** (từ 19/11/2026). Mỗi lần xem 1 thẻ, đầu thẻ có ô xanh **📌 Dùng để** + các bước:
 
-![Việc hôm nay (1), việc đã xong (2), nút làm việc (3), 4 ô tiền (4), mục xem thêm (5)](/huong-dan/img/ke-toan-tab.webp)
+| Nhóm | Thẻ | Dùng để |
+|---|---|---|
+| **💵 Mỗi ngày** | 💵 Tiền công ty | 4 ô tiền (bảng dưới) |
+| | 🧾 Phiếu đối soát | Phiếu chờ tiền, tiền treo theo từng hãng, ghi tiền về bằng tay, xem tiền ra đã lưu |
+| | 🟠 Shopee | Tiền Shopee về từng đơn |
+| **🧾 Khi có hoá đơn** | 🧾 Nhà cung cấp | Công nợ, hoá đơn, đối chiếu, chứng từ |
+| | 📦 Hàng tồn kho | Hàng còn trong kho tính bằng tiền |
+| **📅 Cuối tháng** | 📅 Việc cuối tháng | Chốt doanh số theo sale, đơn hạ COD, bảng lương, KPI |
+| | 📊 Lãi lỗ | Lãi lỗ, tiền & công nợ, chi phí lớn, báo cáo nhiều tháng |
+| | ⚙️ Cài đặt | Ngày bắt đầu theo dõi tiền về |
+
+Bấm nút trong 👉 Việc hôm nay thì máy tự mở đúng thẻ. Máy nhớ thẻ bạn xem lần trước.
+
+![Việc hôm nay (1), việc đã xong (2), nút làm việc (3), 4 ô tiền (4)](/huong-dan/img/ke-toan-tab.webp)
 
 1. **👉 Việc hôm nay**: danh sách việc cần làm hôm nay, có số thứ tự. Góc phải ghi **Còn mấy việc**. Hết việc thì hiện **🎉 Xong hết**.
 2. Làm xong việc nào (lưu thành công), máy tự đổi số thành **✓ xanh** và ghi **✅ Đã làm hôm nay**. Sáng mai danh sách tự làm mới.
 3. Mỗi việc có **1 nút** ngay bên cạnh: bấm là mở đúng chỗ cần làm. Nút **xanh đậm** = việc nên làm ngay.
-4. **4 ô tiền** của công ty (bấm ô để xem từng đơn):
+4. Thẻ **💵 Tiền công ty**: 4 ô tiền (bấm ô để xem từng đơn):
 
 | Ô | Nghĩa là |
 |---|---|
@@ -65,11 +78,6 @@ Màn hình có 3 phần, đọc từ trên xuống:
 | 🏦 **Chuyển khoản chờ tích** | Đơn khách chuyển khoản, kế toán chưa đối chiếu sao kê |
 | 🚚 **Tiền sắp về** | Đơn thu hộ còn đang giao |
 
-5. **📂 Xem thêm khi cần**: các mục ít dùng được cất gọn, bấm vào tên mục để mở, bấm lần nữa để gập. Máy nhớ mục bạn đang mở.
-   - **🧾 Phiếu đối soát & tiền treo ở hãng**: danh sách phiếu chờ tiền, tiền treo theo từng hãng, nút ghi tiền về bằng tay, xem tiền ra đã lưu.
-   - **🟠 Shopee**, **🧾 Công nợ nhà cung cấp**.
-   - **📅 Việc cuối tháng**: chốt doanh số theo sale, đơn hạ COD, bảng lương, KPI.
-   - **📊 Lãi lỗ & báo cáo**, **📦 Hàng tồn kho**.
 
 **Việc hôm nay gồm những gì?**
 
@@ -193,7 +201,7 @@ Bấm ô **🏦 Chuyển khoản chờ xác nhận** (hoặc nút **✅ Ghi ti�
 
 ## Shopee: đơn nào Shopee đã trả tiền (thay cho VLOOKUP)
 
-Ở tab 💼 Kế toán, mở mục **🟠 Shopee: tiền về từng đơn** (trong 📂 Xem thêm khi cần). Máy tự ghép file đơn hàng với file tiền Shopee trả **theo mã đơn**, kế toán không phải VLOOKUP nữa.
+Ở tab 💼 Kế toán, bấm thẻ **🟠 Shopee** (nhóm 💵 Mỗi ngày). Máy tự ghép file đơn hàng với file tiền Shopee trả **theo mã đơn**, kế toán không phải VLOOKUP nữa.
 
 [[steps:kt-shopee]]
 
@@ -372,7 +380,7 @@ Trong phiếu, làm từng nhóm việc:
 
 ### Quản lý chấm lại và chốt
 
-Chị Thủy (Quản lý) mở tab **Hiệu quả**, kéo xuống cuối trang. Anh Sơn (Quản trị) mở tab **💼 Kế toán** → mục **📅 Việc cuối tháng**. Bấm tên người kế toán.
+Chị Thủy (Quản lý) mở tab **Hiệu quả**, kéo xuống cuối trang. Anh Sơn (Quản trị) mở tab **💼 Kế toán** → thẻ **📅 Việc cuối tháng**. Bấm tên người kế toán.
 
 ![Điểm kế toán tự chấm (1), chọn mức của quản lý (2), tổng điểm (3), chốt (4)](/huong-dan/img/ke-toan-kpi-chot.webp)
 
@@ -435,7 +443,7 @@ CRM chỉ lấy số tiền: lương cơ bản thực nhận, KPI, hoa hồng, p
 
 ### Quản lý duyệt bảng lương
 
-Chị Thủy mở tab **Hiệu quả** và kéo xuống cuối trang. Anh Sơn mở tab **💼 Kế toán** → mục **📅 Việc cuối tháng**. Xem bảng, bấm từng tên nếu cần, rồi bấm **✅ Duyệt bảng lương**. Sau khi duyệt, kế toán không sửa được nữa. Cần sửa thì bấm **🔓 Mở lại để sửa**. Bấm **↻ Lấy lại hoa hồng sale** khi vừa sửa đơn của tháng đó.
+Chị Thủy mở tab **Hiệu quả** và kéo xuống cuối trang. Anh Sơn mở tab **💼 Kế toán** → thẻ **📅 Việc cuối tháng**. Xem bảng, bấm từng tên nếu cần, rồi bấm **✅ Duyệt bảng lương**. Sau khi duyệt, kế toán không sửa được nữa. Cần sửa thì bấm **🔓 Mở lại để sửa**. Bấm **↻ Lấy lại hoa hồng sale** khi vừa sửa đơn của tháng đó.
 
 ## Nhập chi phí và xem lãi lỗ
 
@@ -474,7 +482,7 @@ Ghi chú:
 - Tháng này chưa nhập chi phí thì máy **tạm lấy theo tháng gần nhất** đã có, ghi rõ trên màn hình.
 - Quảng cáo máy tự lấy, không cần nhập.
 - **💰 Giá vốn sản phẩm** (giá nhập từng sản phẩm) sửa ở **Cài đặt**. Có giá vốn thì máy mới tính được lãi.
-- **🏦 Tiền & công nợ** (trong mục 📊 Lãi lỗ & báo cáo): bấm **🔗 Nối link** để nối file Google Sheet kế toán (Sổ chi, Số dư ngân hàng). Công nợ nhà cung cấp ghi ở mục **🧾 Công nợ nhà cung cấp**. Máy tự đọc lại 3 tiếng 1 lần.
+- **🏦 Tiền & công nợ** (thẻ 📊 Lãi lỗ): bấm **🔗 Nối link** để nối file Google Sheet kế toán (Sổ chi, Số dư ngân hàng). Công nợ nhà cung cấp ghi ở mục **🧾 Công nợ nhà cung cấp**. Máy tự đọc lại 3 tiếng 1 lần.
 
 ## Hàng tồn kho tính bằng tiền
 
@@ -482,7 +490,7 @@ Số lượng hàng do **người lo kho** ghi trên tab 📦 Kho (hàng về, l
 
 ![Chọn ngày (1), giá trị tồn kho (2), sản phẩm chưa có giá (3), hàng về kho (4)](/huong-dan/img/ke-toan-ton-kho.webp)
 
-Kéo xuống mục **📦 Hàng tồn kho** ở cuối tab 💼 Kế toán:
+Bấm thẻ **📦 Hàng tồn kho** (nhóm 🧾 Khi có hoá đơn) ở tab 💼 Kế toán:
 
 1. Chọn **Hôm nay**, hoặc **Cuối tháng …** khi chốt sổ cuối tháng.
 2. **Giá trị hàng tồn** = số hộp còn × giá nhập. Đây là số ghi vào báo cáo cuối tháng.
@@ -491,7 +499,7 @@ Kéo xuống mục **📦 Hàng tồn kho** ở cuối tab 💼 Kế toán:
 
 ## Theo dõi từ ngày nào?
 
-Cuối trang, mục **⚙️ Cài đặt kế toán**: chọn **ngày bắt đầu theo dõi tiền về** rồi bấm Lưu. Đơn đặt trước ngày này không tính vào tiền treo (thường là đơn đã đối soát xong ở sổ sách cũ). Mặc định: 01/10/2026.
+Thẻ **⚙️ Cài đặt** (nhóm 📅 Cuối tháng): chọn **ngày bắt đầu theo dõi tiền về** rồi bấm Lưu. Đơn đặt trước ngày này không tính vào tiền treo (thường là đơn đã đối soát xong ở sổ sách cũ). Mặc định: 01/10/2026.
 
 Cũng ở đây: **Tài khoản nhận tiền**, mỗi dòng 1 tài khoản (mặc định: Công ty, Anh Sơn, Hộ kinh doanh). Sửa xong bấm **Lưu tài khoản**.
 
