@@ -441,6 +441,28 @@ Mỗi bạn **tự đặt** mục tiêu của mình ngay từ ngày 1 đầu th�
 
 Từ đó, CRM cho bạn biết mỗi ngày cần bán bao nhiêu. Thanh màu chạy qua **vạch đen** (vạch đen là hôm nay) nghĩa là bạn đang **đúng tiến độ**. Dưới thanh có dòng **🙋 Khách tự tạo tháng này: x / 8** để bạn biết mình đã tự tìm được bao nhiêu khách.
 
+## Việc 7: Cuối tháng xem phiếu KPI của bạn (chạy thử từ 19/11/2026)
+
+**Một câu dễ nhớ:** Phiếu KPI chấm **cả cách bạn làm**, không chỉ doanh số. Mở **Hiệu quả**, kéo xuống dưới **💡 Khâu cần sửa nhất** là thấy.
+
+![Điểm tổng và xếp loại, 4 thanh điểm từng nhóm](/huong-dan/img/kpi-sale-the.webp)
+
+Phiếu có 4 nhóm, tổng 100 điểm:
+
+| Nhóm | Điểm | Chấm theo |
+|---|---|---|
+| 💰 Doanh số | 60 | Doanh số so với mục tiêu tháng bạn đặt. Tháng đang chạy thì so với tiến độ tới hôm nay |
+| 🪜 Việc dẫn tới doanh số | 20 | Gọi ngay trong ngày nhận số (đủ điểm từ 80%), tỷ lệ chốt số quảng cáo (đủ điểm khi bằng cả nhóm), doanh số từ khách cũ (đủ điểm từ 50%) |
+| 💚 Chất lượng phục vụ | 10 | Giao thành công (đủ điểm từ 95%), khách cũ quay lại mua (đủ điểm khi bằng tháng trước) |
+| 📋 Quy trình | 10 | Quản lý chấm: làm đúng quy trình, ghi CRM đầy đủ; giờ giấc, 10 Quy tắc danh dự |
+
+- CRM **tự chấm** từ đơn hàng, số quảng cáo và việc chăm sóc bạn ghi. Gọi mà không ghi lên CRM thì CRM không biết.
+- Mục nào chưa có số liệu (ví dụ bạn không nhận số quảng cáo) thì **không tính**, điểm chia lại theo các mục còn lại.
+- Xếp loại: **A** từ 90 điểm, **B** 75–89, **C** 60–74, dưới 60 quản lý gặp riêng để kèm. Doanh số dưới 70% mục tiêu thì cao nhất là loại C.
+- Bấm **Xem chi tiết** để biết từng mục được bao nhiêu điểm. Dòng **💡 Mất nhiều điểm nhất** là chỗ nên sửa trước.
+- Cuối tháng quản lý chấm 2 mục quy trình rồi **✅ Chốt**. Đã chốt thì điểm giữ nguyên.
+- Đang **chạy thử**, chưa tính vào lương.
+
 ## Trên màn hình CRM có gì?
 
 **Các tab** (trên điện thoại nằm ở thanh dưới cùng). Thanh dưới chỉ hiện **4 tab hay dùng + ••• Thêm**: với sale là **Hôm nay · Khách hỏi · Đơn hàng · Hiệu quả**. Tab nào không thấy thì bấm **••• Thêm**: ở đó có các tab còn lại (mỗi dòng ghi rõ dùng để làm gì), **Cài đặt**, **Hướng dẫn**, **💡 Góp ý**, **Tải lại dữ liệu**. Số đỏ trên nút Thêm = việc đang chờ ở các tab bên trong (ví dụ đơn mới).

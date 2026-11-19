@@ -3770,3 +3770,18 @@ details.top-fold[open] > summary::after { transform: rotate(180deg); }
 .mk-sch-r.ok b:first-child { color: #22693a; }
 .mk-sch-err { color: #9b2c22; }
 .mk-sch-n { display: block; width: 100%; margin-top: 4px; }
+/* 📋 Phiếu KPI tháng của sale (19/11/2026) */
+.ks-card { margin-top: 12px; }
+.ks-h { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; flex-wrap: wrap; } .ks-h h3 { margin: 0; }
+.ks-tot { font-size: 16px; margin: 8px 0 6px; } .ks-tot.ok b { color: var(--primary); } .ks-tot.bad b { color: var(--red); }
+.ks-why { background: #fff8e6; border-radius: 8px; padding: 6px 10px; }
+.ks-gs { display: grid; gap: 6px; margin: 8px 0; }
+.ks-g { display: grid; grid-template-columns: minmax(150px, 1fr) 2fr auto; gap: 8px; align-items: center; font-size: 14px; } .ks-g b { min-width: 64px; text-align: right; }
+.ks-bar { display: block; height: 8px; border-radius: 4px; background: var(--line); overflow: hidden; } .ks-bar u { display: block; height: 100%; background: var(--muted); }
+.ks-bar u.ok { background: var(--primary); } .ks-bar u.mid { background: #e8a33a; } .ks-bar u.bad { background: var(--red); }
+.ks-r .ktv-amt { min-width: 64px; text-align: right; } .ks-ok .ktv-amt { color: var(--primary); } .ks-bad .ktv-amt { color: var(--red); }
+.ks-sec { border: 1px solid var(--line); border-radius: 12px; padding: 8px 12px; margin: 8px 0; } .ks-sec h4 { margin: 0 0 4px; }
+.ks-it { display: flex; justify-content: space-between; gap: 10px; padding: 6px 0; border-top: 1px dashed var(--line); font-size: 14px; } .ks-it:first-of-type { border-top: 0; }
+.ks-it small { display: block; color: var(--muted); } .ks-it b { white-space: nowrap; } .ks-na b { color: var(--muted); font-weight: 400; }
+.ks-mq { margin: 8px 0 2px; }
+@media (max-width: 560px) { .ks-g { grid-template-columns: 1fr auto; } .ks-g .ks-bar { grid-column: 1 / -1; grid-row: 2; } }

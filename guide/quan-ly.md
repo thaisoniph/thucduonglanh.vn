@@ -167,6 +167,28 @@ Tài khoản Quản trị không nằm trong bảng so sánh nhân sự. Doanh s
 - Quản lý / Quản trị đặt hộ người khác được phép đặt thấp hơn mức tối thiểu (CRM hỏi lại một lần).
 - **Bảng thi đua đầy đủ** (mọi người, mọi hạng mục, cả số tiền) xem ở tab **Hiệu quả** → thẻ **👥 Từng người**. Tab Hôm nay của quản lý cũng có.
 
+## 📋 Phiếu KPI tháng của sale (chạy thử từ 19/11/2026)
+
+**Một câu dễ nhớ:** Cuối tháng mở **Hiệu quả → 👥 Từng người → 📋 Phiếu KPI**, bấm từng tên, chấm 2 mục quy trình rồi **✅ Chốt tháng**.
+
+Học từ bảng KPI nhân viên kinh doanh của phòng khám Thăng Long: chấm cả việc làm ra doanh số, không chỉ doanh số. Có 4 nhóm, tổng 100 điểm:
+
+- **💰 Doanh số (60):** doanh số so với mục tiêu tháng. Tháng đang chạy thì so với tiến độ tới hôm nay. Sale văn phòng chưa đặt mục tiêu thì tính mức 100 triệu.
+- **🪜 Việc dẫn tới doanh số (20):** gọi ngay trong ngày nhận số (7), tỷ lệ chốt số quảng cáo so với cả nhóm (7), doanh số từ khách cũ (6).
+- **💚 Chất lượng (10):** giao thành công (5), khách cũ quay lại mua so với tháng trước (5).
+- **📋 Quy trình (10):** quản lý chấm 2 mục theo mức 100 / 80 / 50 / 0%: làm đúng quy trình, ghi CRM đầy đủ (5); giờ giấc, 10 Quy tắc danh dự, hỗ trợ đồng đội (5).
+
+![Phiếu chi tiết: điểm từng mục và phần quản lý chấm](/huong-dan/img/kpi-sale-phieu.webp)
+
+1. Mở **Hiệu quả**, chọn **Tất cả nhân sự**, bấm thẻ **👥 Từng người**. Khung **📋 Phiếu KPI** xếp người điểm cao lên trước.
+2. Bấm tên một bạn sale. Xem điểm từng mục CRM đã tự chấm.
+3. Ở phần **✏️ Quản lý chấm**, chọn mức cho 2 mục, ghi nhận xét (việc cần kèm tháng sau).
+4. Bấm **✅ Chốt tháng**. Chưa chắc thì bấm **Lưu nháp**. Chốt rồi muốn sửa thì bấm **🔓 Mở lại để sửa**.
+
+Xếp loại: **A** từ 90 điểm, **B** 75–89, **C** 60–74, dưới 60 gặp riêng để kèm. **Doanh số dưới 70% mục tiêu thì cao nhất là loại C**, để bạn bán được nửa mục tiêu không lên được loại cao nhờ các mục khác. Mục chưa có số liệu (ví dụ cộng tác viên không nhận số quảng cáo, quản lý chưa chấm) thì không tính, điểm chia lại theo các mục còn lại.
+
+Đang **chạy thử, chưa tính vào lương**. Quy tắc 70% KPI → 50% lương cứng ở 📅 Báo cáo 3 · 6 · 12 tháng vẫn là đề xuất riêng, chưa nối với phiếu này.
+
 ## Giao khách và chuyển khách
 
 **Đổi người phụ trách 1 khách:** mở hồ sơ khách → **⚙️ Sửa thông tin** → ô **Người phụ trách** → **Lưu thay đổi**.
