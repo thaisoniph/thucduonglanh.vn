@@ -4,7 +4,7 @@ nav: CRM
 group: ban-hang
 short: 6 việc mỗi ngày trên CRM (đọc trước)
 order: 2
-updated: 2026-11-15
+updated: 2026-11-19
 description: 6 việc bạn làm mỗi ngày trên CRM. Mỗi việc chỉ vài bước.
 roles: [sale, ql]
 ---
@@ -55,6 +55,19 @@ Mã chỉ dùng được trong 10 phút. Vào được rồi thì **ngày nào b
 Tab **Hôm nay** có **1 nút ▶ Bắt đầu gọi**. Bấm là CRM hiện **từng khách một**: gọi xong bấm kết quả, CRM tự lưu và mở khách tiếp theo. Không cần nhìn danh sách dài.
 
 > **Câu dễ nhớ:** *Bấm Bắt đầu gọi → gọi → bấm kết quả → tự sang khách tiếp.*
+
+**Bên dưới nút gọi** là **các thẻ chia 3 nhóm** (từ 19/11/2026). Mỗi lần xem 1 thẻ, đầu thẻ có ô xanh **📌 Dùng để**. Máy nhớ thẻ bạn xem lần trước.
+
+| Nhóm | Thẻ | Trong thẻ |
+| --- | --- | --- |
+| **📞 Mỗi ngày** | 📞 Việc gọi | Lịch làm việc gợi ý, tất cả khách cần gọi, chuyển khoản chưa thấy tiền, dịp chúc khách |
+| | 💬 Zalo của tôi | Khách nhắn Zalo đang chờ bạn trả lời |
+| | 📦 Hàng hôm nay | Hàng còn, sắp hết, cần đẩy bán |
+| **🌱 Xong việc gọi** | 🌱 Mở rộng khách | 5 việc nhỏ để có thêm khách, Kho chung |
+| **🏁 Kết quả của tôi** | 🏁 Mục tiêu & thi đua | Mục tiêu tháng, số đã đủ hoà vốn chưa, bảng thi đua |
+| | ✅ Đã làm | Việc đã ghi hôm nay |
+
+Nút **📋 Báo cáo cuối ngày** và **＋ Thêm khách hỏi** luôn ở cuối trang.
 
 **Lịch làm việc gợi ý** (bấm **🗓 Lịch làm việc gợi ý** để xem). Lịch này học từ cách làm hay của **Thu Phương**, cảm ơn Phương đã chia sẻ. Đây chỉ là khung tham khảo: mỗi người một cách, mỗi ngày tốt hơn hôm qua một chút là được. Bạn có mẹo hay thì bấm **💡 Góp ý** để cả nhóm cùng học.
 
@@ -149,7 +162,7 @@ Không có nút nào hợp? Bấm **Kết quả khác / tự chọn ngày hẹn*
 
 ### 💸 Số của bạn đã đủ hoà vốn chưa?
 
-Mỗi số điện thoại khách hỏi từ quảng cáo là **tiền thật công ty đã trả**. Đầu tab **Hôm nay** có khung **💸 Tháng này công ty đã chi … quảng cáo cho … số giao cho bạn**:
+Mỗi số điện thoại khách hỏi từ quảng cáo là **tiền thật công ty đã trả**. Tab **Hôm nay** → thẻ **🏁 Mục tiêu & thi đua** có khung **💸 Tháng này công ty đã chi … quảng cáo cho … số giao cho bạn**:
 
 - **Mỗi số khoảng bao nhiêu tiền**: tiền quảng cáo chia cho số khách hỏi.
 - **Bạn đã bán được bao nhiêu** từ chính các số đó, và **cần bao nhiêu để công ty hoà vốn**. Hoà vốn tức là đủ trả tiền quảng cáo, tiền hàng, phí ship, thuế và hoa hồng của bạn (chưa tính lương cứng, văn phòng).
@@ -167,7 +180,7 @@ Khung 💸 ghi rõ bạn đang ở nhóm nào và cần bao nhiêu để lên nh
 
 ### 📦 Kho hôm nay: nên tư vấn sản phẩm gì?
 
-Trong tab **Hôm nay** có khung **📦 Kho hôm nay**. Dòng đầu đã nói gọn: **💚 Nên tư vấn** sản phẩm nào, **🔴 Sắp hết** sản phẩm nào. Bấm vào khung để xem số hộp còn lại.
+Trong tab **Hôm nay** → thẻ **📦 Hàng hôm nay** có khung **📦 Kho hôm nay**. Dòng đầu đã nói gọn: **💚 Nên tư vấn** sản phẩm nào, **🔴 Sắp hết** sản phẩm nào. Bấm vào khung để xem số hộp còn lại.
 
 - **💚 Nên ưu tiên tư vấn:** kho còn nhiều hàng. Sản phẩm có **⭐** là kho nhờ đẩy bán (vd lô sắp hết hạn), đọc dòng 📝 để biết lý do. Khách chưa biết chọn gì thì gợi ý các sản phẩm này trước.
 - **🔴 Sắp hết / đã hết:** báo khách trước, hẹn ngày hàng về, hoặc gợi ý sản phẩm khác. Đừng hứa giao ngay.
@@ -177,7 +190,7 @@ Khi lên đơn mà sản phẩm đã hết, hoặc khách mua nhiều hơn số 
 
 ### 🎉 Dịp chúc khách (ngày lễ, rằm, sinh nhật)
 
-Ngày lễ hoặc ngày sinh nhật khách, đầu tab **Hôm nay** có khung **🎉 Dịp chúc khách**. Một lời chúc đúng dịp giúp khách nhớ tới mình mà không thấy bị chào bán.
+Ngày lễ hoặc ngày sinh nhật khách, tab **Hôm nay** → thẻ **📞 Việc gọi** có khung **🎉 Dịp chúc khách**. Một lời chúc đúng dịp giúp khách nhớ tới mình mà không thấy bị chào bán.
 
 - **Ngày lễ lớn** (Tết, 8/3, 20/10, Vu Lan, Trung thu, năm mới): chúc mọi khách đã mua và khách hỏi chưa mua trong 90 ngày.
 - **Mùng 1, rằm, nghỉ lễ 30/4, 2/9, Ngày Gia đình 28/6**: chúc **khách thân** (VIP hoặc mua từ 2 lần). Không bắt buộc, gửi được bao nhiêu thì gửi.
@@ -349,7 +362,7 @@ Mỗi số khách hỏi công ty phải trả tiền quảng cáo để có. Vì
 1. **Trước 1 ngày**, Telegram báo riêng cho bạn: *"⏳ Ngày mai về Kho chung"* kèm danh sách. Trên thẻ khách hỏi cũng hiện nhãn **⏳ còn 1 ngày về Kho chung**.
 2. Muốn giữ số thì **gọi hoặc nhắn ngay, rồi ghi 💬 Tư vấn**. Khách hẹn thì bấm **💬 Tư vấn → chọn ngày hẹn** (Mai / 3 ngày / 1 tuần / 2 tuần / 1 tháng): số được giữ tới ngày hẹn. Mỗi lần hẹn tối đa **30 ngày** (từ 13/11/2026). Hẹn xa hơn thì máy coi như không hẹn.
 3. Hết hạn mà vẫn chưa chốt, chưa hẹn: số về Kho chung, Telegram báo bạn và báo cả nhóm. Lịch sử tư vấn của bạn vẫn còn trong số đó.
-4. **Nhận số từ Kho chung:** tab **Hôm nay** bấm khung **🌱 Mở rộng khách** → mục **🧺 Kho chung – ai nhận cũng được** (hoặc tab **Khách hỏi** bấm mục **🧺 Kho chung**). Số có nhãn **↩ từ [tên]** là số người khác đã gọi. **Đọc lịch sử tư vấn trước** rồi bấm **✋ Nhận khách này**. Thử cách khác người trước: nhắn Zalo thay vì gọi, hỏi về nỗi lo khác, đổi giờ gọi.
+4. **Nhận số từ Kho chung:** tab **Hôm nay** → thẻ **🌱 Mở rộng khách** → mục **🧺 Kho chung – ai nhận cũng được** (hoặc tab **Khách hỏi** bấm mục **🧺 Kho chung**). Số có nhãn **↩ từ [tên]** là số người khác đã gọi. **Đọc lịch sử tư vấn trước** rồi bấm **✋ Nhận khách này**. Thử cách khác người trước: nhắn Zalo thay vì gọi, hỏi về nỗi lo khác, đổi giờ gọi.
 5. Mỗi ngày mỗi người nhận tối đa **10 số** từ kho (quản lý đặt được số khác) để ai cũng có phần. **Ai chốt thì người đó được tính doanh số.**
 6. **Bạn nhận số người khác từng giữ** thì người đó nhận tin Telegram *"🧺 [tên bạn] vừa nhận khách…"*, để ai đang kết bạn Zalo với khách thì ngừng nhắn, khách không bị 2 người cùng nhắn.
 7. **Tự trả số về Kho chung** (từ 13/11/2026): khách không hợp với bạn, hoặc bạn không chăm tiếp được thì mở khách hỏi đó, kéo xuống bấm **🧺 Trả số này về Kho chung**, **ghi lý do** (đã gọi mấy lần, khách thích gì, giờ nào dễ nghe máy) rồi bấm **🧺 Trả về Kho chung**. Người nhận sau đọc được lý do trong ghi chú. **Khách đã mua** (từ 18/11/2026): mở hồ sơ khách ở tab **Khách hàng**, kéo xuống bấm **🧺 Trả khách này về Kho chung**, ghi lý do. Khách giữ nguyên lịch sử mua; khách hiện ở mục **🧺 Kho chung** tab Hôm nay (nhãn **↩ từ [tên]**), người khác bấm **✋ Nhận khách này** để chăm, người giữ cũ được Telegram báo.
@@ -360,7 +373,7 @@ Mỗi số khách hỏi công ty phải trả tiền quảng cáo để có. Vì
 
 **Hết số quảng cáo thì làm gì?**
 
-Tab **Hôm nay** có khung **🌱 Mở rộng khách: 5 việc mỗi ngày** (từ 13/11/2026): mời 2 khách giới thiệu (từ 14/11/2026) · mời 1 khách vào nhóm Zalo · gọi lại 1 khách "Không mua" · nhận 1 số ở Kho chung · đăng 1 bài Facebook cá nhân hoặc hội nhóm; mỗi việc ghi 💰 lợi ích, xong có dấu ✓, thanh **Hôm nay bạn đã làm … / 5 việc**; dưới là **＋ Thêm khách được giới thiệu** và link riêng. Cách làm từng bước có hình: **[Mở rộng khách mỗi ngày](/huong-dan/mo-rong-khach/)**.
+Tab **Hôm nay** → thẻ **🌱 Mở rộng khách** có khung **🌱 Mở rộng khách: 5 việc mỗi ngày** (từ 13/11/2026): mời 2 khách giới thiệu (từ 14/11/2026) · mời 1 khách vào nhóm Zalo · gọi lại 1 khách "Không mua" · nhận 1 số ở Kho chung · đăng 1 bài Facebook cá nhân hoặc hội nhóm; mỗi việc ghi 💰 lợi ích, xong có dấu ✓, thanh **Hôm nay bạn đã làm … / 5 việc**; dưới là **＋ Thêm khách được giới thiệu** và link riêng. Cách làm từng bước có hình: **[Mở rộng khách mỗi ngày](/huong-dan/mo-rong-khach/)**.
 
 **💰 Khách bạn tự mang về: hoa hồng 6% mọi đơn trong 6 tháng + thưởng tiền (từ 13/11/2026)**
 
@@ -383,7 +396,7 @@ Ví dụ: chị Hoa do bạn tự tìm, mua 350.000đ mỗi tháng trong 6 thán
 
 ## Việc 5: Cuối ngày gửi báo cáo
 
-1. Vào tab **Hôm nay**, kéo xuống cuối trang.
+1. Vào tab **Hôm nay**, kéo xuống cuối trang (thẻ nào cũng có nút này).
 2. Bấm **📋 Báo cáo cuối ngày (bảng)**. CRM tự đếm và hiện thành bảng như Excel: số mới, số đơn, doanh thu từng sản phẩm, khách cũ, tổng doanh thu, chăm sóc, lý do từ chối, % mục tiêu tháng. Từ 13/11/2026 có thêm nhóm **🌱 Mở rộng khách**: số khách bạn đã **mời giới thiệu**, số lần **hẹn gọi lại**, **khách tự tạo**, số **nhận từ Kho**. Ngày chưa có đơn, bạn vẫn báo cáo được công sức mình đã làm. Bảng chỉ ghi **% mục tiêu**, không ghi số tiền luỹ kế tháng (giống bảng thi đua), nên bạn yên tâm gửi vào nhóm.
 3. Gửi vào nhóm Zalo bằng ảnh bảng:
    - **Máy tính:** bấm **🖼️ Copy ảnh gửi Zalo** → mở nhóm Zalo → bấm **Ctrl+V** (máy Mac: **⌘+V**) → Gửi.

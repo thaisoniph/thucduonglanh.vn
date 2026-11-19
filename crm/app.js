@@ -1698,26 +1698,31 @@
       (lvl() < 2 ? todayGoalLine() + refSaleLine() + growHeroLine() : '') + '</section>';
     if (lvl() >= 2) { // 🌱 16/11/2026 anh Sơn "làm gọn tiếp": quản lý thấy việc trước – 4 ô số → việc chờ quản lý → tiến độ từng người → Kho chung; thi đua gập lại 1 dòng; bỏ 2 ô Doanh số / Khách mới tháng (đã có ở Hiệu quả)
       h += '<div class="minis">' + mini('🧾 Đơn mới', no.length, '#don-hang', no.length ? 'warn' : '') + mini('🙋 Khách hỏi', hot.length + ld.length, '#tiem-nang', hot.length + ld.length ? 'bad' : '') + mini('✅ Đã làm', doneToday.length, '', '') + miniGoal() + '</div>';
+      var TOP = h; h = ''; // 19/11/2026: phần dưới chia thẻ (TD_MG)
       h += ownWaitBlock() + stopWaitBlock(); // 🙋 khách tự mang về cần xác minh · 📵 khách sale báo ngừng liên hệ
+      var S_CHO = h; h = '';
       if (!wn) h += teamBlock() + waitingBlock(); // đang xem 1 nhân viên → ẩn khách chưa ai phụ trách
-      h += occBlock(); // 🎉 dịp chúc khách
+      var S_TEAM0 = h; h = '';
+      var S_OCC = occBlock(); // 🎉 dịp chúc khách
       var rOpen = S.f.gopen && 'race' in S.f.gopen ? S.f.gopen.race : false;
       h += '<details class="fold-race" data-grp="race"' + (rOpen ? ' open' : '') + '><summary><b>🏁 Thi đua & mục tiêu cả nhóm</b><span class="muted small">bấm để xem bảng xếp hạng tuần / tháng</span></summary>' + raceBlock() + '</details>';
-    } else h += occBlock(); // 🎉 dịp chúc khách: ngày lễ, rằm, mùng 1, sinh nhật (09/11/2026)
+      var S_TEAM = S_TEAM0 + h; h = '';
+    } else { var TOP = h, S_CHO = '', S_TEAM = '', S_OCC = occBlock(); h = ''; } // 🎉 dịp chúc khách: ngày lễ, rằm, mùng 1, sinh nhật (09/11/2026)
     var TB = trendBuckets(monthRange(monthOf(Date.now()))), tsk = function (v) { return sparkSvg(v, TB.partial); };
     // Mở tab lần đầu: chỉ mục cần gọi đầu tiên mở sẵn (và chỉ hiện vài khách), các mục khác gập lại – sale tự bấm mở khi tới lượt
     var go = S.f.gopen || {}, firstG = true;
     var grp = function (k, title, n, tip, body, cls) { var op = k in go ? go[k] : firstG; firstG = false; return '<details class="grp" data-grp="' + k + '"' + (op ? ' open' : '') + '><summary><span class="g-t">' + title + '</span><span class="count">' + n + '</span>' + (tip ? '<span class="g-tip">' + tip + '</span>' : '') + '</summary><div class="' + cls + '">' + body + '</div></details>'; };
-    if (no.length || up.length) h += '<section class="section"><div class="section-h"><h2>1️⃣ Đơn mới – gọi khách xác nhận</h2>' + (no.length ? '<span class="count">' + no.length + '</span>' : '') + '<span class="tip">gọi xong bấm “Xác nhận”</span></div>' +
+    if (no.length || up.length) h += '<section class="section"><div class="section-h"><h2>🧾 Đơn mới – gọi khách xác nhận</h2>' + (no.length ? '<span class="count">' + no.length + '</span>' : '') + '<span class="tip">gọi xong bấm “Xác nhận”</span></div>' +
       (no.length ? grp('neworders', '🧾 Đơn mới chờ xác nhận', no.length, 'gọi khách xác nhận đơn', capRows(no, orderRow), 'crows') : '') +
       (up.length ? (function () { var f = firstG; firstG = false; var x = grp('unpaid', '💳 Chuyển khoản chưa nhận tiền', up.length, 'xem tài khoản VCB, tiền về thì mở đơn bấm “Xác nhận đã nhận tiền”', capRows(up, orderRow), 'crows'); firstG = f; return x; })() : '') + '</section>'; // nhóm chờ tiền không tính là “cần gọi”
     var ODT = orderTodo().filter(function (g) { return g.k === 'fail' || g.k === 'late'; }); if (lvl() >= 2 && S.who) ODT.forEach(function (g) { g.list = g.list.filter(function (o) { return whoOk(orderOwner(o)); }); });
     if (ODT[0].list.length + ODT[1].list.length) h += '<section class="section"><div class="section-h"><h2>🚚 Đơn đang giao cần gọi</h2><span class="count">' + (ODT[0].list.length + ODT[1].list.length) + '</span><span class="tip">gọi khách giữ đơn, tránh hoàn hàng</span></div>' + // 13/11/2026: hãng báo giao chưa được / giao quá 5 ngày (cùng nhóm ở Đơn hàng → Cần xử lý)
       ODT.filter(function (g) { return g.list.length; }).map(function (g) { var f = firstG; firstG = false; var x = grp('ship' + g.k, g.t, g.list.length, g.tip, capRows(g.list, orderRow), 'crows'); firstG = f; return x; }).join('') + '</section>';
-    if (hot.length) h += '<section class="section"><div class="section-h"><h2>2️⃣ 🔥 Khách vừa hỏi – liên hệ ngay</h2><span class="count">' + hot.length + '</span></div>' +
+    var S_DON = h; h = '';
+    if (hot.length) h += '<section class="section"><div class="section-h"><h2>🔥 Khách vừa hỏi – liên hệ ngay</h2><span class="count">' + hot.length + '</span></div>' +
       grp('hot', '🔥 Khách vừa hỏi', hot.length, 'hỏi trong 24 giờ qua, chưa ai liên hệ. Gọi càng sớm càng dễ chốt', capRows(hot, leadCard), 'list cols" style="padding:10px') + '</section>';
 
-    h += '<section class="section"><div class="section-h"><h2>' + (hot.length ? '3️⃣' : '2️⃣') + ' Chăm sóc khách</h2>' + (q.list.length ? '<span class="count">' + q.list.length + '</span>' : '') + '<span class="tip">bấm vào nhóm để mở danh sách</span></div>' + (q.list.length ? colorKey() : '');
+    h += '<section class="section"><div class="section-h"><h2>' + '💚 Chăm sóc khách</h2>' + (q.list.length ? '<span class="count">' + q.list.length + '</span>' : '') + '<span class="tip">bấm vào nhóm để mở danh sách</span></div>' + (q.list.length ? colorKey() : '');
     if (!q.list.length) h += empty(lvl() >= 2 && S.who && tasksAll().length ? 'Khách của ' + (S.who === '-' ? 'mục “Chưa ai phụ trách”' : esc(S.who)) + ' đã chăm sóc xong. Chọn “Tất cả nhân sự” để xem các khách khác.' : 'Hôm nay không còn khách cần chăm sóc 🎉');
     GROUP_ORDER.forEach(function (k) {
       var arr = q.list.filter(function (c) { return (vipLate(c) ? 'viplate' : taskKey(c)) === k; }); if (!arr.length) return;
@@ -1729,22 +1734,53 @@
     });
     h += '</section>';
 
-    h += '<section class="section"><div class="section-h"><h2>' + (hot.length ? '4️⃣' : '3️⃣') + ' Khách hỏi cần liên hệ</h2>' + (ld.length ? '<span class="count">' + ld.length + '</span>' : '') + '<span class="tip">người hỏi mua nhưng chưa mua</span></div>' +
+    h += '<section class="section"><div class="section-h"><h2>' + '🙋 Khách hỏi cần liên hệ</h2>' + (ld.length ? '<span class="count">' + ld.length + '</span>' : '') + '<span class="tip">người hỏi mua nhưng chưa mua</span></div>' +
       (ld.length ? '<details class="grp" data-grp="leads"' + (S.f.gopen && S.f.gopen.leads ? ' open' : '') + '><summary><span class="g-t">🙋 Người hỏi cần liên hệ</span><span class="count">' + ld.length + '</span><span class="g-tip">' + (hot.length ? 'đến hẹn, 3 ngày chưa liên hệ, hoặc hỏi đã lâu mà chưa ai liên hệ' : 'mới hỏi, đến hẹn hoặc 3 ngày chưa liên hệ') + '</span></summary><div class="list cols" style="padding:10px">' + ld.map(leadCard).join('') + '</div></details>' : empty('Không có khách hỏi cần liên hệ 🎉')) +
       '<button class="btn" data-newlead style="margin-top:10px">＋ Thêm khách hỏi</button></section>';
+    var S_CS = h; h = '';
     // 30/10/2026 thứ tự theo tiền: đơn mới → khách vừa hỏi → chăm sóc (hẹn, sắp hết) → khách hỏi → 🌱 giới thiệu (tiền về sau, xây nguồn khách không tốn quảng cáo)
     var growOn = lvl() < 2 && !isMkt() && selfOn(); // 13/11/2026: khối 🌱 Mở rộng khách đứng đầu phần mở rộng khách, các danh sách chi tiết ngay dưới
     if (growOn) h += idleBlock();
     h += refThanksBlock(); // 🎁 bạn bè khách cũ đã đặt → báo voucher / quà cảm ơn người giới thiệu
-    h += ambBlock(q.list.reduce(function (m, c) { m[c.phone] = 1; return m; }, {}), growOn ? '' : hot.length ? '5️⃣' : '4️⃣');
+    h += ambBlock(q.list.reduce(function (m, c) { m[c.phone] = 1; return m; }, {}), '');
     if (isPoolStaff() && poolOn()) h += poolBlock(); // 🧺 việc dự phòng khi hết số quảng cáo: số chưa ai chốt, ai nhận cũng được
 
+    var S_GROW = S_OCC + h; h = '';
     if (doneToday.length) h += '<section class="section"><details class="grp" data-grp="done"' + (S.f.gopen && S.f.gopen.done ? ' open' : '') + '><summary><span class="g-t">✅ Đã làm hôm nay</span><span class="count">' + doneToday.length + '</span></summary><div class="timeline" style="padding:12px">' +
       doneToday.slice(0, 40).map(logItem).join('') + '</div></details></section>';
-    if (lvl() < 2) h += '<section class="section td-tail"><div class="section-h"><h2>🏁 Mục tiêu & thi đua</h2></div>' + myGoalToday() + refSaleBox(S.user.name) + raceBlock() + '</section>';
-    h += '<button class="btn block" data-daily="' + esc(lvl() >= 2 ? wn || '' : S.user.name) + '" style="margin-top:12px">📋 Báo cáo cuối ngày (bảng)</button>';
+    var S_DONE = h;
+    // 19/11/2026 (anh Sơn: "làm tương tự" Tổng quan / Kế toán): đầu trang giữ chào + nút gọi lần lượt + 4 ô số; phần dưới chia thẻ, mỗi lần xem 1 thẻ
+    var tb = tdTab('td_mtab', TD_MG, S_CHO ? 'cho' : 'team');
+    h = TOP + grpMenu(TD_MG, tb, function (k) { return 'data-tdt="td_mtab|' + k + '"'; });
+    if (tb === 'cho') h += inTabi('Việc sale đang chờ quản lý: khách tự mang về cần xác minh, khách sale báo ngừng liên hệ.', ['Đọc từng việc', 'Bấm nút trên việc để duyệt hoặc trả lại sale']) + (S_CHO || '<div class="box"><p>✅ Không có việc nào đang chờ quản lý.</p></div>');
+    if (tb === 'team') h += inTabi('Hôm nay mỗi người đã gọi bao nhiêu, ai đang chậm; khách chưa ai phụ trách; thi đua cả nhóm.', ['Người đang chậm: nhắn hỏi xem có vướng gì', 'Khách chưa ai phụ trách: chia cho sale']) + (S_TEAM || '<div class="box"><p class="muted">Đang xem 1 nhân viên. Chọn “Tất cả nhân sự” để xem cả nhóm.</p></div>');
+    if (tb === 'don') h += inTabi('Đơn mới chờ gọi xác nhận, chuyển khoản chưa thấy tiền, đơn đang giao cần gọi giữ đơn.', ['Gọi khách xác nhận đơn', 'Gọi xong bấm <b>Xác nhận</b>']) + (S_DON || '<div class="box"><p>✅ Không có đơn nào cần gọi.</p></div>');
+    if (tb === 'cs') h += inTabi('Khách vừa hỏi, khách cần chăm sóc theo mốc, khách hỏi chưa mua.', ['Bấm nút <b>▶ Bắt đầu gọi lần lượt</b> trên cùng', 'Hoặc bấm vào nhóm để mở danh sách']) + S_CS;
+    if (tb === 'grow') h += inTabi('Dịp chúc khách, cảm ơn người giới thiệu, mời đại sứ, Kho chung số quảng cáo.', ['Xong việc gọi thì làm ở đây']) + (S_GROW || '<div class="box"><p class="muted">Hôm nay chưa có việc mở rộng khách.</p></div>');
+    if (tb === 'done') h += inTabi('Mọi việc đã ghi trong CRM hôm nay.', ['Cuối ngày: bấm <b>📋 Báo cáo cuối ngày</b> bên dưới']) + (S_DONE || '<div class="box"><p class="muted">Hôm nay chưa ghi việc nào.</p></div>');
+    h += '<button class="btn block" data-daily="' + esc(wn || '') + '" style="margin-top:12px">📋 Báo cáo cuối ngày (bảng)</button>';
     return h;
   }
+  /* ---------- 📋 Hôm nay chia nhóm thẻ (19/11/2026), như Tổng quan / Kế toán. Quản lý (TD_MG) và sale (TD_SG) nhớ thẻ riêng. */
+  var TD_MG = [['👀 Đội ngũ', 'mỗi ngày', [['cho', '🙋', 'Chờ quản lý', 'xác minh, ngừng liên hệ'], ['team', '👥', 'Từng người', 'tiến độ, thi đua']]],
+    ['📞 Việc gọi', 'khách của mình', [['don', '🧾', 'Đơn', 'xác nhận, đang giao'], ['cs', '💚', 'Chăm sóc', 'khách hỏi, theo mốc']]],
+    ['🌱 Khác', 'xong việc gọi', [['grow', '🌱', 'Mở rộng khách', 'dịp, giới thiệu, Kho chung'], ['done', '✅', 'Đã làm', 'hôm nay']]]];
+  var TD_SG = [['📞 Mỗi ngày', 'gọi, nhắn khách', [['goi', '📞', 'Việc gọi', 'tất cả khách cần gọi'], ['zalo', '💬', 'Zalo của tôi', 'khách chờ trả lời'], ['kho', '📦', 'Hàng hôm nay', 'còn, sắp hết']]],
+    ['🌱 Xong việc gọi', 'thêm khách mới', [['grow', '🌱', 'Mở rộng khách', '5 việc nhỏ']]],
+    ['🏁 Kết quả của tôi', 'xem khi cần', [['goal', '🏁', 'Mục tiêu & thi đua', 'đang ở đâu'], ['done', '✅', 'Đã làm', 'hôm nay']]]];
+  /** nhóm (data-grp) nằm ở thẻ nào: nút nhảy tới (data-gopen) tự mở đúng thẻ */
+  var TD_GO = { td_stab: { tdgoal: 'goal', grow: 'grow', tdall: 'goi', tdplan: 'goi', unpaid: 'goi', done: 'done' },
+    td_mtab: { neworders: 'don', unpaid: 'don', shipfail: 'don', shiplate: 'don', hot: 'cs', leads: 'cs', race: 'team', done: 'done' } };
+  var TD_TAB = {};
+  function tdTab(k, G, dflt) {
+    var t = TD_TAB[k] || store(k) || dflt;
+    if (!G.some(function (g) { return g[2].some(function (x) { return x[0] === t; }); })) t = dflt;
+    return (TD_TAB[k] = t);
+  }
+  document.addEventListener('click', function (e) {
+    var t = e.target.closest('[data-tdt]'); if (!t) return;
+    var v = t.getAttribute('data-tdt').split('|'); TD_TAB[v[0]] = v[1]; store(v[0], v[1]); render();
+  });
   /* ---------- 14/11/2026 anh Sơn: tab Hôm nay của SALE gọn lại, "mở ra là gọi".
    * Đầu trang: chào + còn N việc + nút bắt đầu với việc đầu tiên + dòng tiền. Rồi 1 danh sách "Cần gọi hôm nay" xếp theo tiền
    * (đơn mới → khách vừa hỏi → đơn đang giao cần gọi → chăm sóc → khách hỏi), lọc bằng nút. Mỗi dòng có nhãn lý do gọi.
@@ -1912,9 +1948,10 @@
     // 16/11/2026 anh Sơn: không hiện "còn 81 việc" + danh sách dài nữa. Màn chính = khung giờ đang làm + lượt 5 khách (tdsHero/tdsBatch).
     var h = tdsHero(items, q, growOn, gn);
     h += '<section class="section tds-more">' + todayGoalLine() + '<div class="td-jump"><button type="button" data-gopen="tdgoal"' + raceHeroAttr() + '>' + raceHero() + '</button>' + (growOn ? '<button type="button" data-gopen="grow">🌱 Mở rộng khách ' + gn + '/5 ›</button>' : '') + '</div></section>';
-    h += zsMineBlock(); // 💬 Zalo của tôi: khách chờ trả lời, khách muốn mua (17/11/2026)
-    h += beSaleBlock(); // ⚖️ số của bạn đã đủ hoà vốn chưa (16/11/2026)
-    h += khoSaleBlock(); // 📦 Kho hôm nay (16/11/2026)
+    var TOP = h; h = ''; // 19/11/2026: chào + nút gọi + dòng thi đua giữ trên cùng, phần dưới chia thẻ (TD_SG)
+    var S_ZALO = zsMineBlock(); // 💬 Zalo của tôi: khách chờ trả lời, khách muốn mua (17/11/2026)
+    var S_BE = beSaleBlock(); // ⚖️ số của bạn đã đủ hoà vốn chưa (16/11/2026)
+    var S_KHO = khoSaleBlock(); // 📦 Kho hôm nay (16/11/2026)
     h += tdsPlan();
     if (items.length) {
       var chips = TD_F.filter(function (c) { return cnt[c[0]]; });
@@ -1925,13 +1962,25 @@
     }
     if (up.length) h += '<section class="section"><details class="grp" data-grp="unpaid"' + (S.f.gopen && S.f.gopen.unpaid ? ' open' : '') + '><summary><span class="g-t">💳 Chuyển khoản chưa nhận tiền</span><span class="count">' + up.length + '</span><span class="g-tip">tiền về thì mở đơn bấm “Xác nhận đã nhận tiền”</span></summary><div class="crows">' + capRows(up, orderRow) + '</div></details></section>';
     h += occBlock() + refThanksBlock();
+    var S_GOI = h; h = '';
     var busy = q.list.reduce(function (m, c) { m[c.phone] = 1; return m; }, {}), pool = isPoolStaff() && poolOn();
     if (growOn) h += '<section class="section"><details class="grp td-grow" data-grp="grow"' + (S.f.gopen && S.f.gopen.grow ? ' open' : '') + '><summary><span class="g-t">🌱 Xong việc gọi? Mở rộng khách</span><span class="count">' + gn + ' / 5</span><span class="g-tip">mời giới thiệu, nhóm Zalo, khách “Không mua”' + (pool ? ', Kho chung' : '') + ', đăng bài</span></summary>' +
       idleBlock() + ambBlock(busy, '') + (pool ? poolBlock() : '') + '</details></section>';
     else h += ambBlock(busy, '') + (pool ? poolBlock() : '');
+    var S_GROW = h; h = '';
     h += '<section class="section td-tail" data-grp="tdgoal"><div class="section-h"><h2>🏁 Mục tiêu & thi đua</h2><a class="small" href="#bao-cao" style="margin-left:auto">Xem hiệu quả ›</a></div>' + myGoalToday() + raceBlock() + '</section>';
+    var S_GOAL = S_BE + h; h = '';
     var doneToday = S.d.log.filter(function (l) { return l.time >= t0 && l.by === S.user.name && l.what !== 'Cài đặt' && l.what !== 'Nhân sự'; }).sort(function (a, b) { return b.time - a.time; });
     if (doneToday.length) h += '<section class="section"><details class="grp" data-grp="done"' + (S.f.gopen && S.f.gopen.done ? ' open' : '') + '><summary><span class="g-t">✅ Đã làm hôm nay</span><span class="count">' + doneToday.length + '</span></summary><div class="timeline" style="padding:12px">' + doneToday.slice(0, 40).map(logItem).join('') + '</div></details></section>';
+    var S_DONE = h;
+    var tb = tdTab('td_stab', TD_SG, 'goi');
+    h = TOP + grpMenu(TD_SG, tb, function (k) { return 'data-tdt="td_stab|' + k + '"'; });
+    if (tb === 'goi') h += inTabi('Tất cả khách cần gọi hôm nay, lịch làm việc gợi ý, chuyển khoản chưa thấy tiền, dịp chúc khách.', ['Bấm <b>▶ Bắt đầu gọi</b> trên cùng là gọi lần lượt', 'Muốn chọn khách: mở <b>📞 Xem tất cả việc gọi</b>']) + (S_GOI || '<div class="box"><p>🎉 Hôm nay không còn khách cần gọi.</p></div>');
+    if (tb === 'zalo') h += inTabi('Khách nhắn Zalo đang chờ bạn trả lời, khách muốn mua.', ['Trả lời khách trên Zalo', 'Cần thì bấm <b>✨ Gợi ý trả lời</b>']) + (S_ZALO || '<div class="box"><p class="muted">Chưa có tin Zalo nào cần trả lời.</p></div>');
+    if (tb === 'kho') h += inTabi('Hàng nào còn nhiều, sắp hết, đã hết; hàng kho cần đẩy bán.', ['Tư vấn ưu tiên sản phẩm 💚 / ⭐', 'Hàng 🔴 hết: báo khách ngày có hàng']) + (S_KHO || '<div class="box"><p class="muted">Kho chưa có số hôm nay.</p></div>');
+    if (tb === 'grow') h += inTabi('Xong việc gọi thì làm 5 việc nhỏ để có thêm khách không tốn quảng cáo: mời giới thiệu, gọi lại khách cũ, Kho chung.', ['Làm lần lượt từng việc', 'Đủ 5 / 5 là xong']) + (S_GROW || '<div class="box"><p class="muted">Hôm nay chưa có việc mở rộng khách.</p></div>');
+    if (tb === 'goal') h += inTabi('Mục tiêu tháng của bạn, số quảng cáo đã đủ hoà vốn chưa, bảng thi đua.', ['Xem mình đang ở đâu so với mục tiêu']) + S_GOAL;
+    if (tb === 'done') h += inTabi('Mọi việc bạn đã ghi trong CRM hôm nay.', ['Cuối ngày: bấm <b>📋 Báo cáo cuối ngày</b> bên dưới']) + (S_DONE || '<div class="box"><p class="muted">Hôm nay chưa ghi việc nào.</p></div>');
     h += '<div class="td-foot"><button class="btn" data-daily="' + esc(S.user.name) + '">📋 Báo cáo cuối ngày</button>' + (isMkt() ? '' : '<button class="btn" data-newlead>＋ Thêm khách hỏi</button>') + '</div>';
     return h;
   }
@@ -18420,7 +18469,9 @@
     if (t.hasAttribute('data-adssync')) { runAds(a('data-adssync') === 'dry', t); return; }
     if (t.hasAttribute('data-fbpool')) { openFeedback('send', 'Luật Kho chung: '); return; } // 14/11/2026: sale góp ý luật Kho chung (ô nội dung điền sẵn chữ đầu)
     if (t.hasAttribute('data-gopen')) { // nhảy tới 1 nhóm trên trang (Kho chung, khách hỏi cũ, mục 🌱) và mở ra
-      var gk = a('data-gopen'), gd = $('[data-grp="' + gk + '"]'); if (gd) { if (gd.tagName === 'DETAILS') gd.open = true; for (var pd = gd.parentElement && gd.parentElement.closest('details'); pd; pd = pd.parentElement && pd.parentElement.closest('details')) pd.open = true; gd.scrollIntoView({ behavior: 'smooth', block: 'start' }); } return;
+      var gk = a('data-gopen'), gd = $('[data-grp="' + gk + '"]');
+      if (!gd && route().view === 'hom-nay') { var tk = lvl() < 2 ? 'td_stab' : 'td_mtab', tt = TD_GO[tk][gk] || (TASKS[gk] ? 'cs' : ''); if (tt) { TD_TAB[tk] = tt; store(tk, tt); render(); gd = $('[data-grp="' + gk + '"]'); } }
+      if (gd) { if (gd.tagName === 'DETAILS') gd.open = true; for (var pd = gd.parentElement && gd.parentElement.closest('details'); pd; pd = pd.parentElement && pd.parentElement.closest('details')) pd.open = true; gd.scrollIntoView({ behavior: 'smooth', block: 'start' }); } return;
     }
     if (t.hasAttribute('data-claim')) {
       var cl = a('data-claim').split('|');

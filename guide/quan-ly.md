@@ -103,7 +103,18 @@ Mục anh đã bật riêng cho 1 người (Marketing, Phụ trách kho, Trợ l
 2. Tìm tên người đó. Nút **xanh** = đang hiện. Nút **trắng, viền chấm** = đang ẩn.
 3. Bấm nút trắng để **mở**. Bấm nút xanh để **ẩn**. Máy lưu ngay, người đó tải lại CRM là thấy.
 
-**Màn Hôm nay của quản lý** xếp theo thứ tự việc cần làm: 4 ô số (đơn mới, khách hỏi, đã làm, mục tiêu) → khách chờ quản lý xem → **👥 Tiến độ nhân sự hôm nay** → **🧺 Kho chung** → dịp chúc khách. **🏁 Thi đua & mục tiêu cả nhóm** gập lại thành 1 dòng, bấm vào là mở. Doanh số và khách mới của tháng xem ở tab **Hiệu quả**.
+**Màn Hôm nay của quản lý**: trên cùng là thanh tiến độ + nút **▶ Bắt đầu gọi lần lượt** + 4 ô số (đơn mới, khách hỏi, đã làm, mục tiêu). Bên dưới (từ 19/11/2026) là **các thẻ chia 3 nhóm**, mỗi lần xem 1 thẻ:
+
+| Nhóm | Thẻ | Trong thẻ |
+| --- | --- | --- |
+| **👀 Đội ngũ** (mỗi ngày) | 🙋 Chờ quản lý | Khách tự mang về cần xác minh, khách sale báo ngừng liên hệ |
+| | 👥 Từng người | **Tiến độ nhân sự hôm nay**, **🧺 Kho chung** (khách chưa ai phụ trách), 🏁 Thi đua cả nhóm |
+| **📞 Việc gọi** (khách của mình) | 🧾 Đơn | Đơn mới chờ xác nhận, chuyển khoản chưa thấy tiền, đơn đang giao cần gọi |
+| | 💚 Chăm sóc | Khách vừa hỏi, chăm sóc theo mốc, khách hỏi chưa mua |
+| **🌱 Khác** | 🌱 Mở rộng khách | Dịp chúc khách, cảm ơn người giới thiệu, mời đại sứ |
+| | ✅ Đã làm | Việc đã ghi hôm nay |
+
+Doanh số và khách mới của tháng xem ở tab **Hiệu quả**.
 
 Máy tính cũng gọn như điện thoại: thanh trên chỉ 4 mục + **Thêm**. Nút tròn bên phải: 🔍 Tìm, ❓ Hướng dẫn, ✅ Việc tuần, ⚙ Cài đặt. **Góp ý** và **Tải lại dữ liệu** nằm trong **Thêm**.
 
@@ -116,7 +127,7 @@ Máy tính cũng gọn như điện thoại: thanh trên chỉ 4 mục + **Thêm
 1. Mở tab **Hiệu quả**, chọn **Tất cả nhân sự**.
 2. Xem bảng **👥 Tiến độ nhân sự hôm nay**: mỗi người đã gọi bao nhiêu khách, còn bao nhiêu, việc nào bị trễ.
 3. Làm theo khung **👉 Quản lý làm 3 việc này trước** (bấm **＋ việc khác** để xem thêm). Ví dụ: ai đang chậm mục tiêu, số quảng cáo chưa ai gọi, khách VIP chưa ai gọi, đơn chưa có người bán (bấm **Gán**).
-4. Mở tab **Hôm nay**, xem mục **🧺 Kho chung**. Đây là khách chưa ai phụ trách. Giao cho người phù hợp.
+4. Mở tab **Hôm nay** → thẻ **👥 Từng người**, xem mục **🧺 Kho chung**. Đây là khách chưa ai phụ trách. Giao cho người phù hợp.
 5. Giao **đơn mới**: trên mỗi đơn mới có ô **Giao cho…**, chọn tên nhân viên. Nhân viên chỉ thấy đơn đã giao cho mình.
 
 **Xem việc của 1 người:** ô **👤 Người phụ trách** ở góc phải. Chọn tên 1 người. Các tab khác cũng tự lọc theo người đó. Chọn lại **Tất cả nhân sự** để bỏ lọc.
@@ -191,7 +202,7 @@ Tài khoản Quản trị không nằm trong bảng so sánh nhân sự. Doanh s
 
 Sale bấm **🕊️ Khách đã mất / bỏ số** khi khách đã mất hoặc bỏ số. Khách đó không hiện ở danh sách chăm sóc nữa. Để sale không bỏ phí số khách còn gọi được, quản lý kiểm tra lại:
 
-1. Có khách mới bị báo thì bạn nhận **tin Telegram riêng** (cần đã kết nối Telegram). Đầu tab **Hôm nay** cũng có dòng **🕊️ … khách sale báo ngừng liên hệ**. Bấm **Xem danh sách**.
+1. Có khách mới bị báo thì bạn nhận **tin Telegram riêng** (cần đã kết nối Telegram). Tab **Hôm nay** → thẻ **🙋 Chờ quản lý** cũng có dòng **🕊️ … khách sale báo ngừng liên hệ**. Bấm **Xem danh sách**.
 2. Danh sách nằm ở **Khách đã mua → 🕊️ Ngừng liên hệ**. Đầu danh sách ghi số khách mỗi sale bấm trong tháng. Sale nào bấm nhiều bất thường thì gọi thử vài số.
 3. Mở hồ sơ khách. Bấm **✓ Đúng, giữ ngừng liên hệ**, hoặc **↩️ Trả lại cho sale chăm sóc** (sale nhận tin Telegram báo khách đã được trả lại).
 
@@ -214,7 +225,7 @@ Sale bấm **🕊️ Khách đã mất / bỏ số** khi khách đã mất hoặ
   - Sale thêm khách hỏi phải chọn **🙋 Khách biết bạn qua đâu?**; chọn 📣 quảng cáo công ty thì không tính.
   - **Chờ chốt 14 ngày**: trong 14 ngày máy xét lại mỗi 6 tiếng; file quảng cáo về muộn có số đó → tự gỡ, báo sale + quản lý (Nhật ký **Gỡ khách tự mang về**). Hết 14 ngày không có cờ → **Chốt khách tự mang về**.
 - **⚠️ Cờ cần quản lý duyệt** (chưa tính 10% tới khi duyệt): sale chưa ghi khách biết qua đâu; cùng địa chỉ khách cũ; cùng địa chỉ với khách 🙋 khác của cùng sale; sale có **trên 40%** khách mới 30 ngày là khách 🙋 (từ 5 khách); khách 🙋 của sale có đơn hoàn (≥ 2 khách và ≥ 30%). Telegram báo quản lý.
-- **Duyệt ở Hôm nay → 🙋 Khách tự mang về chờ quản lý xem**: bấm **✅ Tính hoa hồng** hoặc ghi lý do rồi **⛔ Không tính** (sale nhận tin kèm lý do).
+- **Duyệt ở Hôm nay → thẻ 🙋 Chờ quản lý → Khách tự mang về chờ quản lý xem**: bấm **✅ Tính hoa hồng** hoặc ghi lý do rồi **⛔ Không tính** (sale nhận tin kèm lý do).
 - **📞 Gọi xác minh**: thứ 2 hằng tuần máy chọn ngẫu nhiên **2 khách 🙋 / sale** (đơn đầu trong 45 ngày), báo Telegram. Gọi hỏi *"Chị biết Thực Dưỡng Lành qua đâu ạ?"*, so với sale ghi, bấm **✅ Đúng** hoặc ghi lý do rồi **⛔ Sai – không tính**. Không cần gọi hết: sale biết là có kiểm tra thì sẽ ghi đúng.
 - **Luật nên công bố khi họp**: khai sai thì thu hồi hoa hồng khách đó; tái phạm thì tạm dừng quyền hưởng 10% (CRM chưa tự làm phần tạm dừng).
 - **Xem**: hồ sơ khách có nhãn 🙋 kèm tên sale và ngày hết hạn; **Hiệu quả → 💰 Thu nhập tạm tính** có dòng và cột **🙋 HH khách tự mang về**; **Bảng thi đua** có hạng mục **🙋 Khách tự mang về**.
