@@ -737,19 +737,29 @@ wb-duyet:
       text: "Trước ngày đăng 1 ngày, Telegram nhắn bài nháp. Bấm link trong tin, hoặc vào CRM → <b>📰 Bài web</b>."
     - title: Bài web chờ duyệt
       els:
-        - ["card", "🎯 Dân văn phòng · vội ↔ muốn đủ chất", "Tự kiểm tra: từ cấm ✓ · nguồn ✓ · ảnh ✓", "g"]
+        - ["card", "🎯 Dân văn phòng · vội ↔ muốn đủ chất", "📄 ~1.200 chữ · ⏱ 6 phút đọc · 🔗 3 chỗ dẫn nguồn", "g"]
+        - ["btn", "👁 Đọc bài", ""]
         - ["btn", "✅ Đăng bài này", "g"]
-        - ["btn", "✍️ Viết lại theo ý kiến", ""]
-        - ["btn", "🖊 Tôi tự sửa trong /admin", ""]
-      hi: 1
-      text: "Đọc dòng <b>🎯</b> và bản tự kiểm tra. Bài ổn thì bấm <b>✅ Đăng bài này</b>: bài tự lên web đúng giờ."
-    - title: Viết lại theo ý kiến
+        - ["btn", "✏️ Sửa nhanh", ""]
+        - ["btn", "👎 Chưa ưng ▾", ""]
+      hi: 2
+      text: "Bấm <b>👁 Đọc bài</b> (cuối bài có danh sách nguồn). Bài ổn thì bấm <b>✅ Đăng bài này</b>: bài tự lên web đúng giờ."
+    - title: ✏️ Sửa nhanh
       els:
-        - ["in", "Ý kiến của bạn", "mở bài bằng tình huống thật, bớt số liệu"]
+        - ["in", "Tiêu đề (nên 50–80 ký tự)", "Bữa sáng 5 phút cho dân văn phòng"]
+        - ["btn", "🖼 Chọn ảnh khác", ""]
+        - ["in", "⏰ Ngày & giờ lên web", "Thứ 6 20/11 · 15h"]
+        - ["btn", "Lưu", "g"]
+      hi: 3
+      text: "Sửa tiêu đề, mô tả, đổi ảnh bìa, dời ngày giờ đăng ngay tại đây, không cần vào /admin. Cần lên web liền thì bấm <b>🚀 Đăng ngay bây giờ</b>."
+    - title: 👎 Chưa ưng → Viết lại
+      els:
         - ["btn", "✍️ Viết lại theo ý kiến", "g"]
+        - ["card", "Bấm để thêm nhanh", "Mở bài ngắn lại · Thêm ví dụ đời thường · Bớt nhắc sản phẩm", ""]
+        - ["in", "Cần sửa gì?", "mở bài bằng tình huống thật, bớt số liệu"]
         - ["note", "10–20 phút sau trợ lý nhắn bản mới"]
-      hi: 1
-      text: "Chưa ưng thì ghi ý kiến <b>cụ thể</b> rồi bấm <b>✍️ Viết lại theo ý kiến</b>. Trợ lý nhớ ý kiến này cho cả các bài sau."
+      hi: 0
+      text: "Bấm <b>👎 Chưa ưng</b> → <b>✍️ Viết lại theo ý kiến</b>, bấm gợi ý có sẵn hoặc tự ghi ý kiến <b>cụ thể</b>. Trợ lý nhớ ý kiến này cho cả các bài sau."
 wb-gia:
   title: Sửa giá sản phẩm
   steps:

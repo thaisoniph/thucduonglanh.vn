@@ -55,6 +55,8 @@ const addDays = (d, n) => fmtDate(new Date(d + 'T12:00:00+07:00').getTime() + n 
 const wdOf = d => new Date(d + 'T12:00:00+07:00').getUTCDay();
 const dayTxt = d => WD[wdOf(d)] + ' ' + d.slice(8, 10) + '/' + d.slice(5, 7);
 const meta = p => { try { return JSON.parse(p.meta || '{}'); } catch (e) { return {}; } };
+/** Giờ đăng của 1 bài: người duyệt hẹn riêng (meta.ph, 19/11/2026) hoặc giờ chung trong cài đặt */
+const hourOf = (p, cfg) => { const v = Number(meta(p).ph); return v >= 6 && v <= 21 ? v : cfg.hour; };
 
 /* ---------------------------------------------------------------- GitHub (mã của công ty, cùng mã /admin dùng) */
 async function gh(x, method, path, body) {
@@ -114,12 +116,12 @@ export async function blogTick(x) {
   try { await blogLearn(x, now); } catch (e) { console.error('blog learn', e.message); }
   // 1. bài đã duyệt tới giờ đăng → đăng
   for (const p of await all(x.db, "SELECT * FROM bl_posts WHERE status = 'approved' AND day <= ? ORDER BY day", today)) {
-    if (p.day === today && h < cfg.hour) continue;
+    if (p.day === today && h < hourOf(p, cfg)) continue;
     try { await publish(x, p, false); } catch (e) { console.error('blog publish', e.message); await run(x.db, 'UPDATE bl_posts SET err = ? WHERE day = ?', String(e.message).slice(0, 300), p.day); }
   }
   // 2. tới giờ đăng mà chưa ai duyệt → nhắc 1 lần
   for (const p of await all(x.db, "SELECT * FROM bl_posts WHERE status = 'wait' AND remind = 0 AND day <= ?", today)) {
-    if (p.day === today && h < cfg.hour) continue;
+    if (p.day === today && h < hourOf(p, cfg)) continue;
     await run(x.db, 'UPDATE bl_posts SET remind = 1 WHERE day = ?', p.day);
     await notifyApprovers(x, p, '⏰ <b>Bài web hôm nay chưa được duyệt nên chưa lên web.</b> Duyệt lúc nào bài lên lúc đó.');
   }
@@ -240,6 +242,7 @@ async function write(x, cfg, day, row) {
     if (rv.length) checks.push('✍️ Văn còn giống AI: ' + rv.join(', ') + ' → sửa cho liền mạch, dùng dấu phẩy');
     if (rw.length) checks.push('⚠️ Đọc lại: ' + rw.join(', ') + ' → cụm dễ phạm luật quảng cáo chỉ giữ nếu đúng hồ sơ công bố hoặc là câu phủ định; hotline cũ 0896 869 333 đổi thành 0966 326 522');
     const m = { excerpt, cat, cover, who: ins.gn, g: ins.g, is: ins.is, t: ins.t, i: ins.i, d: ins.d, a: ins.a, b: ip.big ? ip.big.t : '', kw: kw ? kw.k : '', w: rw, v: rv, checks, hour: cfg.hour, sources: [...urls].slice(0, 30), fb };
+    try { const ph = JSON.parse(row && row.meta || '{}').ph; if (ph) m.ph = ph; } catch (e) { } // ⏰ giữ giờ hẹn riêng khi viết lại
     if (!ins.t) checks.push('⚠️ Trợ lý chưa ghi rõ tension bài này giải, nên đọc kỹ xem bài có chạm đúng nỗi lòng của nhóm khách không');
     if (kw) { checks.unshift('🔑 Từ khoá chính: ' + kw.k); await kwUse(x, kw.k, day).catch(() => { }); }
     await run(x.db, "UPDATE bl_posts SET status = 'wait', title = ?, slug = ?, funnel = ?, topic = ?, tkey = ?, md = ?, meta = ?, hint = '', at = ?, err = '', tries = 0, remind = 0 WHERE day = ?",
@@ -301,8 +304,8 @@ async function blogLearn(x, now) {
 }
 
 /* ---------------------------------------------------------------- đăng lên web */
-async function publish(x, p, hidden) {
-  const today = fmtDate(Date.now(), 'yyyy-MM-dd'), day = p.day < today ? today : p.day; // duyệt muộn → ngày đăng là hôm nay
+async function publish(x, p, hidden, force) {
+  const today = fmtDate(Date.now(), 'yyyy-MM-dd'), day = force || p.day < today ? today : p.day; // duyệt muộn / 🚀 Đăng ngay → ngày đăng là hôm nay
   let slug = p.slug;
   const md = fixDisc(p.md).replace(/^date: .*$/m, 'date: ' + day).replace(/^published: .*$/m, 'published: ' + (hidden ? 'false' : 'true'));
   await ghCommit(x, async () => {
@@ -347,9 +350,9 @@ async function doAct(x, u, p, act, at, hint) {
   else if (act === 'ok') {
     await run(x.db, "UPDATE bl_posts SET status = 'approved', by_name = ? WHERE day = ?", u.name, day);
     const cfg = cfgOf(await cfgRaw(x).catch(() => ({}))), now = Date.now(), today = fmtDate(now, 'yyyy-MM-dd');
-    const late = day < today || (day === today && new Date(now + TZ_MS).getUTCHours() >= cfg.hour);
+    const hr = hourOf(p, cfg), late = day < today || (day === today && new Date(now + TZ_MS).getUTCHours() >= hr);
     if (late) { p = await first(x.db, 'SELECT * FROM bl_posts WHERE day = ?', day); try { await publish(x, p, false); note = '✅ Đã đăng. Khoảng 1–2 phút nữa bài có trên web.'; } catch (e) { note = '✅ Đã duyệt. Đăng lên chưa được (' + esc(e.message) + '), máy chủ sẽ tự thử lại trong 10 phút.'; } }
-    else note = '✅ Đã duyệt. Bài tự lên web lúc ' + cfg.hour + 'h ' + dayTxt(day) + '.';
+    else note = '✅ Đã duyệt. Bài tự lên web lúc ' + hr + 'h ' + dayTxt(day) + '.';
     await telegram(x.env, '👍 ' + esc(u.name) + ' đã duyệt bài web: ' + esc(p.title));
     await logIt(x, u, 'Duyệt bài web', p.title);
   } else if (act === 'rewrite' || act === 'new') {
@@ -365,6 +368,15 @@ async function doAct(x, u, p, act, at, hint) {
     try { const slug = (await publish(x, p, true)).split('/').slice(-2)[0]; note = '🖊 Bài đã vào /admin ở dạng ẩn. <a href="' + SITE + '/admin/#/collections/posts/entries/' + slug + '">Mở /admin để sửa</a>, sửa xong bật “Hiển thị trên web” rồi bấm Xuất bản.'; }
     catch (e) { note = 'Chưa đưa được bài vào /admin: ' + esc(e.message); }
     await logIt(x, u, 'Tự sửa bài web trong /admin', p.title);
+  } else if (act === 'now') { // 🚀 Đăng ngay (19/11/2026): duyệt + lên web luôn, không chờ giờ đăng
+    await run(x.db, "UPDATE bl_posts SET status = 'approved', by_name = ? WHERE day = ?", u.name, day);
+    p = await first(x.db, 'SELECT * FROM bl_posts WHERE day = ?', day);
+    try { await publish(x, p, false, true); note = '🚀 Đã đăng. Khoảng 1–2 phút nữa bài có trên web.'; } catch (e) { note = '✅ Đã duyệt. Đăng lên chưa được (' + esc(e.message) + '), máy chủ sẽ tự thử lại trong 10 phút.'; }
+    await telegram(x.env, '🚀 ' + esc(u.name) + ' đã đăng ngay bài web: ' + esc(p.title));
+    await logIt(x, u, 'Đăng ngay bài web', p.title);
+  } else if (act === 'unok') { // ↩️ Huỷ duyệt: bài quay lại chờ duyệt
+    if (p.status !== 'approved') note = 'Bài chưa được duyệt.';
+    else { await run(x.db, "UPDATE bl_posts SET status = 'wait', remind = 0 WHERE day = ?", day); note = '↩️ Đã huỷ duyệt. Bài quay lại chờ duyệt, chưa lên web.'; await logIt(x, u, 'Huỷ duyệt bài web', p.title); }
   } else if (act === 'skip') {
     await run(x.db, "UPDATE bl_posts SET status = 'dropped', by_name = ? WHERE day = ?", u.name, day);
     note = '❌ Đã bỏ bài này. ' + dayTxt(day) + ' không đăng bài.';
@@ -373,7 +385,7 @@ async function doAct(x, u, p, act, at, hint) {
   return note;
 }
 async function logIt(x, u, what, note) { try { await crmLog(x, u, 'Bài web', '-', '', what, String(note).slice(0, 300)); } catch (e) { } }
-function stName(p) { return { writing: 'Đang viết', wait: 'Chờ duyệt', rewrite: 'Đang viết lại', approved: 'Đã duyệt, chờ tới giờ đăng', published: p.hidden ? 'Đã vào /admin (đang ẩn)' : 'Đã đăng', dropped: 'Đã bỏ', error: 'Viết lỗi' }[p.status] || p.status; }
+function stName(p) { return { writing: 'Đang viết', wait: 'Chờ duyệt', rewrite: 'Đang viết lại', approved: 'Đã duyệt, chờ tới giờ đăng', published: p.hidden ? 'Đã vào /admin (đang ẩn)' : 'Đã đăng', dropped: 'Đã bỏ', moved: 'Đã dời bài sang ngày khác', error: 'Viết lỗi' }[p.status] || p.status; }
 
 function view(p, note) {
   const m = meta(p), body = fixDisc(p.md).replace(/^---[\s\S]*?\n---\n/, '');
@@ -483,6 +495,50 @@ export async function crmBlog(x, u, d) {
     }, '🤖 Trợ lý viết bài: ' + u.name + ' sửa ' + (topics ? 'chủ đề' : 'cài đặt') + ' (CRM)');
     await logIt(x, u, topics ? 'Sửa chủ đề bài web' : 'Sửa cài đặt trợ lý viết bài', JSON.stringify(patch).slice(0, 200));
     return { ok: true };
+  }
+  /* ✏️ Sửa nhanh ngay trong CRM (19/11/2026): tiêu đề, mô tả, ảnh bìa · ⏰ dời ngày / giờ đăng · ✍️ viết sớm cho 1 ngày trống · 🖼 kho ảnh */
+  if (a === 'bl_imgs') return { ok: true, list: (await imgLib()).slice(0, 200).map(i => ({ url: String(i.url || '').replace(SITE, ''), alt: i.alt || '', bai: i.bai || '' })).filter(i => i.url) };
+  if (a === 'bl_edit' || a === 'bl_move') {
+    const p = await first(x.db, 'SELECT * FROM bl_posts WHERE day = ?', String(d.day || ''));
+    if (!p || !p.md) return { ok: false, error: 'Không thấy bài này, tải lại trang nhé.' };
+    if (p.status !== 'wait' && p.status !== 'approved') return { ok: false, error: 'Bài đang ở trạng thái “' + stName(p) + '”, chưa sửa được.' };
+    if (Number(d.at) !== p.at) return { ok: false, error: 'Bài vừa được viết lại hoặc có người khác vừa xử lý. Tải lại trang để xem bản mới nhất nhé.' };
+    const m = meta(p);
+    if (a === 'bl_edit') {
+      const q = s => JSON.stringify(String(s)), ch = [];
+      let md = p.md, title = p.title;
+      if (d.title !== undefined) { const t = cut(d.title, 120).replace(/\s+/g, ' '); if (!t) return { ok: false, error: 'Tiêu đề không được trống.' }; if (t !== p.title) { ch.push('tiêu đề “' + p.title + '” → “' + t + '”'); title = t; md = md.replace(/^title: .*$/m, 'title: ' + q(t)); } }
+      if (d.excerpt !== undefined) { const t = cut(d.excerpt, 200).replace(/\s+/g, ' '); if (t !== (m.excerpt || '')) { ch.push('mô tả “' + (m.excerpt || '') + '” → “' + t + '”'); m.excerpt = t; md = md.replace(/^excerpt: .*$/m, 'excerpt: ' + q(t)); } }
+      if (d.cover !== undefined) { const c = cut(d.cover, 300).replace(SITE, ''); if (!/^\/[\w\-./%]+\.(webp|jpe?g|png)$/i.test(c)) return { ok: false, error: 'Ảnh không hợp lệ.' }; if (c !== m.cover) { m.cover = c; md = md.replace(/^image: .*$/m, 'image: ' + c); m.checks = (m.checks || []).filter(y => !/Ảnh bìa/.test(y)).concat(['✅ Ảnh bìa do ' + u.name + ' chọn']); } }
+      await run(x.db, 'UPDATE bl_posts SET title = ?, md = ?, meta = ? WHERE day = ?', title, md, JSON.stringify(m), p.day);
+      if (ch.length) await edAdd(x, 'blog', { id: 'td' + p.day, by: u.name, t: title, note: 'Người duyệt sửa ' + ch.join('; ') }).catch(() => { }); // ✍️ trợ lý học cách đặt tiêu đề / mô tả
+      await logIt(x, u, 'Sửa nhanh bài web', title + (ch.length ? ' – ' + ch.join('; ') : d.cover ? ' – đổi ảnh bìa' : ''));
+      return { ok: true, note: 'Đã lưu ✓' };
+    }
+    // bl_move: dời ngày (to) và / hoặc hẹn giờ riêng (hour)
+    const today = fmtDate(now, 'yyyy-MM-dd'), to = /^\d{4}-\d{2}-\d{2}$/.test(String(d.to || '')) ? d.to : p.day, hour = Math.round(Number(d.hour));
+    if (to < today) return { ok: false, error: 'Không dời về ngày đã qua được.' };
+    if (to > addDays(today, 30)) return { ok: false, error: 'Chỉ hẹn trong 30 ngày tới.' };
+    if (!(hour >= 6 && hour <= 21)) return { ok: false, error: 'Giờ đăng từ 6h tới 21h.' };
+    if (to !== p.day) {
+      const ex = await first(x.db, 'SELECT status, md FROM bl_posts WHERE day = ?', to);
+      if (ex && !['moved', 'dropped'].includes(ex.status) && !(ex.status === 'error' && !ex.md)) return { ok: false, error: dayTxt(to) + ' đã có bài (' + stName(ex) + '). Chọn ngày khác nhé.' };
+      if (ex) await run(x.db, 'DELETE FROM bl_posts WHERE day = ?', to);
+    }
+    m.ph = hour;
+    await run(x.db, 'UPDATE bl_posts SET day = ?, meta = ?, remind = 0 WHERE day = ?', to, JSON.stringify(m), p.day);
+    if (to !== p.day && p.day >= today) await run(x.db, "INSERT OR REPLACE INTO bl_posts (day, status, topic, by_name, at) VALUES (?, 'moved', ?, ?, ?)", p.day, 'Đã dời sang ' + dayTxt(to), u.name, now); // giữ chỗ để trợ lý không viết bài khác cho ngày cũ
+    await logIt(x, u, 'Dời giờ đăng bài web', p.title + ' → ' + hour + 'h ' + dayTxt(to));
+    return { ok: true, note: '⏰ Đã hẹn ' + hour + 'h ' + dayTxt(to) + (p.status === 'wait' ? '. Bài vẫn cần bấm ✅ Đăng mới lên web.' : '.') };
+  }
+  if (a === 'bl_early') { // ✍️ Viết sớm cho 1 ngày đăng chưa có bài: cron 10 phút / lần lấy như bài viết lại (chủ đề trên cùng)
+    const day = String(d.day || ''), today = fmtDate(now, 'yyyy-MM-dd');
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(day) || day < today || day > addDays(today, 30)) return { ok: false, error: 'Ngày không hợp lệ.' };
+    const ex = await first(x.db, 'SELECT status, md FROM bl_posts WHERE day = ?', day);
+    if (ex && !['moved', 'dropped'].includes(ex.status) && !(ex.status === 'error' && !ex.md)) return { ok: false, error: dayTxt(day) + ' đã có bài.' };
+    await run(x.db, "INSERT OR REPLACE INTO bl_posts (day, status, hint, by_name, at, tries) VALUES (?, 'rewrite', '', ?, ?, 0)", day, u.name, now);
+    await logIt(x, u, 'Nhờ trợ lý viết sớm bài web', dayTxt(day));
+    return { ok: true, note: '✍️ Đã nhờ. Trợ lý bắt đầu viết trong 10 phút tới (mỗi bài 2–5 phút), xong nhắn Telegram.' };
   }
   if (a === 'bl_stats') return Object.assign({ ok: true }, await blogStats(x, [7, 30, 90].includes(Number(d.days)) ? Number(d.days) : 30));
   return { ok: false, error: 'Không rõ thao tác.' };

@@ -60,7 +60,13 @@ Trợ lý tự viết bài cho Góc Sống Lành. **Bài chỉ lên web khi có 
 
 [[steps:wb-duyet]]
 
-**Các nút khác:** **🖊 Tôi tự sửa trong /admin** (bài vào /admin ở dạng ẩn; sửa xong bật "Hiển thị trên web" rồi Lưu), **🔁 Đổi chủ đề khác**, **❌ Bỏ**. Tới giờ đăng mà chưa ai duyệt, trợ lý nhắc thêm 1 lần. Ai bấm trước (Telegram hay CRM) thì bài theo người đó.
+**👎 Chưa ưng** có 4 cách: **✍️ Viết lại theo ý kiến**, **🔁 Đổi chủ đề khác**, **🖊 Tôi tự sửa trong /admin** (bài vào /admin ở dạng ẩn; sửa xong bật "Hiển thị trên web" rồi Lưu), **❌ Bỏ, ngày này không đăng**. Bài đã duyệt mà muốn xem lại thì bấm **↩️ Huỷ duyệt**. Tới giờ đăng mà chưa ai duyệt, trợ lý nhắc thêm 1 lần. Ai bấm trước (Telegram hay CRM) thì bài theo người đó.
+
+**📅 Lịch 7 ngày tới** (đầu thẻ Bài sắp đăng): mỗi ngày 1 ô màu. Vàng = chờ duyệt, xanh = đã duyệt / đã đăng, viền chấm ➕ = chưa viết. Bấm ô có bài để tới bài đó. Bấm ô trống để **✍️ Nhờ trợ lý viết ngay** hoặc **💡 Giao chủ đề cho ngày này** (trợ lý viết luôn chủ đề bạn giao).
+
+**⏰ Dời ngày giờ:** ✏️ Sửa nhanh → chọn ngày và giờ mới (6h–21h). Ngày cũ không đăng bài nữa; muốn có bài cho ngày cũ thì bấm **✍️ Nhờ trợ lý viết bài cho ngày này** trên thẻ ngày đó.
+
+**Thẻ 📚 Đã viết** hiện số lượt đọc, thời gian đọc, lần bấm mua và số đơn của từng bài.
 
 **Giao chủ đề kèm trải nghiệm thật:** ở /admin → Cài đặt website → 🤖 Trợ lý viết bài tự động → Chủ đề chờ viết, có thêm ô **🌿 Trải nghiệm thật**. Ghi chuyện thật vào đó: trợ lý nhắc lại đúng ý trong bài (không thêm thắt) và web hiện riêng trong khung xanh đầu bài.
 

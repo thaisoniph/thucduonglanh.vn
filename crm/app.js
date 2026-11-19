@@ -10262,12 +10262,32 @@
     return (dayStart(t) === d0 ? 'Hôm nay, ' : dayStart(t) === d0 + DAY ? 'Ngày mai, ' : '') + w + ' ' + d.slice(8, 10) + '/' + d.slice(5, 7);
   }
   function bwFun(f) { return BW_FUN[f] ? '<span class="zb-fun zb-fun-' + f.toLowerCase() + '">' + BW_FUN[f] + '</span>' : ''; }
+  /** Nút trên thẻ bài (19/11/2026 gọn lại): 2 nút chính + ✏️ Sửa nhanh + 👎 Chưa ưng (mở hộp chọn cách xử lý) */
   function bwBtns(p, inModal) {
-    var k = p.day + '|' + p.at;
-    if (p.status === 'approved') return '<div class="lq-btns">' + (inModal ? '' : '<button class="btn" data-bw="view|' + k + '">👁 Xem bài</button>') + '<button class="btn" data-bw="rewrite|' + k + '">✍️ Viết lại</button><button class="btn" data-bw="skip|' + k + '">❌ Bỏ</button></div>';
-    return '<div class="lq-btns"><button class="btn pri" data-bw="ok|' + k + '">✅ Đăng bài này</button>' + (inModal ? '' : '<button class="btn" data-bw="view|' + k + '">👁 Xem bài</button>') +
-      '<button class="btn" data-bw="rewrite|' + k + '">✍️ Viết lại theo ý kiến</button><button class="btn" data-bw="admin|' + k + '">🖊 Tôi tự sửa trong /admin</button>' +
-      '<button class="btn" data-bw="new|' + k + '">🔁 Đổi chủ đề khác</button><button class="btn" data-bw="skip|' + k + '">❌ Bỏ</button></div>';
+    var k = p.day + '|' + p.at, view = inModal ? '' : '<button class="btn" data-bw="view|' + k + '">👁 Đọc bài</button>';
+    var edit = '<button class="btn" data-bw="edit|' + k + '">✏️ Sửa nhanh</button>', no = '<button class="btn" data-bw="no|' + k + '">👎 Chưa ưng ▾</button>';
+    if (p.status === 'approved') return '<div class="lq-btns">' + view + edit + '<button class="btn" data-bw="unok|' + k + '">↩️ Huỷ duyệt</button>' + no + '</div>';
+    return '<div class="lq-btns"><button class="btn pri" data-bw="ok|' + k + '">✅ Đăng bài này</button>' + view + edit + no + '</div>';
+  }
+  function bwPost(day) { return ((BW.d && BW.d.posts) || []).filter(function (x) { return x.day === day; })[0]; }
+  function bwHour(p) { var v = Number(p && p.meta && p.meta.ph); return v >= 6 && v <= 21 ? v : (BW.d && BW.d.cfg ? BW.d.cfg.hour : 9); }
+  /** 📄 số chữ · ⏱ phút đọc · 🔗 số nguồn (đọc từ dòng tự kiểm tra) */
+  function bwInfo(m) {
+    var ck = (m.checks || []).join('\n'), w = Number((ck.match(/Dài khoảng (\d+) chữ/) || [])[1]) || 0, src = Number((ck.match(/(\d+) chỗ có dẫn nguồn/) || [])[1]) || 0, out = [];
+    if (w) out.push('📄 ~' + w.toLocaleString('vi-VN') + ' chữ', '⏱ ' + Math.max(1, Math.round(w / 220)) + ' phút đọc');
+    out.push(src ? '🔗 ' + src + ' chỗ dẫn nguồn' : '🔗 chưa dẫn nguồn ngoài');
+    if (m.kw) out.push('🔑 ' + esc(m.kw));
+    return '<p class="bw-meta">' + out.join(' · ') + '</p>';
+  }
+  /** 📅 Dải lịch 7 ngày: mỗi ngày 1 ô màu, bấm ô trống để giao chủ đề / nhờ viết sớm */
+  function bwWeek(j, P) {
+    var t0 = new Date(j.today + 'T12:00:00+07:00').getTime(), wd = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'], h = '';
+    for (var i = 0; i < 7; i++) {
+      var dt = new Date(t0 + i * DAY + 7 * 3600e3), d = dt.toISOString().slice(0, 10), p = P[d], plan = (j.next || []).indexOf(d) >= 0;
+      var st = !p ? (plan ? ['add', '➕ Chưa viết'] : ['off', 'Không đăng']) : { wait: ['need', '⏳ Chờ duyệt'], approved: ['ok', '✅ Đã duyệt'], published: ['pub', p.hidden ? '🖊 Ở /admin' : '🟢 Đã đăng'], writing: ['run', '✍️ Đang viết'], rewrite: ['run', '✍️ Đang viết'], dropped: ['off', '❌ Đã bỏ'], moved: ['off', '↪️ Đã dời'], error: ['bad', '⚠️ Lỗi'] }[p.status] || ['off', esc(p.st || '')];
+      h += '<button class="bw-day bw-day-' + st[0] + '" data-bw="day|' + d + '" title="' + esc(p && p.title || '') + '"><b>' + (i === 0 ? 'Hôm nay' : i === 1 ? 'Mai' : wd[dt.getUTCDay()]) + '</b><span>' + d.slice(8, 10) + '/' + d.slice(5, 7) + '</span><em>' + st[1] + '</em></button>';
+    }
+    return '<div class="bw-week" aria-label="Lịch đăng 7 ngày tới">' + h + '</div>';
   }
   function bwStats() {
     BW.stBusy = 1;
@@ -10329,7 +10349,8 @@
       (j.cerr ? '<p class="small">⚠️ ' + esc(j.cerr) + '</p>' : '') + (!j.aiOn ? '<p class="small">⚠️ Máy chủ chưa có khoá AI nên trợ lý chưa viết được bài.</p>' : '') +
       (!j.gh ? '<p class="small">⚠️ Chưa có mã GitHub (Cài đặt → 🌐 Trang quản trị website) nên trợ lý chưa đăng được bài.</p>' : '') +
       '<p class="small">👤 Người duyệt: ' + (j.approvers || []).map(function (a) { return esc(a.name) + (a.tg ? '' : ' <span class="muted">(chưa nối Telegram, chỉ duyệt được ở đây)</span>'); }).join(', ') + '</p></div>';
-    if (waits.length) h += '<div class="box bw-todo"><b>👉 Có ' + waits.length + ' bài chờ bạn duyệt.</b> Đọc rồi bấm ✅ Đăng, hoặc ghi ý kiến để trợ lý viết lại.' + (noTg.length ? '' : '') + '</div>';
+    if (waits.length) h += '<button class="box bw-todo bw-todo-b" data-bw="todo"><b>👉 Có ' + waits.length + ' bài chờ bạn duyệt.</b> Bấm vào đây để tới bài, đọc rồi bấm ✅ Đăng.</button>';
+    var bt0 = pgTab('blog', ['posts', 'stats', 'done', 'topics'], 'posts');
     var TOP = h; h = ''; // 19/11/2026: chia thẻ (Bài sắp đăng · Kết quả · Đã viết · Chủ đề)
     h += '<details class="zb-info small"><summary>ⓘ Cách hoạt động</summary><ol>' +
       '<li><b>Trước ngày đăng 1 ngày</b>, trợ lý lấy chủ đề trên cùng trong 💡 Chủ đề chờ viết. Hết chủ đề thì tự chọn theo tệp khách và phễu 3 tầng: 🔵 Nhận biết (thu hút người mới), ⚪ Cân nhắc (tạo niềm tin), 🟠 Mua hàng (hướng dẫn dùng, chốt đơn).</li>' +
@@ -10338,17 +10359,18 @@
       '<li>Bài nháp hiện ở đây và nhắn Telegram cho người duyệt. Bấm <b>✅ Đăng</b> là xong: tới giờ đăng bài tự lên web, Google và Bing được báo ngay.</li>' +
       '<li>Chưa ưng thì <b>✍️ Viết lại</b> kèm ý kiến, <b>🖊 Tự sửa trong /admin</b>, <b>🔁 Đổi chủ đề</b> hoặc <b>❌ Bỏ</b>. Tới giờ đăng mà chưa ai duyệt, trợ lý nhắc 1 lần.</li></ol></details>';
     // 📝 bài sắp đăng: chờ duyệt lên đầu
-    h += '<h2 class="zb-h">📝 Bài sắp đăng</h2>';
+    h += '<h2 class="zb-h">📅 Lịch 7 ngày tới</h2>' + bwWeek(j, P) + '<h2 class="zb-h">📝 Bài sắp đăng</h2>';
     near.slice().sort(function (a, b) { var w = function (d) { return P[d] && P[d].status === 'wait' ? 0 : 1; }; return w(a) - w(b) || (a < b ? -1 : 1); }).forEach(function (d) {
-      var p = P[d], head = function (badge) { return '<div class="zb-ph"><b>' + bwDay(d) + (c ? ' · ' + c.hour + 'h' : '') + '</b><span class="zb-due">' + badge + '</span></div>'; };
-      if (!p) { h += '<div class="box zb-post">' + head('⏳ chưa viết') + '<p class="small muted">' + (c && !c.on ? 'Trợ lý đang tắt.' : dayStart(new Date(d + 'T12:00:00+07:00').getTime()) <= today() + DAY ? 'Trợ lý sẽ viết trong ít phút tới (10 phút kiểm tra 1 lần, từ 7h đến 20h). Viết xong sẽ nhắn Telegram.' : 'Trợ lý viết vào hôm trước ngày đăng.') + '</p></div>'; return; }
+      var p = P[d], hr = bwHour(p), head = function (badge) { return '<div class="zb-ph"><b>' + bwDay(d) + ' · ' + hr + 'h' + (p && p.meta && p.meta.ph ? ' <span class="small muted">(hẹn riêng)</span>' : '') + '</b><span class="zb-due">' + badge + '</span></div>'; };
+      if (!p) { var soon = dayStart(new Date(d + 'T12:00:00+07:00').getTime()) <= today() + DAY; h += '<div class="box zb-post" id="bw-card-' + d + '">' + head('⏳ chưa viết') + '<p class="small muted">' + (c && !c.on ? 'Trợ lý đang tắt.' : soon ? 'Trợ lý sẽ viết trong ít phút tới (10 phút kiểm tra 1 lần, từ 7h đến 20h). Viết xong sẽ nhắn Telegram.' : 'Trợ lý viết vào hôm trước ngày đăng.') + '</p>' + (soon ? '' : '<div class="lq-btns"><button class="btn" data-bw="early|' + d + '">✍️ Viết sớm ngay</button><button class="btn" data-bw="tday|' + d + '">💡 Giao chủ đề cho ngày này</button></div>') + '</div>'; return; }
+      if (p.status === 'moved') { h += '<div class="box zb-post bw-off">' + head('↪️ đã dời') + '<p class="small muted">' + esc(p.topic || 'Bài đã dời sang ngày khác') + (p.by_name ? ' · ' + esc(p.by_name) : '') + '. Ngày này không đăng.</p><div class="lq-btns"><button class="btn" data-bw="early|' + d + '">✍️ Nhờ trợ lý viết bài cho ngày này</button></div></div>'; return; }
       if (p.status === 'published' || p.status === 'dropped') { h += '<div class="box zb-post">' + head(esc(p.st)) + '<p>' + esc(p.title || '') + (p.url && !p.hidden ? ' · <a href="' + esc(p.url) + '" target="_blank" rel="noopener">Xem trên web</a>' : '') + '</p></div>'; return; }
       if (p.status === 'writing' || p.status === 'rewrite') { h += '<div class="box zb-post">' + head('✍️ ' + esc(p.st)) + '<p class="small muted">Mỗi bài mất khoảng 2–5 phút (viết lại: trong 10–20 phút). Xong trợ lý nhắn Telegram.' + (p.title ? ' Bản trước: ' + esc(p.title) : '') + '</p></div>'; return; }
       if (p.status === 'error' && !p.title) { h += '<div class="box zb-post">' + head('⚠️ Viết lỗi') + '<p class="small">' + esc(p.err || '') + (p.tries < 3 ? ' · trợ lý tự thử lại sau 30 phút (lần ' + p.tries + '/3).' : ' · đã thử 3 lần, báo anh Sơn xem giúp.') + '</p></div>'; return; }
       var m = p.meta || {}, need = p.status === 'wait', warn = (m.checks || []).filter(function (x) { return /^⚠️/.test(x); }).length;
-      h += '<div class="box zb-post' + (need ? ' zb-need' : '') + '">' + head(need ? '⏳ chờ duyệt' : '✅ ' + esc(p.st) + (p.by_name ? ' · ' + esc(p.by_name) : '')) +
+      h += '<div class="box zb-post' + (need ? ' zb-need' : '') + '" id="bw-card-' + d + '">' + head(need ? '⏳ chờ duyệt' : '✅ ' + esc(p.st) + (p.by_name ? ' · ' + esc(p.by_name) : '')) +
         '<div class="bw-row">' + (m.cover ? '<img class="bw-cover" src="https://thucduonglanh.vn' + esc(m.cover) + '" alt="" loading="lazy">' : '') + '<div class="bw-tx"><p class="bw-title">' + esc(p.title) + '</p>' +
-        '<p class="small">' + bwFun(p.funnel) + '</p>' + inTag({ gn: m.who, is: m.is, t: m.t, i: m.i, d: m.d, w: m.w }) + '<p class="small muted">' + esc(m.excerpt || '') + '</p>' +
+        '<p class="small">' + bwFun(p.funnel) + '</p>' + bwInfo(m) + inTag({ gn: m.who, is: m.is, t: m.t, i: m.i, d: m.d, w: m.w }) + '<p class="small muted">' + esc(m.excerpt || '') + '</p>' +
         '<p class="small muted">' + (p.topic && p.topic !== 'Trợ lý tự chọn' ? '💡 Chủ đề được giao: ' + esc(p.topic) : '🤖 Trợ lý tự chọn chủ đề') + '</p></div></div>' +
         (m.checks && m.checks.length ? '<details class="zb-info small"' + (warn ? ' open' : '') + '><summary>' + (warn ? '⚠️ Trợ lý tự kiểm tra: ' + warn + ' điểm cần xem' : '✅ Trợ lý tự kiểm tra: không có lỗi') + '</summary><ul>' + m.checks.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul></details>' : '') +
         (m.fb ? '<p class="small muted">✍️ Đã viết lại theo ý kiến: “' + esc(m.fb) + '”</p>' : '') + (p.err ? '<p class="small">⚠️ ' + esc(p.err) + '</p>' : '') + bwBtns(p) + '</div>';
@@ -10368,25 +10390,29 @@
     }).join('') + '</div>';
     var TOPICS = h; h = '';
     // 📚 đã viết
-    var done = (j.posts || []).filter(function (p) { return p.status === 'published' || p.status === 'dropped'; });
+    var done = (j.posts || []).filter(function (p) { return p.status === 'published' || p.status === 'dropped'; }), stBy = {};
+    if (bt0 === 'done' && done.length && !BW.st && !BW.stErr && !BW.stBusy) setTimeout(bwStats, 0);
+    ((BW.st && BW.st.list) || []).forEach(function (r) { stBy[r.slug] = r; });
     if (done.length) h += '<details class="zb-info small"><summary>📚 Bài trợ lý đã viết (' + done.length + ')</summary><div class="box bw-topics">' + done.slice(0, 40).map(function (p) {
-      return '<div class="bw-trow"><div class="bw-tx">' + bwDay(p.day) + ' · ' + (p.url && !p.hidden ? '<a href="' + esc(p.url) + '" target="_blank" rel="noopener">' + esc(p.title) + '</a>' : esc(p.title)) + '<br><span class="small muted">' + bwFun(p.funnel) + ' ' + esc(p.st) + (p.by_name ? ' · ' + esc(p.by_name) : '') + '</span></div></div>';
+      return '<div class="bw-trow"><div class="bw-tx">' + bwDay(p.day) + ' · ' + (p.url && !p.hidden ? '<a href="' + esc(p.url) + '" target="_blank" rel="noopener">' + esc(p.title) + '</a>' : esc(p.title)) + '<br><span class="small muted">' + bwFun(p.funnel) + ' ' + esc(p.st) + (p.by_name ? ' · ' + esc(p.by_name) : '') + '</span>' +
+        (p.status === 'published' && !p.hidden ? '<br><span class="small">' + (!BW.st ? '<span class="muted">' + (BW.stErr ? 'chưa lấy được số đọc' : '⏳ đang lấy số đọc…') + '</span>' : stBy[p.slug] ? '👀 ' + stBy[p.slug].v + ' lượt · ⏱ ' + bwSec(stBy[p.slug].sec) + ' · 🛒 ' + (stBy[p.slug].cart + stBy[p.slug].cta) + ' bấm mua' + (stBy[p.slug].n ? ' · <b>🧾 ' + stBy[p.slug].n + ' đơn, ' + money(stBy[p.slug].rev) + '</b>' : '') + ' <span class="muted">(' + (BW.days || 30) + ' ngày)</span>' : '<span class="muted">chưa có lượt đọc trong ' + (BW.days || 30) + ' ngày</span>') + '</span>' : '') + '</div></div>';
     }).join('') + '</div></details>';
     var DONE = h.replace('<details class="zb-info small"><summary>', '<details class="zb-info small" open><summary>');
     var bt = pgTab('blog', ['posts', 'stats', 'done', 'topics'], 'posts');
     h = TOP + grpPick([['📝 Mỗi ngày', 'duyệt bài', ['posts']], ['📊 Xem kết quả', 'mỗi tuần', ['stats', 'done']], ['🛠 Chuẩn bị', 'khi cần', ['topics']]],
       { posts: ['📝', 'Bài sắp đăng', waits.length ? waits.length + ' bài chờ duyệt' : 'đọc rồi bấm Đăng'], stats: ['📊', 'Kết quả', 'bài nào được đọc nhiều'], done: ['📚', 'Đã viết', done.length + ' bài'], topics: ['💡', 'Chủ đề chờ viết', wait ? wait + ' chủ đề' : 'giao chủ đề'] }, bt, pgAt('blog'));
-    if (bt === 'posts') h += inTabi('Bài trợ lý sắp đăng lên Góc Sống Lành. Bài chờ duyệt thì đọc rồi bấm <b>✅ Đăng</b>.', ['Đọc bài', 'Ưng: bấm <b>✅ Đăng</b>; chưa ưng: <b>✍️ Viết lại</b> kèm ý kiến']) + POSTS;
+    if (bt === 'posts') h += (waits.length ? '' : inTabi('Bài trợ lý sắp đăng lên Góc Sống Lành. Bài chờ duyệt thì đọc rồi bấm <b>✅ Đăng</b>.', ['Đọc bài (👁)', 'Ưng: bấm <b>✅ Đăng</b>; muốn chỉnh: <b>✏️ Sửa nhanh</b> hoặc <b>👎 Chưa ưng</b>'])) + POSTS;
     if (bt === 'stats') h += inTabi('Bài nào được đọc nhiều, đọc lâu, nhiều người bấm mua. Trợ lý học theo bài tốt.', ['Mỗi tuần xem 1 lần']) + (STATS || '<div class="box"><p class="muted">Chưa đủ bài đã đăng để so.</p></div>');
     if (bt === 'done') h += inTabi('Các bài trợ lý đã viết và đăng.', ['Bấm tên bài để mở trên web']) + (DONE || '<div class="box"><p class="muted">Chưa có bài nào.</p></div>');
     if (bt === 'topics') h += inTabi('Muốn trợ lý viết về điều gì thì giao chủ đề; trợ lý lấy chủ đề trên cùng trước.', ['Bấm <b>➕ Giao chủ đề</b> trên cùng', 'Bấm <b>⬆️ Lên</b> để viết trước']) + TOPICS;
     return h;
   }
   function bwSaveTopics(tp, msg) { return api('bl_cfg', { topics: tp }).then(function () { toast(msg); bwFetch(); }, function (e) { toast(e.message, true); bwFetch(); }); }
-  function bwTopicForm(i) {
+  function bwTopicForm(i, day) {
     var tp = (BW.d.cfg && BW.d.cfg.topics || []).slice(), t = i == null ? { funnel: 'Tự chọn', status: 'Chờ viết' } : tp[i];
     var sel = function (id, list, v) { return '<select id="' + id + '">' + list.map(function (o) { return '<option' + (o === v ? ' selected' : '') + '>' + esc(o) + '</option>'; }).join('') + '</select>'; };
-    var m = modal(i == null ? '➕ Thêm chủ đề' : '✏️ Sửa chủ đề',
+    var m = modal(day ? '💡 Giao chủ đề cho ' + bwDay(day) : i == null ? '➕ Thêm chủ đề' : '✏️ Sửa chủ đề',
+      (day ? '<p class="small muted">Chủ đề này lên đầu danh sách và trợ lý viết luôn cho ' + bwDay(day) + ' (bắt đầu trong 10 phút, mỗi bài 2–5 phút).</p>' : '') +
       '<label class="f"><span>Chủ đề / tiêu đề gợi ý</span><input id="bwTt" value="' + esc(t.title || '') + '" placeholder="Ví dụ: Bữa sáng 5 phút cho dân văn phòng không bị đói giữa buổi"></label>' +
       '<label class="f"><span>Ghi chú cho trợ lý (không bắt buộc)</span><textarea id="bwTn" rows="3" placeholder="Ý chính muốn nói, nhóm khách nhắm tới, nguồn tin nên dùng…">' + esc(t.note || '') + '</textarea></label>' +
       '<label class="f"><span>Tầng phễu</span>' + sel('bwTf', BW_TFN, t.funnel || 'Tự chọn') + '</label>' +
@@ -10397,6 +10423,7 @@
     $('#bwTsave', m).onclick = function () {
       var nt = { title: $('#bwTt', m).value.trim(), note: $('#bwTn', m).value.trim(), funnel: $('#bwTf', m).value, group: $('#bwTg', m).value, product: $('#bwTp', m).value.trim(), status: i == null ? 'Chờ viết' : $('#bwTs', m).value, link: t.link || '' };
       if (!nt.title) return toast('Bạn ghi chủ đề trước nhé.', true);
+      if (day) { tp.unshift(nt); this.disabled = true; closeModal(); return api('bl_cfg', { topics: tp }).then(function () { return api('bl_early', { day: day }); }).then(function (r) { toast(r.note || 'Đã giao ✓'); bwFetch(); }, function (e) { toast(e.message, true); bwFetch(); }); }
       if (i == null) tp.push(nt); else tp[i] = nt;
       this.disabled = true; closeModal(); bwSaveTopics(tp, i == null ? 'Đã thêm chủ đề ✓' : 'Đã lưu chủ đề ✓');
     };
@@ -10419,9 +10446,88 @@
   function bwView(day) {
     api('bl_post', { day: day }).then(function (j) {
       var p = (BW.d.posts || []).filter(function (x) { return x.day === day; })[0] || { day: day, at: j.at, status: j.status }, m = j.meta || {};
-      modal('👁 ' + esc(j.title), '<div class="bw-art">' + (m.cover ? '<img src="https://thucduonglanh.vn' + esc(m.cover) + '" alt="">' : '') + '<p class="muted small">' + esc(m.excerpt || '') + '</p><h1>' + esc(j.title) + '</h1>' + j.html + '</div>',
+      var srcs = [], seen = {}; String(j.html).replace(/<a href="(https?:\/\/[^"]+)"[^>]*>([^<]*)<\/a>/g, function (x, u, t) { if (!/thucduonglanh\.vn/.test(u) && !seen[u]) { seen[u] = 1; srcs.push('<li><a href="' + u + '" target="_blank" rel="noopener">' + (t || u) + '</a> <span class="muted">' + esc(u.replace(/^https?:\/\/(www\.)?/, '').split('/')[0]) + '</span></li>'); } });
+      modal('👁 ' + esc(j.title), bwInfo(m) + '<div class="bw-art">' + (m.cover ? '<img src="https://thucduonglanh.vn' + esc(m.cover) + '" alt="">' : '') + '<p class="muted small">' + esc(m.excerpt || '') + '</p><h1>' + esc(j.title) + '</h1>' + j.html + '</div>' +
+        '<div class="box bw-srcs small"><b>🔗 Nguồn bài dẫn (' + srcs.length + ')</b>' + (srcs.length ? '<ol>' + srcs.join('') + '</ol>' : '<p class="muted">Bài không dẫn nguồn ngoài. Có số liệu mà không có nguồn thì nên bấm 👎 Chưa ưng → Viết lại, ghi “thêm nguồn tin uy tín”.</p>') + '</div>',
         p.status === 'wait' || p.status === 'approved' ? bwBtns(p, true) : '');
     }, function (e) { toast(e.message, true); });
+  }
+  /** 👎 Chưa ưng: 4 cách xử lý, mỗi cách 1 dòng giải thích */
+  function bwNo(p) {
+    var k = p.day + '|' + p.at, o = function (a, icon, name, sub, cls) { return '<button class="bw-opt' + (cls || '') + '" data-bw="' + a + '|' + k + '"><b>' + icon + ' ' + name + '</b><span>' + sub + '</span></button>'; };
+    modal('👎 Chưa ưng bài này?', '<p class="small muted">' + esc(p.title) + '</p><div class="bw-opts">' +
+      o('rewrite', '✍️', 'Viết lại theo ý kiến', 'Giữ chủ đề. Bạn ghi cần sửa gì, trợ lý viết lại trong 10–20 phút.') +
+      o('new', '🔁', 'Đổi chủ đề khác', 'Bỏ bài này, trợ lý viết bài chủ đề khác cho cùng ngày.') +
+      o('admin', '🖊', 'Tôi tự sửa trong /admin', 'Bài vào /admin ở dạng ẩn, bạn sửa từng chữ rồi bấm Xuất bản.') +
+      o('skip', '❌', 'Bỏ, ngày này không đăng', 'Không đăng bài nào vào ' + bwDay(p.day) + '.', ' bw-opt-no') + '</div>');
+  }
+  var BW_CHIPS = ['Mở bài ngắn lại, vào thẳng vấn đề', 'Thêm ví dụ đời thường', 'Giọng gần gũi, ấm áp hơn', 'Bớt nhắc sản phẩm', 'Thêm nguồn tin uy tín cho số liệu', 'Tiêu đề hấp dẫn hơn', 'Ngắn lại còn khoảng 900 chữ', 'Thêm mục hỏi đáp sát câu khách hay hỏi'];
+  /** ✍️ Viết lại: ô ghi ý kiến rộng + gợi ý bấm 1 chạm (thay hộp prompt của trình duyệt) */
+  function bwRewrite(p) {
+    var m = modal('✍️ Viết lại theo ý kiến', '<p class="small muted">' + esc(p.title) + '</p>' + (p.meta && p.meta.fb ? '<p class="small muted">Ý kiến lần trước: “' + esc(p.meta.fb) + '”</p>' : '') +
+      '<p class="small"><b>Bấm để thêm nhanh:</b></p><div class="bw-chips">' + BW_CHIPS.map(function (c) { return '<button class="chip" data-chip="' + esc(c) + '">' + esc(c) + '</button>'; }).join('') + '</div>' +
+      '<label class="f"><span>Cần sửa gì? (trợ lý làm đúng theo và nhớ cho các bài sau)</span><textarea id="bwHint" rows="5" placeholder="Ví dụ: đoạn 2 nói hơi dài, thêm ví dụ bữa sáng cho dân văn phòng, bỏ đoạn về giá…"></textarea></label>',
+      '<button class="btn" data-close>Huỷ</button><button class="btn pri" id="bwHgo">✍️ Gửi cho trợ lý viết lại</button>');
+    var ta = $('#bwHint', m);
+    m.addEventListener('click', function (e) { var c = e.target.closest('[data-chip]'); if (!c) return; var v = c.getAttribute('data-chip'); if (ta.value.indexOf(v) < 0) ta.value = (ta.value.trim() ? ta.value.trim().replace(/[.,;]?$/, '. ') : '') + v + '.'; c.classList.add('on'); ta.focus(); });
+    setTimeout(function () { ta.focus(); }, 50);
+    $('#bwHgo', m).onclick = function () { var v = ta.value.trim(); if (!v) return toast('Bạn ghi ý kiến cần sửa nhé.', true); bwAct(this, p.day, 'rewrite', p.at, v); };
+  }
+  function bwAct(t, day, a, at, hint) {
+    t.disabled = true; var old = t.textContent; t.textContent = '⏳ Đang làm…';
+    return api('bl_act', { day: day, act: a, at: at, hint: hint || '' }).then(function (j) {
+      closeModal(); toast(j.note || 'Xong ✓');
+      if (j.admin) modal('🖊 Bài đã vào /admin', '<p>Bài đang ẩn. Mở /admin để sửa, xong bật <b>Hiển thị trên web</b> rồi bấm <b>Xuất bản</b>.</p><p><a class="btn pri" href="' + esc(j.admin) + '" target="_blank" rel="noopener">Mở /admin</a></p>');
+      bwFetch();
+    }, function (err) { t.disabled = false; t.textContent = old; toast(err.message, true); });
+  }
+  /** ✏️ Sửa nhanh: tiêu đề, mô tả, ảnh bìa, ngày giờ đăng, 🚀 đăng ngay – không cần vào /admin */
+  function bwEdit(p) {
+    var m0 = p.meta || {}, hr = bwHour(p), opt = '', t0 = new Date(BW.d.today + 'T12:00:00+07:00').getTime(), hrs = '';
+    for (var i = 0; i <= 14; i++) { var d = new Date(t0 + i * DAY + 7 * 3600e3).toISOString().slice(0, 10), o = bwPost(d), busy = d !== p.day && o && ['moved', 'dropped'].indexOf(o.status) < 0 && !(o.status === 'error' && !o.title);
+      opt += '<option value="' + d + '"' + (d === p.day ? ' selected' : '') + (busy ? ' disabled' : '') + '>' + bwDay(d) + (busy ? ' (đã có bài)' : (BW.d.next || []).indexOf(d) >= 0 ? '' : ' · ngoài lịch') + '</option>'; }
+    if (p.day < BW.d.today) opt = '<option value="' + p.day + '" selected>' + bwDay(p.day) + ' (đã qua)</option>' + opt;
+    for (var H = 6; H <= 21; H++) hrs += '<option value="' + H + '"' + (H === hr ? ' selected' : '') + '>' + H + 'h</option>';
+    var cnt = function (id, n) { return '<small class="muted bw-cnt" data-for="' + id + '" data-max="' + n + '"></small>'; };
+    var m = modal('✏️ Sửa nhanh bài', '<label class="f"><span>Tiêu đề <span class="muted">(nên 50–80 ký tự)</span></span><input id="bwEt" value="' + esc(p.title) + '" maxlength="120">' + cnt('bwEt', 80) + '</label>' +
+      '<label class="f"><span>Mô tả ngắn <span class="muted">(hiện trên Google, Facebook, Zalo; tối đa 160 ký tự)</span></span><textarea id="bwEx" rows="3" maxlength="200">' + esc(m0.excerpt || '') + '</textarea>' + cnt('bwEx', 160) + '</label>' +
+      '<div class="f"><span>🖼 Ảnh bìa</span><div class="bw-ed"><img id="bwEcv" class="bw-cover" src="' + (m0.cover ? 'https://thucduonglanh.vn' + esc(m0.cover) : '') + '" alt=""><button class="btn" id="bwEimg">🖼 Chọn ảnh khác</button></div><div id="bwEimgs"></div></div>' +
+      '<div class="f"><span>⏰ Ngày & giờ lên web</span><div class="bw-ed"><select id="bwEd">' + opt + '</select><select id="bwEh">' + hrs + '</select></div><small class="muted">Đổi ngày thì ngày cũ không đăng bài (có thể nhờ trợ lý viết bài khác cho ngày cũ). ' + (p.status === 'wait' ? 'Bài vẫn cần bấm ✅ Đăng mới lên web.' : 'Bài đã duyệt, sẽ tự lên đúng giờ mới.') + '</small>' +
+      '<div class="lq-btns"><button class="btn" id="bwEnow">🚀 Đăng ngay bây giờ</button></div></div>',
+      '<button class="btn" data-close>Huỷ</button><button class="btn pri" id="bwEsave">Lưu</button>');
+    var cover = m0.cover || '';
+    var upd = function () { $$('.bw-cnt', m).forEach(function (c) { var el = $('#' + c.getAttribute('data-for'), m), n = el.value.trim().length, mx = Number(c.getAttribute('data-max')); c.textContent = n + ' / ' + mx + ' ký tự' + (n > mx ? ' – hơi dài' : ''); c.style.color = n > mx ? 'var(--danger, #B5523B)' : ''; }); };
+    m.addEventListener('input', upd); upd();
+    $('#bwEimg', m).onclick = function () {
+      var b = this, box = $('#bwEimgs', m); b.disabled = true; box.innerHTML = '<p class="small muted">⏳ Đang tải kho ảnh…</p>';
+      api('bl_imgs', {}).then(function (r) {
+        b.disabled = false;
+        box.innerHTML = r.list.length ? '<p class="small muted">Bấm 1 ảnh để chọn (ảnh thật đã dùng trên web). Muốn ảnh mới thì tải lên /admin trước.</p><div class="bw-imgs">' + r.list.map(function (i) { return '<button class="bw-img' + (i.url === cover ? ' on' : '') + '" data-u="' + esc(i.url) + '" title="' + esc(i.alt) + '"><img src="https://thucduonglanh.vn' + esc(i.url) + '" alt="' + esc(i.alt) + '" loading="lazy"></button>'; }).join('') + '</div>' : '<p class="small muted">Kho ảnh trống.</p>';
+      }, function (e) { b.disabled = false; box.innerHTML = ''; toast(e.message, true); });
+    };
+    m.addEventListener('click', function (e) { var b = e.target.closest('.bw-img'); if (!b) return; cover = b.getAttribute('data-u'); $$('.bw-img', m).forEach(function (x) { x.classList.toggle('on', x === b); }); $('#bwEcv', m).src = 'https://thucduonglanh.vn' + cover; });
+    $('#bwEnow', m).onclick = function () { if (!confirm('Đăng bài này lên web ngay bây giờ? (chữ đã sửa ở trên chưa lưu thì bấm Lưu trước)')) return; bwAct(this, p.day, 'now', p.at); };
+    $('#bwEsave', m).onclick = function () {
+      var b = this, q = { day: p.day, at: p.at }, ch = false, nd = $('#bwEd', m).value, nh = Number($('#bwEh', m).value);
+      var t = $('#bwEt', m).value.trim(), ex = $('#bwEx', m).value.trim();
+      if (!t) return toast('Tiêu đề không được trống.', true);
+      if (t !== p.title) { q.title = t; ch = true; } if (ex !== (m0.excerpt || '')) { q.excerpt = ex; ch = true; } if (cover && cover !== (m0.cover || '')) { q.cover = cover; ch = true; }
+      var mv = nd !== p.day || nh !== hr;
+      if (!ch && !mv) return closeModal();
+      b.disabled = true; b.textContent = '⏳ Đang lưu…';
+      (ch ? api('bl_edit', q) : Promise.resolve({})).then(function () { return mv ? api('bl_move', { day: p.day, at: p.at, to: nd, hour: nh }) : {}; })
+        .then(function (r) { closeModal(); toast(r.note || 'Đã lưu ✓'); bwFetch(); }, function (e) { b.disabled = false; b.textContent = 'Lưu'; toast(e.message, true); bwFetch(); });
+    };
+  }
+  /** Bấm 1 ô trong dải lịch */
+  function bwOpenDay(d) {
+    var p = bwPost(d), card = document.getElementById('bw-card-' + d);
+    if (p && card) { card.scrollIntoView({ behavior: 'smooth', block: 'start' }); card.classList.add('bw-flash'); setTimeout(function () { card.classList.remove('bw-flash'); }, 1500); return; }
+    if (p && p.status === 'published' && p.url && !p.hidden) return window.open(p.url, '_blank', 'noopener');
+    if (p && ['moved', 'dropped'].indexOf(p.status) < 0 && !(p.status === 'error' && !p.title)) return p.title ? bwView(d) : toast(p.st || 'Đang xử lý');
+    modal('📅 ' + bwDay(d), '<p class="small muted">' + ((BW.d.next || []).indexOf(d) >= 0 ? 'Ngày đăng theo lịch, trợ lý sẽ tự viết vào hôm trước.' : 'Ngày này không có trong lịch đăng. Muốn đăng thêm 1 bài thì chọn bên dưới.') + '</p><div class="bw-opts">' +
+      '<button class="bw-opt" data-bw="early|' + d + '"><b>✍️ Nhờ trợ lý viết ngay</b><span>Trợ lý lấy chủ đề trên cùng trong 💡 Chủ đề chờ viết, hết chủ đề thì tự chọn.</span></button>' +
+      '<button class="bw-opt" data-bw="tday|' + d + '"><b>💡 Giao chủ đề cho ngày này</b><span>Bạn ghi chủ đề muốn viết, trợ lý viết luôn.</span></button></div>');
   }
   document.addEventListener('click', function (e) {
     var t = e.target.closest('[data-bw]'); if (!t) return;
@@ -10435,18 +10541,20 @@
     if (a === 'tup') { var i = Number(day), x = tp[i]; tp[i] = tp[i - 1]; tp[i - 1] = x; t.disabled = true; return bwSaveTopics(tp, 'Đã đổi thứ tự ✓'); }
     if (a === 'tdel') { if (!confirm('Xoá chủ đề “' + (tp[Number(day)] || {}).title + '”?')) return; tp.splice(Number(day), 1); t.disabled = true; return bwSaveTopics(tp, 'Đã xoá chủ đề'); }
     if (a === 'view') return bwView(day);
-    var hint = '';
-    if (a === 'rewrite') { hint = prompt('Cần sửa gì? Ghi ý kiến cho trợ lý (vd: mở bài ngắn lại, thêm ví dụ bữa sáng cho dân văn phòng, bỏ đoạn về giá…)', ''); if (hint === null) return; if (!hint.trim()) return toast('Bạn ghi ý kiến cần sửa nhé.', true); }
+    if (a === 'todo') { PG_TAB.blog = 'posts'; store('pg_blog', 'posts'); render(); var nd = $('.zb-need'); if (nd) nd.scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
+    if (a === 'day') return bwOpenDay(day);
+    if (a === 'tday') { closeModal(true); return bwTopicForm(null, day); }
+    if (a === 'early') { if (!confirm('Nhờ trợ lý viết bài cho ' + bwDay(day) + ' ngay bây giờ?')) return; t.disabled = true; return api('bl_early', { day: day }).then(function (r) { closeModal(); toast(r.note || 'Đã nhờ ✓'); bwFetch(); }, function (er) { t.disabled = false; toast(er.message, true); }); }
+    var bp = bwPost(day) || { day: day, at: at, title: '', meta: {} };
+    if (a === 'no') return bwNo(bp);
+    if (a === 'edit') return bwEdit(bp);
+    if (a === 'rewrite') return bwRewrite(bp);
+    if (a === 'unok' && !confirm('Huỷ duyệt? Bài quay lại chờ duyệt và chưa lên web.')) return;
     if (a === 'new' && !confirm('Bỏ bài này và để trợ lý viết bài chủ đề khác cho ngày này?')) return;
     if (a === 'skip' && !confirm('Bỏ bài này? Ngày này sẽ không đăng bài.')) return;
     if (a === 'admin' && !confirm('Đưa bài vào /admin ở dạng ẩn để bạn tự sửa? Sửa xong bạn bật “Hiển thị trên web” rồi bấm Xuất bản.')) return;
-    if (['ok', 'rewrite', 'new', 'skip', 'admin'].indexOf(a) < 0) return;
-    t.disabled = true; var old = t.textContent; t.textContent = '⏳ Đang làm…';
-    api('bl_act', { day: day, act: a, at: at, hint: hint }).then(function (j) {
-      closeModal(); toast(j.note || 'Xong ✓');
-      if (j.admin) modal('🖊 Bài đã vào /admin', '<p>Bài đang ẩn. Mở /admin để sửa, xong bật <b>Hiển thị trên web</b> rồi bấm <b>Xuất bản</b>.</p><p><a class="btn pri" href="' + esc(j.admin) + '" target="_blank" rel="noopener">Mở /admin</a></p>');
-      bwFetch();
-    }, function (err) { t.disabled = false; t.textContent = old; toast(err.message, true); });
+    if (['ok', 'new', 'skip', 'admin', 'unok'].indexOf(a) < 0) return;
+    bwAct(t, day, a, at, '');
   });
   /* ================================================================ ✨ Hỏi số liệu (06/11/2026, api/src/ask.js)
    * Người được dùng (máy chủ gửi user.ask; tạm thời anh Sơn + anh Hiếu) hỏi bằng lời ("doanh số tuần này so với tuần trước?"), máy chủ để Claude tự tra số trong D1 rồi trả lời.
