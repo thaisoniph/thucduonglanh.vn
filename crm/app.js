@@ -5221,8 +5221,12 @@
   }
   /** Lãi gộp văn phòng (gpOf) + sàn (sanGp) cho kỳ này và kỳ trước: dùng chung cho ô 📈 Lãi gộp và mục 🧮 Lãi lỗ. */
   function dashGp(b, bp, sj) {
-    var g = gpOf(b), g0 = gpOf(bp), cr = sj ? sanCostRate(sj, b) : null, sg = cr ? sanPl(sanSum(sj.days, 2), cr) : null, sg0 = cr ? sanPl(sanSum(sj.prev, 1), cr) : null;
+    var g = gpOf(b), g0 = gpOf(bp), KR = store('dash_cogs') !== 'crm' ? ktCogsRate() : null, cr = sj ? (KR ? { r: KR.r / (1 + nsvVat() / 100) } : sanCostRate(sj, b)) : null, sg = cr ? sanPl(sanSum(sj.days, 2), cr) : null, sg0 = cr ? sanPl(sanSum(sj.prev, 1), cr) : null;
     var v = g ? plVat(b.rev - b.vRev) : 0, v0 = g0 ? plVat(bp.rev - bp.vRev) : 0; // 20/11/2026: lãi gộp tính trên doanh thu chưa VAT (như kế toán)
+    if (KR) { // giá vốn theo tỷ lệ kế toán (mặc định, giống khung 💵): lãi gộp = doanh thu chưa VAT × (1 − tỷ lệ)
+      if (g) g = Object.assign({}, g, { gp: Math.round((b.rev - b.vRev) * (1 - KR.r) + v * KR.r) });
+      if (g0) g0 = Object.assign({}, g0, { gp: Math.round((bp.rev - bp.vRev) * (1 - KR.r) + v0 * KR.r) });
+    }
     return { g: g, sg: sg, any: !!(g || sg), vat: v + (sg ? sg.vat : 0), tot: (g ? g.gp - v : 0) + (sg ? sg.gp : 0), tot0: g0 || sg0 ? (g0 ? g0.gp - v0 : 0) + (sg0 ? sg0.gp : 0) : 0 };
   }
   /* ---------- Lãi lỗ cho đúng như kế toán (20/11/2026, anh Sơn: CRM báo T10 lãi 41,5 tr, kế toán lỗ 17 tr → "số liệu mà sai thì quyết định sai").
@@ -5875,7 +5879,9 @@
         (ox.part ? '<p class="small muted">Chọn <b>' + (month === monthOf(Date.now()) ? 'Tháng này' : 'Tháng trước') + '</b> (trọn tháng) để xem bảng so số CRM với kế toán.</p>' : '<div class="bcdt-wrap pnl-wrap">' + ktCompare(K, T, G, M ? ads : null, ox, net, ML.replace(/^t/, 'T')) + '</div>') +
         '<p class="small muted">File: ' + esc(K.file || '') + (K.by ? ' · ' + esc(K.by) + ' tải ' + when(K.at) : '') + '</p></div>';
     }
-    return { line: ox.has ? (net < 0 ? '🔴 Lỗ ' : '🟢 Lãi ') + moneyShort(Math.abs(net)) + ' sau mọi chi phí' + (T.net ? ' · ' + Math.round(net * 100 / T.net) + '% doanh số' : '') : '⚠️ Chưa nhập chi phí văn phòng ' + ML,
+    var KC = !ox.part ? ktClosed(month) : null; // trọn tháng đã có file kế toán: số kế toán là số chính (20/11/2026)
+    if (KC) say = (KC.profit < 0 ? '🔴 <b>Kế toán chốt ' + ML + ': lỗ ' : '🟢 <b>Kế toán chốt ' + ML + ': lãi ') + moneyShort(Math.abs(KC.profit)) + '</b> (số chính). CRM tạm tính ' + (net < 0 ? 'lỗ ' : 'lãi ') + moneyShort(Math.abs(net)) + ', lệch ' + (net - KC.profit < 0 ? '−' : '+') + moneyShort(Math.abs(net - KC.profit)) + ': xem bảng so bên dưới.';
+    return { line: KC ? '📑 Kế toán chốt: ' + (KC.profit < 0 ? '🔴 lỗ ' : '🟢 lãi ') + moneyShort(Math.abs(KC.profit)) + ' · CRM tạm tính ' + (net < 0 ? 'lỗ ' : 'lãi ') + moneyShort(Math.abs(net)) : ox.has ? (net < 0 ? '🔴 Lỗ ' : '🟢 Lãi ') + moneyShort(Math.abs(net)) + ' sau mọi chi phí' + (T.net ? ' · ' + Math.round(net * 100 / T.net) + '% doanh số' : '') : '⚠️ Chưa nhập chi phí văn phòng ' + ML,
       body: '<div class="box"><p class="pnl-say' + (ox.has ? net < 0 ? ' bad' : ' ok' : '') + '">' + say + '</p><div class="steps">' + btn + '</div>' + t + ks + payBlock(month, T, b, M, ox, ML) +
         '<ul class="small muted pnl-notes">' + notes.map(function (x) { return '<li>' + x + '</li>'; }).join('') + '</ul>' + (hist ? '<p class="small" style="margin:10px 0 4px"><b>Chi phí văn phòng đã nhập</b> (bấm để sửa):</p><div class="steps">' + hist + '</div>' : '') + '</div>' };
   }
