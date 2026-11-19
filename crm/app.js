@@ -4936,10 +4936,11 @@
   /* ---------- 💰 Giá vốn (29/10/2026): giá nhập lưu ở máy chủ (kv cost_cfg, chỉ Quản trị, không nằm trong repo công khai), sửa ở Cài đặt → 💰 Giá vốn.
    * Giá vốn 1 sản phẩm = giá nhập × (1 + oh%). Tên trong đơn khớp bảng theo loại sản phẩm + trọng lượng (costKey), vì đơn ghi tên rất khác nhau
    * ("Bữa ăn DD 500G", "Fucoidan 800g", "Sữa hạt Fucoidan Gafo 800g"…). Combo / Mua 3 tặng 1 / "400g x8, …" nhân đúng số hộp. */
-  var COST_FAM = [[/progomax/, 'pgm'], [/curcumin/, 'cur'], [/fucoidan|gafo/, 'gafo'], [/bua an|\bdd\b|dinh duong vitagreen/, 'bua'], [/dilvang|che vang|dinh lang/, 'dil'], [/xi dau/, 'xd'], [/mam xoi/, 'mx'], [/dau xanh|rau ma/, 'dx'], [/ruoc|rong bien/, 'ruoc']];
+  // 20/11/2026: + Forganic (đa dưỡng chất / bữa ăn thay thế, đặt trước 'bua' vì "bữa ăn thay thế" có chữ "bua an"), "cucumin", "Fucoidan PRO" = Progomax. FAM trong api/src/kho.js cố ý CHƯA đổi theo (đổi có thể làm tồn kho tính lại theo đơn cũ)
+  var COST_FAM = [[/(forganic|foganic).*thay the|thay the.*(forganic|foganic)/, 'fbt'], [/forganic|foganic/, 'fdd'], [/progomax|fucoidan pro\b/, 'pgm'], [/curcumin|cucumin/, 'cur'], [/fucoidan|gafo/, 'gafo'], [/bua an|\bdd\b|dinh duong vitagreen/, 'bua'], [/dilvang|che vang|dinh lang/, 'dil'], [/xi dau/, 'xd'], [/mam xoi/, 'mx'], [/dau xanh|rau ma/, 'dx'], [/ruoc|rong bien/, 'ruoc']];
   function costKey(t) {
     var n = norm(t), f = null; COST_FAM.some(function (r) { if (r[0].test(n)) { f = r[1]; return true; } return false; });
-    var w = n.match(/(\d+)\s*(g|ml)\b/), m = 1, a = n.match(/mua (\d+) tang (\d+)/), c = n.match(/combo (\d+)/), g = !/hop/.test(n) && n.match(/(\d+)\s*goi\s*[*x×]?\s*(25)\s*g/);
+    var w = n.match(/\[(\d+)\s*(g|ml)\]/) || n.match(/(\d+)\s*(g|ml)\b/), m = 1, a = n.match(/mua (\d+) tang (\d+)/), c = n.match(/combo (\d+)/), g = !/hop/.test(n) && n.match(/(\d+)\s*goi\s*[*x×]?\s*(25)\s*g/);
     if (a) m = +a[1] + +a[2]; else if (c) m = +c[1]; if (g) { m *= +g[1]; w = [0, g[2]]; }
     return { f: f, w: w ? +w[1] : 0, m: m };
   }
@@ -4949,6 +4950,11 @@
     if (COST_MEMO.at !== C.at) { var M = {}; C.items.forEach(function (r) { var k = costKey(r[0]); if (!k.f) return; (M[k.f] = M[k.f] || {})[k.w] = Math.round(r[1] * (1 + (Number(C.oh) || 0) / 100)); }); COST_MEMO = { at: C.at, map: M, it: {} }; }
     return COST_MEMO.map;
   }
+  /** Cỡ không có trong bảng (vd ruốc 250g, bảng có 215g): lấy cỡ gần nhất cùng loại nếu lệch ≤ 30% trọng lượng (20/11/2026). */
+  function costNear(F, w) {
+    if (!w) return 0; var b = 0, d = 1e9; Object.keys(F).forEach(function (x) { x = +x; var e = Math.abs(x - w); if (x && e < d) { d = e; b = x; } });
+    return b && d <= 0.3 * b ? F[b] : 0;
+  }
   /** Giá vốn của 1 dòng hàng trong đơn (đủ số lượng), null = chưa khớp được bảng giá vốn. */
   function itemCost(i) {
     var M = costCfg(); if (!M) return null;
@@ -4956,7 +4962,7 @@
     if (u === undefined) {
       u = 0; String(t).split(/,\s+/).some(function (part) {
         var x = part.match(/\sx(\d+)\s*$/), mul = x ? +x[1] : 1, k = costKey(part.replace(/\sx\d+\s*$/, '')), F = k.f && M[k.f], ws = F ? Object.keys(F) : [];
-        var c = F ? (F[k.w] || (!k.w && ws.length ? F[Math.max.apply(null, ws.map(Number))] : 0)) : 0; // không ghi trọng lượng → loại lớn nhất (hộp chính)
+        var c = F ? (F[k.w] || (!k.w && ws.length ? F[Math.max.apply(null, ws.map(Number))] : 0) || costNear(F, k.w)) : 0; // không ghi trọng lượng → loại lớn nhất (hộp chính)
         if (!c) { u = null; return true; } u += c * k.m * mul; return false;
       });
       COST_MEMO.it[t] = u;
