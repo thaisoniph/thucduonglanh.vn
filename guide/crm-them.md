@@ -205,7 +205,7 @@ Không nói sản phẩm chữa / điều trị / khỏi bệnh.
 
 **Khách gọi điện / nhắn Zalo nói "chị Hoa giới thiệu":** khi thêm khách hỏi, chọn *Khách đến từ đâu* là **Khách giới thiệu** rồi chọn chị Hoa. Nhớ chọn **ngay lúc thêm khách** (quên thì sửa trong 2 ngày). Chị Hoa do bạn khác phụ trách thì khách tự giao cho bạn đó, CRM báo ngay khi bạn bấm Lưu. Khách chốt đơn thì tab Hôm nay cũng nhắc **🎁 Cảm ơn khách giới thiệu**.
 
-**Xem ai giới thiệu nhiều:** tab **Khách đã mua** → bấm nút lọc **🎁 Đã giới thiệu khách**. Người mang về nhiều tiền nhất đứng đầu. Mỗi người có dòng: giới thiệu mấy người, mấy người đã mua, mang về bao nhiêu tiền, đã tặng quà chưa. Mở hồ sơ để xem từng người được giới thiệu và bấm tặng quà cảm ơn.
+**Xem ai giới thiệu nhiều:** tab **Khách đã mua** → bấm nút lọc **🎁 Đã giới thiệu** (nhóm 💎 Giữ khách). Người mang về nhiều tiền nhất đứng đầu. Mỗi người có dòng: giới thiệu mấy người, mấy người đã mua, mang về bao nhiêu tiền, đã tặng quà chưa. Mở hồ sơ để xem từng người được giới thiệu và bấm tặng quà cảm ơn.
 
 ## Xem hồ sơ khách
 
@@ -238,16 +238,19 @@ Sửa xong bấm **Lưu thay đổi**.
 
 Vào tab **Khách**, gõ vào ô tìm: tên, số điện thoại, **tỉnh**, hoặc tên sản phẩm. Gõ nhiều chữ cũng được. Ví dụ *Nghệ An progomax* = khách ở Nghệ An đã mua Progomax.
 
-**Nút lọc nhanh:**
+**Nút lọc nhanh** chia 4 nhóm (từ 19/11/2026), dưới mỗi nút ghi số khách. Bấm 1 nút thì dòng **📌** ngay dưới cho biết đó là khách nào:
 
-| Nút | Là khách nào |
-| --- | --- |
-| **Cần chăm sóc** | Khách có việc cần làm hôm nay |
-| **VIP** | Khách mua nhiều |
-| **Sắp mất** | Lâu chưa mua lại. **Nên gọi nhất** |
-| **⏰ Sắp hết hàng** | Sắp dùng hết hoặc vừa hết. Gọi mời mua lại |
-| **Có hẹn gọi lại** | Khách đã hẹn |
-| **Đã / Chưa kết bạn Zalo** | Theo Zalo |
+| Nhóm | Nút | Là khách nào |
+| --- | --- | --- |
+| **📞 Cần gọi** (mỗi ngày) | 💚 Cần chăm sóc | Khách có việc cần làm hôm nay |
+| | ⏰ Sắp hết hàng | Sắp dùng hết hoặc vừa hết. Gọi mời mua lại |
+| | 📞 Hẹn gọi lại | Khách đã hẹn |
+| **💎 Giữ khách** (mỗi tuần) | 💎 VIP | Khách mua nhiều |
+| | ⚠️ Sắp mất | Lâu chưa mua lại. **Nên gọi nhất** |
+| | 😴 Lâu không mua | Hơn 180 ngày chưa mua |
+| | 🎁 Đã giới thiệu | Khách đã giới thiệu bạn bè mua |
+| **💬 Zalo & nhóm** | Đã / Chưa kết bạn · Chưa vào nhóm | Theo Zalo và nhóm cộng đồng |
+| **🔎 Khác** | Tất cả · ❄️ Khách lạnh · 🕊️ Ngừng liên hệ | Khi cần tìm |
 
 Bấm **🔎 Lọc thêm** để lọc theo mức chi tiền, khách đến từ đâu, sinh nhật. Bấm **✕** ở cuối ô tìm để xoá chữ cũ.
 

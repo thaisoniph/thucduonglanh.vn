@@ -2372,12 +2372,17 @@
     var n = {}; S.d.customers.forEach(function (c) { if (lvl() >= 2 || c.owner === S.user.name) { var k = custSrc(c) || 'Chưa rõ'; n[k] = (n[k] || 0) + 1; } });
     return Object.keys(n).sort(function (a, b) { return n[b] - n[a]; });
   }
+  /** 19/11/2026 (anh Sơn: "làm tương tự" các trang khác): 13 nút lọc một hàng → 4 nhóm thẻ có số khách + dòng 📌 cho mục đang chọn */
+  var CF_G = [['📞 Cần gọi', 'mỗi ngày', ['task', 'runout7', 'callback']], ['💎 Giữ khách', 'mỗi tuần', ['vip', 'risk', 'lost', 'ref']], ['💬 Zalo & nhóm', 'kết nối khách', ['zalo', 'nozalo', 'nocomm']], ['🔎 Khác', 'khi cần tìm', ['all', 'cold', 'stop']]];
+  var CF_NM = { task: ['💚', 'Cần chăm sóc'], runout7: ['⏰', 'Sắp hết hàng'], callback: ['📞', 'Hẹn gọi lại'], vip: ['💎', 'VIP'], risk: ['⚠️', 'Sắp mất'], lost: ['😴', 'Lâu không mua'], ref: ['🎁', 'Đã giới thiệu'],
+    zalo: [ZI, 'Đã kết bạn'], nozalo: ['➕', 'Chưa kết bạn'], nocomm: ['👥', 'Chưa vào nhóm'], all: ['📋', 'Tất cả'], cold: ['❄️', 'Khách lạnh'], stop: ['🕊️', 'Ngừng liên hệ'] };
   function renderCustomerChips(base, cur) {
-    return CF.map(function (x) {
-      var n = base.filter(x.f).length, tp = { nocomm: 'Khách chưa vào nhóm Zalo “Sống khỏe cùng Thực Dưỡng Lành”: dùng 📣 Gửi ưu đãi lần lượt để mời hàng loạt', runout7: 'Dự kiến dùng hết trong 7 ngày tới (hoặc vừa hết trong 7 ngày qua): gọi mời mua lại ngay', vip: TIP.vip(), risk: TIP.risk, lost: TIP.lost, cold: TIP.cold, nozalo: TIP.nozalo, task: TIP.task, callback: TIP.callback, all: TIP.all }[x.k];
-      return '<button class="chip' + (x.k === cur.k ? ' on' : '') + '" data-cf="' + x.k + '"' + (tp ? ' title="' + esc(tp) + '"' : '') + '>' + x.l + ' <em>' + n + '</em></button>';
-    }).join('');
+    var n = {}; CF.forEach(function (x) { n[x.k] = base.filter(x.f).length; });
+    var G = CF_G.map(function (g) { return [g[0], g[1], g[2].map(function (k) { return [k, CF_NM[k][0], CF_NM[k][1], n[k] + ' khách']; })]; });
+    var tp = { nocomm: 'Khách chưa vào nhóm Zalo “Sống khỏe cùng Thực Dưỡng Lành”: dùng 📣 Gửi ưu đãi lần lượt để mời hàng loạt', runout7: 'Dự kiến dùng hết trong 7 ngày tới (hoặc vừa hết trong 7 ngày qua): gọi mời mua lại ngay', vip: TIP.vip(), risk: TIP.risk, lost: TIP.lost, cold: TIP.cold, nozalo: TIP.nozalo, task: TIP.task, callback: TIP.callback, all: TIP.all }[cur.k];
+    return grpMenu(G, cur.k, function (k) { return 'data-cf="' + k + '"'; }) + (tp ? '<p class="small lf-use">📌 ' + esc(tp) + '</p>' : '');
   }
+
   function custRowF(c) { return custRow(c, !!(S.f.c && S.f.c.k === 'ref')); }
   function renderCustomerList(list, n) {
     var rs = S.f.c && S.f.c.k === 'ref' ? refStats().sum : null;
@@ -2446,7 +2451,7 @@
       '<div class="tools"><div class="search">' + I.search + '<input type="search" id="cq" placeholder="Tìm tên, SĐT, tỉnh, sản phẩm…" value="' + esc(f.q) + '"><button type="button" class="search-x" aria-label="Xoá chữ tìm kiếm" title="Xoá">✕</button></div>' +
       '<select id="csort" style="flex:0 0 auto;width:auto">' + Object.keys(SORTS).map(function (k) { return '<option value="' + k + '"' + (f.sort === k ? ' selected' : '') + '>' + SORTS[k][0] + '</option>'; }).join('') + '</select></div>' +
       (f.bday && !dobReady() ? '<div class="notice">🎂 Máy chủ chưa có cột Ngày sinh. Báo quản lý dán code Apps Script bản mới và Triển khai phiên bản mới.</div>' : '') +
-      '<div class="chips" id="cChips">' + renderCustomerChips(base, cur) + '</div>' +
+      '<div id="cChips">' + renderCustomerChips(base, cur) + '</div>' +
       legend(S.d.customers.filter(function (c) { return whoOk(c.owner); }), f.cat) +
       '<details class="cfmore"' + (f.spend || f.src || f.bday || f.more ? ' open' : '') + '><summary>🔎 Lọc thêm: mức chi, nguồn khách, sinh nhật' + (f.spend || f.src || f.bday ? ' <b class="cf-on">· đang lọc</b>' : '') + '</summary>' +
       '<div class="tools filt"><select id="cspend" class="' + (f.spend ? 'on' : '') + '" title="Lọc theo tổng tiền khách đã chi"><option value="">💰 Mọi mức chi</option>' + Object.keys(SPEND).map(function (k) { return '<option value="' + k + '"' + (f.spend === k ? ' selected' : '') + '>Đã chi ' + SPEND[k][0].toLowerCase() + '</option>'; }).join('') + '</select>' +
