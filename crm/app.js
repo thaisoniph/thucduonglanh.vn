@@ -4763,7 +4763,7 @@
     o = o || {}; var mx = Math.max.apply(null, items.map(function (x) { return x.v; }).concat(o.avg || 0)) || 1;
     var avg = o.avg ? '<u class="avg" style="left:' + (o.avg * 100 / mx).toFixed(1) + '%"></u>' : '';
     return '<div class="bars' + (o.avg !== undefined ? ' cmp' : '') + '" role="table">' + items.map(function (x) {
-      return '<div class="bar-r' + (x.muted ? ' mut' : '') + (x.who ? ' click' : '') + '" role="row" title="' + esc(x.tip || '') + '"' + (x.who ? ' data-who="' + esc(x.who) + '"' : '') + '><span class="bar-l" role="cell">' + esc(x.l) + '</span><span class="bar-t" role="cell"><i style="width:' + Math.max(1.5, x.v * 100 / mx) + '%"></i>' + avg + '</span><span class="bar-v" role="cell">' + (x.txt !== undefined ? x.txt : fmt(x.v)) + (x.sub && !o.below ? '<small>' + esc(x.sub) + '</small>' : '') + '</span></div>' + ((x.sub || x.subH) && o.below ? '<div class="bar-q dash-sub">' + (x.subH || esc(x.sub)) + '</div>' : '') +
+      return '<div class="bar-r' + (x.muted ? ' mut' : '') + (x.cls ? ' ' + x.cls : '') + (x.who ? ' click' : '') + '" role="row" title="' + esc(x.tip || '') + '"' + (x.who ? ' data-who="' + esc(x.who) + '"' : '') + '><span class="bar-l" role="cell">' + esc(x.l) + '</span><span class="bar-t" role="cell"><i style="width:' + Math.max(1.5, x.v * 100 / mx) + '%"></i>' + avg + '</span><span class="bar-v" role="cell">' + (x.txt !== undefined ? x.txt : fmt(x.v)) + (x.sub && !o.below ? '<small>' + esc(x.sub) + '</small>' : '') + '</span></div>' + ((x.sub || x.subH) && o.below ? '<div class="bar-q dash-sub">' + (x.subH || esc(x.sub)) + '</div>' : '') +
         (x.quotes && x.quotes.length ? '<div class="bar-q">' + x.quotes.map(function (q) { return '“' + esc(q) + '”'; }).join(' · ') + '</div>' : '');
     }).join('') + '</div>';
   }
@@ -14362,7 +14362,7 @@
     NG += ksTeam(rows.map(function (r) { return r.n; }), month); // 📋 Phiếu KPI tháng từng sale (19/11/2026)
     NG += ksTrend(rows.map(function (r) { return r.n; }), rows.map(function (r) { return r.n; })); // 📈 KPI theo thời gian (20/11/2026)
     var lead = rows[0] && rows[0].sales ? rows[0] : null;
-    NG += rows.length >= 2 ? repMore('cmp', '📊 So sánh nhân viên', 'Xếp hạng theo doanh số, số đơn, tỷ lệ chốt, % mục tiêu…' + (lead ? ' · dẫn đầu: ' + esc(lead.n) : ''), compareBlock(rows, cx)) : '';
+    NG += rows.length >= 2 ? repMore('cmp', '📊 So sánh nhân viên', 'Bảng tổng hợp từng người, tô màu so với cả nhóm: doanh số, % mục tiêu, tỷ lệ chốt…' + (lead ? ' · dẫn đầu: ' + esc(lead.n) : ''), compareBlock(rows, cx)) : '';
     h += repMore('rtrend', '📈 Bán hàng theo ngày', 'Doanh số, số đơn, lượt chăm sóc từng ngày, so với ' + (CMP_LABEL || 'kỳ trước'), repTrend(null, cx));
     h += smkMore(mk, null, smkInvest(mk, mk && mk.team, 'cả nhóm', cx.label).replace(/<button class="link" data-rgo="mkt">[^<]*<\/button>/, '') + repFunnel(all, 'cả nhóm'));
     h += repMore('care', '💬 Chăm sóc khách', all.care + ' lượt' + (all.replyPct === null ? '' : ' · ' + all.replyPct + '% khách nghe máy') + (all.convPct === null ? '' : ' · ' + all.convPct + '% chăm sóc ra đơn'), careMetrics(all, prev, false, null, cx.R));
@@ -14391,17 +14391,69 @@
   };
   function compareBlock(rows, cx) {
     if (rows.length < 2) return '';
-    var f = S.f.r, k = CMP[f.cm] ? f.cm : 'sales', M = CMP[k];
+    var f = S.f.r, k = CMP[f.cm] ? f.cm : 'sum', A = cmpAgg(rows);
+    var chips = '<div class="chips">' + [['sum', '🧾 Tổng hợp']].concat(Object.keys(CMP).map(function (x) { return [x, CMP[x][0]]; })).map(function (x) { return '<button class="chip' + (x[0] === k ? ' on' : '') + '" data-rf="cm|' + x[0] + '">' + x[1] + '</button>'; }).join('') + '</div>';
+    var head = '<section class="section"><div class="section-h"><h2>📊 So sánh nhân viên</h2><span class="tip">' + esc(k === 'target' ? 'mục tiêu ' + monthLabel(cx.month) : cx.label) + ' · bấm vào ' + (k === 'sum' ? 'tên' : 'thanh') + ' để xem từng người</span></div>' + chips;
+    if (k === 'sum') return head + cmpSum(rows, A) + '</section>';
+    var M = CMP[k], X = CMP_X[k], ref = cmpRef(k, rows, A), rate = !!X[3];
     var its = rows.map(function (r) {
-      var v = M[1](r);
-      return { l: r.n, v: v || 0, txt: v === null ? '–' : M[2](v), sub: M[3](r), muted: v === null || !v, who: r.n,
+      var v = M[1](r), low = v !== null && cmpLow(k, r), lv = low ? '' : cmpLv(v, ref), d = low ? '' : cmpDiff(rate, v, ref);
+      return { l: r.n, v: v || 0, txt: v === null ? '–' : M[2](v), cls: lv ? 'lv-' + lv : '', muted: v === null || !v || low, who: r.n, low: low, nul: v === null,
+        subH: esc(M[3](r)) + (low ? ' · <span class="muted">ít số liệu, chưa so</span>' : d ? ' · <b class="cmp-d ' + lv + '">' + d + '</b>' : ''),
         tip: r.n + ': ' + money(r.sales) + ' · ' + r.orders + ' đơn · chốt ' + (r.closePct === null ? '–' : r.closePct + '%') + ' · ' + r.care + ' lượt chăm sóc · bấm để xem chi tiết' };
-    }).sort(function (a, b) { return b.v - a.v; });
-    var has = its.filter(function (x) { return x.txt !== '–'; }), avg = has.length ? has.reduce(function (s0, x) { return s0 + x.v; }, 0) / has.length : 0;
-    return '<section class="section"><div class="section-h"><h2>📊 So sánh nhân viên</h2><span class="tip">' + esc(k === 'target' ? 'mục tiêu ' + monthLabel(cx.month) : cx.label) + ' · bấm vào thanh để xem từng người</span></div>' +
-      '<div class="chips">' + Object.keys(CMP).map(function (x) { return '<button class="chip' + (x === k ? ' on' : '') + '" data-rf="cm|' + x + '">' + CMP[x][0] + '</button>'; }).join('') + '</div>' +
-      '<div class="box">' + barList(its, M[2], 'Chưa có số liệu.', { avg: has.length > 1 ? avg : null }) +
-      (has.length > 1 ? '<p class="bar-legend"><span class="avg-k"></span> Trung bình nhóm: <b>' + M[2](Math.round(avg)) + '</b>' + (has.length < its.length ? ' · thanh xám: chưa có số liệu' : '') + '</p>' : '') + '</div></section>';
+    }).sort(function (a, b) { return (a.nul - b.nul) || (a.low - b.low) || (b.v - a.v); });
+    var refTxt = ref === null ? '' : X[0] === 'avg' ? 'Trung bình mỗi người: <b>' + M[2](Math.round(ref)) + '</b>' : 'Cả nhóm: <b>' + M[2](Math.round(ref)) + '</b>' + (k === 'close' ? ' (' + A.won + ' / ' + A.data + ' data quảng cáo)' : k === 'conv' ? ' (' + A.conv + ' / ' + A.contacted + ' khách)' : k === 'target' ? ' (' + moneyShort(A.tms) + ' / ' + moneyShort(A.tg) + ')' : '');
+    return head + '<div class="box">' + barList(its, M[2], 'Chưa có số liệu.', { avg: ref, below: true }) +
+      (refTxt ? '<p class="bar-legend"><span class="avg-k"></span> ' + refTxt + ' · <span class="cmp-d ok">xanh</span> bằng hoặc hơn · <span class="cmp-d mid">cam</span> thấp hơn chút · <span class="cmp-d bad">đỏ</span> thấp hơn nhiều' + (X[1] ? ' · xám: dưới ' + X[2] + ' ' + X[4] + ', chưa so' : '') + '</p>' : '') + '</div></section>';
+  }
+  /* 20/11/2026: mốc so sánh = cả nhóm cộng dồn (tỷ lệ = tổng ra đơn ÷ tổng data, KHÔNG lấy trung bình các %), người ít số liệu không xếp hạng.
+   * [mốc nhóm ('avg' = trung bình mỗi người), số mẫu 1 người, mẫu tối thiểu, là tỷ lệ %, tên mẫu] */
+  var CMP_X = {
+    sales: ['avg'], orders: ['avg'], care: ['avg'],
+    avg: [function (a) { return a.orders ? a.sales / a.orders : null; }, function (r) { return r.orders; }, 3, 0, 'đơn'],
+    close: [function (a) { return a.data ? a.won * 100 / a.data : null; }, function (r) { return r.data; }, 5, 1, 'data'],
+    target: [function (a) { return a.tg ? a.tms * 100 / a.tg : null; }, null, 0, 1],
+    conv: [function (a) { return a.contacted ? a.conv * 100 / a.contacted : null; }, function (r) { return r.contacted; }, 5, 1, 'khách'],
+    web: [function (a) { return a.webOf ? a.web * 100 / a.webOf : null; }, function (r) { return r.webOf; }, 3, 1, 'đơn'],
+    old: [function (a) { return a.sales ? a.oldRev * 100 / a.sales : null; }, function (r) { return r.orders; }, 3, 1, 'đơn']
+  };
+  function cmpAgg(rows) {
+    var a = { tms: 0, tg: 0 }, F = ['sales', 'orders', 'won', 'data', 'contacted', 'conv', 'web', 'webOf', 'oldRev', 'care'];
+    F.forEach(function (x) { a[x] = 0; });
+    rows.forEach(function (r) { F.forEach(function (x) { a[x] += r[x] || 0; }); if (r.t && r.t.amount) { a.tms += r.ms || 0; a.tg += r.t.amount; } });
+    return a;
+  }
+  function cmpRef(k, rows, A) {
+    var X = CMP_X[k]; if (X[0] !== 'avg') return X[0](A);
+    var vs = rows.map(function (r) { return CMP[k][1](r); }).filter(function (v) { return v !== null; });
+    return vs.length ? vs.reduce(function (s0, v) { return s0 + v; }, 0) / vs.length : null;
+  }
+  function cmpLow(k, r) { var X = CMP_X[k]; return !!(X[1] && X[1](r) < X[2]); }
+  function cmpLv(v, ref) { return v === null || !ref ? '' : v >= ref ? 'ok' : v >= ref * 0.8 ? 'mid' : 'bad'; }
+  function cmpDiff(rate, v, ref) {
+    if (v === null || !ref) return '';
+    var d = rate ? Math.round(v - ref) : Math.round((v - ref) * 100 / ref), w = rate ? ' điểm' : '%';
+    return !d ? 'bằng nhóm' : (d > 0 ? 'hơn nhóm ' : 'kém nhóm ') + Math.abs(d) + w;
+  }
+  /** 🧾 Tổng hợp: 1 dòng / người, mỗi ô tô màu so với cả nhóm → nhìn 1 lần thấy mạnh / yếu chỗ nào. */
+  var CMP_SUM = ['sales', 'target', 'orders', 'avg', 'close', 'conv', 'old'];
+  function cmpSum(rows, A) {
+    var refs = {}, best = {};
+    CMP_SUM.forEach(function (k) {
+      refs[k] = cmpRef(k, rows, A);
+      rows.forEach(function (r) { var v = CMP[k][1](r); if (v && !cmpLow(k, r) && (best[k] === undefined || v > best[k])) best[k] = v; });
+    });
+    var th = '<tr><th>Nhân viên</th>' + CMP_SUM.map(function (k) { return '<th>' + CMP[k][0] + '</th>'; }).join('') + '</tr>';
+    var tr = rows.map(function (r) {
+      return '<tr data-who="' + esc(r.n) + '" title="Bấm để xem chi tiết ' + esc(r.n) + '"><td>' + esc(r.n) + '</td>' + CMP_SUM.map(function (k) {
+        var v = CMP[k][1](r), low = v !== null && cmpLow(k, r), lv = low ? 'low' : cmpLv(v, refs[k]);
+        return '<td class="' + (lv ? 'lv-' + lv : '') + (v && v === best[k] && !low ? ' cmp-top' : '') + '" title="' + esc(CMP[k][3](r)) + '">' + (v === null ? '–' : CMP[k][2](Math.round(v))) + (low ? '<small>ít số</small>' : '') + '</td>';
+      }).join('') + '</tr>';
+    }).join('');
+    var tot = { sales: A.sales, orders: A.orders, target: refs.target, avg: refs.avg, close: refs.close, conv: refs.conv, old: refs.old };
+    tr += '<tr class="tot"><td>Cả nhóm</td>' + CMP_SUM.map(function (k) { var v = tot[k]; return '<td>' + (v === null || v === undefined ? '–' : CMP[k][2](Math.round(v))) + '</td>'; }).join('') + '</tr>';
+    return '<div class="box"><div class="cmp-sum-w"><table class="cmp-sum">' + th + tr + '</table></div>' +
+      '<p class="bar-legend">Mỗi ô so với cả nhóm: <span class="cmp-d ok">xanh</span> bằng hoặc hơn · <span class="cmp-d mid">cam</span> thấp hơn chút · <span class="cmp-d bad">đỏ</span> thấp hơn nhiều · ★ cao nhất. Doanh số, số đơn so với trung bình mỗi người. “ít số”: dưới 5 data / 3 đơn, chưa so. Rê chuột vào ô để xem số gốc.</p></div>';
   }
   /** Mục “Chưa ai phụ trách” ở tab Hiệu quả: đơn chưa có NV bán, khách / khách hỏi chưa giao cho ai. */
   function viewNoOwner(cx) {

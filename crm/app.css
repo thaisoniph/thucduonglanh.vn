@@ -3928,3 +3928,22 @@ details.top-fold.tf-focus .tf-all { display: block; }
 .kst-avg th, .kst-avg td { background: #f6f7f5; border-top: 2px solid var(--line); }
 .kst-tr { min-width: 110px; text-align: left !important; }
 .kst-swipe { display: none; } @media (max-width: 700px) { .kst-swipe { display: inline; } }
+/* 📊 So sánh nhân viên (20/11/2026): thanh tô màu so với cả nhóm + bảng 🧾 Tổng hợp */
+.bar-r.lv-mid .bar-t i { background: var(--mid); } .bar-r.lv-bad .bar-t i { background: var(--red); }
+.bars.cmp .bar-q.dash-sub { font-style: normal; padding-left: 4px; margin: -4px 0 4px; }
+.cmp-d { font-weight: 700; } .cmp-d.ok { color: var(--primary); } .cmp-d.mid { color: var(--orange); } .cmp-d.bad { color: var(--red); }
+.cmp-sum-w { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: -4px 0 6px; }
+table.cmp-sum { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 14px; font-variant-numeric: tabular-nums; }
+table.cmp-sum th { font-size: 12px; font-weight: 600; color: var(--muted); text-align: right; padding: 6px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+table.cmp-sum td { text-align: right; padding: 9px 8px; border-bottom: 1px solid #fff; white-space: nowrap; color: var(--ink); }
+table.cmp-sum th:first-child, table.cmp-sum td:first-child { text-align: left; position: sticky; left: 0; background: var(--card); z-index: 1; }
+table.cmp-sum td:first-child { font-weight: 600; padding-right: 12px; }
+table.cmp-sum tr[data-who] { cursor: pointer; } table.cmp-sum tr[data-who]:hover td:first-child { color: var(--primary); text-decoration: underline; }
+table.cmp-sum td.lv-ok { background: var(--primary-light); color: var(--primary); }
+table.cmp-sum td.lv-mid { background: var(--orange-light); color: var(--orange); }
+table.cmp-sum td.lv-bad { background: var(--red-light); color: var(--red); }
+table.cmp-sum td.lv-low { color: var(--muted); }
+table.cmp-sum td.cmp-top { font-weight: 800; } table.cmp-sum td.cmp-top::before { content: '★ '; }
+table.cmp-sum td small { display: block; font-size: 11px; font-weight: 400; }
+table.cmp-sum tr.tot td { font-weight: 700; background: var(--bg); border-top: 2px solid var(--line); }
+@media (max-width: 520px) { table.cmp-sum { font-size: 13px; } table.cmp-sum td, table.cmp-sum th { padding-left: 6px; padding-right: 6px; } }
