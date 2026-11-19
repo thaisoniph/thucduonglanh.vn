@@ -15282,20 +15282,21 @@
     if (x && (x.newN || x.late)) H.push(['gvHome', '✅ <b>Việc tuần:</b> ' + [x.newN ? x.newN + ' việc mới cần nhận' : '', x.late ? x.late + ' việc quá hạn' : ''].filter(Boolean).join(', ') + ' · <u>bấm để xem</u>']);
     return H;
   }
-  /** Tin để lướt (không cần làm gì): điều hôm nay, lời chúc, tin vui. */
+  /** Tin để lướt (không cần làm gì): điều hôm nay, tin vui. Lời chúc đứng riêng ở đầu (tfPeek). */
   function tfSoft() {
     var L = [], r = S.vh && S.vh.day === vhDay() ? S.vh : null, vb = $('#vhBox');
     if (r && vb && vb.textContent.trim()) L.push(['vhBox', '🌿 Cả nhà mình cùng giữ <b>điều ' + r.n + ': ' + esc(r.t) + '</b>' + (r.s ? ' · ' + esc(r.s) : '')]);
-    var w = hiwText(); if (w) L.push(['hiwLine', '☀️ ' + esc(w)]);
     var B = S.bt && S.bt.items && $('#btBox') ? S.bt.items.slice(0, 6) : [];
     B.forEach(function (i) { L.push(['btBox', '📣 ' + i.ic + ' ' + esc(btMe(i)) + ' <small>· ' + btAgo(i.at) + '</small>']); });
     return L;
   }
   function tfPeek(fade) {
     var pk = $('#tfPeek'); if (!pk) return;
-    var hot = tfHot(), L = hot.concat(tfSoft()); if (!L.length) { pk.hidden = true; return; }
+    // 19/11/2026 anh Sơn (cách 1): ☀️ lời chúc luôn là tin ĐẦU TIÊN mỗi lần mở CRM, rồi mới tới việc cần làm, điều hôm nay, tin vui
+    var w = hiwText(), W = w ? [['hiwLine', '☀️ ' + esc(w)]] : [], hot = tfHot(), L = W.concat(hot, tfSoft()); if (!L.length) { pk.hidden = true; return; }
+    if (W.length && !TF.wSeen) { TF.wSeen = 1; TF.pi = 0; } // lời chúc tải về sau các tin khác: vẫn cho hiện trước
     var k = TF.pi % L.length, it = L[k];
-    pk.hidden = false; pk.className = 'tf-peek' + (k < hot.length ? ' hot' : '') + (fade ? ' tf-fade' : '');
+    pk.hidden = false; pk.className = 'tf-peek' + (k >= W.length && k < W.length + hot.length ? ' hot' : '') + (k < W.length ? ' wish' : '') + (fade ? ' tf-fade' : '');
     var html = '<span class="tf-pk-t" data-tfgo="' + it[0] + '">' + it[1] + '</span>' + (L.length > 1 ? '<span class="tf-pk-n" aria-hidden="true">' + (k + 1) + '/' + L.length + '</span>' : '');
     if (pk.innerHTML !== html) pk.innerHTML = html;
     if (fade) requestAnimationFrame(function () { requestAnimationFrame(function () { pk.classList.remove('tf-fade'); }); });

@@ -3553,6 +3553,7 @@ details.top-fold[open] > summary::after { transform: rotate(180deg); }
 .tf-peek { flex: 1 1 100%; display: flex; align-items: flex-start; gap: 8px; min-width: 0; font-size: 15px; line-height: 1.45; color: var(--ink); background: linear-gradient(90deg, #eef6ef, #f8fbf6); border-left: 4px solid var(--primary); border-radius: 10px; padding: 7px 10px; transition: opacity .3s; }
 .tf-peek[hidden] { display: none; }
 .tf-peek.hot { background: #fff4e5; border-left-color: #f0a030; }
+.tf-peek.wish { background: linear-gradient(90deg, #fff8e6, #fffdf6); border-left-color: #e8b64a; color: #5a4a1f; } /* ☀️ lời chúc: ấm, khác màu việc cần làm */
 .tf-peek.tf-fade { opacity: 0; }
 .tf-pk-t { flex: 1; min-width: 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .tf-pk-t small { color: var(--muted); }

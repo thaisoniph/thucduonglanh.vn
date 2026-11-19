@@ -16,7 +16,7 @@ description: Mỗi ngày CRM nhắc 1 quy tắc kèm 1 việc nhỏ để làm. 
 
 ## ☀️ Lời chào và lời chúc mỗi ngày
 
-Mở CRM ra, dòng trên cùng là **lời chào có tên bạn** (Chào buổi sáng / trưa / chiều / tối). Ngay dưới là **dòng xem trước** màu xanh: cứ 7 giây đổi một tin (điều hôm nay, câu chúc, tin vui), không cần bấm vẫn đọc được. Muốn đọc kỹ thì bấm vào dòng đó.
+Mở CRM ra, dòng trên cùng là **lời chào có tên bạn** (Chào buổi sáng / trưa / chiều / tối). Ngay dưới là **dòng xem trước**: tin đầu tiên luôn là **☀️ câu chúc hôm nay** (nền vàng), sau đó cứ 7 giây đổi một tin (điều hôm nay, tin vui), không cần bấm vẫn đọc được. Muốn đọc kỹ thì bấm vào dòng đó.
 
 **Khi có việc cần bạn làm** (thông báo mới chưa đọc, thiếu thông tin cá nhân, việc tuần mới hoặc quá hạn, sinh nhật đồng đội hôm nay), khung lời chào **tự mở ra** và chỉ hiện đúng việc đó, dòng xem trước chuyển **màu cam**. Làm xong (bấm **✅ Tôi đã đọc**, **Để sau**…) thì khung tự thu gọn. Chưa muốn làm thì bấm mũi tên ▴ để đóng, hôm đó CRM không tự mở lại cho việc đó nữa.
 
