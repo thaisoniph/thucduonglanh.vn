@@ -171,6 +171,15 @@ Mỗi số điện thoại khách hỏi từ quảng cáo là **tiền thật c�
 
 Muốn xem theo từng sản phẩm thì bấm **Xem chi tiết ›** (tab Hiệu quả → thẻ 📈 Bán hàng → 📣 Từ quảng cáo).
 
+### 🏢 Cả văn phòng cần bán bao nhiêu mỗi ngày?
+
+Ngay dưới khung 💸 có khung **🏢 Cả văn phòng cần bán … / ngày để công ty đủ trả mọi chi phí**:
+
+- **Thanh ngang**: phần màu là số cả văn phòng bán trung bình 1 ngày, đầy thanh là đủ. Còn thiếu thì thanh cam, đủ rồi thì thanh xanh 🎉.
+- **Cần bán thêm khoảng … / ngày**: phần cả văn phòng còn thiếu.
+- **👉 Phần của bạn**: phần còn thiếu chia theo mục tiêu tháng bạn đặt (mục tiêu cao thì phần nhiều hơn), kèm khoảng bao nhiêu đơn.
+- **Vì sao**: mỗi ngày công ty phải trả lương, mặt bằng, điện, ship… bán ít hay nhiều cũng phải trả. Bán đủ mức này thì công ty mới trả hết được, vượt qua là có lãi.
+
 **Chia số theo nhóm (từ 16/11/2026):** quảng cáo đắt nên công ty ưu tiên số cho bạn chốt tốt. CRM xếp nhóm mỗi tuần theo 60 ngày gần nhất, dựa trên câu hỏi: **1đ quảng cáo bạn mang về bao nhiêu đồng?**
 - 🟢 **Nhóm A** (từ 1,8đ): mỗi vòng chia số nhận **3 số**.
 - 🟠 **Nhóm B** (từ 1,2đ): nhận **2 số**. Người mới (chưa đủ 15 số) cũng ở nhóm B.

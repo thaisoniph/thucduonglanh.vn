@@ -6112,6 +6112,7 @@
           '<p class="dpl-be">' + full.length + ' ngày qua bán trung bình <b>' + ms(avgD) + ' / ngày</b> = ' + Math.round(pB * 100) + '% mức hoà vốn' +
           (pB >= 1 ? ': đã vượt hoà vốn 🎉 Giữ nhịp này là có lãi.' : ' → cả văn phòng cần bán thêm khoảng <b>' + ms(gap) + ' / ngày</b>' + (nSale > 1 ? ' (chia đều ' + nSale + ' sale ≈ <b>' + ms(gap / nSale) + ' / người / ngày</b>)' : '') + '.') + '</p>' : '') +
         '<p class="small muted" style="margin:4px 0 0">Vì sao: mỗi ngày công ty phải trả khoảng ' + ms(fx1) + ' chi phí cố định (lương, mặt bằng, điện, ship…), bán ít hay nhiều cũng phải trả. Mỗi 1 triệu bán ra, trừ tiền hàng + quảng cáo còn khoảng ' + Math.round(cm * 1000) + ' nghìn để trả khoản này.' + (D.length > 1 ? ' ' + nOk + ' ngày lãi · ' + nBad + ' ngày lỗ.' : '') + '</p></div>';
+      if (p.k === 'month' && full.length >= 3 && lvl() >= 3) coPush({ m: month, be: be, avg: avgD, nd: full.length, fx: fx1 }); // 🏢 gửi cho khung hoà vốn của sale (mức A)
     } else if (cm !== null && cm <= 0) beH = '<p class="dpl-be">🔴 Tiền hàng + quảng cáo đang lớn hơn doanh số: bán càng nhiều càng lỗ, cần xem lại quảng cáo / giá bán.</p>';
     return '<div class="box dpl"><div class="dpl-h"><h3>💵 Lãi lỗ thật <small>(sau giá vốn, quảng cáo, lương, mặt bằng)</small></h3>' + tg + '</div>' +
       '<div class="dpl-n">' + C.map(function (c) { return '<div class="dpl-v ' + cl(c[1]) + '"><span>' + c[0] + '</span><b>' + lab(c[1]) + '</b><small>' + c[2] + '</small></div>'; }).join('') + '</div>' + bars +
@@ -13868,6 +13869,25 @@
     var km = finKtMonths()[0], sh = km ? (km.k.groups || []).reduce(function (a, x) { return /vận chuyển|giao hàng|\bship/i.test(x[0]) ? a + (x[1] || 0) : a; }, 0) / km.k.dt : 0.05, v = nsvVat() / 100;
     S.beSent = 1; api('be_vr_set', { r: g.r + Math.min(0.2, sh) + v / (1 + v) }).then(function () { }, function () { });
   }
+  /* ---------- 🏢 Hoà vốn cả văn phòng cho sale (19/11/2026, anh Sơn chọn mức A: chỉ hiện việc cần bán, không có số lỗ, giá vốn).
+   * Quản trị mở Tổng quan (khung 💵 chọn Tháng này, ≥3 ngày trọn) → coPush gửi: cần bán / ngày (be), TB đang bán / ngày (avg), số ngày (nd), chi phí cố định / ngày (fx), phần chia mỗi sale văn phòng theo mục tiêu tháng (sh; chưa ai đặt thì chia đều).
+   * Máy chủ lưu kv be_co; sale_mkt trả co (sale chỉ nhận phần của mình: my). Khung hiện dưới khung 💸 ở tab Hôm nay (beCoBlock). Gửi tối đa 30 phút / lần. */
+  function coPush(c) {
+    if (S.coSent && Date.now() - S.coSent < 1800e3) return; S.coSent = Date.now();
+    var ss = (S.d.users || []).filter(function (u) { return u.role === 'Sale & CSKH' && !u.ctv && u.active !== false; }).map(function (u) { return u.name; });
+    var tg = {}, tot = 0; ss.forEach(function (n) { var t = targetOf(n, c.m); tg[n] = t && t.amount > 0 ? +t.amount : 0; tot += tg[n]; });
+    c.sh = {}; ss.forEach(function (n) { c.sh[n] = tot ? tg[n] / tot : 1 / ss.length; }); if (tot) ss.forEach(function (n) { if (!c.sh[n]) delete c.sh[n]; });
+    api('be_vr_set', { co: c }).then(function () { }, function () { });
+  }
+  function beCoBlock(co) {
+    if (!co || !co.be) return '';
+    var p = co.avg / co.be, gap = Math.max(0, co.be - co.avg), my = co.my ? gap * co.my : 0, avgO = perf(S.user.name, monthRange(monthOf(Date.now()))).avg || 0, nO = my && avgO ? Math.max(1, Math.round(my / avgO)) : 0, ok = p >= 1;
+    return '<section class="section be-sale be-co ' + (ok ? 'ok' : p >= 0.8 ? 'mid' : 'bad') + '"><p class="be-sale-h">🏢 Cả văn phòng cần bán <b>' + moneyShort(co.be) + ' / ngày</b> để công ty đủ trả mọi chi phí</p>' +
+      '<div class="dpl-meter" role="img" aria-label="Đạt ' + Math.round(p * 100) + '%"><i style="width:' + Math.min(100, p * 100).toFixed(1) + '%"><em>' + moneyShort(co.avg) + ' / ngày</em></i><span>' + Math.round(p * 100) + '%</span></div>' +
+      '<p>' + co.nd + ' ngày qua cả văn phòng bán trung bình <b>' + moneyShort(co.avg) + ' / ngày</b>' + (ok ? ': đã đủ 🎉 Từ đây mỗi đơn là công ty có lãi. Cảm ơn cả nhà 💚' : ' → cần bán thêm khoảng <b>' + moneyShort(gap) + ' / ngày</b>.') + '</p>' +
+      (!ok && my ? '<p class="be-sale-left">👉 Phần của bạn: thêm khoảng <b>' + moneyShort(my) + ' / ngày</b>' + (nO ? ' (≈ ' + nO + ' đơn)' : '') + '. Chia theo mục tiêu tháng bạn đặt.</p>' : '') +
+      '<p class="small muted" style="margin:6px 0 0">Vì sao: mỗi ngày công ty phải trả khoảng ' + moneyShort(co.fx) + ' cho lương, mặt bằng, điện, ship…, bán ít hay nhiều cũng phải trả. Số tính từ đầu tháng, cập nhật lúc ' + fDateTime(co.at) + '.</p></section>';
+  }
   function beGet() {
     var t = today(), R = monthRange(monthOf(t)), k = 'be|' + isoDate(R[0]), C = S.smk || (S.smk = {}), c = C[k];
     if ((!c || Date.now() - c.at > 600e3) && !c0busy(k)) {
@@ -13884,7 +13904,10 @@
     return (((P.tiers[0][3] || [])[p ? p.si : 0] || [0, 0])[1] || 0) / 100;
   }
   function beSaleBlock() {
-    var d = beGet(), b = d && d.me; if (!b || !b.n || !b.cost) return '';
+    var d = beGet(), me = (S.d.users || []).filter(function (u) { return u.name === S.user.name; })[0], co = d && (lvl() === 2 || (S.user.role === 'Sale & CSKH' && !(me && me.ctv))) ? beCoBlock(d.co) : ''; return beAdsBlock(d) + co; // CTV không thấy khung 🏢
+  }
+  function beAdsBlock(d) {
+    var b = d && d.me; if (!b || !b.n || !b.cost) return '';
     var vr = d.be && d.be.r, mg = vr ? 1 - vr - beComm() : null, need = mg && mg > 0.05 ? Math.round(b.cost / mg) : null, rev = b.rev || 0, cpl = b.cost / b.n;
     var lv = need ? (rev >= need ? 'ok' : rev >= need * 0.6 ? 'mid' : 'bad') : adsLv(b.cost, rev), left = need ? Math.max(0, need - rev) : 0;
     var avg = perf(S.user.name, monthRange(monthOf(Date.now()))).avg || 0, nO = left && avg ? Math.ceil(left / avg) : 0, p = need ? Math.min(100, Math.round(rev * 100 / need)) : 0;

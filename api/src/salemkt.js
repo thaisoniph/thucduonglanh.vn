@@ -125,18 +125,32 @@ export async function crmSaleMkt(x, u, d) {
     const tm = T.team || blank(), prod = {};
     Object.keys(tm.prod || {}).forEach(k => { const p = tm.prod[k]; prod[k] = { n: p.n, won: p.won, junk: p.junk }; });
     const team = { n: tm.n, won: tm.won, junk: tm.junk, lost: tm.lost, open: tm.open, same: tm.same, next: tm.next, late: tm.late, none: tm.none, wait: tm.wait, cost: 0, rev: 0, roi: tm.cost ? Math.round(tm.rev / tm.cost * 10) / 10 : null, prod };
-    return { ok: true, at: T.at, team, me, best: T.best || null, offers: await offersLive(x), mine: 1, be: await kvJson(x.db, 'be_vr', null), tier: tierOf(await adsTier(x), name), tierW: TIER, split: ((await kvJson(x.db, 'ads_cfg', {})) || {}).mode || 'staff' };
+    return { ok: true, at: T.at, team, me, best: T.best || null, offers: await offersLive(x), mine: 1, co: await beCo(x, u, name), be: await kvJson(x.db, 'be_vr', null), tier: tierOf(await adsTier(x), name), tierW: TIER, split: ((await kvJson(x.db, 'ads_cfg', {})) || {}).mode || 'staff' };
   }
-  return { ok: true, be: await kvJson(x.db, 'be_vr', null), at: T.at, spend: T.spend, n: T.n, cpl: T.cpl, cplBy: T.cplBy, cplRest: T.cplRest, team: T.team, me, best: T.best || null, offers: await offersLive(x), people: T.people };
+  return { ok: true, co: await beCo(x, u, name || u.name), be: await kvJson(x.db, 'be_vr', null), at: T.at, spend: T.spend, n: T.n, cpl: T.cpl, cplBy: T.cplBy, cplRest: T.cplRest, team: T.team, me, best: T.best || null, offers: await offersLive(x), people: T.people };
 }
 
 /** ⚖️ Hoà vốn số quảng cáo (16/11/2026 anh Sơn): Quản trị mở Tổng quan → CRM gửi 1 tỷ lệ gộp (giá vốn + ship + VAT trên 1đ doanh số).
  *  Sale chỉ nhận tỷ lệ gộp này để tính "cần bán bao nhiêu từ số của mình thì công ty hoà vốn", không thấy giá nhập hay từng khoản. */
 export async function crmBeVrSet(x, u, d) {
   if (u.level < 3) return { ok: false, error: 'Chỉ Quản trị.' };
+  if (d.co) { // 🏢 hoà vốn cả văn phòng (19/11/2026, anh Sơn chọn mức A): chỉ số cần bán / ngày, TB đang bán, chi phí cố định / ngày, phần chia theo mục tiêu. Không có giá vốn, lãi lỗ.
+    const c = d.co, n = v => { const k = Math.round(Number(v)); return isFinite(k) && k >= 0 && k < 1e10 ? k : null; }, sh = {};
+    if (!/^20\d\d-(0[1-9]|1[0-2])$/.test(String(c.m || '')) || !n(c.be) || n(c.avg) === null) return { ok: false, error: 'Số hoà vốn chưa đúng.' };
+    Object.keys(c.sh || {}).slice(0, 60).forEach(k => { const v = Number(c.sh[k]); if (v > 0 && v <= 1) sh[String(k).slice(0, 80)] = Math.round(v * 1000) / 1000; });
+    await kvSet(x.db, 'be_co', JSON.stringify({ m: c.m, be: n(c.be), avg: n(c.avg), nd: Math.min(31, n(c.nd) || 0), fx: n(c.fx) || 0, sh, at: Date.now() }));
+    return { ok: true };
+  }
   const r = Number(d.r); if (!(r > 0 && r < 0.9)) return { ok: false, error: 'Tỷ lệ chưa đúng.' };
   await kvSet(x.db, 'be_vr', JSON.stringify({ r: Math.round(r * 1000) / 1000, at: Date.now() }));
   return { ok: true };
+}
+/** 🏢 số hoà vốn cả văn phòng cho sale: chỉ tháng này; sale chỉ nhận phần chia của mình (không thấy mục tiêu người khác). */
+async function beCo(x, u, name) {
+  const c = await kvJson(x.db, 'be_co', null); if (!c || !c.be) return null;
+  const now = new Date(Date.now() + 7 * 3600e3), m = now.getUTCFullYear() + '-' + String(now.getUTCMonth() + 1).padStart(2, '0'); if (c.m !== m) return null;
+  const o = { m: c.m, be: c.be, avg: c.avg, nd: c.nd, fx: c.fx, at: c.at, my: (c.sh || {})[name] || null, ns: Object.keys(c.sh || {}).length };
+  return o;
 }
 
 /* ---------- Ưu đãi / thông điệp quảng cáo đang chạy: Marketing + Quản trị ghi, mọi người đọc (kv mkt_offers) */

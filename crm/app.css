@@ -3852,3 +3852,6 @@ details.top-fold.tf-focus .tf-all { display: block; }
 .dpl-meter em { font-style: normal; font-size: 12px; font-weight: 700; color: #fff; padding-left: 10px; white-space: nowrap; }
 .dpl-meter span { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: 12px; font-weight: 700; color: var(--ink); }
 @media (max-width: 560px) { .dpl-x2 { font-size: 9px; } }
+/* 🏢 hoà vốn cả văn phòng cho sale (19/11/2026) */
+.be-co { margin-top: 10px; } .be-co .dpl-meter { border-color: var(--red); } .be-co.ok .dpl-meter { border-color: var(--primary); } .be-co.ok .dpl-meter i { background: var(--primary); }
+.be-co.ok .dpl-meter span { color: #fff; }
