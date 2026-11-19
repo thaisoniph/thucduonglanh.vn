@@ -4760,7 +4760,7 @@
   /** Danh sách thanh ngang (xếp hạng): 1 màu, đầu thanh bo 4px, số ghi cạnh thanh, rê chuột xem chi tiết. */
   function barList(items, fmt, empt, o) {
     if (!items.length) return '<p class="muted">' + (empt || 'Chưa có số liệu.') + '</p>';
-    o = o || {}; var mx = Math.max.apply(null, items.map(function (x) { return x.v; }).concat(o.avg || 0)) || 1;
+    o = o || {}; var mx = o.mx || Math.max.apply(null, items.map(function (x) { return x.v; }).concat(o.avg || 0)) || 1;
     var avg = o.avg ? '<u class="avg" style="left:' + (o.avg * 100 / mx).toFixed(1) + '%"></u>' : '';
     return '<div class="bars' + (o.avg !== undefined ? ' cmp' : '') + '" role="table">' + items.map(function (x) {
       return '<div class="bar-r' + (x.muted ? ' mut' : '') + (x.cls ? ' ' + x.cls : '') + (x.who ? ' click' : '') + '" role="row" title="' + esc(x.tip || '') + '"' + (x.who ? ' data-who="' + esc(x.who) + '"' : '') + '><span class="bar-l" role="cell">' + esc(x.l) + '</span><span class="bar-t" role="cell"><i style="width:' + Math.max(1.5, x.v * 100 / mx) + '%"></i>' + avg + '</span><span class="bar-v" role="cell">' + (x.txt !== undefined ? x.txt : fmt(x.v)) + (x.sub && !o.below ? '<small>' + esc(x.sub) + '</small>' : '') + '</span></div>' + ((x.sub || x.subH) && o.below ? '<div class="bar-q dash-sub">' + (x.subH || esc(x.sub)) + '</div>' : '') +
@@ -14391,19 +14391,25 @@
   };
   function compareBlock(rows, cx) {
     if (rows.length < 2) return '';
-    var f = S.f.r, k = CMP[f.cm] ? f.cm : 'sum', A = cmpAgg(rows);
+    // 20/11/2026 anh Sơn: quản lý, CTV không nhận số quảng cáo hằng ngày → vẫn hiện (xem để biết) nhưng tách xuống dưới, không tính vào mốc cả nhóm, không tô màu / ★
+    var co = coSales(), gA = rows.filter(function (r) { return co.indexOf(r.n) >= 0; }), gB = rows.filter(function (r) { return co.indexOf(r.n) < 0; });
+    if (gA.length < 2) { gA = rows; gB = []; }
+    var f = S.f.r, k = CMP[f.cm] ? f.cm : 'sum', A = cmpAgg(gA);
     var chips = '<div class="chips">' + [['sum', '🧾 Tổng hợp']].concat(Object.keys(CMP).map(function (x) { return [x, CMP[x][0]]; })).map(function (x) { return '<button class="chip' + (x[0] === k ? ' on' : '') + '" data-rf="cm|' + x[0] + '">' + x[1] + '</button>'; }).join('') + '</div>';
     var head = '<section class="section"><div class="section-h"><h2>📊 So sánh nhân viên</h2><span class="tip">' + esc(k === 'target' ? 'mục tiêu ' + monthLabel(cx.month) : cx.label) + ' · bấm vào ' + (k === 'sum' ? 'tên' : 'thanh') + ' để xem từng người</span></div>' + chips;
-    if (k === 'sum') return head + cmpSum(rows, A) + '</section>';
-    var M = CMP[k], X = CMP_X[k], ref = cmpRef(k, rows, A), rate = !!X[3];
-    var its = rows.map(function (r) {
-      var v = M[1](r), low = v !== null && cmpLow(k, r), lv = low ? '' : cmpLv(v, ref), d = low ? '' : cmpDiff(rate, v, ref);
-      return { l: r.n, v: v || 0, txt: v === null ? '–' : M[2](v), cls: lv ? 'lv-' + lv : '', muted: v === null || !v || low, who: r.n, low: low, nul: v === null,
-        subH: esc(M[3](r)) + (low ? ' · <span class="muted">ít số liệu, chưa so</span>' : d ? ' · <b class="cmp-d ' + lv + '">' + d + '</b>' : ''),
+    if (k === 'sum') return head + cmpSum(gA, A, gB) + '</section>';
+    var M = CMP[k], X = CMP_X[k], ref = cmpRef(k, gA, A), rate = !!X[3];
+    var mk = function (r, other) {
+      var v = M[1](r), low = !other && v !== null && cmpLow(k, r), lv = low || other ? '' : cmpLv(v, ref), d = low || other ? '' : cmpDiff(rate, v, ref);
+      return { l: r.n, v: v || 0, txt: v === null ? '–' : M[2](v), cls: lv ? 'lv-' + lv : '', muted: v === null || !v || low || other, who: r.n, low: low, nul: v === null,
+        subH: esc(M[3](r)) + (low ? ' · <span class="muted">ít số liệu, chưa so</span>' : d ? ' · <b class="cmp-d ' + lv + '">' + d + '</b>' : ''), oth: other,
         tip: r.n + ': ' + money(r.sales) + ' · ' + r.orders + ' đơn · chốt ' + (r.closePct === null ? '–' : r.closePct + '%') + ' · ' + r.care + ' lượt chăm sóc · bấm để xem chi tiết' };
-    }).sort(function (a, b) { return (a.nul - b.nul) || (a.low - b.low) || (b.v - a.v); });
-    var refTxt = ref === null ? '' : X[0] === 'avg' ? 'Trung bình mỗi người: <b>' + M[2](Math.round(ref)) + '</b>' : 'Cả nhóm: <b>' + M[2](Math.round(ref)) + '</b>' + (k === 'close' ? ' (' + A.won + ' / ' + A.data + ' data quảng cáo)' : k === 'conv' ? ' (' + A.conv + ' / ' + A.contacted + ' khách)' : k === 'target' ? ' (' + moneyShort(A.tms) + ' / ' + moneyShort(A.tg) + ')' : '');
-    return head + '<div class="box">' + barList(its, M[2], 'Chưa có số liệu.', { avg: ref, below: true }) +
+    }, srt = function (a, b) { return (a.nul - b.nul) || (a.low - b.low) || (b.v - a.v); };
+    var its = gA.map(function (r) { return mk(r, false); }).sort(srt), itB = gB.map(function (r) { return mk(r, true); }).sort(srt);
+    var mx = Math.max.apply(null, its.concat(itB).map(function (x) { return x.v; }).concat(ref || 0)) || 1;
+    var refTxt = ref === null ? '' : X[0] === 'avg' ? 'Trung bình mỗi sale nhận số: <b>' + M[2](Math.round(ref)) + '</b>' : (gB.length ? gA.length + ' sale nhận số' : 'Cả nhóm') + ': <b>' + M[2](Math.round(ref)) + '</b>' + (k === 'close' ? ' (' + A.won + ' / ' + A.data + ' data quảng cáo)' : k === 'conv' ? ' (' + A.conv + ' / ' + A.contacted + ' khách)' : k === 'target' ? ' (' + moneyShort(A.tms) + ' / ' + moneyShort(A.tg) + ')' : '');
+    return head + '<div class="box">' + barList(its, M[2], 'Chưa có số liệu.', { avg: ref, below: true, mx: mx }) +
+      (itB.length ? '<p class="cmp-grp">' + CMP_OTH + '</p>' + barList(itB, M[2], '', { avg: null, below: true, mx: mx }) : '') +
       (refTxt ? '<p class="bar-legend"><span class="avg-k"></span> ' + refTxt + ' · <span class="cmp-d ok">xanh</span> bằng hoặc hơn · <span class="cmp-d mid">cam</span> thấp hơn chút · <span class="cmp-d bad">đỏ</span> thấp hơn nhiều' + (X[1] ? ' · xám: dưới ' + X[2] + ' ' + X[4] + ', chưa so' : '') + '</p>' : '') + '</div></section>';
   }
   /* 20/11/2026: mốc so sánh = cả nhóm cộng dồn (tỷ lệ = tổng ra đơn ÷ tổng data, KHÔNG lấy trung bình các %), người ít số liệu không xếp hạng.
@@ -14437,23 +14443,26 @@
   }
   /** 🧾 Tổng hợp: 1 dòng / người, mỗi ô tô màu so với cả nhóm → nhìn 1 lần thấy mạnh / yếu chỗ nào. */
   var CMP_SUM = ['sales', 'target', 'orders', 'avg', 'close', 'conv', 'old'];
-  function cmpSum(rows, A) {
+  var CMP_OTH = 'Không nhận số quảng cáo hằng ngày (quản lý, cộng tác viên): xem để biết, không so với nhóm trên';
+  function cmpSum(rows, A, oth) {
     var refs = {}, best = {};
     CMP_SUM.forEach(function (k) {
       refs[k] = cmpRef(k, rows, A);
       rows.forEach(function (r) { var v = CMP[k][1](r); if (v && !cmpLow(k, r) && (best[k] === undefined || v > best[k])) best[k] = v; });
     });
     var th = '<tr><th>Nhân viên</th>' + CMP_SUM.map(function (k) { return '<th>' + CMP[k][0] + '</th>'; }).join('') + '</tr>';
-    var tr = rows.map(function (r) {
-      return '<tr data-who="' + esc(r.n) + '" title="Bấm để xem chi tiết ' + esc(r.n) + '"><td>' + esc(r.n) + '</td>' + CMP_SUM.map(function (k) {
-        var v = CMP[k][1](r), low = v !== null && cmpLow(k, r), lv = low ? 'low' : cmpLv(v, refs[k]);
-        return '<td class="' + (lv ? 'lv-' + lv : '') + (v && v === best[k] && !low ? ' cmp-top' : '') + '" title="' + esc(CMP[k][3](r)) + '">' + (v === null ? '–' : CMP[k][2](Math.round(v))) + (low ? '<small>ít số</small>' : '') + '</td>';
+    var row = function (r, other) {
+      return '<tr data-who="' + esc(r.n) + '" title="Bấm để xem chi tiết ' + esc(r.n) + '"' + (other ? ' class="oth"' : '') + '><td>' + esc(r.n) + '</td>' + CMP_SUM.map(function (k) {
+        var v = CMP[k][1](r), low = !other && v !== null && cmpLow(k, r), lv = other ? '' : low ? 'low' : cmpLv(v, refs[k]);
+        return '<td class="' + (lv ? 'lv-' + lv : '') + (!other && v && v === best[k] && !low ? ' cmp-top' : '') + '" title="' + esc(CMP[k][3](r)) + '">' + (v === null ? '–' : CMP[k][2](Math.round(v))) + (low ? '<small>ít số</small>' : '') + '</td>';
       }).join('') + '</tr>';
-    }).join('');
+    };
+    var tr = rows.map(function (r) { return row(r, false); }).join('');
     var tot = { sales: A.sales, orders: A.orders, target: refs.target, avg: refs.avg, close: refs.close, conv: refs.conv, old: refs.old };
-    tr += '<tr class="tot"><td>Cả nhóm</td>' + CMP_SUM.map(function (k) { var v = tot[k]; return '<td>' + (v === null || v === undefined ? '–' : CMP[k][2](Math.round(v))) + '</td>'; }).join('') + '</tr>';
+    tr += '<tr class="tot"><td>' + (oth && oth.length ? rows.length + ' sale nhận số' : 'Cả nhóm') + '</td>' + CMP_SUM.map(function (k) { var v = tot[k]; return '<td>' + (v === null || v === undefined ? '–' : CMP[k][2](Math.round(v))) + '</td>'; }).join('') + '</tr>';
+    if (oth && oth.length) tr += '<tr class="grp"><td colspan="' + (CMP_SUM.length + 1) + '">' + CMP_OTH + '</td></tr>' + oth.map(function (r) { return row(r, true); }).join('');
     return '<div class="box"><div class="cmp-sum-w"><table class="cmp-sum">' + th + tr + '</table></div>' +
-      '<p class="bar-legend">Mỗi ô so với cả nhóm: <span class="cmp-d ok">xanh</span> bằng hoặc hơn · <span class="cmp-d mid">cam</span> thấp hơn chút · <span class="cmp-d bad">đỏ</span> thấp hơn nhiều · ★ cao nhất. Doanh số, số đơn so với trung bình mỗi người. “ít số”: dưới 5 data / 3 đơn, chưa so. Rê chuột vào ô để xem số gốc.</p></div>';
+      '<p class="bar-legend">Mỗi ô so với cả nhóm: <span class="cmp-d ok">xanh</span> bằng hoặc hơn · <span class="cmp-d mid">cam</span> thấp hơn chút · <span class="cmp-d bad">đỏ</span> thấp hơn nhiều · ★ cao nhất. Doanh số, số đơn so với trung bình mỗi sale nhận số quảng cáo. “ít số”: dưới 5 data / 3 đơn, chưa so. Rê chuột vào ô để xem số gốc.</p></div>';
   }
   /** Mục “Chưa ai phụ trách” ở tab Hiệu quả: đơn chưa có NV bán, khách / khách hỏi chưa giao cho ai. */
   function viewNoOwner(cx) {

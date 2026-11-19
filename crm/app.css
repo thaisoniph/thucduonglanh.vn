@@ -3947,3 +3947,6 @@ table.cmp-sum td.cmp-top { font-weight: 800; } table.cmp-sum td.cmp-top::before 
 table.cmp-sum td small { display: block; font-size: 11px; font-weight: 400; }
 table.cmp-sum tr.tot td { font-weight: 700; background: var(--bg); border-top: 2px solid var(--line); }
 @media (max-width: 520px) { table.cmp-sum { font-size: 13px; } table.cmp-sum td, table.cmp-sum th { padding-left: 6px; padding-right: 6px; } }
+.cmp-grp { font-size: 13px; color: var(--muted); margin: 12px 4px 4px; padding-top: 10px; border-top: 1px dashed var(--line); }
+table.cmp-sum tr.grp td { position: static; background: none; font-size: 12px; font-weight: 400; color: var(--muted); text-align: left; padding: 14px 8px 4px; white-space: normal; border-bottom: 1px dashed var(--line); }
+table.cmp-sum tr.oth td { color: var(--muted); }
