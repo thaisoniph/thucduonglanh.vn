@@ -14317,8 +14317,22 @@
       if (n && (l.result === 'Không có nhu cầu' || l.result === 'Hẹn gọi lại') && !/chưa nhận/i.test(n) && why.indexOf(n) < 0) why.push(n);
     });
     Object.keys(ok).forEach(function (ph) { delete miss[ph]; }); // gọi lại sau đó khách nghe → tính kết nối
-    return { ok: Object.keys(ok).length, knm: Object.keys(miss).length, why: why };
+    return { ok: Object.keys(ok).length, knm: Object.keys(miss).length, why: why, okPh: Object.keys(ok) };
   }
+  /** 19/11/2026 (anh Sơn: báo cáo ngày thêm tỷ lệ chốt + chỉ số quan trọng): số liệu "chất lượng" trong ngày của 1 sale / cả nhóm.
+   *  cD = tỷ lệ chốt data quảng cáo vào hôm nay · cM = luỹ kế tháng (ổn định hơn, gồm data hôm trước chốt hôm nay) · old = khách cũ kết nối hôm nay đã ra đơn trong ngày
+   *  conn = % khách gọi được (kết nối ÷ đã gọi) · aov = tiền trung bình 1 đơn. */
+  function dyKpi(name, day, r, T, cs) {
+    var d0 = dayStart(day), ok = {}, won = {}, n = 0, rev = 0;
+    cs.okPh.forEach(function (ph) { ok[normPhone(ph)] = 1; });
+    S.d.orders.forEach(function (o) {
+      if (!o.time || o.time < d0 || o.time >= d0 + DAY || (name !== null && o.seller !== name) || isVoid(o.status) || /hoàn/i.test(o.status)) return;
+      n++; rev += o.total || 0; var ph = normPhone(o.phone); if (ok[ph]) won[ph] = 1;
+    });
+    var called = cs.ok + cs.knm, w = Object.keys(won).length;
+    return { cD: r.close, cM: T.close, oldWon: w, oldPct: cs.ok ? pct(w, cs.ok) : null, conn: called ? pct(cs.ok, called) : null, called: called, n: n, aov: n ? Math.round(rev / n) : 0 };
+  }
+  function dyRate(c) { return c && c.data ? c.won + '/' + c.data + ' · ' + c.pct + '%' : ''; }
   function dailyText(name, day) {
     var month = monthOf(day), d = bcdtData(name, month), R = monthRange(month), r = d.rows[Math.floor((dayStart(day) - R[0]) / DAY)] || d.rows[0];
     var sum = function (o) { return BC_LINES.reduce(function (s0, l) { return s0 + o[l]; }, 0); }, mf = function (v) { return (Number(v) || 0).toLocaleString('vi-VN'); };
@@ -14335,8 +14349,13 @@
     var hrL = HR_KEYS.filter(function (k) { return r.hrN[k] || k === 'Trong giờ' || k === 'Ngoài giờ'; }).map(function (k) { return HR_ICON[k] + ' ' + (k === 'Trong giờ' ? 'Giờ hành chính (8:00–' + evTime() + ')' : k === 'Ngoài giờ' ? 'Buổi tối / Chủ nhật' : k) + ': ' + r.hrN[k] + ' đơn · ' + mf(r.hrR[k]); });
     lines.push('🕘 Theo giờ lên đơn:'); hrL.forEach(function (t) { lines.push('   ' + t); });
     if (r.hoanN) lines.push('Đơn hoàn: ' + r.hoanN + ' · ' + mf(r.hoanV));
-    var cs = careStats(name, dayStart(day), dayStart(day) + DAY);
+    var cs = careStats(name, dayStart(day), dayStart(day) + DAY), kq = dyKpi(name, day, r, d.tot, cs);
+    if (kq.n) lines.push('🧾 Tổng ' + kq.n + ' đơn · TB ' + mf(kq.aov) + '/đơn');
+    lines.push('🎯 Tỷ lệ chốt data QC hôm nay: ' + (kq.cD.data ? dyRate(kq.cD) : 'chưa có data'));
+    if (kq.cM.data) lines.push('🎯 Tỷ lệ chốt luỹ kế ' + monthLabel(month) + ': ' + dyRate(kq.cM) + (kq.cM.open ? ' · còn ' + kq.cM.open + ' data đang tư vấn' : ''));
     lines.push('KH cũ đã chăm sóc (kết nối): ' + cs.ok, 'Không nghe máy: ' + cs.knm);
+    if (kq.called) lines.push('📞 Tỷ lệ gọi được: ' + kq.conn + '% (' + cs.ok + '/' + kq.called + ')');
+    if (cs.ok) lines.push('🔁 Chốt khách cũ trong ngày: ' + kq.oldWon + '/' + cs.ok + ' khách kết nối · ' + kq.oldPct + '%');
     var ef = effortStats(name, dayStart(day), dayStart(day) + DAY);
     lines.push('🌱 Mở rộng khách: ' + ef.tot + ' việc (mời giới thiệu ' + ef.inv + ' · mời nhóm Zalo ' + ef.zl + ' · gọi lại khách cũ ' + ef.old + ' · khách tự tạo ' + ef.self + ' · nhận từ Kho ' + ef.pool + ' · bài Facebook ' + ef.fb + ') · hẹn gọi lại ' + ef.cb);
     effortCheer(name, day).forEach(function (t) { lines.push(t); });
@@ -14383,7 +14402,7 @@
     var sum = function (o) { return BC_LINES.reduce(function (s0, l) { return s0 + o[l]; }, 0); };
     var adm = {}; (S.d.users || []).forEach(function (u) { if (u.role === 'Quản trị') adm[u.name] = 1; });
     var ents = (name === null ? [{ n: null, t: 'TỔNG cả nhóm' }].concat(userNames().map(function (n) { return { n: n, t: n }; })) : [{ n: name, t: name }]).map(function (e) {
-      var b = bcdtData(e.n, month); e.r = b.rows[idx] || b.rows[0]; e.T = b.tot; e.cs = careStats(e.n, d0, d0 + DAY); e.ef = effortStats(e.n, d0, d0 + DAY); e.tg = e.n ? targetOf(e.n, month) : null; return e;
+      var b = bcdtData(e.n, month); e.r = b.rows[idx] || b.rows[0]; e.T = b.tot; e.cs = careStats(e.n, d0, d0 + DAY); e.kq = dyKpi(e.n, day, e.r, e.T, e.cs); e.ef = effortStats(e.n, d0, d0 + DAY); e.tg = e.n ? targetOf(e.n, month) : null; return e;
     });
     var cols = [];
     BC_LINES.forEach(function (l) {
@@ -14392,9 +14411,11 @@
     });
     cols.push(['Khách cũ', 'Đơn', function (e) { return sum(e.r.oldN); }], ['Khách cũ', 'Doanh thu', function (e) { return sum(e.r.oldR); }, 1],
       ['', 'TỔNG DT', function (e) { return sum(e.r.newR) + sum(e.r.oldR); }, 1, 1],
+      ['', 'TB / đơn', function (e) { return e.kq.aov; }, 1],
+      ['Tỷ lệ chốt', 'Data QC hôm nay', function (e) { return dyRate(e.kq.cD) || '–'; }], ['Tỷ lệ chốt', 'Luỹ kế tháng', function (e) { return dyRate(e.kq.cM) || '–'; }], ['Tỷ lệ chốt', 'Data còn đang tư vấn', function (e) { return e.kq.cM.open; }],
       ['DT theo giờ lên đơn', 'Giờ hành chính', function (e) { return e.r.hrR['Trong giờ']; }, 1], ['DT theo giờ lên đơn', 'Tối / Chủ nhật', function (e) { return e.r.hrR['Ngoài giờ']; }, 1], ['DT theo giờ lên đơn', 'Ngày lễ', function (e) { return e.r.hrR['Ngày lễ']; }, 1], ['DT theo giờ lên đơn', 'Gõ vào file (không có giờ)', function (e) { return e.r.hrR['Không rõ giờ']; }, 1],
       ['Đơn hoàn', 'Số đơn', function (e) { return e.r.hoanN; }], ['Đơn hoàn', 'Giá trị', function (e) { return e.r.hoanV; }, 1],
-      ['Chăm sóc khách cũ', 'Kết nối', function (e) { return e.cs.ok; }], ['Chăm sóc khách cũ', 'Không nghe máy', function (e) { return e.cs.knm; }],
+      ['Chăm sóc khách cũ', 'Kết nối', function (e) { return e.cs.ok; }], ['Chăm sóc khách cũ', 'Không nghe máy', function (e) { return e.cs.knm; }], ['Chăm sóc khách cũ', '% gọi được', function (e) { return e.kq.called ? e.kq.conn + '%' : ''; }], ['Chăm sóc khách cũ', 'Ra đơn trong ngày', function (e) { return e.cs.ok ? e.kq.oldWon + '/' + e.cs.ok + ' · ' + e.kq.oldPct + '%' : ''; }],
       ['Mở rộng khách', 'Mời giới thiệu', function (e) { return e.ef.inv; }], ['Mở rộng khách', 'Mời nhóm Zalo', function (e) { return e.ef.zl; }], ['Mở rộng khách', 'Gọi lại khách cũ', function (e) { return e.ef.old; }], ['Mở rộng khách', 'Đăng bài FB', function (e) { return e.ef.fb; }], ['Mở rộng khách', 'Hẹn gọi lại', function (e) { return e.ef.cb; }], ['Mở rộng khách', 'Khách tự tạo', function (e) { return e.ef.self; }], ['Mở rộng khách', 'Nhận từ Kho', function (e) { return e.ef.pool; }],
       ['Luỹ kế ' + monthLabel(month), 'Doanh thu', function (e) { return sum(e.T.newR) + sum(e.T.oldR); }, 1, 0, 1], ['Luỹ kế ' + monthLabel(month), '% mục tiêu', function (e) { return e.tg && e.tg.amount ? pct(sum(e.T.newR) + sum(e.T.oldR), e.tg.amount) + '%' : ''; }]);
     cols = cols.filter(function (c) { return c[4] || ents.some(function (e) { return c[2](e); }); });
@@ -14419,7 +14440,7 @@
     img.title = '📋 BÁO CÁO NGÀY ' + fDate(day) + ' – ' + (name || 'Cả nhóm');
     img.why = []; ents.forEach(function (e, i) { if (name === null && !i) return; e.cs.why.slice(0, 12).forEach(function (w) { img.why.push((name === null ? e.t + ': ' : '') + w); }); });
     var cheer = effortCheer(name, day); img.cheer = cheer;
-    return { img: img, html: (cheer.length ? '<div class="notice info" style="margin:0 0 10px">' + esc(cheer[0]) + '</div>' : '') + '<div class="bcdt-wrap">' + h + '</div>' + (name === null ? '<p class="small muted" style="margin:6px 0 0">Mỗi sale 1 dòng, xếp theo doanh thu trong ngày. Dòng mờ = chưa có đơn / chưa ghi chăm sóc. Số mới = số quảng cáo vào trong ngày. Cột cả ngày bằng 0 được ẩn cho gọn.</p>' : '') +
+    return { img: img, html: (cheer.length ? '<div class="notice info" style="margin:0 0 10px">' + esc(cheer[0]) + '</div>' : '') + '<div class="bcdt-wrap">' + h + '</div>' + (name === null ? '<p class="small muted" style="margin:6px 0 0">Mỗi sale 1 dòng, xếp theo doanh thu trong ngày. Dòng mờ = chưa có đơn / chưa ghi chăm sóc. Số mới = số quảng cáo vào trong ngày. Cột cả ngày bằng 0 được ẩn cho gọn.</p>' : '') + ('<p class="small muted" style="margin:6px 0 0">Tỷ lệ chốt = data quảng cáo đã ra đơn ÷ data quảng cáo nhận (hôm nay / cả tháng). Ra đơn trong ngày = khách cũ gọi kết nối hôm nay đã lên đơn trong ngày. % gọi được = kết nối ÷ số khách đã gọi.</p>') +
       '<h3 style="margin:12px 0 6px">💬 Lý do khách từ chối</h3>' + (why.length ? '<ul class="dy-why">' + why.map(function (w) { return '<li>' + w + '</li>'; }).join('') + '</ul>' : '<p class="small muted" style="margin:0">Chưa có.</p>'), csv: csv };
   }
   /** Vẽ bảng báo cáo ngày thành ảnh PNG (canvas, không cần thư viện) để dán / chia sẻ vào Zalo. */
