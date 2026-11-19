@@ -798,7 +798,7 @@ export async function adsSync(x, u, dry, fast) { // fast: lượt 1 phút (cron.
   const keep = {}, keepRaw = {}, rowsOf = {}, AL = await phoneAlias(x), mp = p => AL[p] || p; // mp: số phụ của khách đã gộp → số chính. Cột Trùng sale: {sđt: sale phụ trách khách} (dòng dưới cùng có ghi thắng) – không phụ thuộc file sale nào nhập trước
   const sheets = [], missing = [], onS = (cfg.sheets || []).filter(s => s.on);
   let pre = null; // ⚡ 19/11/2026: đọc mọi tab bằng 1 lần gọi (lượt 1 phút không vượt hạn mức Google 60 lần / phút); tab bị xoá → đọc từng tab như cũ
-  try { pre = await sheetBatchGet(x.env, cfg.fileId, onS.map(sc => { const m = sc.map || cfg.map || {}, hr = sc.header || 1; return a1(sc.name, 'A' + (hr + 1) + ':' + colLetter(neededCols({ map: m }) - 1)); })); } catch (e) { if (!/Unable to parse range/i.test(e.message)) throw e; pre = null; }
+  try { pre = await sheetBatchGet(x.env, cfg.fileId, onS.map(sc => { const m = sc.map || cfg.map || {}, hr = sc.header || 1; return a1(sc.name, 'A' + (hr + 1) + ':' + colLetter(neededCols({ map: m }) - 1)); })); } catch (e) { if (!/Unable to parse range/i.test(e.message)) console.error('ads batchGet', e.message); pre = null; } // lỗi gì cũng quay về đọc từng tab (cách cũ đã chạy ổn)
   for (const [si, sc] of onS.entries()) {
     const m = sc.map || cfg.map || {}, hr = sc.header || 1;
     let vals;
