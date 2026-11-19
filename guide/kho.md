@@ -4,7 +4,7 @@ nav: Kho
 group: kho-ke-toan
 short: Nhập, xuất, đếm kho, hàng hoàn
 order: 4.5
-updated: 2026-11-16
+updated: 2026-11-19
 description: Xem hàng còn bao nhiêu, nhận tin khi sắp hết, ghi đã đặt hàng, hàng về kho, lấy hàng ra (quà tặng, đại lý), nhận hàng hoàn, đếm kho cuối tuần. Có hình từng bước.
 roles: [kho, ql]
 ---
@@ -72,7 +72,18 @@ Trên cùng là **👉 Việc hôm nay**. Mỗi việc là 1 thẻ có số th�
 
 Không có việc gì thì máy ghi "✅ Hôm nay kho không có việc gì gấp".
 
-Kéo xuống dưới là 3 nút lớn và danh sách hàng:
+Dưới **👉 Việc hôm nay** là **các thẻ chia 2 nhóm** (từ 19/11/2026). Mỗi lần xem 1 thẻ, đầu thẻ có ô xanh **📌 Dùng để** + các bước. Máy nhớ thẻ bạn xem lần trước.
+
+| Nhóm | Thẻ | Dùng để |
+| --- | --- | --- |
+| **🚚 Mỗi ngày** | 🚚 Đơn chờ gửi | Đơn cần gói giao hãng, tích đơn rồi bấm ✅ Đã gửi |
+| | ↩ Hàng hoàn | Gói khách không nhận, hãng trả về; tìm gói hoàn; đã nhận 14 ngày |
+| **📦 Kho hàng** | 📋 Hàng trong kho | 3 nút lớn + danh sách hàng (dưới đây) |
+| | 🛠 Khác | Tên hàng trong đơn, các lần đặt hàng, 🕘 lịch sử, ⚙️ cài đặt kho, hướng dẫn |
+
+Bấm nút trong 👉 Việc hôm nay (**Xem đơn chờ gửi**, **Xem gói hoàn**) thì máy tự mở đúng thẻ.
+
+Thẻ **📋 Hàng trong kho** có 3 nút lớn và danh sách hàng:
 
 ![3 nút hay dùng (1, 2, 3) và danh sách hàng (4)](/huong-dan/img/kho-nut-lon.webp)
 
@@ -156,7 +167,7 @@ Khách không nhận hàng thì hãng (Viettel Post, Best…) trả gói về kh
 ![Danh sách hàng hoàn: bấm đúng đơn (1), gói không có trong danh sách thì tìm (2)](/huong-dan/img/kho-hang-hoan.webp)
 
 1. Mở gói, kiểm hàng. Bấm **Xem gói hoàn** ở thẻ trong Việc hôm nay (hoặc kéo tới mục **↩ Hàng hoàn về kho**, mục này chỉ hiện khi có gói hoàn), rồi bấm vào **đúng đơn** (so mã vận đơn, tên khách, 4 số cuối SĐT trên gói).
-2. Gói hoàn **không có** trong danh sách (hãng chưa báo cho CRM): bấm **🔍 Gói hoàn không có trong danh sách?** (lúc không có gói hoàn nào: mục **Khác** → **↩ Tìm gói hàng hoàn**), gõ mã đơn, mã vận đơn, 4 số cuối SĐT hoặc tên khách, rồi bấm vào đúng đơn.
+2. Gói hoàn **không có** trong danh sách (hãng chưa báo cho CRM): bấm **🔍 Gói hoàn không có trong danh sách?** (lúc không có gói hoàn nào: nút **🔍 Tìm gói hàng hoàn** ở thẻ **↩ Hàng hoàn**), gõ mã đơn, mã vận đơn, 4 số cuối SĐT hoặc tên khách, rồi bấm vào đúng đơn.
 
 Hộp **📦 Nhận hàng hoàn** mở ra:
 
@@ -174,7 +185,7 @@ Máy tự làm:
 
 Hộp hỏng không bán được: sau khi nhận, bấm **📤 Lấy hàng ra** → lý do **Hàng hỏng / hết hạn** để trừ khỏi kho.
 
-Muốn xem lại các đơn đã nhận: bấm **✅ Đã nhận 14 ngày qua** dưới danh sách (lúc không có gói hoàn: ở mục **Khác**). Sáng nào có đơn đang chuyển hoàn, tin Telegram **Kho sáng** lúc 8h cũng nhắc.
+Muốn xem lại các đơn đã nhận: bấm **✅ Đã nhận 14 ngày qua** dưới danh sách (cũng ở thẻ **↩ Hàng hoàn**). Sáng nào có đơn đang chuyển hoàn, tin Telegram **Kho sáng** lúc 8h cũng nhắc.
 
 ## 🔁 Gửi hàng đổi, nhận hàng cũ về
 
@@ -239,7 +250,7 @@ Bấm vào 1 dòng ở **Hàng trong kho**:
 
 ## Ghi nhầm thì sao?
 
-- Kéo xuống cuối tab Kho → **Khác** → **🕘 Lịch sử**. Bấm **↩️ Xoá** ở dòng ghi nhầm (trong 7 ngày), rồi ghi lại.
+- Tab Kho → thẻ **🛠 Khác** → **🕘 Lịch sử**. Bấm **↩️ Xoá** ở dòng ghi nhầm (trong 7 ngày), rồi ghi lại.
 - Nhầm lâu hơn 7 ngày: đếm lại sản phẩm đó, máy lấy số mới.
 
 ## Hỏi nhanh
@@ -252,4 +263,4 @@ Bấm vào 1 dòng ở **Hàng trong kho**:
 
 **Sao số kho bị âm?** Có hàng ra mà chưa ghi (quà tặng, đơn ngoài CRM). Đếm lại sản phẩm đó.
 
-**Đổi ngày đếm kho, xem ai nhận tin Telegram?** Cuối tab Kho → **Khác** → **⚙️ Cài đặt kho**.
+**Đổi ngày đếm kho, xem ai nhận tin Telegram?** Tab Kho → thẻ **🛠 Khác** → **⚙️ Cài đặt kho**.

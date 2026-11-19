@@ -17155,13 +17155,36 @@
     if (!D) return h + '<div class="box"><p class="muted">' + (KH.err ? '⚠️ ' + esc(KH.err) + ' <button class="link" data-kho="reload">Thử lại</button>' : '⏳ Đang tải số liệu kho…') + '</p></div></div>';
     if (!act.length) return h + khoEmpty() + khoRetSec(D) + khoMoreList(D, true) + '</div>';
     var setup = khoSetup(D);
-    h += setup + khoTodo(D, !!setup) + khoShipSec(D) + khoRetSec(D);
+    // 19/11/2026 (anh Sơn: "làm tương tự" Kế toán / Tổng quan): dưới 👉 Việc hôm nay chia thẻ 3 nhóm, mỗi lần xem 1 thẻ
+    var kt = khoTab(D), SH = khoShipSec(D), RE = khoRetSec(D);
+    h += setup + khoTodo(D, !!setup) + grpMenu(khoGroups(D), kt, function (x) { return 'data-khot="' + x + '"'; });
+    if (kt === 'ship') return h + inTabi('Đơn sale đã lên, kho cần gói và giao cho hãng vận chuyển.', ['Gói hàng, giao cho hãng', 'Tích các đơn đã giao, bấm <b>✅ Đã gửi</b> (có bấm thì máy mới trừ kho)']) + (SH || '<div class="box"><p>✅ Không có đơn nào chờ gửi.</p></div>') + '</div>';
+    if (kt === 'ret') return h + inTabi('Gói khách không nhận, hãng trả về kho. Kho kiểm hàng rồi ghi nhận để máy cộng lại hàng.', ['Gói tới kho: mở gói, kiểm hàng', 'Bấm vào đúng đơn để ghi nhận', 'Không thấy đơn: bấm <b>🔍 Tìm gói hàng hoàn</b>']) + (RE || '<div class="box"><p>✅ Không có gói hoàn nào đang trên đường về kho.</p></div>' + khoRetFind(D)) + '</div>';
+    if (kt === 'khac') return h + inTabi('Các mục ít dùng: tên hàng trong đơn, các lần đặt hàng, lịch sử ra vào, cài đặt kho.', ['Bấm mục cần xem']) + khoMoreList(D, false, true) + '</div>';
+    h += inTabi('Hàng còn bao nhiêu, đủ bán mấy ngày. Có hàng ra vào thì ghi ở 3 nút dưới.', ['Nhà cung cấp giao hàng: bấm <b>📥 Hàng về kho</b>', 'Lấy hàng tặng, gửi đại lý, hỏng: bấm <b>📤 Lấy hàng ra</b>', 'Cuối tuần: bấm <b>🧮 Đếm kho</b>']);
     h += '<div class="kho-big3"><button class="kho-act" data-kho="in"><i>📥</i><b>Hàng về kho</b><small>nhà cung cấp giao</small></button><button class="kho-act" data-kho="out"><i>📤</i><b>Lấy hàng ra</b><small>quà, đại lý, hỏng…</small></button><button class="kho-act" data-kho="count"><i>🧮</i><b>Đếm kho</b><small>đếm thật cuối tuần</small></button></div>';
     var L = D.list.slice().sort(function (a, b) { return (a.act ? -10 : 0) - (b.act ? -10 : 0) || KHO_ORD[a.lv] - KHO_ORD[b.lv] || (a.left === null ? 1e9 : a.left) - (b.left === null ? 1e9 : b.left); });
     h += '<section class="kho-sec2"><h2 class="kho-h">📋 Hàng trong kho <small>bấm vào sản phẩm để xem thêm</small></h2><div class="kho-rows">' + L.map(khoRow).join('') +
       '<button class="kho-row kho-row-add" data-kho="add"><span class="kho-row-t"><b>＋ Thêm sản phẩm</b></span></button></div></section>';
     if (D.syncErr) h += '<p class="small kho-bad">⚠️ Chưa cập nhật được hàng theo đơn mới: ' + esc(D.syncErr) + '</p>';
-    return h + khoMoreList(D, false) + '</div>';
+    return h + '</div>';
+  }
+  /** 📦 Kho chia 3 nhóm thẻ (19/11/2026) */
+  function khoGroups(D) {
+    var sn = khoShipNew(D).length, rn = (D.ret || []).length + (D.part || []).filter(function (o) { return !o.kAt; }).length;
+    return [['🚚 Mỗi ngày', 'gửi hàng, nhận hàng hoàn', [['ship', '🚚', 'Đơn chờ gửi', sn ? sn + ' đơn cần gửi' : 'tích đơn đã gửi'], ['ret', '↩', 'Hàng hoàn', rn ? rn + ' gói trả về' : 'gói khách trả về']]],
+      ['📦 Kho hàng', 'còn bao nhiêu, ghi ra vào', [['hang', '📋', 'Hàng trong kho', 'nhập, xuất, đếm'], ['khac', '🛠', 'Khác', 'tên hàng, lần đặt, lịch sử']]]];
+  }
+  var KHO_TAB = '';
+  function khoTab(D) {
+    if (!KHO_TAB) KHO_TAB = store('kho_tab') || (khoShipNew(D).length ? 'ship' : 'hang');
+    if (['ship', 'ret', 'hang', 'khac'].indexOf(KHO_TAB) < 0) KHO_TAB = 'hang';
+    return KHO_TAB;
+  }
+  /** nút tìm gói hoàn / đã nhận (dùng khi không có gói hoàn nào) */
+  function khoRetFind(D) {
+    var G = D.got || [], mrow = function (a, ic, t, sub) { return '<button class="kho-row kho-row-m" data-kho="' + a + '"><span class="kho-row-ic">' + ic + '</span><span class="kho-row-t"><b>' + t + '</b><small>' + sub + '</small></span><span class="kho-chev" aria-hidden="true">›</span></button>'; };
+    return '<div class="kho-rows kho-mt">' + mrow('retfind', '🔍', 'Tìm gói hàng hoàn', 'Theo mã đơn, mã vận đơn, 4 số cuối SĐT hoặc tên khách') + (G.length ? mrow('retgot', '✅', 'Đã nhận 14 ngày qua', G.length + ' đơn') : '') + '</div>';
   }
   /** 🚚 Đơn chờ gửi (12/11/2026, anh Hiệp báo số kho không đổi khi sale gửi đơn): đơn tạo trên CRM mặc định "Đã xác nhận", chỉ sang "Đang giao" khi có người gõ mã vận đơn,
    *  nên máy tưởng hàng chưa rời kho. Kho gói hàng giao hãng xong: tích đơn → ✅ Đã gửi (kho_ship) → đơn Đang giao, máy trừ kho ngay.
@@ -17328,10 +17351,10 @@
       '<p class="small muted kho-mt">Thêm xong sẽ tới bước 2: đếm số hàng đang có. Từ đó máy tự trừ hàng theo đơn và nhắn Telegram khi sắp hết.</p></div>';
   }
   /** Mục "Khác": việc ít dùng, mỗi dòng mở 1 hộp. */
-  function khoMoreList(D, empty) {
+  function khoMoreList(D, empty, noRet) {
     var un = (D.names || []).filter(function (n) { return !n.to; }).length, row = function (a, ic, t, sub, badge) { return '<button class="kho-row kho-row-m" data-kho="' + a + '"><span class="kho-row-ic">' + ic + '</span><span class="kho-row-t"><b>' + t + '</b>' + (sub ? '<small>' + sub + '</small>' : '') + '</span>' + (badge ? '<em class="kho-badge">' + badge + '</em>' : '') + '<span class="kho-chev" aria-hidden="true">›</span></button>'; };
     return '<section class="kho-sec2"><h2 class="kho-h">Khác</h2><div class="kho-rows">' +
-      (D.ret && D.ret.length || khoPartSec(D) ? '' : row('retfind', '↩', 'Tìm gói hàng hoàn', 'Theo mã đơn, mã vận đơn, 4 số cuối SĐT hoặc tên khách', '') + ((D.got || []).length ? row('retgot', '✅', 'Hàng hoàn đã nhận 14 ngày qua', D.got.length + ' đơn', '') : '')) +
+      (noRet || D.ret && D.ret.length || khoPartSec(D) ? '' : row('retfind', '↩', 'Tìm gói hàng hoàn', 'Theo mã đơn, mã vận đơn, 4 số cuối SĐT hoặc tên khách', '') + ((D.got || []).length ? row('retgot', '✅', 'Hàng hoàn đã nhận 14 ngày qua', D.got.length + ' đơn', '') : '')) +
       (empty ? '' : row('names', '🔗', 'Tên hàng trong đơn', 'Máy đang trừ kho tên hàng nào vào sản phẩm nào', un ? un + ' chưa hiểu' : '') + row('pos', '🛒', 'Các lần đặt hàng', 'Đã đặt bao nhiêu, hẹn về ngày nào', '') + row('hist', '🕘', 'Lịch sử', 'Hàng về, lấy ra, đếm kho · xoá dòng ghi nhầm', '') + row('cfg', '⚙️', 'Cài đặt kho', 'Ngày đếm kho hằng tuần, ai nhận tin Telegram', '')) +
       row('how', '❓', 'Máy tính số kho thế nào?', '', '') + '<a class="kho-row kho-row-m" href="/huong-dan/kho/" target="_blank" rel="noopener"><span class="kho-row-ic">📖</span><span class="kho-row-t"><b>Hướng dẫn có hình</b></span><span class="kho-chev" aria-hidden="true">›</span></a></div></section>';
   }
@@ -17360,11 +17383,12 @@
     else if (a === 'retfind') openKhoFind();
     else if (a === 'retgot') openKhoGot();
     else if (a === 'ship') openKhoShip();
-    else if (a === 'shipgo' || a === 'retgo') { var se = $(a === 'retgo' ? '#kho-ret' : '#kho-ship'); if (se) se.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+    else if (a === 'shipgo' || a === 'retgo') { KHO_TAB = a === 'retgo' ? 'ret' : 'ship'; store('kho_tab', KHO_TAB); render(); var se = $(a === 'retgo' ? '#kho-ret' : '#kho-ship'); if (se) se.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
     else if (a === 'shipall') { var dd = el.closest('details'); $$('[data-kship]', dd).forEach(function (c) { c.checked = true; }); khoShipUpd(); }
   }
   function bindKho(root) {
     $$('[data-kship]', root).forEach(function (c) { c.onchange = khoShipUpd; });
+    $$('[data-khot]', root).forEach(function (el) { el.onclick = function () { KHO_TAB = el.getAttribute('data-khot'); store('kho_tab', KHO_TAB); render(); }; });
     $$('[data-kho]', root).forEach(function (el) { el.onclick = function (e) { if (el.tagName === 'A') return; e.preventDefault(); khoAct(el.getAttribute('data-kho'), el); }; });
   }
   function khoDo(action, payload, btn, errEl, msg) {
