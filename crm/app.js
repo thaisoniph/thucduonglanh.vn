@@ -182,7 +182,7 @@
     var c = cust(phone); if (!c) return;
     var R = relinkInfo(c), lo = R.lo, got = R.got, miss = R.miss, who = R.who, url = R.url, list = R.list;
     var txt = fillTpl(got.length ? 'Dạ [Tên] ơi, em gửi [Tên] link đặt lại ' + list + ' trên web Thực Dưỡng Lành ạ. Giỏ hàng đã có sẵn, [Tên] chỉ cần xem lại địa chỉ rồi bấm Đặt hàng: ' + url : 'Dạ [Tên] ơi, em gửi [Tên] link xem và đặt sản phẩm trên web Thực Dưỡng Lành ạ: ' + url, c) +
-      '\nĐặt trên web giá tốt hơn trên sàn' + (CFG.web_gift ? ', kèm quà ' + CFG.web_gift : '') + '. Cần đổi số lượng hay hỏi gì, [Tên] cứ nhắn em nhé ❤️';
+      '\nĐặt trên web luôn có ưu đãi riêng' + (CFG.web_gift ? ', kèm quà ' + CFG.web_gift : '') + '. Cần đổi số lượng hay hỏi gì, [Tên] cứ nhắn em nhé ❤️';
     txt = fillTpl(txt, c);
     var body = (lo ? '<p class="small muted" style="margin:0 0 8px">Theo đơn ' + fDate(lo.time) + ': ' + esc(parseItems(lo.items).filter(function (i) { return !i.gift; }).map(function (i) { return i.qty + ' ' + i.name; }).join(', ')) + '</p>' : '<p class="small muted" style="margin:0 0 8px">Khách chưa có đơn: gửi link trang sản phẩm.</p>') +
       (miss.length ? '<div class="notice">⚠️ Chưa bán trên web: <b>' + esc(miss.join(', ')) + '</b>. Món này khách đặt qua bạn (＋ Đơn) như cũ.</div>' : '') +
