@@ -591,7 +591,7 @@ def header(active):
     community = f'<a href="{esc(SITE.get("community_group") or "/goc-song-lanh/")}"{blank}>{t("Cộng Đồng Sống Khỏe")} {ic("globe","ic ic-sm")}</a>' if IS_VI or SITE.get("community_group") else ""
     return f'''
 <div class="topbar"><div class="container topbar-in">
-  <div class="tb-left">{offer}{free}<span class="tb-hot">Hotline {BRAND}: {ic("phone","ic ic-sm")} <a href="tel:{tel(SITE["hotline"])}">{esc(SITE["hotline"])}</a>{hot2}</span></div>
+  <div class="tb-left">{offer}{free}<span class="tb-hot">Hotline<span class="tb-brand"> {BRAND}</span>: {ic("phone","ic ic-sm")} <a href="tel:{tel(SITE["hotline"])}">{esc(SITE["hotline"])}</a>{hot2}</span></div>
   <div class="tb-right">{community}</div>
 </div></div>
 <header class="site-header" id="siteHeader"><div class="container header-in">

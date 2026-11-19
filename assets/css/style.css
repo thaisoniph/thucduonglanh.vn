@@ -59,6 +59,13 @@ input,select,textarea{font-family:inherit;font-size:15px}
 .topbar-in{display:flex;justify-content:space-between;align-items:center;height:36px;gap:12px}
 .tb-left{display:flex;align-items:center;gap:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tb-right a{display:flex;align-items:center;gap:6px}
+.tb-right{flex-shrink:0}
+.tb-right a{white-space:nowrap}
+/* máy tính vừa/nhỏ: gọn chữ để thanh trên cùng luôn 1 dòng, không cắt hotline */
+.tb-brand{display:none}
+@media (min-width:641px) and (max-width:780px){.tb-hot{display:none}}
+@media (min-width:641px) and (max-width:1180px){.topbar{font-size:13px}.tb-offer .tb-long{display:none}.tb-offer .tb-short{display:inline}}
+@media (min-width:641px) and (max-width:900px){.tb-free .tb-long{display:none}.tb-free .tb-short{display:inline}}
 .site-header{position:sticky;top:0;z-index:60;background:#fff;box-shadow:0 1px 0 var(--line);transition:box-shadow .25s}
 .site-header.scrolled{box-shadow:0 6px 24px rgba(0,0,0,.07)}
 .header-in{display:flex;align-items:center;height:var(--header-h);gap:24px}
