@@ -4,13 +4,22 @@ nav: Sàn Shopee
 group: ban-hang
 short: Ca sáng, sổ cuối ngày, sức khoẻ shop, đối thủ đầu tuần
 order: 2.7
-updated: 2026-11-16
+updated: 2026-11-19
 description: Người phụ trách sàn làm hết việc Shopee hằng ngày trong tab Sàn của CRM - ca sáng, chấm sức khoẻ shop, sổ theo dõi cuối ngày với ROI hoà vốn, xem đối thủ đầu tuần bằng nút Gửi về CRM.
 roles: [ql]
 ---
-Trang này dành cho **người phụ trách sàn Shopee**. Quản trị chọn người phụ trách ở tab **Sàn → 👤 Người phụ trách sàn**.
+Trang này dành cho **người phụ trách sàn Shopee**. Quản trị chọn người phụ trách ở tab **Sàn** → thẻ **📤 Tải file & cài đặt** → **👤 Người phụ trách sàn**.
 
 > **Một câu dễ nhớ:** Sáng **🩺 Chấm → làm 3 việc → ✅**. Tối **📒 Ghi sổ**. Thứ Hai **📥 Gửi về CRM → 🔍 Xem đối thủ**.
+
+**Tab Sàn chia thẻ 3 nhóm** (từ 19/11/2026), mỗi lần xem 1 thẻ, máy nhớ thẻ bạn xem lần trước:
+
+| Nhóm | Thẻ | Trong thẻ |
+| --- | --- | --- |
+| **📊 Kết quả** (mỗi ngày) | 📊 Mục tiêu & kết quả | Mục tiêu tháng các sàn, kết quả theo kỳ |
+| **🛒 Trợ lý Shopee** | 🩺 Sức khoẻ shop | ☀️ Ca sáng, chấm sức khoẻ, 3 việc hôm nay, 📒 Sổ theo dõi ngày, 🔑 nối Shopee |
+| | 🔍 Đối thủ | Xem đối thủ đầu tuần, cài nút 📥 Gửi về CRM |
+| **🧰 Công cụ** | 📤 Tải file & cài đặt | Lấy số từ Google Sheet, các lần tải file, người phụ trách sàn, cách lấy file |
 
 ## Việc của bạn mỗi ngày, mỗi tuần
 
@@ -18,7 +27,7 @@ Trang này dành cho **người phụ trách sàn Shopee**. Quản trị chọn 
 1. Dán cách đánh giá bạn đang dùng (nội dung skill Claude trên máy) vào CRM ([Việc 1](#viec-1-dan-cach-danh-gia)).
 2. Cài nút **📥 Gửi về CRM** lên Chrome trên máy tính ([Việc 4](#viec-4-cai-nut-gui-ve-crm)).
 
-**Ca sáng (khoảng 2 phút):** Telegram 8h báo số Shopee hôm qua, đơn chờ đóng gói, tiền quảng cáo sắp hết. Vào tab **Sàn**, bấm **🩺 Chấm sức khoẻ shop**, làm 3 việc, bấm **✅ Đã làm** ([Việc 2](#viec-2-cham-suc-khoe-shop)).
+**Ca sáng (khoảng 2 phút):** Telegram 8h báo số Shopee hôm qua, đơn chờ đóng gói, tiền quảng cáo sắp hết. Vào tab **Sàn** → thẻ **🩺 Sức khoẻ shop**, bấm **🩺 Chấm sức khoẻ shop**, làm 3 việc, bấm **✅ Đã làm** ([Việc 2](#viec-2-cham-suc-khoe-shop)).
 
 **Cuối ngày (khoảng 1 phút):** **📒 Sổ theo dõi ngày → ✏️ Ghi số hôm nay**: chi phí quảng cáo, doanh thu quảng cáo, đơn video / live / affiliate ([Việc 5](#viec-5-so-theo-doi-cuoi-ngay)). 21h chưa ghi thì Telegram nhắc.
 
@@ -55,7 +64,7 @@ Trang này dành cho **người phụ trách sàn Shopee**. Quản trị chọn 
 
 Làm 1 lần trên Chrome máy tính:
 
-1. Vào CRM tab **Sàn**, kéo xuống **🔍 Đối thủ cùng ngách**, mở **📥 Cài nút "Gửi về CRM"**.
+1. Vào CRM tab **Sàn** → thẻ **🔍 Đối thủ**, mở **📥 Cài nút "Gửi về CRM"**.
 2. Bật thanh dấu trang: **Ctrl + Shift + B** (máy Mac: **⌘ + Shift + B**).
 3. **Kéo** nút xanh **📥 Gửi về CRM** thả lên thanh dấu trang. Bấm thẳng vào nút trong CRM sẽ không chạy.
 4. Kéo không được: bấm **📋 Chép mã nút** → chuột phải thanh dấu trang → **Thêm trang** → Tên *Gửi về CRM*, URL dán mã → **Lưu**.
@@ -66,7 +75,7 @@ Dùng: mở trang Shopee (tìm từ khoá, chọn **Bán chạy**, hoặc vào s
 
 Thay bảng ghi tay cuối ngày. **Doanh số, số đơn** CRM tự lấy từ đơn Shopee.
 
-**Cách nhanh (không gõ tay):** trên máy tính, mở **Kênh Người Bán** (banhang.shopee.vn), vào từng trang **Quảng cáo Shopee** (chọn Hôm nay), **Đơn hàng → Chờ lấy hàng**, **Chat**… Ở mỗi trang bấm nút **📥 Gửi về CRM** trên thanh dấu trang. Vào CRM → **📒 Sổ theo dõi ngày → 📥 Dán từ Kênh Người Bán** → dán (Ctrl+V) → **📥 Đọc số**. AI điền sẵn số vào sổ, bạn **kiểm tra lại** rồi bấm **Lưu**. Ô **☀️ Ca sáng** ở đầu khối cũng hiện số đơn chờ đóng gói, tin nhắn chưa trả lời, số dư quảng cáo vừa đọc.
+**Cách nhanh (không gõ tay):** trên máy tính, mở **Kênh Người Bán** (banhang.shopee.vn), vào từng trang **Quảng cáo Shopee** (chọn Hôm nay), **Đơn hàng → Chờ lấy hàng**, **Chat**… Ở mỗi trang bấm nút **📥 Gửi về CRM** trên thanh dấu trang. Vào CRM → tab **Sàn** → thẻ **🩺 Sức khoẻ shop** → **📒 Sổ theo dõi ngày → 📥 Dán từ Kênh Người Bán** → dán (Ctrl+V) → **📥 Đọc số**. AI điền sẵn số vào sổ, bạn **kiểm tra lại** rồi bấm **Lưu**. Ô **☀️ Ca sáng** ở đầu khối cũng hiện số đơn chờ đóng gói, tin nhắn chưa trả lời, số dư quảng cáo vừa đọc.
 
 **Hoặc gõ tay** ở **✏️ Ghi số hôm nay**:
 
@@ -84,7 +93,7 @@ Thay bảng ghi tay cuối ngày. **Doanh số, số đơn** CRM tự lấy từ
 2. Đăng ký nhà phát triển cho shop của mình (loại **Seller In House System** / người bán tự dùng), điền thông tin công ty.
 3. Tạo ứng dụng (**App**) loại **Seller In House System**. Ô **Redirect URL / Domain** điền: `https://api.thucduonglanh.vn/shopee/cb`. Xin quyền **Order, Ads**, và **Seller Chat** nếu có.
 4. Gửi duyệt, chờ Shopee duyệt rồi bấm **Go Live**. Lấy **Live Partner ID** và **Live Partner Key** ở **App List**.
-5. CRM → tab **Sàn** → **🔑 Dán mã ứng dụng Shopee** → dán 2 mã → **Lưu**.
+5. CRM → tab **Sàn** → thẻ **🩺 Sức khoẻ shop** → **🔑 Dán mã ứng dụng Shopee** → dán 2 mã → **Lưu**.
 6. Bấm **🔗 Cho phép CRM đọc shop** → đăng nhập Shopee bằng tài khoản shop → **Đồng ý**. Trang báo "✅ Đã nối Shopee" là xong.
 
 - Tên mục trên open.shopee.com có thể khác chút theo thời gian. Bước nào không thấy thì chụp màn hình gửi Claude.

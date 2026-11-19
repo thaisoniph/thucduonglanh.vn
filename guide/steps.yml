@@ -1086,7 +1086,7 @@ san-cach:
         - ["btn", "📋 Cách đánh giá", ""]
         - ["btn", "🩺 Chấm sức khoẻ shop hôm nay", "g"]
       hi: 1
-      text: "Vào tab <b>Sàn</b>, ở khối <b>🩺 Sức khoẻ shop</b> bấm <b>📋 Cách đánh giá</b>."
+      text: "Vào tab <b>Sàn</b> → thẻ <b>🩺 Sức khoẻ shop</b>, bấm <b>📋 Cách đánh giá</b>."
     - title: 📋 Cách đánh giá shop
       els:
         - ["in", "Cách đánh giá của bạn", "Dán nội dung skill vào đây…"]
@@ -1110,7 +1110,7 @@ san-suc-khoe:
         - ["h", "🩺 Sức khoẻ shop Shopee"]
         - ["btn", "🩺 Chấm sức khoẻ shop hôm nay", "g"]
       hi: 1
-      text: "Vào CRM tab <b>Sàn</b>, bấm <b>🩺 Chấm sức khoẻ shop hôm nay</b>."
+      text: "Vào CRM tab <b>Sàn</b> → thẻ <b>🩺 Sức khoẻ shop</b>, bấm <b>🩺 Chấm sức khoẻ shop hôm nay</b>."
     - title: 🩺 Chấm sức khoẻ shop
       els:
         - ["in", "File Shopee", "Order.all…xlsx, Quảng cáo…csv"]
@@ -1148,7 +1148,7 @@ san-doi-thu:
         - ["h", "🔍 Đối thủ cùng ngách"]
         - ["btn", "🔍 Xem đối thủ tuần này", "g"]
       hi: 1
-      text: "Vào CRM tab <b>Sàn</b>, kéo xuống khối <b>🔍 Đối thủ cùng ngách</b>, bấm <b>🔍 Xem đối thủ tuần này</b>."
+      text: "Vào CRM tab <b>Sàn</b> → thẻ <b>🔍 Đối thủ</b>, bấm <b>🔍 Xem đối thủ tuần này</b>."
     - title: 🔍 Đối thủ tuần này
       els:
         - ["in", "Từ khoá đang theo dõi", "trà đinh lăng, bột ngũ cốc"]

@@ -12360,15 +12360,24 @@
     var h = '<div class="page-head"><h1>Sàn TMĐT</h1><div class="grow"></div><button class="btn pri" data-san="up">📤 Tải file từ sàn</button></div>' + perChips('s', f.p);
     if (!sj) return h + '<div class="box"><p class="muted">' + (SN.err ? '⚠️ ' + esc(SN.err) : '⏳ Đang tải số liệu sàn…') + '</p></div>';
     h += sanFresh(sj);
+    // 19/11/2026 (anh Sơn: "làm tương tự" các trang khác): chia thẻ 3 nhóm, mỗi lần xem 1 thẻ
+    var st = sanTab(), TOP = h; h = '';
     var rows = goalRows(month, sj, true), cur = 0, tt = 0; rows.forEach(function (x) { cur += x.v; tt += x.t; });
     h += '<section class="section"><div class="section-h"><h2>🎯 Mục tiêu ' + monthLabel(month) + ' · sàn</h2><div class="grow"></div>' + (sj.admin ? '<button class="btn sm" data-san="goals" data-month="' + month + '">🎯 Đặt mục tiêu</button>' : '') + '</div>' +
       (tt && rows.length > 1 ? goalTotalHTML('Tổng các sàn', cur, tt, month) : '') + '<div class="box ogoal">' + rows.map(function (x) { return goalRowHTML(x, month); }).join('') +
       (tt ? '' : '<p class="small muted">Chưa có mục tiêu sàn tháng này' + (sj.admin ? '. Bấm 🎯 Đặt mục tiêu.' : ', Quản trị đặt ở tab Tổng quan.') + '</p>') + '</div></section>';
     h += '<section class="section"><div class="section-h"><h2>📊 Kết quả ' + esc(perLabel(f.p).toLowerCase()) + '</h2></div>' + sanStats(sj, R, false, P) + '</section>';
+    var KQ = h; h = '';
     h += '<div class="steps">' + (sj.sheet && sj.sheet.id ? '<button class="btn" data-san="sheet">🔄 Lấy số từ Google Sheet</button><a class="btn" target="_blank" rel="noopener" href="https://docs.google.com/spreadsheets/d/' + esc(sj.sheet.id) + '/edit">📗 Mở Sheet báo cáo</a>' : '') +
       (sj.admin ? '<button class="btn" data-san="sheetcfg">⚙️ Link Sheet báo cáo</button>' : '') + '<button class="btn" data-san="list">📋 Các lần tải file</button>' + (sj.admin ? '<button class="btn" data-san="people">👤 Người phụ trách sàn' + (sj.people.length ? ': ' + esc(sj.people.join(', ')) : '') + '</button>' : '') + '</div>';
     if (sj.admin && SAI.j && !SAI.cogsSent) { var cr0 = sanCostRate(sj); if (cr0 && !cr0.est && Math.abs((SAI.j.cfg.cogs || 0) - cr0.r) > 0.005) { SAI.cogsSent = 1; api('san_ai_cfg', { cogs: cr0.r }).then(function () { SAI.j = null; saiGet(); }, function () {}); } } // 🎯 ROI hoà vốn cho người phụ trách sàn: chỉ gửi tỷ lệ giá vốn, không gửi giá nhập
-    return h + saiBlock() + sanHowTo(false);
+    var CC = h;
+    h = TOP + grpMenu(SAN_G, st, function (k) { return 'data-sant="' + k + '"'; });
+    if (st === 'kq') h += inTabi('Doanh số các sàn so với mục tiêu tháng, kết quả theo kỳ đang chọn.', ['Chọn kỳ ở trên', 'Số cũ: bấm <b>📤 Tải file từ sàn</b> hoặc <b>🔄 Lấy số từ Google Sheet</b>']) + KQ;
+    if (st === 'shop') h += inTabi('Trợ lý chấm sức khoẻ shop Shopee mỗi sáng, chỉ 3 việc cần làm hôm nay; sổ ngày ghi tiền quảng cáo, ROI hoà vốn.', ['Tải file Shopee mới', 'Bấm <b>🩺 Chấm sức khoẻ shop hôm nay</b>', 'Làm 3 việc, bấm <b>✅ Đã làm</b>']) + saiBlock('shop');
+    if (st === 'dt') h += inTabi('Xem đối thủ cùng ngách mỗi đầu tuần: giá, đã bán, sao, so với tuần trước, phương án tuần này.', ['Mở Shopee, tìm từ khoá của mình', 'Bấm <b>📥 Gửi về CRM</b> trên thanh dấu trang', 'Bấm <b>🔍 Xem đối thủ tuần này</b>']) + saiBlock('dt');
+    if (st === 'cc') h += inTabi('Tải file từ sàn, lấy số từ Google Sheet, xem các lần tải, người phụ trách sàn.', ['Bấm nút cần dùng bên dưới']) + CC + sanHowTo(true);
+    return h;
   }
   /* ---------- 🛒 Trợ lý sàn Shopee (16/11/2026, anh Sơn: Thủy dùng skill Claude rời rạc trên máy → gom vào tab Sàn). Máy chủ: api/src/sanai.js
    * 🩺 Sức khoẻ shop: 1 ô tải mọi file (file đơn hàng / tiền về tự nhập vào số sàn, file khác như quảng cáo, phân tích bán hàng gửi cho AI đọc) → điểm, 3 việc hôm nay, ✅ Đã làm → sau 7 ngày đo kết quả.
@@ -12411,22 +12420,29 @@
       (j.rows || []).slice().sort(function (a, b) { return (b.ghichu && b.ghichu.indexOf('mới thấy') < 0 ? 1 : 0) - (a.ghichu && a.ghichu.indexOf('mới thấy') < 0 ? 1 : 0); }).map(function (x) { return '<tr' + (x.mine ? ' class="sai-mine"' : '') + '><td>' + (x.shop ? '<b>' + esc(x.shop) + '</b><br>' : '') + (x.url ? '<a href="' + esc(x.url) + '" target="_blank" rel="noopener">' + esc(x.sp) + '</a>' : esc(x.sp)) + (x.mine ? ' <b>(mình)</b>' : '') + (x.kw ? '<br><span class="muted">' + esc(x.kw) + '</span>' : '') + '</td><td>' + esc(x.gia) + '</td><td>' + esc(x.daban) + '</td><td>' + esc(x.sao) + '</td><td>' + esc(x.km) + (x.ghichu ? '<br><b>' + esc(x.ghichu) + '</b>' : '') + '</td></tr>'; }).join('') + '</table></div></details>' +
       '<h3 class="sai-h3">👉 Phương án tuần này</h3>' + saiActs(r) + '</div>';
   }
-  function saiBlock() {
+  /** 🛒 Sàn chia 3 nhóm thẻ (19/11/2026) */
+  var SAN_G = [['📊 Kết quả', 'mỗi ngày', [['kq', '📊', 'Mục tiêu & kết quả', 'doanh số các sàn']]],
+    ['🛒 Trợ lý Shopee', 'mỗi sáng, đầu tuần', [['shop', '🩺', 'Sức khoẻ shop', '3 việc hôm nay, sổ ngày'], ['dt', '🔍', 'Đối thủ', 'đầu tuần']]],
+    ['🧰 Công cụ', 'khi cần', [['cc', '📤', 'Tải file & cài đặt', 'file sàn, Google Sheet']]]];
+  var SAN_TAB = '';
+  function sanTab() { var t = SAN_TAB || store('san_tab') || 'kq'; if (['kq', 'shop', 'dt', 'cc'].indexOf(t) < 0) t = 'kq'; return (SAN_TAB = t); }
+  document.addEventListener('click', function (e) { var t = e.target.closest('[data-sant]'); if (!t) return; SAN_TAB = t.getAttribute('data-sant'); store('san_tab', SAN_TAB); render(); });
+  function saiBlock(part) {
     var j = saiGet(), h = '';
     if (!j) return '<section class="section"><div class="box"><p class="muted">' + (SAI.err ? '⚠️ ' + esc(SAI.err) : '⏳ Đang tải trợ lý sàn…') + '</p></div></section>';
     var shop = j.list.filter(function (r) { return r.kind === 'shop'; }), dt = j.list.filter(function (r) { return r.kind === 'dt'; }), td = isoDate(today());
     var s0 = shop[0], d0 = dt[0], dOld = !d0 || Date.now() - d0.at > 6 * DAY, mon = new Date(Date.now() + 7 * 3600e3).getUTCDay() === 1;
-    h += saiShpBox(j);
-    h += '<section class="section" id="sai-shop"><div class="section-h"><h2>🩺 Sức khoẻ shop Shopee</h2><div class="grow"></div><button class="btn sm" data-sai="cfg" data-k="shop">📋 Cách đánh giá</button></div>' +
+    if (part !== 'dt') h += saiShpBox(j);
+    if (part !== 'dt') h += '<section class="section" id="sai-shop"><div class="section-h"><h2>🩺 Sức khoẻ shop Shopee</h2><div class="grow"></div><button class="btn sm" data-sai="cfg" data-k="shop">📋 Cách đánh giá</button></div>' +
       (!j.aiOn ? '<div class="notice warn">AI chưa bật trên máy chủ (thiếu khoá ANTHROPIC_API_KEY).</div>' : '') +
       '<div class="box"><p class="small" style="margin:0 0 8px"><b>Mỗi sáng 2 phút:</b> ① Tải file Shopee mới (đơn hàng, quảng cáo, phân tích bán hàng) → ② CRM chấm điểm theo đúng cách đánh giá của bạn → ③ làm 3 việc, bấm ✅ Đã làm. Sau 7 ngày CRM tự cho biết việc đó có làm doanh số tăng không.</p>' +
       '<button class="btn pri" data-sai="shop">🩺 ' + (s0 && s0.day === td ? 'Chấm lại hôm nay' : 'Chấm sức khoẻ shop hôm nay') + '</button></div>' +
       (s0 ? saiShopCard(s0) : '') + '</section>' + saiBook(j);
-    h += '<section class="section" id="sai-dt"><div class="section-h"><h2>🔍 Đối thủ cùng ngách</h2><div class="grow"></div><button class="btn sm" data-sai="cfg" data-k="dt">📋 Cách xem đối thủ</button></div>' +
+    if (part !== 'shop') h += '<section class="section" id="sai-dt"><div class="section-h"><h2>🔍 Đối thủ cùng ngách</h2><div class="grow"></div><button class="btn sm" data-sai="cfg" data-k="dt">📋 Cách xem đối thủ</button></div>' +
       '<div class="box"><p class="small" style="margin:0 0 8px"><b>Đầu tuần 5 phút:</b> ① Mở Shopee, tìm từ khoá của mình' + (j.cfg.kw ? ' (<b>' + esc(j.cfg.kw) + '</b>)' : '') + ' hoặc vào shop đối thủ → ② bấm nút <b>📥 Gửi về CRM</b> trên thanh dấu trang (hoặc chụp màn hình) → ③ dán vào đây. CRM tự so tên, giá, số đã bán với tuần trước.</p>' + saiBmkBox() +
       (dOld && mon ? '<div class="notice info" style="margin:0 0 8px">📅 Hôm nay thứ Hai: tới lúc xem đối thủ tuần này.</div>' : '') +
       '<button class="btn ' + (dOld ? 'pri' : '') + '" data-sai="dt">🔍 Xem đối thủ tuần này</button></div>' + (d0 ? saiDtCard(d0) : '') + '</section>';
-    if (j.list.length > 1) h += '<div class="steps"><button class="btn sm" data-sai="hist">🗂 Các lần chấm trước (' + j.list.length + ')</button></div>';
+    if (part !== 'dt' && j.list.length > 1) h += '<div class="steps"><button class="btn sm" data-sai="hist">🗂 Các lần chấm trước (' + j.list.length + ')</button></div>';
     return h;
   }
   /** 📥 nút "Gửi về CRM" (bookmarklet) chạy trên trang Shopee của Thủy: lấy chữ trên từng thẻ sản phẩm (link có mã shop.sản phẩm), cộng dồn nhiều trang trong 6 tiếng (localStorage của shopee.vn), chép vào bộ nhớ để dán vào CRM.
