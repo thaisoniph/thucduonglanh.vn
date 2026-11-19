@@ -247,7 +247,7 @@ Sale bấm **🕊️ Khách đã mất / bỏ số** khi khách đã mất hoặ
 
 Sale chọn loại đơn khác với gợi ý của máy thì đơn có nhãn **⚠️ Kiểm tra loại đơn**.
 
-1. Vào **Đơn hàng → Cần xử lý → Kiểm tra loại đơn**.
+1. Vào **Đơn hàng** → thẻ **⚠️ Loại đơn** (nhóm 💳 Kiểm tra).
 2. Mở đơn. Bấm **✓ Đúng** (giữ lựa chọn của sale) hoặc **Đổi sang** loại khác.
 
 **🕐 Chờ duyệt giờ chốt** (từ 16/11/2026): sale chốt tối / Chủ nhật nhưng hôm sau mới lên đơn, nên chọn giờ chốt sớm hơn. Giờ chốt đó làm đơn thành **Ngoài giờ** hoặc **Ngày lễ** thì CRM tính tạm theo giờ lên đơn thật (thường là Khách mới) và chờ bạn duyệt. Mở đơn: thấy dòng *sale ghi chốt lúc … bấm lên đơn lúc …*. Hỏi lại sale hoặc xem tin nhắn với khách. Đúng thì bấm **✓ Đúng, tính Ngoài giờ**, không đúng thì bấm **Không đúng, giữ …**. Đơn lùi giờ mà không đổi % (ví dụ khách cũ) không cần duyệt, chỉ có nhãn **🕐 Lùi giờ chốt** để bạn biết. Sale lùi được tối đa 3 ngày, không sang tháng trước; quản lý lùi bao nhiêu cũng được.

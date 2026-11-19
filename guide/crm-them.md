@@ -4,7 +4,7 @@ nav: CRM thêm
 group: ban-hang
 short: Mẹo và việc ít dùng hơn
 order: 3
-updated: 2026-11-15
+updated: 2026-11-19
 description: Mẹo và việc ít dùng hơn. Cần việc nào thì bấm vào mục đó ở "Trong trang này".
 roles: [sale, ql]
 ---
@@ -311,16 +311,16 @@ Máy tự tính ngày gọi, dựa vào **ngày khách nhận hàng**. Bạn kh�
 
 ## Đơn hàng: các nhóm cần chú ý
 
-Tab **Đơn hàng** mở sẵn mục **⚡ Cần xử lý**, chia thành nhóm:
+Tab **Đơn hàng** có **các thẻ chia 3 nhóm** (từ 19/11/2026): **📞 Gọi khách** (Chờ xác nhận · Giao có vấn đề · Hoàn), **💳 Kiểm tra** (Chưa nhận tiền · Loại đơn), **📋 Tra cứu** (Tất cả đơn). Dưới tên mỗi thẻ ghi **số đơn** đang chờ; thẻ không có đơn ghi **✓ không có**. Mở ra là thẻ đầu tiên còn đơn.
 
-| Nhóm | Việc cần làm |
+| Thẻ → mục | Việc cần làm |
 | --- | --- |
-| 🆕 **Chờ xác nhận** | Gọi khách, bấm **✅ Xác nhận** |
-| 📵 **Giao chưa được** | Bưu cục báo khách vắng nhà. **Gọi khách ngay**, hẹn lại giờ giao |
-| 🚚 **Giao lâu chưa tới** | Đã lên đơn hơn 5 ngày mà chưa giao xong. Gọi hỏi khách, giục bưu cục |
-| 💳 **Chưa nhận tiền** | Kiểm tra tài khoản, tiền về thì bấm đã nhận tiền |
-| 📦 **Chờ hàng hoàn về kho** | Hãng đang chuyển hoàn, hàng chưa về. Người lo kho nhận hàng ở tab **📦 Kho → ↩ Hàng hoàn** (ghi đủ hay thiếu / hỏng, máy nhắn bạn). Không có người lo kho thì bấm **📦 Kho đã nhận** trên đơn (đơn chuyển sang **Hoàn**) |
-| ↩ **Hoàn gần đây** | Khách trả lại hàng. Gọi hỏi lý do |
+| 🆕 Chờ xác nhận → **Chờ xác nhận** | Gọi khách, bấm **✅ Xác nhận** |
+| 🚚 Giao có vấn đề → **📵 Giao chưa được** | Bưu cục báo khách vắng nhà. **Gọi khách ngay**, hẹn lại giờ giao |
+| 🚚 Giao có vấn đề → **🚚 Giao lâu chưa tới** | Đã lên đơn hơn 5 ngày mà chưa giao xong. Gọi hỏi khách, giục bưu cục |
+| 💳 Chưa nhận tiền | Kiểm tra tài khoản, tiền về thì bấm đã nhận tiền |
+| ↩ Hoàn → **📦 Chờ hàng hoàn về kho** | Hãng đang chuyển hoàn, hàng chưa về. Người lo kho nhận hàng ở tab **📦 Kho → ↩ Hàng hoàn** (ghi đủ hay thiếu / hỏng, máy nhắn bạn). Không có người lo kho thì bấm **📦 Kho đã nhận** trên đơn (đơn chuyển sang **Hoàn**) |
+| ↩ Hoàn → **↩ Hoàn gần đây** | Khách trả lại hàng. Gọi hỏi lý do |
 
 **Đang chuyển hoàn** và **Hoàn** khác nhau:
 

@@ -3085,6 +3085,22 @@
     if (!o.trk || !(/^(Mới|Đã xác nhận|Đang giao)$/.test(o.status) || /hoàn/i.test(o.status))) return '';
     return '<div class="trkl' + (trkWarn(o) ? ' bad' : '') + '" title="' + (o.trkCode === 900 ? 'Theo file đối soát Best' : 'Viettel Post tự báo') + ' – cập nhật ' + esc(o.trkAt ? fDate(o.trkAt) : '') + '">' + (trkWarn(o) ? '⚠️ ' : '📦 ') + esc(o.trk) + '</div>';
   }
+  /** 🧾 Đơn hàng chia 3 nhóm thẻ (19/11/2026): thẻ việc = 1–2 nhóm của orderTodo; 'todo' (cũ) → thẻ đầu tiên còn đơn */
+  var ORD_KEYS = { new: ['new'], ship: ['fail', 'late'], ret: ['ret', 'back'], pay: ['pay'], otype: ['otype'] };
+  var ORD_G = [['📞 Gọi khách', 'mỗi ngày', [['new', '🆕', 'Chờ xác nhận', 'gọi xác nhận đơn'], ['ship', '🚚', 'Giao có vấn đề', 'giao chưa được, lâu chưa tới'], ['ret', '↩', 'Hoàn', 'chờ về kho, hỏi lý do']]],
+    ['💳 Kiểm tra', 'khi có', [['pay', '💳', 'Chưa nhận tiền', 'chuyển khoản'], ['otype', '⚠️', 'Loại đơn', 'sale chọn khác gợi ý']]],
+    ['📋 Tra cứu', 'khi cần tìm', [['all', '📋', 'Tất cả đơn', 'lọc kỳ, kênh, trạng thái']]]];
+  function ordTodoG() { var G = orderTodo(); if (lvl() >= 2 && S.who) G.forEach(function (g) { g.list = g.list.filter(function (o) { return whoOk(orderOwner(o)); }); }); return G; }
+  function ordTabFix(f) {
+    if (f.tab === 'all' || ORD_KEYS[f.tab]) return;
+    var G = ordTodoG(), n = function (t) { return G.filter(function (g) { return ORD_KEYS[t].indexOf(g.k) >= 0; }).reduce(function (s0, g) { return s0 + g.list.length; }, 0); };
+    f.tab = ['new', 'ship', 'ret', 'pay', 'otype'].filter(function (t) { return n(t); })[0] || 'new';
+  }
+  function ordTabsHTML(f) {
+    var G = ordTodoG(), cnt = function (t) { return G.filter(function (g) { return ORD_KEYS[t].indexOf(g.k) >= 0; }).reduce(function (s0, g) { return s0 + g.list.length; }, 0); };
+    var M = ORD_G.map(function (g) { return [g[0], g[1], g[2].map(function (x) { var n = x[0] === 'all' ? -1 : cnt(x[0]); return [x[0], x[1], x[2], n < 0 ? x[3] : n ? n + ' đơn · ' + x[3] : '✓ không có']; })]; });
+    return grpMenu(M, f.tab, function (k) { return 'data-otab="' + k + '"'; });
+  }
   function orderTodo() {
     var t0 = today(), d = function (o) { return daysSince(o.time); };
     var G = [
@@ -3133,14 +3149,13 @@
       names.map(function (n) { return '<option' + (n === o.seller ? ' selected' : '') + '>' + esc(n) + '</option>'; }).join('') + '</select>';
   }
   function renderOrdersBody(f, OS, q, qd) {
-    if (f.tab === 'todo') {
-      var G = orderTodo(); if (lvl() >= 2 && S.who) G.forEach(function (g) { g.list = g.list.filter(function (o) { return whoOk(orderOwner(o)); }); });
-      var any = false, h = '';
+    if (f.tab !== 'all') { // 19/11/2026: mỗi thẻ (ORD_G) gồm 1–2 nhóm việc của orderTodo
+      var G = ordTodoG(), keys = ORD_KEYS[f.tab] || [], any = false, h = '';
       G.forEach(function (g) {
-        if (!g.list.length) return; any = true;
+        if (keys.indexOf(g.k) < 0 || !g.list.length) return; any = true;
         h += '<details class="grp" data-grp="o-' + g.k + '"' + (!S.f.gopen || S.f.gopen['o-' + g.k] !== false ? ' open' : '') + '><summary><span class="g-t">' + g.t + '</span><span class="count">' + g.list.length + '</span><span class="g-tip">' + g.tip + '</span></summary><div class="rows">' + g.list.slice(0, 50).map(function (o) { return orderRow(o, true); }).join('') + (g.list.length > 50 ? '<p class="small muted" style="padding:8px 12px">… và ' + (g.list.length - 50) + ' đơn khác (xem ở Tất cả đơn)</p>' : '') + '</div></details>';
       });
-      if (!any) h += empty('🎉 Không có đơn nào cần xử lý. Xem lịch sử ở “Tất cả đơn”.');
+      if (!any) h += empty('🎉 Không có đơn nào ở mục này.');
       return h;
     }
     var RG = perRange(f.p);
@@ -3161,6 +3176,7 @@
     if (!oBody) { render(); return; }
     var f = S.f.o || (S.f.o = { q: '', st: 'all', n: 60, tab: 'todo', p: { k: 'all' } });
     if (!f.tab) f.tab = 'todo'; if (!f.p) f.p = { k: 'all' };
+    ordTabFix(f);
     var q = norm(f.q), qd = q.replace(/\D/g, '');
     var OS = ordersSeen();
 
@@ -3184,26 +3200,23 @@
     oBody.innerHTML = renderOrdersBody(f, OS, q, qd);
     var oTabs = $('#oTabs');
     if (oTabs) {
-      var G = orderTodo(); if (lvl() >= 2 && S.who) G.forEach(function (g) { g.list = g.list.filter(function (o) { return whoOk(orderOwner(o)); }); });
-      var todoN = G.reduce(function (s0, g) { return s0 + g.list.length; }, 0);
-      oTabs.innerHTML = '<button data-otab="todo" class="' + (f.tab === 'todo' ? 'on' : '') + '">⚡ Cần xử lý' + (todoN ? ' (' + todoN + ')' : '') + '</button><button data-otab="all" class="' + (f.tab === 'all' ? 'on' : '') + '">📋 Tất cả đơn</button>';
+      oTabs.innerHTML = ordTabsHTML(f);
     }
   }
   function viewOrders() {
     var f = S.f.o || (S.f.o = { q: '', st: 'all', n: 60, tab: 'todo', p: { k: 'all' } });
     if (!f.tab) f.tab = 'todo'; if (!f.p) f.p = { k: 'all' };
     var q = norm(f.q), qd = q.replace(/\D/g, ''), t0 = today();
-    if (q && f.tab === 'todo') f.tab = 'all'; // đang tìm → xem trong tất cả đơn
+    if (q && f.tab !== 'all') f.tab = 'all'; // đang tìm → xem trong tất cả đơn
+    ordTabFix(f);
     var OS = ordersSeen();
     var mR = monthRange(monthOf(Date.now())), todayOs = OS.filter(function (o) { return o.time >= t0 && !isVoid(o.status); }), monthOs = OS.filter(function (o) { return o.time >= mR[0] && o.time < mR[1] && o.status !== 'Huỷ'; });
     var backM = monthOs.filter(function (o) { return /hoàn/i.test(o.status); }).length, shipOs = OS.filter(function (o) { return o.status === 'Đang giao'; }), shipping = shipOs.length, codOut = shipOs.reduce(function (s0, o) { return s0 + (isBank(o) ? 0 : o.total); }, 0);
     var h = '<div class="page-head"><h1>Đơn hàng</h1><div class="grow"></div>' + whoSel() + (lvl() >= 2 ? '<button class="btn" data-recon="">📦 Đối soát vận chuyển</button>' : '') + '<button class="btn pri" data-neworder="">＋ Tạo đơn (Zalo, điện thoại…)</button></div>' +
       '<div class="minis" id="oMinis">' + mini('🧾 Đơn hôm nay', todayOs.length, '', '') + mini('💰 Doanh số hôm nay', moneyShort(todayOs.reduce(function (s0, o) { return s0 + o.total; }, 0)), '', 'good') + mini('🚚 Đang giao', shipping + (codOut ? '<small class="mini-sub" title="Tiền COD bưu cục đang giữ của các đơn đang giao">thu hộ ' + moneyShort(codOut) + '</small>' : ''), '', '') + mini('↩ Hoàn tháng này', monthOs.length ? pct(backM, monthOs.length) + '%' : '–', '', backM ? 'bad' : '') + '</div>' +
       '<div class="tools"><div class="search">' + I.search + '<input type="search" id="oq" placeholder="Tìm tên, SĐT, mã đơn, sản phẩm…" value="' + esc(f.q) + '"><button type="button" class="search-x" aria-label="Xoá chữ tìm kiếm" title="Xoá">✕</button></div></div>';
-    var G = orderTodo(); if (lvl() >= 2 && S.who) G.forEach(function (g) { g.list = g.list.filter(function (o) { return whoOk(orderOwner(o)); }); });
-    var todoN = G.reduce(function (s0, g) { return s0 + g.list.length; }, 0);
-    h += '<div class="tabs" id="oTabs" style="max-width:420px"><button data-otab="todo" class="' + (f.tab === 'todo' ? 'on' : '') + '">⚡ Cần xử lý' + (todoN ? ' (' + todoN + ')' : '') + '</button><button data-otab="all" class="' + (f.tab === 'all' ? 'on' : '') + '">📋 Tất cả đơn</button></div>' + colorKey(true) +
-      (f.tab === 'todo' ? '<p class="small muted" style="margin:4px 2px 8px">ℹ️ Mọi đơn mặc định <b>cho xem hàng, không thử</b> nên không ghi lại trên từng đơn. Chỉ ghi chú khác (giờ giao, gọi trước…) mới hiện 📌.</p>' : '') +
+    h += '<div id="oTabs">' + ordTabsHTML(f) + '</div>' +
+      (f.tab !== 'all' ? '<p class="small muted" style="margin:4px 2px 8px">ℹ️ Mọi đơn mặc định <b>cho xem hàng, không thử</b> nên không ghi lại trên từng đơn. Chỉ ghi chú khác (giờ giao, gọi trước…) mới hiện 📌.</p>' : '') +
       '<div id="oBody">' + renderOrdersBody(f, OS, q, qd) + '</div>';
     return h;
   }
@@ -18545,7 +18558,7 @@
     if (t.hasAttribute('data-cf')) { searchKeep(S.f.c); S.f.c.k = a('data-cf'); S.f.c.n = 60; if ($('#cList')) renderCustomersPart(); else render(); return; }
     if (t.hasAttribute('data-och')) { searchKeep(S.f.o); S.f.o.ch = a('data-och'); S.f.o.n = 60; if ($('#oBody')) renderOrdersPart(); else render(); return; }
     if (t.hasAttribute('data-os')) { searchKeep(S.f.o); S.f.o.st = a('data-os'); S.f.o.n = 60; if ($('#oBody')) renderOrdersPart(); else render(); return; }
-    if (t.hasAttribute('data-otab')) { searchKeep(S.f.o); S.f.o.tab = a('data-otab'); if (S.f.o.tab === 'todo') S.f.o.q = ''; S.f.o.n = 60; if ($('#oBody')) renderOrdersPart(); else render(); return; }
+    if (t.hasAttribute('data-otab')) { searchKeep(S.f.o); S.f.o.tab = a('data-otab'); if (S.f.o.tab !== 'all') S.f.o.q = ''; S.f.o.n = 60; if ($('#oBody')) renderOrdersPart(); else render(); return; }
     if (t.hasAttribute('data-per')) { openPer(a('data-per')); return; }
     if (t.hasAttribute('data-pq')) { var pq = a('data-pq').split('|'); S.f[pq[0]].p = { k: pq[1] }; if (pq[0] === 'o') S.f.o.n = 60; render(); return; }
     if (t.hasAttribute('data-tf')) { searchKeep(S.f.t); S.f.t.k = a('data-tf'); S.f.t.n = 60; if ($('#tList')) renderLeadsPart(); else render(); return; }
