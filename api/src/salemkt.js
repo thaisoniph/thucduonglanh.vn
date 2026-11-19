@@ -138,7 +138,7 @@ export async function crmBeVrSet(x, u, d) {
     const c = d.co, n = v => { const k = Math.round(Number(v)); return isFinite(k) && k >= 0 && k < 1e10 ? k : null; }, sh = {};
     if (!/^20\d\d-(0[1-9]|1[0-2])$/.test(String(c.m || '')) || !n(c.be) || n(c.avg) === null) return { ok: false, error: 'Số hoà vốn chưa đúng.' };
     Object.keys(c.sh || {}).slice(0, 60).forEach(k => { const v = Number(c.sh[k]); if (v > 0 && v <= 1) sh[String(k).slice(0, 80)] = Math.round(v * 1000) / 1000; });
-    await kvSet(x.db, 'be_co', JSON.stringify({ m: c.m, be: n(c.be), avg: n(c.avg), nd: Math.min(31, n(c.nd) || 0), fx: n(c.fx) || 0, sh, at: Date.now() }));
+    await kvSet(x.db, 'be_co', JSON.stringify({ m: c.m, be: n(c.be), avg: n(c.avg), nd: Math.min(31, n(c.nd) || 0), fx: n(c.fx) || 0, sv: n(c.sv), sh, at: Date.now() }));
     return { ok: true };
   }
   const r = Number(d.r); if (!(r > 0 && r < 0.9)) return { ok: false, error: 'Tỷ lệ chưa đúng.' };
@@ -149,7 +149,7 @@ export async function crmBeVrSet(x, u, d) {
 async function beCo(x, u, name) {
   const c = await kvJson(x.db, 'be_co', null); if (!c || !c.be) return null;
   const now = new Date(Date.now() + 7 * 3600e3), m = now.getUTCFullYear() + '-' + String(now.getUTCMonth() + 1).padStart(2, '0'); if (c.m !== m) return null;
-  const o = { m: c.m, be: c.be, avg: c.avg, nd: c.nd, fx: c.fx, at: c.at, my: (c.sh || {})[name] || null, ns: Object.keys(c.sh || {}).length };
+  const o = { m: c.m, be: c.be, avg: c.avg, nd: c.nd, fx: c.fx, sv: c.sv != null ? c.sv : c.be, at: c.at, my: (c.sh || {})[name] || null, ns: Object.keys(c.sh || {}).length };
   return o;
 }
 
