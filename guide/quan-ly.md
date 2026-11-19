@@ -535,7 +535,14 @@ Các thẻ còn lại: đầu thẻ có ô xanh **📌 Dùng để**, mỗi mụ
     - **8h sáng** Quản trị đã nối Telegram nhận tin **💼 Tài chính**: hôm qua lãi / lỗ, từ đầu tháng, tiền ngân hàng, nợ tới hạn, khoản chi lớn. Bấm **📲 Gửi thử tin sáng** để xem trước.
 - **🔍 Vì sao doanh số tăng / giảm** (thẻ 📈 Doanh số): Doanh số = khách hỏi mới × tỷ lệ chốt × giá trị 1 đơn + khách cũ mua lại. Ô **viền đỏ** là khâu giảm nhiều nhất, nên sửa trước.
 
-- **🧮 Lãi lỗ cả tháng (sau mọi chi phí)** (thẻ 💵 Tiền & lãi lỗ, chỉ Quản trị thấy): cho biết tháng này **lãi hay lỗ** bao nhiêu.
+- **🧮 Lãi lỗ theo tháng, quý (sau mọi chi phí)** (thẻ 💵 Tiền & lãi lỗ, chỉ Quản trị thấy): cho biết công ty **lãi hay lỗ** bao nhiêu, đang tốt lên hay xấu đi.
+    - Trên cùng là **📊 Bức tranh nhiều tháng** (lấy từ các tháng kế toán đã chốt). Bấm **📅 Theo tháng** hoặc **🗓 Theo quý** để đổi cách xem.
+    - 4 ô số: **cộng dồn lãi / lỗ**, **tháng gần nhất** (tốt hơn hay kém hơn tháng trước), **doanh thu trung bình 1 tháng**, **dự kiến tháng này** (CRM tạm tính, nét đứt).
+    - **🧭 Đọc nhanh để ra quyết định**: máy tự viết đang tốt dần hay xấu dần, quảng cáo nên về mức nào thì lãi thêm bao nhiêu, khoản nào tăng mạnh nhất, cần doanh thu bao nhiêu để hoà vốn, tiền và nợ nhà cung cấp.
+    - **Biểu đồ cột**: cột xanh là doanh thu, cột cam là tổng chi. Cột cam cao hơn cột xanh là lỗ.
+    - **100đ doanh thu đi đâu?**: mỗi thanh chia ra giá vốn, quảng cáo, nhân sự, sàn + vận chuyển, văn phòng. Thanh vượt vạch đỏ 100đ là lỗ. Nhìn khúc nào to nhất để cắt trước.
+    - **Bảng lãi lỗ từng tháng / quý**: mỗi cột 1 tháng (hoặc quý), số nhỏ là % doanh thu. **▲ đỏ** là khoản đó ăn vào doanh thu nhiều hơn kỳ trước, **▼ xanh** là giảm.
+    - Bên dưới là **🔎 Chi tiết từng khoản** của kỳ đang chọn ở đầu trang (như trước).
     - Bảng tính từ trên xuống: Doanh số − giá vốn hàng & phí sàn = **Lãi gộp** − quảng cáo (máy tự lấy) − từng khoản chi phí văn phòng = **🟢 Lãi ròng** hoặc **🔴 Lỗ**. Cột bên phải là kỳ trước để so.
     - **Nhập chi phí**: bấm **✏️ Nhập chi phí tháng …** → gõ số tiền từng khoản (thuê văn phòng, lương, bảo hiểm, điện, nước, internet, tiền ship trả hãng, phần mềm…; gõ được 12tr, 850k) → **Lưu**. Thêm khoản khác bằng **+ Thêm dòng**. Tháng mới tự chép các khoản của tháng trước, chỉ cần sửa khoản thay đổi. Nút **💰 Điền lương sale CRM tính** điền lương + hoa hồng sale theo Phụ lục 01 (chưa gồm thưởng). Không nhập quảng cáo và giá vốn hàng vì CRM đã tự tính.
     - Muốn xem **trọn 1 tháng** thì chọn **Tháng trước**. Đang xem tháng chưa hết (hoặc tuần, 7 ngày) thì chi phí văn phòng chia theo số ngày (vd thuê nhà 10 tr, đã qua 10/30 ngày → tính 3,3 tr).

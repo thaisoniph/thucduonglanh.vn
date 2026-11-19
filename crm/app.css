@@ -3808,3 +3808,33 @@ details.top-fold.tf-focus .tf-all { display: block; }
 /* 🌐 Lời chúc cho khách web: câu hôm nay + số lượt (Cài đặt → Văn hoá, 19/11/2026) */
 .lcs-box { margin-top: 12px; background: #fff8e6; border: 1px solid #f3e0ad; border-radius: 10px; padding: 10px 12px; font-size: 14px; }
 .lcs-box p { margin: 4px 0; }
+/* 📊 Bức tranh lãi lỗ nhiều tháng / quý (19/11/2026) */
+.ptr { margin-bottom: 14px; }
+.ptr .kpis { margin: 4px 0 10px; }
+.ptr-say { background: var(--primary-soft); border-radius: var(--radius-sm); padding: 10px 12px; margin: 6px 0 4px; font-size: 14.5px; }
+.ptr-say ul { margin: 6px 0 0; padding-left: 18px; } .ptr-say li { margin: 4px 0; line-height: 1.45; }
+.ptr-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.ptr-svg { width: 100%; height: auto; display: block; margin: 0 auto; }
+.ptr-ax { font-size: 10px; fill: var(--muted); }
+.ptr-xl { font-size: 12px; fill: var(--ink); font-weight: 700; }
+.ptr-pr { font-size: 11.5px; font-weight: 700; } .ptr-pr.bad { fill: var(--red); } .ptr-pr.ok { fill: var(--primary); }
+.rpm-lg i.ptr-dash { background: transparent; border: 1.5px dashed var(--muted); }
+.ptr-mix { display: grid; gap: 8px; }
+.ptr-mr { display: grid; grid-template-columns: 52px 1fr 70px; align-items: center; gap: 8px; font-size: 13px; }
+.ptr-ml { font-weight: 700; color: var(--ink); }
+.ptr-mr > b { text-align: right; font-size: 12.5px; } .ptr-mr > b.bad { color: var(--red); } .ptr-mr > b.ok { color: var(--primary); }
+.ptr-mb { position: relative; display: flex; height: 24px; border-radius: 5px; overflow: visible; background: #f3f5f4; }
+.ptr-mb > i { display: flex; align-items: center; justify-content: center; color: #fff; font-style: normal; font-size: 11px; font-weight: 700; min-width: 0; overflow: hidden; }
+.ptr-mb > i:first-of-type { border-radius: 5px 0 0 5px; }
+.ptr-mb > i.ptr-ok, .rpm-lg i.ptr-ok { background: #2e7d4f; }
+.ptr-mb > i.ptr-100 { position: absolute; top: -4px; bottom: -4px; width: 0; border-left: 2px dashed var(--red); z-index: 2; }
+.rpm-lg i.ptr-100l { width: 0; height: 12px; border-left: 2px dashed var(--red); border-radius: 0; }
+.ptr-t td small.ptr-pc { display: block; font-size: 11px; color: var(--muted); }
+.ptr-t td small.ptr-pc.bad { color: var(--red); font-weight: 700; } .ptr-t td small.ptr-pc.ok { color: var(--primary); font-weight: 700; }
+.ptr-t .ptr-sum { background: #f6f8f7; font-weight: 600; }
+.ptr-t .ptr-bal td { color: var(--muted); font-size: 13px; }
+.ptr-one { margin-top: 6px; }
+@media (max-width: 560px) { .ptr-mr { grid-template-columns: 40px 1fr 58px; gap: 6px; } .ptr .kpis { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; } .ptr .kpis .kpi { min-width: 0; } .ptr .kpis .kpi b { font-size: 20px; } }
+.ptr-t th:first-child, .ptr-t td:first-child { min-width: 132px; position: sticky; left: 0; z-index: 1; background: var(--card); }
+.ptr-t .pnl-sub td:first-child { background: var(--primary-soft); }
+@media (max-width: 560px) { .ptr-t th:first-child, .ptr-t td:first-child { min-width: 118px; font-size: 13px; } }

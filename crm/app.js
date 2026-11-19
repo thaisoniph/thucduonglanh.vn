@@ -5852,6 +5852,124 @@
     var D = nsvData(nsvN()), c = { ok: 0, mid: 0, bad: 0 }; D.sales.concat(D.sup).forEach(function (p) { if (c[p.lv] !== undefined) c[p.lv]++; });
     return '🟢 ' + c.ok + (D.hasBo ? ' lãi thật' : ' đem lại lợi nhuận') + ' · 🟡 ' + c.mid + ' đủ nuôi mình · 🔴 ' + c.bad + ' chưa đủ lương';
   }
+  /* ---------- 📊 Bức tranh lãi lỗ nhiều tháng / quý (19/11/2026, anh Sơn: "nhìn thấy bức tranh các tháng, các mốc thời gian… biểu đồ theo tháng, theo quý… để đánh giá chính xác rồi ra quyết định điều chỉnh").
+   * Nguồn: số kế toán đã tải (opex_cfg[tháng].kt: dt, cogs, cost, profit, groups, cash, payable) = số chính. Tháng đang chạy: lấy "Dự kiến cả tháng" của khung 💵 (dashDaily.fc, CRM tạm tính) vẽ nét đứt.
+   * Nhóm chi phí theo tên (PTR_CAT). Hoà vốn = chi phí cố định TB 3 tháng gần nhất ÷ (1 − chi phí biến đổi ÷ doanh thu); biến đổi = giá vốn, quảng cáo, hỗ trợ MKT, sàn, vận chuyển. Chọn Theo tháng / Theo quý: store pnl_by. */
+  var PTR_CAT = [['ads', '📣 Quảng cáo', /quảng cáo/i], ['mkt', '🤝 Hỗ trợ MKT', /hỗ trợ mkt|marketing/i], ['staff', '👥 Nhân sự <small>(lương, BHXH)</small>', /nhân viên|lương|bhxh|bảo hiểm/i], ['rent', '🏢 Thuê văn phòng', /thuê|mặt bằng/i], ['san', '🛒 Phí sàn TMĐT', /sàn/i], ['ship', '🚚 Vận chuyển', /vận chuyển|giao hàng|\bship/i], ['other', '🧾 Khác <small>(điện, ngân hàng, khấu hao…)</small>', null]];
+  var PTR_SEG = [['cogs', 'Giá vốn', '#9aa5b1', ['cogs']], ['ads', 'Quảng cáo + MKT', '#e8913a', ['ads', 'mkt']], ['staff', 'Nhân sự', '#4a7fc1', ['staff']], ['sell', 'Sàn + vận chuyển', '#b07cc6', ['san', 'ship']], ['fix', 'Văn phòng & khác', '#c9a227', ['rent', 'other']]];
+  function ptrMonth(m) {
+    var K = ktClosed(m); if (!K || !(K.cogs > 0)) return null;
+    var c = { ads: 0, mkt: 0, staff: 0, rent: 0, san: 0, ship: 0, other: 0 }, gs = 0;
+    (K.groups || []).forEach(function (g) { var k = 'other'; PTR_CAT.some(function (x) { if (x[2] && x[2].test(g[0])) { k = x[0]; return true; } }); c[k] += g[1] || 0; gs += g[1] || 0; });
+    var cost = K.cost != null ? K.cost : gs; if (Math.abs(cost - gs) > 1000) c.other += cost - gs;
+    return { m: m, n: 1, dt: K.dt, sale: K.sale || 0, shopee: K.shopee || 0, cogs: K.cogs, cost: cost, c: c, pr: K.profit, cash: K.cash, payable: K.payable };
+  }
+  function ptrData() {
+    var cur = monthOf(Date.now()), M = []; for (var i = 12; i >= 1; i--) { var r = ptrMonth(shiftMonth(cur, -i)); if (r) M.push(r); }
+    var F = dashDaily.fc && dashDaily.fc.m === cur ? dashDaily.fc : null;
+    return { M: M, F: F };
+  }
+  function ptrQ(m) { return Math.floor((+m.slice(5, 7) - 1) / 3) + 1; }
+  function ptrGroup(M, by) {
+    if (by !== 'q') return M.map(function (r) { return Object.assign({ l: 'T' + (+r.m.slice(5, 7)), ll: monthLabel(r.m).replace(/^t/, 'T') }, r); });
+    var o = [], idx = {};
+    M.forEach(function (r) {
+      var k = r.m.slice(0, 4) + '-Q' + ptrQ(r.m), q = idx[k];
+      if (!q) { q = idx[k] = { m: k, l: 'Q' + ptrQ(r.m) + '/' + r.m.slice(2, 4), ll: 'Quý ' + ptrQ(r.m) + '/' + r.m.slice(0, 4), n: 0, ms: [], dt: 0, sale: 0, shopee: 0, cogs: 0, cost: 0, pr: 0, c: { ads: 0, mkt: 0, staff: 0, rent: 0, san: 0, ship: 0, other: 0 } }; o.push(q); }
+      q.n++; q.ms.push('T' + (+r.m.slice(5, 7))); ['dt', 'sale', 'shopee', 'cogs', 'cost', 'pr'].forEach(function (f) { q[f] += r[f] || 0; }); Object.keys(r.c).forEach(function (f) { q.c[f] += r.c[f]; });
+      q.cash = r.cash; q.payable = r.payable; // cuối quý = tháng cuối có số
+    });
+    o.forEach(function (q) { if (q.n < 3) q.l += ' (' + q.n + ' th)'; });
+    return o;
+  }
+  /** Cột Doanh thu (xanh) cạnh Tổng chi (giá vốn + chi phí, cam) từng kỳ; số lãi / lỗ ghi trên cặp cột. Kỳ dự kiến vẽ nét đứt. */
+  function ptrBars(P, F) {
+    var L = P.map(function (r) { return { l: r.l, dt: r.dt, sp: r.cogs + r.cost, pr: r.pr, f: false }; });
+    if (F) L.push({ l: F.l, dt: F.dt, sp: F.dt - F.pr, pr: F.pr, f: true });
+    var mx = Math.max.apply(null, L.map(function (x) { return Math.max(x.dt, x.sp); }).concat([1])), PL = 52, W = PL + Math.max(300, L.length * 100), H = 240, top = 40, bot = 26, ch = H - top - bot, gw = (W - PL) / L.length, bw = Math.min(30, gw * 0.3);
+    var y = function (v) { return top + ch - v / mx * ch; }, s = '';
+    for (var g = 0; g <= 4; g++) { var gv = mx * g / 4, gy = y(gv); s += '<line x1="' + PL + '" x2="' + W + '" y1="' + gy.toFixed(1) + '" y2="' + gy.toFixed(1) + '" stroke="#e3e8e5"' + (g ? ' stroke-dasharray="2 4"' : '') + '/>' + '<text x="' + (PL - 6) + '" y="' + (gy + 3).toFixed(1) + '" text-anchor="end" class="ptr-ax">' + (g ? moneyShort(gv) : '0') + '</text>'; }
+    L.forEach(function (x, i) {
+      var cx = PL + gw * i + gw / 2, d = x.f ? ' stroke-dasharray="4 3" fill-opacity=".35" stroke-width="1.5"' : '';
+      s += '<g><title>' + esc(x.l + (x.f ? ' (dự kiến, CRM tạm tính)' : '') + ': doanh thu ' + money(x.dt) + ' · tổng chi ' + money(x.sp) + ' · ' + (x.pr < 0 ? 'lỗ ' : 'lãi ') + money(Math.abs(x.pr))) + '</title>' +
+        '<rect x="' + (cx - bw - 2).toFixed(1) + '" y="' + y(x.dt).toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + (ch - (y(x.dt) - top)).toFixed(1) + '" rx="3" fill="#2e7d4f" stroke="#2e7d4f"' + d + '/>' +
+        '<rect x="' + (cx + 2).toFixed(1) + '" y="' + y(x.sp).toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + (ch - (y(x.sp) - top)).toFixed(1) + '" rx="3" fill="#e8913a" stroke="#e8913a"' + d + '/>' +
+        '<text x="' + cx.toFixed(1) + '" y="' + (y(Math.max(x.dt, x.sp)) - 8).toFixed(1) + '" text-anchor="middle" class="ptr-pr ' + (x.pr < 0 ? 'bad' : 'ok') + '">' + (x.pr < 0 ? 'Lỗ ' : 'Lãi ') + moneyShort(Math.abs(x.pr)) + '</text>' +
+        '<text x="' + cx.toFixed(1) + '" y="' + (H - 8) + '" text-anchor="middle" class="ptr-xl">' + esc(x.l) + (x.f ? ' ~' : '') + '</text></g>';
+    });
+    return '<div class="ptr-scroll"><svg class="ptr-svg" viewBox="0 0 ' + W + ' ' + H + '" style="min-width:' + Math.min(W, 400) + 'px;max-width:' + W + 'px" role="img" aria-label="Doanh thu, tổng chi và lãi lỗ từng kỳ">' + s + '</svg></div>' +
+      '<p class="rpm-lg"><span><i style="background:#2e7d4f"></i>Doanh thu (chưa VAT)</span><span><i style="background:#e8913a"></i>Tổng chi (giá vốn + mọi chi phí)</span>' + (F ? '<span><i class="ptr-dash"></i>~ dự kiến tháng này (CRM tạm tính)</span>' : '') + '<span>Cột cam cao hơn cột xanh = lỗ</span></p>';
+  }
+  /** "100đ doanh thu đi đâu": mỗi kỳ 1 thanh, các khúc là % doanh thu; quá vạch 100đ là lỗ. */
+  function ptrMix(P) {
+    var R = P.map(function (r) { var seg = PTR_SEG.map(function (s) { var v = s[3].reduce(function (a, k) { return a + (k === 'cogs' ? r.cogs : r.c[k]); }, 0); return v / r.dt * 100; }); return { r: r, seg: seg, tot: seg.reduce(function (a, b) { return a + b; }, 0) }; });
+    var sc = Math.max(100, Math.max.apply(null, R.map(function (x) { return x.tot; }))) * 1.02, p100 = (100 / sc * 100).toFixed(2);
+    return '<div class="ptr-mix">' + R.map(function (x) {
+      var pr = 100 - x.tot;
+      return '<div class="ptr-mr"><span class="ptr-ml">' + esc(x.r.l) + '</span><div class="ptr-mb"><i class="ptr-100" style="left:' + p100 + '%"></i>' + x.seg.map(function (v, i) { return '<i style="width:' + (v / sc * 100).toFixed(2) + '%;background:' + PTR_SEG[i][2] + '" title="' + esc(PTR_SEG[i][1] + ': ' + Math.round(v) + 'đ / 100đ doanh thu') + '">' + (v >= 7 ? Math.round(v) : '') + '</i>'; }).join('') +
+        (pr > 0 ? '<i style="width:' + (pr / sc * 100).toFixed(2) + '%" class="ptr-ok" title="Lãi">' + (pr >= 4 ? Math.round(pr) : '') + '</i>' : '') + '</div><b class="' + (pr < 0 ? 'bad' : 'ok') + '">' + (pr < 0 ? 'lỗ ' : 'lãi ') + oneDec(Math.abs(pr)) + 'đ</b></div>';
+    }).join('') + '</div><p class="rpm-lg">' + PTR_SEG.map(function (s) { return '<span><i style="background:' + s[2] + '"></i>' + s[1] + '</span>'; }).join('') + '<span><i class="ptr-ok"></i>Lãi</span><span><i class="ptr-100l"></i>Vạch 100đ: vượt qua là lỗ</span></p>';
+  }
+  /** Bảng lãi lỗ: mỗi cột 1 kỳ, mỗi dòng 1 khoản; chi phí có % doanh thu, ▲ đỏ khi tỷ lệ tăng ≥ 2 điểm so với kỳ trước. */
+  function ptrTable(P) {
+    var many = P.length > 1, S = many ? P.reduce(function (a, r) { ['dt', 'sale', 'shopee', 'cogs', 'cost', 'pr'].forEach(function (f) { a[f] += r[f] || 0; }); Object.keys(r.c).forEach(function (f) { a.c[f] += r.c[f]; }); return a; }, { dt: 0, sale: 0, shopee: 0, cogs: 0, cost: 0, pr: 0, c: { ads: 0, mkt: 0, staff: 0, rent: 0, san: 0, ship: 0, other: 0 } }) : null;
+    var ms = function (v) { return (v < 0 ? '−' : '') + moneyShort(Math.abs(v)); }, pc = function (v, dt) { return dt ? Math.round(v * 1000 / dt) / 10 : 0; };
+    var cells = function (get, o) {
+      o = o || {}; return P.map(function (r, i) {
+        var v = get(r), p = pc(v, r.dt), pv = i ? pc(get(P[i - 1]), P[i - 1].dt) : null, up = o.cost && pv !== null && p - pv >= 2, dn = o.cost && pv !== null && pv - p >= 2;
+        return '<td class="' + (o.pr ? v < 0 ? 'bad' : 'ok' : '') + '">' + (!v ? '–' : (o.cost ? '−' : '') + ms(v)) + (o.pct ? '<small class="ptr-pc' + (up ? ' bad' : dn ? ' ok' : '') + '">' + (up ? '▲ ' : dn ? '▼ ' : '') + String(p).replace('.', ',') + '%</small>' : '') + '</td>';
+      }).join('') + (many ? '<td class="ptr-sum' + (o.pr ? get(S) < 0 ? ' bad' : ' ok' : '') + '">' + (o.cost ? '−' : '') + ms(get(S)) + (o.pct ? '<small class="ptr-pc">' + String(pc(get(S), S.dt)).replace('.', ',') + '%</small>' : '') + '</td>' : '');
+    };
+    var row = function (cls, l, get, o) { return '<tr class="' + cls + '"><td>' + l + '</td>' + cells(get, o) + '</tr>'; };
+    var bal = function (l, f) { return P.some(function (r) { return r[f] != null; }) ? '<tr class="ptr-bal"><td>' + l + '</td>' + P.map(function (r) { return '<td>' + (r[f] != null ? ms(r[f]) : '–') + '</td>'; }).join('') + (many ? '<td class="ptr-sum">' + (P[P.length - 1][f] != null ? ms(P[P.length - 1][f]) : '–') + '</td>' : '') + '</tr>' : ''; };
+    return '<div class="bcdt-wrap pnl-wrap"><table class="pnl-t ptr-t"><thead><tr><th>Khoản</th>' + P.map(function (r) { return '<th>' + esc(r.l) + (r.ms ? '<br><small>' + r.ms.join(', ') + '</small>' : '') + '</th>'; }).join('') + (many ? '<th>Cộng ' + P.length + ' ' + (P[0].ms ? 'quý' : 'tháng') + '</th>' : '') + '</tr></thead><tbody>' +
+      row('', '💰 Doanh thu <small>(chưa VAT, kế toán)</small>', function (r) { return r.dt; }) +
+      row('pnl-x', 'Văn phòng (sale, web)', function (r) { return r.sale; }, { pct: 1 }) + row('pnl-x', 'Shopee', function (r) { return r.shopee; }, { pct: 1 }) +
+      row('pnl-x', '📦 Giá vốn', function (r) { return r.cogs; }, { cost: 1, pct: 1 }) +
+      row('pnl-sub', '📈 Lãi gộp', function (r) { return r.dt - r.cogs; }, { pct: 1 }) +
+      PTR_CAT.map(function (x) { return row('pnl-x', x[1], function (r) { return r.c[x[0]]; }, { cost: 1, pct: 1 }); }).join('') +
+      row('pnl-end', '= Lãi / lỗ ròng', function (r) { return r.pr; }, { pr: 1, pct: 1 }) +
+      bal('🏦 Tiền ngân hàng cuối kỳ', 'cash') + bal('🧾 Còn nợ nhà cung cấp', 'payable') + '</tbody></table></div>' +
+      '<p class="small muted">Số nhỏ = % doanh thu. <span class="bad">▲ đỏ</span>: khoản đó ăn vào doanh thu nhiều hơn kỳ trước từ 2 điểm % trở lên · <span class="ok">▼ xanh</span>: giảm từ 2 điểm. Cột Cộng: tiền ngân hàng, nợ lấy số cuối cùng.</p>';
+  }
+  /** Gợi ý quyết định tự rút từ số liệu (xu hướng, đòn bẩy lớn nhất, hoà vốn, dòng tiền). */
+  function ptrSay(M) {
+    var out = [], last = M[M.length - 1], prev = M[M.length - 2], ML = function (r) { return 'T' + (+r.m.slice(5, 7)); }, ms = moneyShort, rt = function (r, k) { return (k === 'ads' ? r.c.ads + r.c.mkt : r.c[k]) / r.dt; };
+    if (M.length >= 2) {
+      var up = 0, dn = 0; for (var i = M.length - 1; i > 0 && M[i].pr >= M[i - 1].pr; i--) up++; for (i = M.length - 1; i > 0 && M[i].pr < M[i - 1].pr; i--) dn++;
+      out.push((up >= 2 ? '📈 <b>Đang tốt dần ' + up + ' tháng liền</b>: ' : dn >= 2 ? '📉 <b>Đang xấu dần ' + dn + ' tháng liền</b>: ' : up ? '📈 <b>Tháng gần nhất tốt lên</b>: ' : '📉 <b>Tháng gần nhất kém đi</b>: ') + M.map(function (r) { return ML(r) + ' ' + (r.pr < 0 ? '−' : '+') + ms(Math.abs(r.pr)); }).join(' → ') + '. ' + ML(last) + ' ' + (last.pr >= prev.pr ? 'tốt hơn' : 'kém hơn') + ' ' + ML(prev) + ' <b>' + ms(Math.abs(last.pr - prev.pr)) + '</b>.');
+    }
+    // đòn bẩy: quảng cáo + MKT so với tháng tốt nhất
+    var best = M.reduce(function (a, r) { return !a || rt(r, 'ads') < rt(a, 'ads') ? r : a; }, null);
+    if (best && best !== last && rt(last, 'ads') - rt(best, 'ads') > 0.01) out.push('📣 Quảng cáo + MKT ' + ML(last) + ' chiếm <b>' + Math.round(rt(last, 'ads') * 100) + 'đ / 100đ doanh thu</b>; ' + ML(best) + ' chỉ ' + Math.round(rt(best, 'ads') * 100) + 'đ. Đưa về mức ' + ML(best) + ' (giữ doanh thu) là <b>lãi thêm khoảng ' + ms((rt(last, 'ads') - rt(best, 'ads')) * last.dt) + ' / tháng</b>.');
+    else if (best) out.push('📣 Quảng cáo + MKT ' + ML(last) + ' chiếm ' + Math.round(rt(last, 'ads') * 100) + 'đ / 100đ doanh thu, thấp nhất ' + M.length + ' tháng: giữ mức này, tìm cách tăng doanh thu trên cùng tiền quảng cáo.');
+    // khoản tăng mạnh nhất so với tháng trước
+    if (prev) { var w = null; PTR_CAT.forEach(function (x) { var d = rt(last, x[0] === 'ads' ? 'ads' : x[0]) - rt(prev, x[0] === 'ads' ? 'ads' : x[0]); if (x[0] !== 'mkt' && (!w || d > w.d)) w = { l: x[0] === 'ads' ? 'quảng cáo + hỗ trợ MKT' : x[1].replace(/<[^>]+>/g, '').replace(/^\S+\s/, '').trim(), d: d }; }); if (w && w.d >= 0.015) out.push('🔍 Khoản tăng mạnh nhất ' + ML(prev) + ' → ' + ML(last) + ': <b>' + w.l.toLowerCase() + '</b> (+' + oneDec(w.d * 100) + ' điểm % doanh thu). Xem lại khoản này trước.'); }
+    // hoà vốn (TB 3 tháng gần nhất)
+    var Z = M.slice(-3), s = Z.reduce(function (a, r) { a.dt += r.dt; a.v += r.cogs + r.c.ads + r.c.mkt + r.c.san + r.c.ship; a.f += r.c.staff + r.c.rent + r.c.other; return a; }, { dt: 0, v: 0, f: 0 }), vr = s.v / s.dt, fx = s.f / Z.length, be = vr < 1 ? fx / (1 - vr) : null;
+    if (be) out.push('⚖️ <b>Hoà vốn cần doanh thu khoảng ' + ms(be) + ' / tháng</b> (chưa VAT). ' + Z.length + ' tháng gần nhất TB ' + ms(s.dt / Z.length) + (s.dt / Z.length < be ? ', còn thiếu <b>' + ms(be - s.dt / Z.length) + '</b>' : ', đã vượt 🎉') + '. Cứ 100đ bán thêm còn lại ' + Math.round((1 - vr) * 100) + 'đ để trả lương, thuê nhà (chi phí cố định TB ' + ms(fx) + ' / tháng).');
+    if (last.cash != null && last.payable != null && last.payable > last.cash * 2) out.push('🏦 Cuối ' + ML(last) + ' tiền ngân hàng ' + ms(last.cash) + ' nhưng còn nợ nhà cung cấp ' + ms(last.payable) + ' (gấp ' + Math.round(last.payable / Math.max(1, last.cash)) + ' lần): lỗ kéo dài sẽ thiếu tiền chi lương, quảng cáo. Cần kế hoạch trả nợ + ngưỡng chi quảng cáo.');
+    return out;
+  }
+  function pnlTrend() {
+    var D = ptrData(), M = D.M, by = store('pnl_by') === 'q' ? 'q' : 'm';
+    if (!M.length) return { line: '', html: '<div class="box ptr"><h3>📊 Bức tranh nhiều tháng</h3><p class="notice small" style="margin:0">Chưa có tháng nào có số kế toán: bấm <b>📎 Tải file kế toán</b> bên dưới. Có từ 2 tháng trở lên là thấy biểu đồ so sánh.</p></div>' };
+    var P = ptrGroup(M, by), last = M[M.length - 1], tot = M.reduce(function (a, r) { return a + r.pr; }, 0), dts = M.reduce(function (a, r) { return a + r.dt; }, 0), prev = M[M.length - 2], cur = monthOf(Date.now());
+    var F = by === 'm' && D.F ? { l: 'T' + (+cur.slice(5, 7)), dt: D.F.dt, pr: D.F.pr } : null, say = ptrSay(M), ML = function (r) { return 'T' + (+r.m.slice(5, 7)); };
+    var chips = '<div class="per-q" role="group" aria-label="Xem theo"><button class="chip' + (by === 'm' ? ' on' : '') + '" data-dash="pnlby" data-by="m">📅 Theo tháng</button><button class="chip' + (by === 'q' ? ' on' : '') + '" data-dash="pnlby" data-by="q">🗓 Theo quý</button></div>';
+    var h = '<div class="box ptr"><div class="dpl-h"><h3>📊 Bức tranh ' + M.length + ' tháng <small>(' + ML(M[0]) + ' → ' + ML(last) + '/' + last.m.slice(0, 4) + ', số kế toán)</small></h3>' + chips + '</div>' +
+      '<div class="kpis">' + kpi(tot < 0 ? '🔴 Cộng dồn lỗ' : '🟢 Cộng dồn lãi', moneyShort(Math.abs(tot)), tot < 0 ? 'bad' : 'good', '', M.length + ' tháng · ' + (tot < 0 ? 'lỗ ' : 'lãi ') + oneDec(Math.abs(tot) * 100 / dts) + '% doanh thu') +
+        kpi('Tháng gần nhất (' + ML(last) + ')', (last.pr < 0 ? 'Lỗ ' : 'Lãi ') + moneyShort(Math.abs(last.pr)), last.pr < 0 ? 'bad' : 'good', '', prev ? (last.pr >= prev.pr ? '▲ tốt hơn ' : '▼ kém hơn ') + ML(prev) + ' ' + moneyShort(Math.abs(last.pr - prev.pr)) : '') +
+        kpi('💰 Doanh thu TB / tháng', moneyShort(dts / M.length), '', '', prev ? ML(last) + ' ' + moneyShort(last.dt) + ' (' + (last.dt >= prev.dt ? '▲ ' : '▼ ') + Math.abs(Math.round((last.dt - prev.dt) * 100 / prev.dt)) + '% so ' + ML(prev) + ')' : 'chưa VAT') +
+        (D.F ? kpi('⏳ Dự kiến ' + 'T' + (+cur.slice(5, 7)), (D.F.pr < 0 ? 'Lỗ ' : 'Lãi ') + moneyShort(Math.abs(D.F.pr)), D.F.pr < 0 ? 'bad' : 'good', '', 'CRM tạm tính nếu giữ nhịp hiện nay · số chính chờ kế toán') : last.cash != null ? kpi('🏦 Tiền NH cuối ' + ML(last), moneyShort(last.cash), '', '', last.payable != null ? 'còn nợ nhà cung cấp ' + moneyShort(last.payable) : '') : '') + '</div>';
+    if (say.length) h += '<div class="ptr-say"><b>🧭 Đọc nhanh để ra quyết định</b><ul>' + say.map(function (x) { return '<li>' + x + '</li>'; }).join('') + '</ul></div>';
+    h += '<h3 class="rpm-h">Doanh thu – tổng chi – lãi / lỗ ' + (by === 'q' ? 'từng quý' : 'từng tháng') + '</h3>' + ptrBars(P, F);
+    h += '<h3 class="rpm-h">100đ doanh thu đi đâu? <small>(để biết cắt khoản nào)</small></h3>' + ptrMix(P);
+    h += '<h3 class="rpm-h">Bảng lãi lỗ ' + (by === 'q' ? 'từng quý' : 'từng tháng') + '</h3>' + ptrTable(P);
+    h += '<p class="small muted">Số tháng đã chốt lấy từ file kế toán (số chính). Muốn thêm tháng cũ: bấm 📎 Tải file kế toán, file có bảng chi phí 12 tháng thì CRM đọc được cả năm. Doanh số + KPI từng sale xem ở mục 📅 Báo cáo 3 · 6 · 12 tháng.</p></div>';
+    var line = M.length >= 2 ? M.length + ' tháng: ' + M.map(function (r) { return ML(r) + ' ' + (r.pr < 0 ? '−' : '+') + moneyShort(Math.abs(r.pr)); }).join(' → ') : '';
+    return { line: line, html: h };
+  }
   function dashPnl(T, b, bp, M, sj, R, P, month) {
     var ML = monthLabel(month), btn = '<button class="btn sm pri" data-dash="opex" data-m="' + month + '">✏️ Nhập chi phí ' + ML + '</button><button class="btn sm" data-dash="kt">📎 Tải file kế toán</button><button class="btn sm" data-dash="pay">👥 Tải bảng lương</button>';
     if (!costCfg()) return { line: '⚠️ Chưa nhập giá vốn', body: '<div class="box"><p class="notice" style="margin:0">Cần giá vốn sản phẩm để tính lãi: vào <b>Cài đặt → 💰 Giá vốn sản phẩm</b>.</p></div>' };
@@ -5885,10 +6003,11 @@
         (ox.part ? '<p class="small muted">Chọn <b>' + (month === monthOf(Date.now()) ? 'Tháng này' : 'Tháng trước') + '</b> (trọn tháng) để xem bảng so số CRM với kế toán.</p>' : '<div class="bcdt-wrap pnl-wrap">' + ktCompare(K, T, G, M ? ads : null, ox, net, ML.replace(/^t/, 'T')) + '</div>') +
         '<p class="small muted">File: ' + esc(K.file || '') + (K.by ? ' · ' + esc(K.by) + ' tải ' + when(K.at) : '') + '</p></div>';
     }
+    var TR = pnlTrend();
     var KC = !ox.part ? ktClosed(month) : null; // trọn tháng đã có file kế toán: số kế toán là số chính (20/11/2026)
     if (KC) say = (KC.profit < 0 ? '🔴 <b>Kế toán chốt ' + ML + ': lỗ ' : '🟢 <b>Kế toán chốt ' + ML + ': lãi ') + moneyShort(Math.abs(KC.profit)) + '</b> (số chính). CRM tạm tính ' + (net < 0 ? 'lỗ ' : 'lãi ') + moneyShort(Math.abs(net)) + ', lệch ' + (net - KC.profit < 0 ? '−' : '+') + moneyShort(Math.abs(net - KC.profit)) + ': xem bảng so bên dưới.';
     return { line: KC ? '📑 Kế toán chốt: ' + (KC.profit < 0 ? '🔴 lỗ ' : '🟢 lãi ') + moneyShort(Math.abs(KC.profit)) + ' · CRM tạm tính ' + (net < 0 ? 'lỗ ' : 'lãi ') + moneyShort(Math.abs(net)) : ox.has ? (net < 0 ? '🔴 Lỗ ' : '🟢 Lãi ') + moneyShort(Math.abs(net)) + ' sau mọi chi phí' + (T.net ? ' · ' + Math.round(net * 100 / T.net) + '% doanh số' : '') : '⚠️ Chưa nhập chi phí văn phòng ' + ML,
-      body: '<div class="box"><p class="pnl-say' + (ox.has ? net < 0 ? ' bad' : ' ok' : '') + '">' + say + '</p><div class="steps">' + btn + '</div>' + t + ks + payBlock(month, T, b, M, ox, ML) +
+      trend: TR.line, body: TR.html + '<h3 class="rpm-h ptr-one">🔎 Chi tiết từng khoản ' + ML + ' <small>(đổi kỳ: chọn Hôm nay / Tháng này / Tháng trước… ở đầu trang Tổng quan)</small></h3><div class="box"><p class="pnl-say' + (ox.has ? net < 0 ? ' bad' : ' ok' : '') + '">' + say + '</p><div class="steps">' + btn + '</div>' + t + ks + payBlock(month, T, b, M, ox, ML) +
         '<ul class="small muted pnl-notes">' + notes.map(function (x) { return '<li>' + x + '</li>'; }).join('') + '</ul>' + (hist ? '<p class="small" style="margin:10px 0 4px"><b>Chi phí văn phòng đã nhập</b> (bấm để sửa):</p><div class="steps">' + hist + '</div>' : '') + '</div>' };
   }
   /* ---------- 💵 Lãi lỗ từng ngày (05/11/2026, anh Sơn + anh Hiếu): mở Tổng quan là thấy ngay hôm nay lãi / lỗ bao nhiêu, từ đầu tháng tới giờ, dự kiến cả tháng, bán bao nhiêu 1 ngày thì hoà vốn.
@@ -5939,6 +6058,7 @@
   }
   /** Khung 💵 đầu Tổng quan (chỉ Quản trị, kỳ ≤ 45 ngày): 3 số lớn + cột lãi / lỗ từng ngày + mức hoà vốn; bảng từng ngày thu gọn. */
   function dashDaily(R, b, M, sj, p, month) {
+    dashDaily.fc = null;
     if ((lvl() < 3 && !isKt()) || !costCfg()) return '';
     var ms = function (v) { return moneyShort(Math.round(v)); };
     var X = dashDays(R, b, M, sj); if (!X) return '';
@@ -5955,6 +6075,7 @@
     if (p.k === 'month' && full.length >= 3) {
       var MR = monthRange(month), dim = Math.round((MR[1] - MR[0]) / DAY), fc = Math.round(fCm + fCm / full.length * (dim - full.length) - fx1 * dim);
       C.push(['Dự kiến cả ' + ML, fc, 'Nếu giữ nhịp ' + full.length + ' ngày qua (bán ' + ms(fRev / full.length) + ' / ngày)']);
+      var fdt = fRev / full.length * dim; dashDaily.fc = { m: month, pr: fc, dt: Math.round(fdt - plVat(fdt)) }; // cho 📊 bức tranh nhiều tháng (dự kiến tháng đang chạy)
     }
     var up = 0, dn = 0; D.forEach(function (d) { if (d.net > up) up = d.net; if (-d.net > dn) dn = -d.net; }); var span = up + dn || 1;
     var bars = D.length < 2 ? '' : '<div class="dpl-bars" style="--up:' + (up / span * 100).toFixed(1) + '%">' + D.map(function (d) {
@@ -6503,7 +6624,7 @@
     var X = {};
     var DL = dashDaily(perRange(f.p), b, M, sj, f.p, month); if (DL) X.daily = dashMore('daily', '💵 Lãi lỗ thật từng ngày', dashDaily.line || 'Lãi / lỗ sau mọi chi phí', DL);
     dashFin.line = ''; var FI = dashFin(); if (FI) X.fin = dashMore('fin', '🏦 Tiền & công nợ', dashFin.line || '🔌 Chưa nối file kế toán: bấm để nối', FI);
-    if (lvl() >= 3) { var PL = dashPnl(T, b, bp, M, sj, R, P, month); X.pnl = dashMore('pnl', '🧮 Lãi lỗ cả tháng (sau mọi chi phí)', PL.line, PL.body); }
+    if (lvl() >= 3) { var PL = dashPnl(T, b, bp, M, sj, R, P, month); X.pnl = dashMore('pnl', '🧮 Lãi lỗ theo tháng, quý (sau mọi chi phí)', (PL.trend ? PL.trend + ' · ' : '') + PL.line, PL.body); }
     if (lvl() >= 3) { var CO = dashCost(); if (CO) X.cost = dashMore('cost', '📊 Chi phí lớn & cách tối ưu', CO.line, CO.body); }
     if (lvl() >= 3) X.rpm = dashMore('rpm', '📅 Báo cáo 3 · 6 · 12 tháng & 🎯 KPI sale', rpmLine(), rpmHtml());
     var drv = dashDrivers(b, bp);
@@ -13630,6 +13751,7 @@
         if (a === 'mkt') { openMkt(); return; }
         if (a === 'opex') { opexEdit(el.getAttribute('data-m')); return; }
         if (a === 'nsvn') { store('nsv_n', el.getAttribute('data-n')); S.f.g.open.nsv = 1; render(); return; }
+        if (a === 'pnlby') { store('pnl_by', el.getAttribute('data-by')); S.f.g.open.pnl = 1; render(); return; }
         if (a === 'rpmn') { store('rpm_n', el.getAttribute('data-n')); S.f.g.open.rpm = 1; render(); return; }
         if (a === 'kt') { ktUpload(); return; }
         if (a === 'pay') { payUpload(); return; }
