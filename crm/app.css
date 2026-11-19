@@ -3902,3 +3902,6 @@ details.top-fold.tf-focus .tf-all { display: block; }
 .dty-mine { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; background: var(--blue-light); border-radius: 12px; padding: 10px 12px; margin-top: 10px; }
 .dty-mine p { margin: 0; }
 @media (max-width: 560px) { .dty-tb th { width: 78px; font-size: .88rem; } .dty-c { padding: 4px 10px; font-size: .85rem; } }
+.dty-sel { font: inherit; font-size: .9rem; padding: 5px 8px; border: 1px solid var(--line); border-radius: 8px; max-width: 100%; background: #fff; }
+.dty-dp { margin-top: 6px; font-size: .85rem; color: var(--muted); }
+.dty-dp .dty-sel { font-size: .85rem; padding: 3px 6px; }

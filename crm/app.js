@@ -14421,6 +14421,9 @@
   function dutyShort(n, all) { var w = n.trim().split(/\s+/), l = w[w.length - 1]; return all.filter(function (m) { return m !== n && m.trim().split(/\s+/).pop() === l; }).length ? w.slice(-2).join(' ') : l; }
   function dKey(t) { var d = new Date(t + 7 * 3600e3); return d.toISOString().slice(0, 10); }
   function dutyWeekOf(d, dow) { var w = d.week || {}; return Array.isArray(w[dow]) ? w[dow] : (d.names || []); }
+  function dutyDp(d, k, dow) { return (d.dayOv || {})[k] || (d.day || {})[dow] || d.boss || ''; }
+  function dutyDpList() { return (S.d.users || []).filter(function (u) { return u.active !== false && u.role !== 'Kho' && u.role !== 'Kế toán'; }).map(function (u) { return u.name; }); }
+  function dutyDpSel(attr, val, ph, ed) { return '<select class="dty-sel" ' + attr + (ed ? '' : ' disabled') + '><option value="">' + esc(ph) + '</option>' + dutyDpList().map(function (n) { return '<option' + (n === val ? ' selected' : '') + '>' + esc(n) + '</option>'; }).join('') + '</select>'; }
   function dutyOnKey(d, k, dow) { return Array.isArray((d.days || {})[k]) ? d.days[k] : dutyWeekOf(d, dow); }
   /** Các ca 28 ngày tới: tối T2–T7, cả ngày CN, cả ngày lễ. */
   function dutySlots(d, n) {
@@ -14440,14 +14443,17 @@
     var h = '<p class="hint" style="margin:0 0 10px">Từ <b>' + esc(d.evening) + '</b> tối thứ 2 – thứ 7, cả ngày <b>Chủ nhật</b> và <b>ngày lễ</b>: người trực nhặt số khách nhắn page vào file, CRM <b>chỉ chia số ca đó cho người trực</b> (2 người thì chia lần lượt). Ca để trống thì CRM chia cho mọi người như ban ngày. Khách cũ vẫn về sale cũ. Người trực được Telegram nhắc lúc vào ca.</p>';
     h += '<div class="dty-sec"><h3>👤 Người phụ trách chia số</h3><p class="small muted" style="margin:0 0 6px">Người này xếp lịch trực bên dưới, nhặt số ban ngày vào file, được Telegram nhắc khi tuần sau còn ca trống (thứ 6, 9h) và khi tối nay chưa ai trực.</p>' +
       (d.canBoss ? '<select id="dtyBoss"><option value="">– Chưa giao (sale cùng trực page, tự nhặt số như hiện nay) –</option>' + users.map(function (u) { return '<option' + (u.name === d.boss ? ' selected' : '') + '>' + esc(u.name) + '</option>'; }).join('') + '</select>' : '<p><b>' + esc(d.boss || 'Chưa giao') + '</b></p>') + '</div>';
-    h += '<div class="dty-sec"><h3>🔁 Lịch cố định mỗi tuần</h3><p class="small muted" style="margin:0 0 6px">Xếp 1 lần, các tuần sau tự lặp lại. Tuần nào khác thì sửa riêng ngày đó ở phần 📅 bên dưới.</p><table class="dty-tb">' +
+    h += '<div class="dty-sec"><h3>☀️ Ban ngày: ai nhặt số (thứ 2 – thứ 7, 8h – ' + esc(d.evening) + ')</h3><p class="small muted" style="margin:0 0 6px">Người này được Telegram nhắc lúc 8h, và nhận cảnh báo khi Facebook có tin nhắn quảng cáo mà 2 tiếng file chưa có số mới. Để trống = người phụ trách chia số.</p><table class="dty-tb">' +
+      [1, 2, 3, 4, 5, 6].map(function (w) { return '<tr><th>' + DOW_VN[w] + '<small>ban ngày</small></th><td>' + dutyDpSel('data-dtdw="' + w + '"', (d.day || {})[w] || '', d.boss ? '– ' + d.boss + ' (phụ trách) –' : '– chưa giao –', ed) + '</td></tr>'; }).join('') + '</table></div>';
+    h += '<div class="dty-sec"><h3>🌙 Tối / Chủ nhật: lịch cố định mỗi tuần</h3><p class="small muted" style="margin:0 0 6px">Xếp 1 lần, các tuần sau tự lặp lại. Tuần nào khác thì sửa riêng ngày đó ở phần 📅 bên dưới.</p><table class="dty-tb">' +
       [1, 2, 3, 4, 5, 6, 0].map(function (w) { var on = dutyWeekOf(d, w); return '<tr><th>' + DOW_VN[w] + '<small>' + (w === 0 ? 'cả ngày' : 'tối') + '</small></th><td>' + dutyChips(list, on, 'data-dtw="' + w + '"', ed, list) + (on.length ? '' : '<span class="dty-empty">trống</span>') + '</td></tr>'; }).join('') + '</table></div>';
     h += '<div class="dty-sec"><h3>📅 4 tuần tới</h3><p class="small muted" style="margin:0 0 6px">Đi theo lịch tuần ở trên. Bấm tên để đổi riêng 1 ngày (ví dụ đổi ca, nghỉ phép); ngày đã đổi có nhãn ✏️, bấm ↺ để về lịch tuần.</p>';
     var wk = -1; slots.forEach(function (s, i) {
       var wn = Math.floor((i + (new Date(slots[0].t + 7 * 3600e3).getUTCDay() + 6) % 7) / 7);
       if (wn !== wk) { if (wk >= 0) h += '</table>'; wk = wn; var end = slots.filter(function (x, j) { return Math.floor((j + (new Date(slots[0].t + 7 * 3600e3).getUTCDay() + 6) % 7) / 7) === wn; }); h += '<p class="dty-wk">' + (wn === 0 ? 'Tuần này' : wn === 1 ? 'Tuần sau' : 'Tuần ' + end[0].dm + ' – ' + end[end.length - 1].dm) + '</p><table class="dty-tb">'; }
       h += '<tr' + (s.k === d.today ? ' class="dty-today"' : '') + '><th>' + (s.dow === 0 ? 'CN' : 'T' + (s.dow + 1)) + ' ' + s.dm + '<small>' + (s.hol ? '🎉 lễ, cả ngày' : s.all ? 'cả ngày' : 'tối') + (s.k === d.today ? ' · hôm nay' : '') + '</small></th><td>' + dutyChips(list, s.who, 'data-dtd="' + s.k + '" data-dow="' + s.dow + '"', ed, list) +
-        (s.who.length ? '' : '<span class="dty-empty">⚠️ trống → chia mọi người</span>') + (s.own ? '<span class="dty-own">✏️ đổi riêng' + (ed ? ' <button type="button" class="lnk" data-dtr="' + s.k + '" title="Về lịch tuần">↺</button>' : '') + '</span>' : '') + '</td></tr>';
+        (s.who.length ? '' : '<span class="dty-empty">⚠️ trống → chia mọi người</span>') + (s.own ? '<span class="dty-own">✏️ đổi riêng' + (ed ? ' <button type="button" class="lnk" data-dtr="' + s.k + '" title="Về lịch tuần">↺</button>' : '') + '</span>' : '') +
+        (s.all ? '' : '<div class="dty-dp">☀️ Ban ngày nhặt số: ' + dutyDpSel('data-dtdd="' + s.k + '"', (d.dayOv || {})[s.k] || '', '– theo lịch: ' + (((d.day || {})[s.dow] || d.boss) || 'chưa giao') + ' –', ed) + '</div>') + '</td></tr>';
     });
     h += '</table></div>';
     h += '<div class="dty-sec"><h3>⚖️ Số ca mỗi người (4 tuần)</h3><p class="small">' + list.map(function (n) { return '<b>' + esc(dutyShort(n, list)) + '</b> ' + (cnt[n] || 0) + ' ca'; }).join(' · ') + '</p>' + (d.by ? '<p class="small muted">Sửa lần cuối: ' + esc(d.by) + ', ' + when(d.at) + '</p>' : '') + '</div>';
@@ -14467,9 +14473,15 @@
           if (l.length === wl.length && l.every(function (x) { return wl.indexOf(x) >= 0; })) delete d.days[k]; else d.days[k] = l; }
         redraw();
       });
+      m.addEventListener('change', function (e) {
+        var t = e.target, d = S.dty; if (!d.canEdit) return;
+        if (t.hasAttribute('data-dtdw')) { d.day = d.day || {}; if (t.value) d.day[t.getAttribute('data-dtdw')] = t.value; else delete d.day[t.getAttribute('data-dtdw')]; redraw(); }
+        else if (t.hasAttribute('data-dtdd')) { d.dayOv = d.dayOv || {}; if (t.value) d.dayOv[t.getAttribute('data-dtdd')] = t.value; else delete d.dayOv[t.getAttribute('data-dtdd')]; redraw(); }
+        else if (t.id === 'dtyBoss') { d.boss = t.value; redraw(); }
+      });
       var sv = $('#dtySave', m); if (sv) sv.onclick = function () {
         var d = S.dty, wk = {}; for (var i = 0; i < 7; i++) wk[i] = dutyWeekOf(d, i).slice();
-        var p = { week: wk, days: d.days || {} }, bs = $('#dtyBoss', m); if (bs && d.canBoss) p.boss = bs.value;
+        var p = { week: wk, days: d.days || {}, day: d.day || {}, dayOv: d.dayOv || {} }, bs = $('#dtyBoss', m); if (bs && d.canBoss) p.boss = bs.value;
         sv.disabled = true; api('ads_duty_set', p).then(function () { toast('Đã lưu lịch trực số ✓'); S.dtyDirty = 0; closeModal(); dutyLoad(function () { S.adt = null; softRender(true); }); }, function (e) { toast(e.message, true); sv.disabled = false; });
       };
     };
@@ -14482,16 +14494,18 @@
     var sl = dutySlots(d, 7), em = sl.filter(function (s) { return !s.who.length; });
     var now = d.caNow === 'Ngày' ? '☀️ Bây giờ là giờ hành chính: chia theo nhóm cho mọi người nhận số.' : '🌙 Bây giờ là ' + (d.caNow === 'Lễ' ? 'ngày lễ' : 'tối / Chủ nhật') + ': ' + (sl[0].who.length ? 'chỉ chia cho ' + esc(sl[0].who.join(', ')) + '.' : 'chưa xếp người trực nên vẫn chia cho mọi người.');
     return '<div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--line)"><h4 style="margin:0 0 6px">🗓 Lịch trực tối / Chủ nhật / ngày lễ</h4><p class="small" style="margin:0 0 6px">' + now + '</p>' +
-      '<p class="small" style="margin:0 0 8px">👤 Phụ trách chia số: <b>' + esc(d.boss || 'chưa giao') + '</b> · 7 ngày tới ' + (em.length ? '<b style="color:var(--red)">còn ' + em.length + ' ca trống</b>' : '✅ đủ người trực') + '</p>' +
+      '<p class="small" style="margin:0 0 8px">👤 Phụ trách chia số: <b>' + esc(d.boss || 'chưa giao') + '</b>' + (sl[0].all ? '' : ' · ☀️ Hôm nay ban ngày nhặt số: <b>' + esc(dutyDp(d, sl[0].k, sl[0].dow) || 'chưa giao') + '</b>') + ' · 7 ngày tới ' + (em.length ? '<b style="color:var(--red)">còn ' + em.length + ' ca trống</b>' : '✅ đủ người trực') + '</p>' +
       '<button class="btn" data-dutyopen>🗓 Mở lịch trực số</button></div>';
   }
   /** Tab Hôm nay của sale / người phụ trách: ca trực 7 ngày tới. */
   function dutyMine() {
     var d = S.dty, me = S.user.name; if (!d) { if (!S.dtyBusy && (!S.dtyTry || Date.now() - S.dtyTry > 30 * 60e3)) { S.dtyBusy = 1; S.dtyTry = Date.now(); dutyLoad(function () { S.dtyBusy = 0; if (route().view === 'hom-nay') softRender(true); }); } return ''; }
-    var mine = dutySlots(d, 7).filter(function (s) { return s.who.indexOf(me) >= 0; }), boss = d.boss === me;
-    if (!mine.length && !boss) return '';
+    var sl7 = dutySlots(d, 7), mine = sl7.filter(function (s) { return s.who.indexOf(me) >= 0; }), boss = d.boss === me;
+    var dpMine = sl7.filter(function (s) { return !s.all && dutyDp(d, s.k, s.dow) === me; }), dpToday = dpMine.length && dpMine[0].k === d.today;
+    if (!mine.length && !boss && !dpMine.length) return '';
     var lbl = function (s) { return (s.k === d.today ? '<b>' + (s.all ? 'Hôm nay' : 'Tối nay') + '</b>' : (s.dow === 0 ? 'CN ' : (s.all ? '' : 'Tối ') + 'T' + (s.dow + 1) + ' ') + s.dm); };
-    return '<section class="section dty-mine"><p>🌙 <b>Ca trực số của bạn:</b> ' + (mine.length ? mine.map(lbl).join(' · ') : 'không có trong 7 ngày tới') + (boss ? ' · 👤 bạn phụ trách chia số' : '') + '</p><button type="button" class="btn sm" data-dutyopen>🗓 Lịch trực' + (boss ? ' (xếp lịch)' : '') + '</button></section>';
+    var dl = function (s) { return s.k === d.today ? '<b>hôm nay</b>' : 'T' + (s.dow + 1) + ' ' + s.dm; };
+    return '<section class="section dty-mine"><p>' + (dpToday ? '☀️ <b>Hôm nay bạn phụ trách nhặt số ban ngày</b>: dán số vào file, để trống ô Sale.<br>' : '') + '🌙 <b>Ca trực số của bạn:</b> ' + (mine.length ? mine.map(lbl).join(' · ') : 'không có trong 7 ngày tới') + (dpMine.length && !(dpToday && dpMine.length === 1) ? ' · ☀️ ban ngày nhặt số: ' + dpMine.map(dl).join(', ') : '') + (boss ? ' · 👤 bạn phụ trách chia số' : '') + '</p><button type="button" class="btn sm" data-dutyopen>🗓 Lịch trực' + (boss ? ' (xếp lịch)' : '') + '</button></section>';
   }
   function caBox() {
     var ca = (S.d.rules && S.d.rules.ca) || {};

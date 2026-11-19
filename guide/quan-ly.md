@@ -197,7 +197,9 @@ Xếp loại: **A** từ 90 điểm, **B** 75–89, **C** 60–74, dưới 60 g�
 
 **🗓 Lịch trực số tối / Chủ nhật / ngày lễ** (từ 19/11/2026): mở ở **Thêm → 🗓 Lịch trực số quảng cáo** (hoặc nút **🗓 Mở lịch trực số** dưới bảng nhóm A/B/C).
 - **👤 Người phụ trách chia số** (Quản lý / Quản trị giao): người này xếp lịch, nhặt số ban ngày vào file, được Telegram nhắc thứ 6 lúc 9h nếu tuần sau còn ca trống và khi tối nay chưa ai trực. Để trống = như hiện nay, sale cùng trực page tự nhặt số.
-- **🔁 Lịch cố định mỗi tuần**: bấm tên sale vào từng ca (tối thứ 2 – thứ 7, cả ngày Chủ nhật). Xếp 1 lần, các tuần sau tự lặp lại. Chỉ hiện các bạn sale nhận số.
+- **☀️ Ban ngày: ai nhặt số**: chọn người nhặt số cho từng thứ (thứ 2 – thứ 7, 8h tới giờ ca tối). Để trống = người phụ trách chia số. Người này được Telegram nhắc lúc 8h. Đổi riêng 1 ngày ở dòng ☀️ trong phần 📅 4 tuần tới.
+- **⏰ Cảnh báo số về chậm** (tự động, 8h – 21h30): Facebook báo thêm từ 3 tin nhắn quảng cáo mà 2 tiếng file chưa có số mới → Telegram báo người đang phụ trách (ban ngày: người nhặt số + người phụ trách; tối / Chủ nhật: người trực) và anh Sơn, tối đa 2 tiếng 1 lần. Không phải tin nhắn nào cũng có số, nên nhận cảnh báo thì mở page xem khách nào chưa được trả lời, xin số.
+- **🌙 Tối / Chủ nhật: lịch cố định mỗi tuần**: bấm tên sale vào từng ca (tối thứ 2 – thứ 7, cả ngày Chủ nhật). Xếp 1 lần, các tuần sau tự lặp lại. Chỉ hiện các bạn sale nhận số.
 - **📅 4 tuần tới**: đi theo lịch tuần. Đổi riêng 1 ngày (đổi ca, nghỉ phép) thì bấm tên ở ngày đó, có nhãn ✏️; bấm ↺ để về lịch tuần. Ngày lễ (theo Cài đặt → 🕘 Ca tối & ngày lễ) tính cả ngày.
 - Bấm **💾 Lưu lịch**. Ca nào trống thì CRM chia cho mọi người như ban ngày. Người trực được Telegram nhắc lúc vào ca (tối: giờ ca tối; Chủ nhật / lễ: 8h). Mỗi sale thấy ca của mình ở đầu tab Hôm nay.
 

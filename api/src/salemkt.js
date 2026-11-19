@@ -3,7 +3,7 @@
 // Nhân viên chỉ nhận số của chính mình + số tổng cả nhóm (không có tên người khác). Quản lý / Quản trị nhận đủ từng người.
 import { all, allIn, kvGet, kvJson, kvSet, normPhone, nrm, isVoid, startOfDay, randHex, DAY } from './lib.js';
 import { ddOffer } from './ngaydoi.js';
-import { caCfg, caOf } from './crm.js';
+import { caCfg, caOf, crmUsers, SUPER_ADMIN } from './crm.js';
 
 const DAY_RE = /^\d{4}-\d\d-\d\d$/;
 const dayMs = s => new Date(s + 'T00:00:00+07:00').getTime();
@@ -119,7 +119,9 @@ export async function crmAdsTier(x, u, d) {
  * kv ads_duty = { week: { '0'..'6': [tên] } (lịch cố định mỗi tuần, 0 = Chủ nhật), days: { 'YYYY-MM-DD': [tên] } (sửa riêng 1 ngày, [] = không ai),
  *   boss: tên người phụ trách chia số (xếp lịch, nhặt số ban ngày, nhận nhắc), names: [] (bản đầu, chỉ còn để đọc lại) }. */
 const vnKey = t => isoVN(t), vnDow = t => new Date(t + 7 * 3600e3).getUTCDay();
-export async function dutyCfg(x) { const D = (await kvJson(x.db, 'ads_duty', null)) || {}; D.week = D.week || {}; D.days = D.days || {}; return D; }
+export async function dutyCfg(x) { const D = (await kvJson(x.db, 'ads_duty', null)) || {}; D.week = D.week || {}; D.days = D.days || {}; D.day = D.day || {}; D.dayOv = D.dayOv || {}; return D; }
+/** ☀️ Người nhặt số ban ngày của 1 ngày: đổi riêng ngày → lịch thứ trong tuần → người phụ trách. */
+export function dayPicker(D, t) { const k = vnKey(t); return (D.dayOv || {})[k] || (D.day || {})[String(vnDow(t))] || D.boss || ''; }
 /** Người trực của 1 ngày (theo ngày sửa riêng → lịch tuần → bản đầu). */
 export function dutyOn(D, t) { const k = vnKey(t); if (Array.isArray(D.days[k])) return D.days[k]; const w = D.week[String(vnDow(t))]; return Array.isArray(w) ? w : (D.names || []); }
 /** Trả { ca, pool }: pool = danh sách được chia lúc này. Ban ngày hoặc ca chưa xếp ai → pool như cũ. */
@@ -133,7 +135,7 @@ const cleanNames = a => (Array.isArray(a) ? a : []).map(n => String(n).trim()).f
 /** Lệnh 'ads_duty_get': ai cũng xem được lịch (sale thấy ca của mình), sửa: Quản lý / Quản trị / người phụ trách. */
 export async function crmAdsDutyGet(x, u) {
   const D = await dutyCfg(x), ca = await caCfg(x);
-  return { ok: true, week: D.week, days: D.days, boss: D.boss || '', names: D.names || [], at: D.at || 0, by: D.by || '', canEdit: canDuty(u, D), canBoss: u.level >= 2,
+  return { ok: true, week: D.week, days: D.days, day: D.day, dayOv: D.dayOv, boss: D.boss || '', names: D.names || [], at: D.at || 0, by: D.by || '', canEdit: canDuty(u, D), canBoss: u.level >= 2,
     evening: ca.evening || '17:30', holidays: ca.holidays || ['01/01', '30/04', '01/05', '02/09'], caNow: caOf(Date.now(), ca), today: vnKey(Date.now()) };
 }
 /** Lệnh 'ads_duty_set' { week?, days?, boss? }: lưu lịch trực. days chỉ giữ từ hôm nay trở đi. */
@@ -141,6 +143,8 @@ export async function crmAdsDutySet(x, u, d) {
   const D = await dutyCfg(x); if (!canDuty(u, D)) return { ok: false, error: 'Chỉ Quản lý, Quản trị hoặc người phụ trách chia số.' };
   if (d.week && typeof d.week === 'object') { const w = {}; for (let i = 0; i < 7; i++) w[i] = cleanNames(d.week[i]); D.week = w; delete D.names; }
   if (d.days && typeof d.days === 'object') { const today = vnKey(Date.now()), o = {}; Object.keys(d.days).filter(k => /^\d{4}-\d{2}-\d{2}$/.test(k) && k >= today).slice(0, 120).forEach(k => { o[k] = cleanNames(d.days[k]); }); D.days = o; }
+  if (d.day && typeof d.day === 'object') { const w = {}; for (let i = 1; i <= 6; i++) { const n = String(d.day[i] || '').trim().slice(0, 60); if (n) w[i] = n; } D.day = w; }
+  if (d.dayOv && typeof d.dayOv === 'object') { const today = vnKey(Date.now()), o = {}; Object.keys(d.dayOv).filter(k => /^\d{4}-\d{2}-\d{2}$/.test(k) && k >= today).slice(0, 120).forEach(k => { const n = String(d.dayOv[k] || '').trim().slice(0, 60); if (n) o[k] = n; }); D.dayOv = o; }
   if ('boss' in d) { if (u.level < 2) return { ok: false, error: 'Chỉ Quản lý, Quản trị giao người phụ trách.' }; D.boss = String(d.boss || '').trim().slice(0, 60); }
   D.at = Date.now(); D.by = u.name;
   await kvSet(x.db, 'ads_duty', JSON.stringify(D));
@@ -157,6 +161,12 @@ export async function dutyTick(x, send) {
     for (const n of who) await send(x, n, '🌙 <b>' + lbl + ' bạn trực số quảng cáo</b>\nNhặt số khách nhắn page vào file (để trống ô Sale). CRM sẽ chia số ca này cho ' + (who.length > 1 ? 'các bạn trực: ' + who.join(', ') : 'bạn') + '.\nGọi số mới ngay khi Telegram báo nhé 💚');
     if (!who.length && D.boss) await send(x, D.boss, '⚠️ <b>' + lbl + ' chưa xếp ai trực số quảng cáo</b> → CRM đang chia cho mọi người. Mở CRM → 🗓 Lịch trực số để xếp.');
   }
+  const kd = 'duty_dp_' + vnKey(now), dp = dayPicker(D, now);
+  if (!allDay && dp && hm >= 8 * 60 && hm < 8 * 60 + 30 && !(await kvGet(x.db, kd))) {
+    await kvSet(x.db, kd, '1', 2 * DAY);
+    await send(x, dp, '☀️ <b>Hôm nay bạn phụ trách nhặt số quảng cáo ban ngày</b> (8h – ' + (ca.evening || '17:30') + ')\nKhách nhắn page để lại số → dán ngày, tên, số điện thoại vào file, <b>để trống ô Sale</b>, CRM tự chia. Trả lời khách sớm, đừng để tin nhắn chờ nhé 💚');
+  }
+  try { await adsSlowCheck(x, send, D, ca, now, hm, allDay, evM); } catch (e) { console.error('adsSlow', e.message); }
   const kb = 'duty_wk_' + vnKey(now);
   if (D.boss && vn.getUTCDay() === 5 && hm >= 9 * 60 && hm < 9 * 60 + 30 && !(await kvGet(x.db, kb))) {
     await kvSet(x.db, kb, '1', 2 * DAY);
@@ -164,6 +174,29 @@ export async function dutyTick(x, send) {
     if (empty.length) await send(x, D.boss, '📅 <b>Lịch trực số 7 ngày tới còn ' + empty.length + ' ca trống</b>: ' + empty.join(', ') + '\nCa trống thì CRM chia cho mọi người. Mở CRM → 🗓 Lịch trực số để xếp.');
   }
 }
+/** ⏰ Cảnh báo số về chậm (19/11/2026): 8h – 21h30, Facebook báo thêm ≥ 3 tin nhắn quảng cáo mà file 2 tiếng không có số mới
+ *  → Telegram người đang phụ trách (ban ngày: người nhặt số; tối / CN / lễ: người trực) + anh Sơn. 2 tiếng báo tối đa 1 lần. kv ads_slow.
+ *  Tin nhắn Facebook (ad_spend.msgs) cập nhật 1 tiếng / lần, không phải tin nào cũng có số → ngưỡng 3 tin để đỡ báo nhầm. */
+async function adsSlowCheck(x, send, D, ca, now, hm, allDay, evM) {
+  const day = vnKey(now), t0 = new Date(day + 'T00:00:00+07:00').getTime();
+  const rows = (await kvJson(x.db, 'ads_rows', null)) || [], fileN = rows.filter(r => r[0] === t0).length;
+  const m = await first0(x.db, "SELECT coalesce(sum(msgs), 0) n FROM ad_spend WHERE day = ? AND channel = 'Facebook'", day), msgN = Number(m && m.n) || 0;
+  let S = (await kvJson(x.db, 'ads_slow', null)) || {};
+  if (S.day !== day) S = { day, fileN, fileAt: now, msgAtFile: msgN, alertAt: 0 };
+  if (fileN > S.fileN || fileN < S.fileN) { S.fileN = fileN; S.fileAt = now; S.msgAtFile = msgN; }
+  const open = hm >= 8 * 60 && hm <= 21 * 60 + 30; if (!open) { S.fileAt = now; S.msgAtFile = msgN; } // đêm không ai trực → tính lại từ 8h
+  const gap = now - S.fileAt, more = msgN - S.msgAtFile;
+  if (open && gap >= 2 * 3600e3 && more >= 3 && now - (S.alertAt || 0) >= 2 * 3600e3) {
+    S.alertAt = now;
+    const night = allDay || hm >= evM, who = night ? dutyOn(D, now) : [dayPicker(D, now)].filter(Boolean);
+    const h = Math.floor(gap / 3600e3), txt = '⏰ <b>Số quảng cáo về chậm</b>\n' + h + ' tiếng qua Facebook báo thêm <b>' + more + ' tin nhắn</b> từ quảng cáo nhưng file chưa có số mới (hôm nay file ' + fileN + ' số, Facebook ' + msgN + ' tin nhắn).\n👉 Mở page kiểm tra tin nhắn chờ, xin số và dán vào file.';
+    const boss = ((await crmUsers(x)).find(y => y.email === SUPER_ADMIN) || {}).name;
+    const to = [...new Set(who.concat(D.boss && !night ? [D.boss] : [], boss ? [boss] : []))];
+    for (const n of to) await send(x, n, txt + (who.indexOf(n) >= 0 ? '' : '\n(Đang phụ trách: ' + (who.join(', ') || 'chưa xếp ai') + ')'));
+  }
+  await kvSet(x.db, 'ads_slow', JSON.stringify(S));
+}
+async function first0(db, q, ...a) { const r = await all(db, q, ...a); return r[0] || null; }
 function dutyLbl(t, ca) { const d = new Date(t + 7 * 3600e3), dm = d.getUTCDate() + '/' + (d.getUTCMonth() + 1), w = d.getUTCDay(); return (w === 0 ? 'CN ' : 'Tối T' + (w + 1) + ' ') + dm; }
 /** Nhóm của 1 người (không có số liệu → B). */
 export function tierOf(t, name) { return (t && t.people && t.people[name]) || { g: 'B', nw: true }; }
