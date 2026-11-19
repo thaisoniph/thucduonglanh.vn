@@ -106,6 +106,8 @@ Mỗi bạn có **một link web riêng**, ví dụ `thucduonglanh.vn/?ref=thuy`
 1. Vào **⚙ Cài đặt → 🌐 Link đặt hàng của tôi**.
 
 > 💡 Ở trang **⚙ Cài đặt**, gõ vài chữ vào ô **🔍 Gõ để tìm** ở trên cùng (không cần dấu, vd *link*, *mau*, *telegram*) là chỉ còn đúng mục cần sửa. Mục có chữ cam **⚠️** là nên làm, cũng hiện ở khung **👉 Nên làm ngay**.
+>
+> Từ 19/11/2026 các mục cài đặt **chia thẻ** giống các trang khác: **🙋 Riêng bạn** (Của tôi, Khách của tôi) · **👥 Đội & khách** (Nhân sự, Chia khách, Chăm sóc khách, Lương & hoa hồng) · **🌐 Web & kết nối** (Website, Kết nối & số liệu). Sale chỉ thấy nhóm 🙋. Ô 🔍 tìm trong **mọi thẻ**; bấm nút trong **👉 Nên làm ngay** là tự mở đúng thẻ.
 2. Bấm **📋 Copy** để lấy link.
 3. Gửi link cho khách qua Zalo.
 

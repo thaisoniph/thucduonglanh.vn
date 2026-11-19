@@ -14595,12 +14595,12 @@
   /** Cài đặt: đầu trang có ô 🔍 tìm mục + 👉 Nên làm ngay (các mục đang ⚠️, bấm là mở đúng mục). Thân trang ở setBody(). */
   function viewSettings() {
     S.f.setWarn = [];
-    var b = setBody(), W = S.f.setWarn;
+    var b = setBody(), W = S.f.setWarn, SM = setMenu(b); b = SM.b;
     return '<div class="page-head"><h1>⚙️ Cài đặt</h1></div>' +
       '<div class="set-top"><input type="search" id="setQ" value="' + esc(S.f.setQ || '') + '" placeholder="🔍 Gõ để tìm, vd: hoa hồng, Telegram, giá vốn" autocomplete="off">' +
       '<p class="small muted">Bấm vào 1 mục bên dưới để mở ra xem và sửa. Dòng chữ nhỏ dưới tên mục cho biết đang cài thế nào.</p></div>' +
       (W.length ? '<div class="set-todo" id="setTodo"><b>👉 Nên làm ngay</b><div class="set-todo-l">' + W.map(function (w) { return '<button class="btn" data-setgo="' + w[0] + '">' + w[1] + ' ›</button>'; }).join('') + '</div></div>' : '') +
-      '<p class="set-none" id="setNone" hidden>Không thấy mục nào khớp. Thử gõ chữ khác ngắn hơn, ví dụ “lương”, “khách”, “màu”.</p>' + b;
+      SM.h + '<p class="set-none" id="setNone" hidden>Không thấy mục nào khớp. Thử gõ chữ khác ngắn hơn, ví dụ “lương”, “khách”, “màu”.</p>' + b;
   }
   function setBody() {
     var h = '', G = {};
@@ -15191,7 +15191,20 @@
       };
     });
   }
-  function setSec(title, desc, body) { return '<section class="set-sec"><h2>' + title + '</h2><p class="set-sec-d">' + desc + '</p>' + body + '</section>'; }
+  /** 19/11/2026 (anh Sơn: "làm tương tự" các trang khác): mỗi nhóm cài đặt (set-sec) là 1 thẻ; ô 🔍 vẫn tìm trong mọi thẻ */
+  var SET_TAB = { '🙋 Của tôi': ['toi', '🙋', 'Của tôi', 'Telegram, tài khoản'], '🔗 Khách của tôi': ['kh', '🔗', 'Khách của tôi', 'gộp khách nhiều số'], '👥 Nhân sự': ['ns', '👥', 'Nhân sự', 'ai được vào, làm gì'],
+    '🤝 Chia khách': ['chia', '🤝', 'Chia khách', 'khách mới giao ai'], '📞 Chăm sóc khách': ['cs', '📞', 'Chăm sóc khách', 'lịch nhắc, mẫu tin'], '💰 Lương & hoa hồng': ['luong', '💰', 'Lương & hoa hồng', 'cách tính tiền sale'],
+    '🌐 Website & khuyến mãi': ['web', '🌐', 'Website', 'sản phẩm, mã giảm giá'], '🔌 Kết nối & số liệu': ['kn', '🔌', 'Kết nối & số liệu', 'Sheet, quảng cáo, giá vốn'] };
+  var SET_G = [['🙋 Riêng bạn', 'chỉ ảnh hưởng tới bạn', ['toi', 'kh']], ['👥 Đội & khách', 'cả nhóm', ['ns', 'chia', 'cs', 'luong']], ['🌐 Web & kết nối', 'ít khi sửa', ['web', 'kn']]];
+  function setSec(title, desc, body) { var k = (SET_TAB[title] || [''])[0]; return '<section class="set-sec" data-sett="' + k + '"><h2>' + title + '</h2><p class="set-sec-d">' + desc + '</p>' + body + '</section>'; }
+  function setTabNow(ks) { var t = S.f.setTab || store('set_tab') || ks[0]; if (ks.indexOf(t) < 0) t = ks[0]; return (S.f.setTab = t); }
+  function setMenu(b) {
+    var ks = []; b.replace(/data-sett="([a-z]+)"/g, function (m, k) { ks.push(k); return m; });
+    if (ks.length < 2) return { h: '', b: b };
+    var t = setTabNow(ks), info = {}; Object.keys(SET_TAB).forEach(function (n) { info[SET_TAB[n][0]] = SET_TAB[n]; });
+    var G = SET_G.map(function (g) { return [g[0], g[1], g[2].filter(function (k) { return ks.indexOf(k) >= 0; }).map(function (k) { return info[k]; })]; });
+    return { h: '<div id="setMenu">' + grpMenu(G, t, function (k) { return 'data-sett-go="' + k + '"'; }) + '</div>', b: b.replace(/<section class="set-sec" data-sett="([a-z]+)"/g, function (m, k) { return m + (k === t ? '' : ' hidden'); }) };
+  }
   /** 1 mục cài đặt thu gọn: tên + dòng tóm tắt đang cài thế nào; bấm mở ra phần sửa. Mở / đóng được nhớ trên máy (localStorage set_open: 1 mở, 0 đóng).
    *  def = mở sẵn khi người dùng chưa từng bấm mục này (Hướng dẫn nhanh; Telegram khi chưa kết nối). */
   function setGroup(k, title, line, body, def) {
@@ -15208,13 +15221,14 @@
       var t = d._q || (d._q = ' ' + norm(d.textContent).replace(/[^a-z0-9%]+/g, ' ')), hit = w.every(function (x) { return t.indexOf(' ' + x) >= 0; });
       d.hidden = !hit; if (hit) any = 1;
     });
-    $$('.set-sec').forEach(function (sec) { sec.hidden = !$$('details[data-setk]', sec).some(function (d) { return !d.hidden; }); });
+    $$('.set-sec').forEach(function (sec) { var k = sec.getAttribute('data-sett'); sec.hidden = !$$('details[data-setk]', sec).some(function (d) { return !d.hidden; }) || (!w.length && !!k && !!$('[data-sett-go]') && k !== S.f.setTab); });
     if ($('#setTodo')) $('#setTodo').hidden = !!w.length;
     $('#setNone').hidden = !!any;
   }
   function bindSettings() {
     if ($('#setQ')) { $('#setQ').oninput = function () { S.f.setQ = this.value; setFilter(); }; if (S.f.setQ) setFilter(); }
-    $$('[data-setgo]').forEach(function (b) { b.onclick = function () { var d = $('details[data-setk="' + b.getAttribute('data-setgo') + '"]'); if (!d) return; d.open = true; d.scrollIntoView({ behavior: 'smooth', block: 'start' }); }; });
+    $$('[data-sett-go]').forEach(function (b) { b.onclick = function () { S.f.setTab = b.getAttribute('data-sett-go'); store('set_tab', S.f.setTab); render(); }; });
+    $$('[data-setgo]').forEach(function (b) { b.onclick = function () { var d = $('details[data-setk="' + b.getAttribute('data-setgo') + '"]'); if (!d) return; var sc = d.closest('.set-sec'); if (sc && sc.hidden && sc.getAttribute('data-sett')) { S.f.setTab = sc.getAttribute('data-sett'); store('set_tab', S.f.setTab); render(); d = $('details[data-setk="' + b.getAttribute('data-setgo') + '"]'); if (!d) return; } d.open = true; d.scrollIntoView({ behavior: 'smooth', block: 'start' }); }; });
     $$('details[data-setk]').forEach(function (d) { d.addEventListener('toggle', function () { var o = S.f.setOpen || (S.f.setOpen = {}), k = d.getAttribute('data-setk'); o[k] = d.open ? 1 : 0; store('set_open', JSON.stringify(o)); }); });
     if ($('#dayLimSave')) $('#dayLimSave').onclick = function () { var n = Math.max(5, Math.min(200, parseInt($('#dayLim').value, 10) || DAY_LIMIT_DEF)); store('crm_daylimit', String(n)); toast('Mỗi ngày tối đa ' + n + ' khách ✓'); navBadges(); };
     $('#logout').onclick = function () { if (confirm('Đăng xuất khỏi CRM?')) logout(); };
