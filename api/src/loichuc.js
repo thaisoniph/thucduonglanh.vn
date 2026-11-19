@@ -98,14 +98,15 @@ const OCC = {
   tet: 'Chúc mừng năm mới! Chúc bạn và gia đình một năm an khang, mạnh khoẻ, sum vầy và vạn sự như ý 🧧',
   tao: 'Hôm nay 23 tháng Chạp, Tết đã gần lắm rồi. Chúc bạn một ngày làm việc nhẹ nhàng và một năm cũ khép lại thật trọn vẹn 🏮',
   nguyentieu: 'Hôm nay Rằm tháng Giêng. Chúc bạn một năm mới bình an, mọi việc hanh thông 🌕',
+  hanthuc: 'Hôm nay Tết Hàn thực, ngày bánh trôi bánh chay. Chúc bạn và gia đình luôn tròn đầy, ấm êm 🍡',
   gioto: 'Hôm nay Giỗ Tổ Hùng Vương. Uống nước nhớ nguồn, chúc bạn và gia đình luôn bình an, đủ đầy 🇻🇳',
   phatdan: 'Hôm nay Lễ Phật đản. Chúc bạn tâm an, thân khoẻ và lan toả thật nhiều điều thiện lành 🪷',
   doanngo: 'Hôm nay Tết Đoan Ngọ. Chúc bạn và gia đình luôn khoẻ mạnh, bình an 🍑',
-  vulan: 'Hôm nay Lễ Vu Lan. Chúc bạn có thời gian gọi điện hỏi thăm, ôm cha mẹ thật lâu 🌹',
+  vulan: 'Hôm nay Lễ Vu Lan, mùa báo hiếu. Chúc bạn có thời gian bên cha mẹ, hoặc dành một phút lặng lòng nhớ về đấng sinh thành 🌹',
   trungthu: 'Tết Trung thu rồi! Chúc bạn một tối trăng tròn sum vầy bên gia đình 🥮',
   mung1: 'Hôm nay mùng 1 âm lịch. Chúc bạn một tháng mới bình an, khoẻ mạnh và nhiều niềm vui 🌙',
   ram: 'Hôm nay ngày rằm. Chúc bạn một ngày tâm an, thân khoẻ, mọi việc thuận hoà 🌕',
-  hanguyen: 'Hôm nay Rằm tháng Mười. Chúc bạn một ngày tâm an, thân khoẻ, mọi việc thuận hoà 🌕',
+  hanguyen: 'Hôm nay Rằm tháng Mười, mùa lúa mới. Chúc bạn và gia đình một năm no đủ, bình an 🌾',
   tetduong: 'Chúc mừng năm mới! Chúc bạn một năm mới thật nhiều sức khoẻ, niềm vui và những bước tiến mới 🎆',
   thaythuoc: 'Hôm nay Ngày Thầy thuốc Việt Nam. Chúc bạn luôn khoẻ, và gửi lời cảm ơn tới những người đã chăm lo sức khoẻ cho mình 🩺',
   pn83: 'Chúc mừng ngày Quốc tế Phụ nữ 8/3! Chúc các chị em luôn xinh đẹp, khoẻ mạnh và hạnh phúc 💐',
@@ -115,7 +116,7 @@ const OCC = {
   tbls: 'Hôm nay Ngày Thương binh – Liệt sĩ 27/7. Cùng tri ân những người đã hy sinh vì Tổ quốc. Chúc bạn một ngày bình an 🕯️',
   quockhanh: 'Chúc mừng Quốc khánh 2/9! Chúc bạn một kỳ nghỉ vui, khoẻ và đầy tự hào 🇻🇳',
   pn2010: 'Chúc mừng ngày Phụ nữ Việt Nam 20/10! Chúc các chị em luôn rạng rỡ, khoẻ mạnh và được yêu thương 🌹',
-  nhagiao: 'Hôm nay Ngày Nhà giáo Việt Nam 20/11. Chúc bạn một ngày nhớ về những người thầy, người cô đã dạy mình nên người 📚',
+  nhagiao: 'Hôm nay Ngày Nhà giáo Việt Nam 20/11. Nhớ về thầy cô đã dạy mình nên người, và cảm ơn cả những anh chị đã kèm mình trong công việc 📚',
   noel: 'Giáng sinh an lành! Chúc bạn một mùa lễ ấm áp và thật nhiều niềm vui 🎄'
 };
 
