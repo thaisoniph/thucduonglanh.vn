@@ -3911,3 +3911,20 @@ details.top-fold.tf-focus .tf-all { display: block; }
 .qcq-ok { margin: 6px 0 0; padding: 8px 10px; background: var(--primary-light); border-radius: 10px; font-size: .9rem; }
 #qcqWho .bad { color: var(--red); }
 .dty-mine-b { display: inline-flex; gap: 6px; }
+
+/* 📈 KPI theo thời gian (20/11/2026) */
+.kst-card { margin-top: 12px; }
+.kst-sep { display: inline-block; width: 10px; }
+.kst-wrap { overflow-x: auto; margin: 8px 0; -webkit-overflow-scrolling: touch; }
+.kst-t { border-collapse: collapse; width: 100%; font-size: 14px; }
+.kst-t th, .kst-t td { padding: 5px 4px; text-align: center; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.kst-t thead th { font-weight: 600; color: var(--muted); font-size: 13px; } .kst-t thead small { display: block; font-weight: 400; font-size: 11px; }
+.kst-t tbody th { text-align: left; position: sticky; left: 0; background: var(--card, #fff); z-index: 1; }
+.kst-b { min-width: 46px; border: 0; border-radius: 8px; padding: 4px 6px; font: inherit; font-weight: 700; cursor: pointer; background: var(--line); color: inherit; }
+.kst-b small { font-weight: 400; margin-left: 3px; opacity: .8; }
+.kst-b.ok { background: #e3f4e8; color: var(--primary); } .kst-b.mid { background: #fff1d9; color: #9a5b00; } .kst-b.bad { background: #fde4e2; color: var(--red); }
+.kst-b.kst-cur { outline: 1px dashed currentColor; outline-offset: -3px; }
+.kst-na { color: var(--muted); }
+.kst-avg th, .kst-avg td { background: #f6f7f5; border-top: 2px solid var(--line); }
+.kst-tr { min-width: 110px; text-align: left !important; }
+.kst-swipe { display: none; } @media (max-width: 700px) { .kst-swipe { display: inline; } }

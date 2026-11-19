@@ -189,6 +189,21 @@ Xếp loại: **A** từ 90 điểm, **B** 75–89, **C** 60–74, dưới 60 g�
 
 Đang **chạy thử, chưa tính vào lương**. Quy tắc 70% KPI → 50% lương cứng ở 📅 Báo cáo 3 · 6 · 12 tháng vẫn là đề xuất riêng, chưa nối với phiếu này.
 
+### 📈 KPI theo thời gian: ai đang lên, ai đang xuống (từ 20/11/2026)
+
+**Một câu dễ nhớ:** Mở **Hiệu quả → 👥 Từng người**, kéo xuống khung **📈 KPI theo thời gian**. Mỗi bạn 1 dòng, mỗi kỳ 1 ô, dòng cuối là trung bình cả nhóm.
+
+![Bảng KPI theo thời gian: điểm từng tháng, trung bình nhóm, xu hướng](/huong-dan/img/kpi-sale-thoi-gian.webp)
+
+1. Chọn **Tuần** (8 tuần), **Tháng** (6 tháng) hoặc **Quý** (4 quý).
+2. Chọn **📋 Điểm KPI tổng** (chấm như phiếu tháng) hoặc **💪 Thái độ làm việc**. Thái độ gồm: gọi ngay trong ngày nhận số, lượt chăm sóc so với trung bình nhóm, và điểm quy trình quản lý chấm (chỉ có khi xem theo tháng).
+3. Ô màu: 🟢 tốt, 🟠 cần để ý, 🔴 cần kèm. Ô viền nét đứt là kỳ đang chạy, điểm còn đổi.
+4. Cột **Xu hướng** ghi **đang lên / đi ngang / đang xuống**. Cột này cần ít nhất 3 kỳ đã xong và không tính kỳ đang chạy.
+5. Bấm vào một ô để xem điểm từng mục của kỳ đó. Ô theo tháng sẽ mở luôn phiếu KPI tháng để chấm và chốt.
+6. Bấm tên một bạn: màn của bạn đó có bảng riêng, đặt cạnh dòng trung bình nhóm để so sánh.
+
+Cách đọc nhanh: **KPI tổng thấp nhưng Thái độ cao** là bạn chăm nhưng chưa ra kết quả, cần kèm cách tư vấn và chốt. **Cả hai cùng thấp** thì nên gặp riêng.
+
 ## Giao khách và chuyển khách
 
 **Đổi người phụ trách 1 khách:** mở hồ sơ khách → **⚙️ Sửa thông tin** → ô **Người phụ trách** → **Lưu thay đổi**.

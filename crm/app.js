@@ -7540,27 +7540,38 @@
   /** Số quảng cáo của cả tháng (gọi nhanh, tỷ lệ chốt): luôn lấy theo tháng, không theo bộ lọc kỳ đang xem. */
   function ksSmk(name, mo) { var R = monthRange(mo); return smkGet(name === S.user.name && lvl() < 2 ? '' : name || '', { p: { k: 'm' }, R: R }); }
   /** Tính phiếu: trả {items, groups, tot, gr, why, wait}. mb: số quảng cáo của người này, T: cả nhóm (từ sale_mkt). */
-  function ksCalc(name, mo, mb, T, row) {
-    var R = monthRange(mo), now = Date.now(), cur = now >= R[0] && now < R[1], P0 = monthRange(shiftMonth(mo, -1));
-    var P = cur ? [P0[0], Math.min(P0[1], P0[0] + (now - R[0]))] : P0, c = perf(name, R), p = perf(name, P);
-    var tg = targetOf(name, mo), goal = tg && tg.amount ? tg.amount : rpmOffice(name) ? 100e6 : 0, cl = function (v) { return Math.max(0, Math.min(1, v)); };
-    var sp = mb ? smkSpeed(mb) : null, tcl = T ? smkClose(T) : null, m = (row && row.mgr && row.mgr.p) || [null, null];
+  function ksCalc(name, mo, mb, T, row) { return ksCalcR(name, monthRange(mo), mb, T, (row && row.mgr && row.mgr.p) || [null, null], mo); }
+  /** Mục tiêu của 1 khoảng bất kỳ (tuần / quý): cộng mục tiêu từng tháng × phần tháng nằm trong khoảng. Chưa đặt: sale văn phòng tính 100 tr / tháng. */
+  function ksGoalR(name, R) {
+    var g = 0, set = false;
+    for (var mk = monthOf(R[0] + 1); monthRange(mk)[0] < R[1]; mk = shiftMonth(mk, 1)) {
+      var M = monthRange(mk), ov = Math.min(R[1], M[1]) - Math.max(R[0], M[0]); if (ov <= 0) continue;
+      var tg = targetOf(name, mk), a = tg && tg.amount ? (set = true, tg.amount) : rpmOffice(name) ? 100e6 : 0; g += a * ov / (M[1] - M[0]);
+    }
+    return { g: g, set: set };
+  }
+  /** Tính phiếu cho khoảng R. mo = 'YYYY-MM' khi là phiếu tháng (chữ & kỳ so như cũ); không có mo = tuần / quý (bảng 📈 KPI theo thời gian, 20/11/2026). */
+  function ksCalcR(name, R, mb, T, m, mo) {
+    var now = Date.now(), cur = now >= R[0] && now < R[1], el = (cur ? now : R[1]) - R[0], P0 = mo ? monthRange(shiftMonth(mo, -1)) : [R[0] - el, R[0]];
+    var P = cur && mo ? [P0[0], Math.min(P0[1], P0[0] + (now - R[0]))] : P0, c = perf(name, R), p = perf(name, P);
+    var G = ksGoalR(name, R), goal = G.g, cl = function (v) { return Math.max(0, Math.min(1, v)); }, kw = mo ? 'tháng' : 'kỳ';
+    var sp = mb ? smkSpeed(mb) : null, tcl = T ? smkClose(T) : null; m = m || [null, null];
     var it = [];
-    // tháng đang chạy: so với tiến độ tới hôm nay (mục tiêu × số ngày đã qua / số ngày của tháng), để giữa tháng không bị điểm thấp oan
+    // kỳ đang chạy: so với tiến độ tới hôm nay (mục tiêu × phần thời gian đã qua), để giữa kỳ không bị điểm thấp oan
     var fr = cur ? Math.min(1, Math.max(1 / 31, (now - R[0]) / (R[1] - R[0]))) : 1, gNow = goal * fr;
-    it.push({ k: 'ds', g: 'ds', t: cur ? 'Doanh số so với tiến độ mục tiêu tới hôm nay' : 'Doanh số so với mục tiêu tháng', w: 60, v: goal ? cl(c.sales / gNow) : null,
-      txt: goal ? moneyShort(c.sales) + ' / ' + moneyShort(gNow) + ' = ' + pct(c.sales, gNow) + '%' + (cur ? ' (mục tiêu cả tháng ' + moneyShort(goal) + ')' : '') + (tg && tg.amount ? '' : ' · chưa đặt mục tiêu, tính mức tối thiểu 100 tr') : 'Chưa có mục tiêu tháng', pc: goal ? pct(c.sales, gNow) : null });
+    it.push({ k: 'ds', g: 'ds', t: cur ? 'Doanh số so với tiến độ mục tiêu tới hôm nay' : 'Doanh số so với mục tiêu ' + kw, w: 60, v: goal ? cl(c.sales / gNow) : null,
+      txt: goal ? moneyShort(c.sales) + ' / ' + moneyShort(gNow) + ' = ' + pct(c.sales, gNow) + '%' + (cur ? ' (mục tiêu cả ' + kw + ' ' + moneyShort(goal) + ')' : '') + (G.set ? '' : ' · chưa đặt mục tiêu, tính mức tối thiểu 100 tr / tháng') : 'Chưa có mục tiêu', pc: goal ? pct(c.sales, gNow) : null });
     it.push({ k: 'call', g: 'lead', t: 'Gọi ngay trong ngày nhận số (đủ điểm từ 80%)', w: 7, v: sp === null ? null : cl(sp / 80), txt: sp === null ? (mb === undefined ? '⏳ Đang tính…' : 'Không nhận số quảng cáo') : sp + '%' + (mb.none ? ' · ' + mb.none + ' số chưa gọi' : '') });
     var okC = c.closePct !== null && c.data >= 5 && tcl;
     it.push({ k: 'close', g: 'lead', t: 'Tỷ lệ chốt số quảng cáo (đủ điểm khi bằng cả nhóm)', w: 7, v: okC ? cl(c.closePct / tcl) : null, txt: c.closePct === null || c.data < 5 ? 'Dưới 5 số quảng cáo, chưa tính' : c.closePct + '%' + (tcl ? ' · cả nhóm ' + tcl + '%' : ' · ⏳ đang lấy số cả nhóm') });
     it.push({ k: 'old', g: 'lead', t: 'Doanh số từ khách cũ (đủ điểm từ 50%)', w: 6, v: c.sales ? cl(c.oldPct / 50) : null, txt: c.sales ? c.oldPct + '% = ' + moneyShort(c.oldRev) : 'Chưa có đơn' });
     it.push({ k: 'ship', g: 'qual', t: 'Giao thành công (đủ điểm từ 95%, dưới 85% = 0)', w: 5, v: c.backPct === null ? null : cl((100 - c.backPct - 85) / 10), txt: c.backPct === null ? 'Chưa có đơn' : (100 - c.backPct) + '%' + (c.backN ? ' · ' + c.backN + ' đơn hoàn' : '') });
-    it.push({ k: 'rep', g: 'qual', t: 'Khách cũ quay lại mua (đủ điểm khi bằng ' + (cur ? 'cùng kỳ tháng trước' : 'tháng trước') + ')', w: 5, v: p.repeat ? cl(c.repeat / p.repeat) : c.repeat ? 1 : null, txt: c.repeat + ' khách' + (p.repeat ? ' · trước ' + p.repeat + ' khách' : '') });
+    it.push({ k: 'rep', g: 'qual', t: 'Khách cũ quay lại mua (đủ điểm khi bằng ' + (mo ? cur ? 'cùng kỳ tháng trước' : 'tháng trước' : 'kỳ trước') + ')', w: 5, v: p.repeat ? cl(c.repeat / p.repeat) : c.repeat ? 1 : null, txt: c.repeat + ' khách' + (p.repeat ? ' · trước ' + p.repeat + ' khách' : '') });
     KS_MGR.forEach(function (t, i) { it.push({ k: 'm' + (i + 1), g: 'proc', t: t, w: 5, v: m[i] == null ? null : m[i] / 100, txt: m[i] == null ? 'Quản lý chưa chấm' : m[i] + '%', mgr: 1 }); });
     var W = 0, E = 0; it.forEach(function (x) { x.sc = x.v === null ? null : Math.round(x.w * x.v * 10) / 10; if (x.v !== null) { W += x.w; E += x.w * x.v; } });
     var tot = W ? Math.round(E * 1000 / W) / 10 : 0, gr = tot >= 90 ? 'A' : tot >= 75 ? 'B' : tot >= 60 ? 'C' : 'D', why = '';
     var ds = it[0]; if (ds.v !== null && ds.v < 0.7 && (gr === 'A' || gr === 'B')) { gr = 'C'; why = 'Doanh số mới đạt ' + ds.pc + '% ' + (cur ? 'tiến độ ' : '') + 'mục tiêu (dưới 70%) nên tối đa loại C.'; }
-    return { items: it, groups: ksGroups(it), tot: tot, gr: gr, why: why, W: W, cur: cur };
+    return { items: it, groups: ksGroups(it), tot: tot, gr: gr, why: why, W: W, cur: cur, c: c, sp: sp, m: m };
   }
   /** Nhóm của 1 mục (bản chụp lúc chốt không lưu nhóm). */
   function ksGroupOf(x) { return x.g || (/^m\d/.test(x.k) ? 'proc' : x.k === 'ds' ? 'ds' : x.k === 'ship' || x.k === 'rep' ? 'qual' : 'lead'); }
@@ -7639,6 +7650,100 @@
     };
     var re = $('#ksRe', m); if (re) re.onclick = function () { go(re, { op: 'reopen', month: mo, name: name }, 'Đã mở lại ✓'); };
   }
+  /* ---------- 📈 KPI theo thời gian (20/11/2026, anh Sơn: "xem từng nhân sự và mức trung bình của cả nhóm, xu hướng tăng / giảm / đi ngang qua tuần, tháng, quý").
+   * Mỗi sale 1 dòng, mỗi kỳ 1 ô (8 tuần / 6 tháng / 4 quý), dòng cuối = trung bình nhóm, cột cuối = đường xu hướng (trendVerdict, bỏ kỳ đang chạy).
+   * 2 cách xem: Điểm KPI tổng (cùng cách chấm phiếu tháng, ksCalcR; tháng đã chốt dùng bản chụp) · Thái độ (gọi trong ngày nhận số /80% + lượt chăm sóc so TB nhóm + quản lý chấm quy trình, chỉ có ở theo tháng).
+   * Số quảng cáo mỗi kỳ: 1 lần gọi sale_mkt cho cả nhóm (smkGet '', nhớ 10 phút). Chỉ Quản lý / Quản trị. */
+  var KST = { u: store('kst_u') || 'm', k: store('kst_k') || 'tot' };
+  var KST_U = { w: ['Tuần', '8 tuần gần nhất'], m: ['Tháng', '6 tháng gần nhất'], q: ['Quý', '4 quý gần nhất'] };
+  function kstPeriods(u) {
+    var now = Date.now(), mk = monthOf(now), L = [], i;
+    if (u === 'w') { var w0 = weekStart(today()); for (i = 7; i >= 0; i--) { var a = w0 - i * 7 * DAY; L.push({ R: [a, a + 7 * DAY], l: fDate(a).slice(0, 5), tip: 'Tuần ' + fDate(a).slice(0, 5) + ' – ' + fDate(a + 6 * DAY).slice(0, 5) }); } }
+    else if (u === 'q') { for (i = 3; i >= 0; i--) { var q = quarterOf(mk, -i), qn = Math.floor((+q.slice(5, 7) - 1) / 3) + 1; L.push({ R: [monthRange(q)[0], monthRange(shiftMonth(q, 2))[1]], l: 'Q' + qn + '/' + q.slice(2, 4), tip: 'Quý ' + qn + '/' + q.slice(0, 4) }); } }
+    else for (i = 5; i >= 0; i--) { var m = shiftMonth(mk, -i); L.push({ R: monthRange(m), mo: m, l: 'T' + (+m.slice(5)) + '/' + m.slice(2, 4), tip: monthLabel(m) }); }
+    L.forEach(function (x) { x.cur = now >= x.R[0] && now < x.R[1]; });
+    return L;
+  }
+  /** Danh sách người bán để tính trung bình nhóm (màn 1 người): nhân sự Sale hoặc có đơn trong 6 tháng. */
+  function ksSaleNames() {
+    var t0 = Date.now() - 183 * DAY, has = {};
+    S.d.orders.forEach(function (o) { if (o.seller && o.time >= t0 && !isVoid(o.status)) has[o.seller] = 1; });
+    return staffNames().filter(function (n) { var u = (S.d.users || []).filter(function (z) { return z.name === n; })[0]; return has[n] || (u && /sale/i.test(u.role || '')); });
+  }
+  /** Điểm thái độ 0–100 (null = chưa có gì để chấm). */
+  function kstAtt(sp, care, careAvg, m) {
+    var v = [];
+    if (sp !== null && sp !== undefined) v.push(Math.min(1, sp / 80));
+    if (careAvg >= 3) v.push(Math.min(1, care / careAvg));
+    var mm = (m || []).filter(function (x) { return x !== null && x !== undefined; }); if (mm.length) v.push(mm.reduce(function (a, b) { return a + b; }, 0) / mm.length / 100);
+    return v.length ? Math.round(v.reduce(function (a, b) { return a + b; }, 0) * 1000 / v.length) / 10 : null;
+  }
+  function kstLv(k, r) { return r === null ? '' : k === 'att' ? (r.v >= 80 ? 'ok' : r.v >= 60 ? 'mid' : 'bad') : ksLv(r.gr); }
+  /** Tính hết bảng: K[i][n] = {v, gr, r (kết quả phiếu), att parts}. */
+  function kstData(names, all, P) {
+    return P.map(function (pd) {
+      var mk = smkGet('', { p: { k: 'x' }, R: pd.R }), T = mk && mk.team, rows = {}, careAvg = 0, cnt = 0;
+      if (pd.mo) ksLoad(pd.mo);
+      all.forEach(function (n) { var c = perf(n, pd.R); rows[n] = { care: c.care }; if (c.care || c.orders) { careAvg += c.care; cnt++; } });
+      careAvg = cnt ? careAvg / cnt : 0;
+      var out = { pd: pd, wait: mk === undefined, careAvg: careAvg, by: {} };
+      all.forEach(function (n) {
+        var mb = mk && mk.people ? mk.people[n] || null : null, row = pd.mo ? ksRow(pd.mo, n) : null, m = row && row.mgr && row.mgr.p;
+        var r = pd.mo ? ksResult(n, pd.mo, mb, T) : ksCalcR(n, pd.R, mb, T, null), sp = mb ? smkSpeed(mb) : null;
+        var c = r.c || perf(n, pd.R), act = c.orders || c.care || (mb && mb.n);
+        out.by[n] = act ? { r: r, tot: r.tot, gr: r.gr, att: kstAtt(sp, rows[n].care, careAvg, m), sp: sp, care: rows[n].care, m: m } : null;
+      });
+      return out;
+    });
+  }
+  function ksTrend(names, all, only) {
+    var u = KST_U[KST.u] ? KST.u : 'm', k = KST.k === 'att' ? 'att' : 'tot', P = kstPeriods(u), D = kstData(names, all, P);
+    KST.last = { D: D, u: u };
+    var val = function (x) { return !x ? null : k === 'att' ? x.att : x.tot; };
+    var cell = function (x, n, i) {
+      var v = val(x), lv = v === null ? '' : k === 'att' ? (v >= 80 ? 'ok' : v >= 60 ? 'mid' : 'bad') : ksLv(x.gr);
+      if (D[i].wait && v === null) return '<td class="kst-c">⏳</td>';
+      if (v === null) return '<td class="kst-c kst-na" title="Chưa có đơn, chăm sóc hay số quảng cáo trong kỳ">–</td>';
+      return '<td class="kst-c"><button type="button" class="kst-b ' + lv + (D[i].pd.cur ? ' kst-cur' : '') + '" data-kst="' + esc(n) + '|' + i + '" title="' + esc(D[i].pd.tip + ': ' + oneDec(v) + ' điểm' + (k === 'tot' ? ', ' + KS_GR[x.gr] : '') + ' · bấm xem chi tiết') + '">' + Math.round(v) + (k === 'tot' ? '<small>' + x.gr + '</small>' : '') + '</button></td>';
+    };
+    var avgOf = function (i, L) { var a = L.map(function (n) { return val(D[i].by[n]); }).filter(function (v) { return v !== null; }); return a.length ? a.reduce(function (s0, v) { return s0 + v; }, 0) / a.length : null; };
+    var trendOf = function (vals) { return sparkSvg(vals, P[P.length - 1].cur); }; // ô trống bỏ qua (sparkSvg lọc null)
+    var show = (only ? [only] : names).slice().sort(function (a, b) { var i = P.length - 1, va = val(D[i].by[a]), vb = val(D[i].by[b]); if (va === null && P[i].cur) { va = val(D[i - 1].by[a]); vb = val(D[i - 1].by[b]); } return (vb === null ? -1 : vb) - (va === null ? -1 : va); });
+    var h = '<div class="box kst-card"><div class="ks-h"><h3>📈 KPI theo thời gian <small class="muted">' + KST_U[u][1] + (only ? ' · so với trung bình nhóm' : ' · bấm ô để xem chi tiết') + '<span class="kst-swipe"> · vuốt bảng để xem kỳ cũ hơn</span></small></h3></div>';
+    h += '<div class="chips wrap">' + Object.keys(KST_U).map(function (x) { return '<button class="chip' + (x === u ? ' on' : '') + '" data-kstu="' + x + '">' + KST_U[x][0] + '</button>'; }).join('') + '<span class="kst-sep"></span>' + '</div><div class="chips wrap">' +
+      [['tot', '📋 Điểm KPI tổng'], ['att', '💪 Thái độ làm việc']].map(function (x) { return '<button class="chip' + (x[0] === k ? ' on' : '') + '" data-kstk="' + x[0] + '">' + x[1] + '</button>'; }).join('') + '</div>';
+    h += '<div class="kst-wrap"><table class="kst-t"><thead><tr><th>Nhân viên</th>' + P.map(function (pd) { return '<th title="' + esc(pd.tip) + '">' + pd.l + (pd.cur ? '<small>đang chạy</small>' : '') + '</th>'; }).join('') + '<th>Xu hướng</th></tr></thead><tbody>';
+    h += show.map(function (n) { var vals = P.map(function (pd, i) { return val(D[i].by[n]); }); return '<tr><th><button type="button" class="link" data-who="' + esc(n) + '">' + esc(n) + '</button></th>' + P.map(function (pd, i) { return cell(D[i].by[n], n, i); }).join('') + '<td class="kst-tr">' + (trendOf(vals) || '<small class="muted">chưa rõ</small>') + '</td></tr>'; }).join('');
+    var av = P.map(function (pd, i) { return avgOf(i, names); });
+    h += '<tr class="kst-avg"><th>Trung bình nhóm</th>' + av.map(function (v) { return '<td class="kst-c">' + (v === null ? '–' : '<b>' + Math.round(v) + '</b>') + '</td>'; }).join('') + '<td class="kst-tr">' + (trendOf(av) || '<small class="muted">chưa rõ</small>') + '</td></tr></tbody></table></div>';
+    h += '<p class="small muted">' + (k === 'att'
+      ? '💪 Thái độ (100 điểm) = trung bình của: gọi ngay trong ngày nhận số (đủ điểm từ 80%) · lượt chăm sóc so với trung bình nhóm · quản lý chấm quy trình (chỉ có khi xem theo tháng). 🟢 ≥ 80 · 🟠 60–79 · 🔴 dưới 60.'
+      : '📋 Cùng cách chấm phiếu KPI tháng (doanh số 60 · việc dẫn tới doanh số 20 · chất lượng 10 · quy trình 10). Tuần, quý: mục tiêu chia theo số ngày, chưa có điểm quản lý chấm. 🟢 A · 🟠 B / C · 🔴 D.') +
+      ' Kỳ đang chạy so với tiến độ tới hôm nay, không tính vào xu hướng. Chạy thử, chưa tính vào lương.</p>';
+    return h + '</div>';
+  }
+  /** Bấm 1 ô: tháng → mở phiếu tháng; tuần / quý → xem 4 nhóm điểm + phần thái độ. */
+  function kstOpen(n, i) {
+    var L = KST.last, x = L && L.D[i] && L.D[i].by[n]; if (!x) return;
+    var pd = L.D[i].pd; if (pd.mo) return openKs(n, pd.mo);
+    var r = x.r, body = '<p class="small muted">' + esc(n) + ' · ' + esc(pd.tip) + (pd.cur ? ' (đang chạy, so với tiến độ tới hôm nay)' : '') + '. Chạy thử, chưa tính vào lương.</p>';
+    body += '<div class="kpt-sum"><b>' + oneDec(r.tot) + ' / 100 điểm · ' + KS_GR[r.gr] + '</b>' + (r.why ? '<small>⚠️ ' + esc(r.why) + '</small>' : '') + '</div>';
+    body += KS_GROUPS.map(function (g) {
+      var I = (r.items || []).filter(function (y) { return ksGroupOf(y) === g[0]; });
+      return '<div class="ks-sec"><h4>' + g[1] + ' <span class="kpt-w">' + g[2] + ' điểm</span></h4>' + I.map(function (y) { return '<div class="ks-it' + (y.v === null || y.v === undefined ? ' ks-na' : '') + '"><span>' + esc(y.t) + '<small>' + esc(y.mgr ? 'Quản lý chỉ chấm theo tháng' : y.txt) + '</small></span><b>' + (y.sc === null || y.sc === undefined ? 'không tính' : oneDec(y.sc) + ' / ' + y.w) + '</b></div>'; }).join('') + '</div>';
+    }).join('');
+    body += '<div class="ks-sec"><h4>💪 Thái độ làm việc <span class="kpt-w">' + (x.att === null ? '–' : oneDec(x.att) + ' / 100') + '</span></h4>' +
+      '<div class="ks-it"><span>Gọi ngay trong ngày nhận số</span><b>' + (x.sp === null ? 'không nhận số' : x.sp + '%') + '</b></div>' +
+      '<div class="ks-it"><span>Lượt chăm sóc<small>trung bình nhóm ' + Math.round(L.D[i].careAvg) + ' lượt</small></span><b>' + x.care + ' lượt</b></div></div>';
+    modal('📈 KPI ' + esc(pd.tip), body, '<button class="btn" data-close>Đóng</button>');
+  }
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest && e.target.closest('[data-kst],[data-kstu],[data-kstk]'); if (!el) return;
+    if (el.hasAttribute('data-kst')) { var a = el.getAttribute('data-kst').split('|'); return kstOpen(a[0], +a[1]); }
+    if (el.hasAttribute('data-kstu')) { KST.u = el.getAttribute('data-kstu'); store('kst_u', KST.u); }
+    else { KST.k = el.getAttribute('data-kstk'); store('kst_k', KST.k); }
+    render();
+  });
   document.addEventListener('click', function (e) {
     var el = e.target.closest && e.target.closest('[data-ks]'); if (!el) return;
     var a = el.getAttribute('data-ks').split('|'); if (a[0] === 'open') openKs(a[1], a[2]);
@@ -14124,7 +14229,7 @@
     var h = (lvl() >= 2 && !me ? '<button class="btn ghost" data-who="team" style="margin-bottom:10px">← Quay lại cả nhóm</button>' : '') +
       targetBlock(name, month, ms, me || lvl() >= 2, c.avg || p.avg) + repMoneyLine(c, p, cx);
     h += '<section class="dash-hero">' + repTodo(c, p, me, mb) + repSteps(c, p, mk, mb, T) + repFix(c, p, mb, T, mk && mk.best) + '</section>';
-    if (lvl() >= 2) h += ksCard(name, month); // 📋 Phiếu KPI tháng (19/11/2026); 20/11 anh Sơn: tạm chỉ Quản lý / Quản trị xem, sale chưa thấy
+    if (lvl() >= 2) h += ksCard(name, month) + (me ? '' : ksTrend(ksSaleNames().concat(ksSaleNames().indexOf(name) < 0 ? [name] : []), ksSaleNames().concat(ksSaleNames().indexOf(name) < 0 ? [name] : []), name)); // 📋 Phiếu KPI tháng (19/11/2026); 20/11 anh Sơn: tạm chỉ Quản lý / Quản trị xem, sale chưa thấy
     // 19/11/2026 (anh Sơn: "làm tương tự" Tổng quan / Kế toán): mục tiêu + việc cần làm + 6 bước ở thẻ đầu, chi tiết chia thẻ
     var TQ = h, RSB = refSaleBox(name); h = '';
     h += repMore('rtrend', '📈 Bán hàng theo ngày', 'Doanh số, số đơn, lượt chăm sóc từng ngày, so với ' + (CMP_LABEL || 'kỳ trước'), repTrend(name, cx));
@@ -14170,6 +14275,7 @@
     return h;
   }
   function bindRep() {
+    $$('.kst-wrap').forEach(function (w) { w.scrollLeft = w.scrollWidth; }); // 📈 KPI theo thời gian: điện thoại thấy kỳ mới nhất trước, kéo sang trái xem kỳ cũ
     $$('[data-rpt]').forEach(function (el) { el.onclick = function () { REP_TAB = el.getAttribute('data-rpt'); store('rep_tab', REP_TAB); render(); }; });
     $$('details[data-rk]').forEach(function (d) {
       d.addEventListener('toggle', function () { var o = S.f.r.open || (S.f.r.open = {}), k = d.getAttribute('data-rk'); if (d.open) o[k] = 1; else delete o[k]; store('rep_open', JSON.stringify(o)); });
@@ -14254,6 +14360,7 @@
     var TQ = h, NG = '<section class="dash-hero">' + teamBlock() /* tiến độ hôm nay (việc trễ, đơn chưa xác nhận…) ngay trong Hiệu quả, quản lý không phải sang tab Hôm nay */ + raceBlock() /* 14/11/2026: Quản trị xem bảng thi đua ngay ở Hiệu quả (Hôm nay nằm trong Thêm) */ + repPeople(rows, all, cx) + '</section>'; h = '';
     var RSB = refSaleBox(null);
     NG += ksTeam(rows.map(function (r) { return r.n; }), month); // 📋 Phiếu KPI tháng từng sale (19/11/2026)
+    NG += ksTrend(rows.map(function (r) { return r.n; }), rows.map(function (r) { return r.n; })); // 📈 KPI theo thời gian (20/11/2026)
     var lead = rows[0] && rows[0].sales ? rows[0] : null;
     NG += rows.length >= 2 ? repMore('cmp', '📊 So sánh nhân viên', 'Xếp hạng theo doanh số, số đơn, tỷ lệ chốt, % mục tiêu…' + (lead ? ' · dẫn đầu: ' + esc(lead.n) : ''), compareBlock(rows, cx)) : '';
     h += repMore('rtrend', '📈 Bán hàng theo ngày', 'Doanh số, số đơn, lượt chăm sóc từng ngày, so với ' + (CMP_LABEL || 'kỳ trước'), repTrend(null, cx));
