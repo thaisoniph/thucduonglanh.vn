@@ -302,13 +302,21 @@ function fxPlan(F) {
   if (F && F.chi) F.chi.forEach(r => { if (chiKind(r[1]) === 'move') return; if (r[0] > last) last = r[0]; mon[r[0].slice(0, 7)] = 1; if (!fxSkip(r[1])) by[r[0]] = (by[r[0]] || 0) + r[2]; });
   return { by, last, mon };
 }
+/* 20/11/2026 (giống plVat / adsReal / fxDay trong crm/app.js): doanh số bỏ VAT 8% (tỷ lệ giá vốn kế toán tính trên doanh thu chưa VAT), quảng cáo Meta × PL_ADS (thuế + phí thẻ),
+ * khoản phát sinh = trung bình tháng kế toán gần nhất (cả khoản trả tiền mặt); Sổ chi cộng dồn trong tháng vượt trung bình thì cộng thêm phần vượt. */
+const PL_VAT = 0.08, PL_ADS = 1.05;
 async function plRange(x, a, b, rate, fixDay, C, P) {
-  let fix = 0;
-  for (let t = a; t < b; t += DAY) { const d = fmtDate(t, 'yyyy-MM-dd'); fix += P && C && P.mon[d.slice(0, 7)] ? C.per + (d <= P.last ? P.by[d] || 0 : fixDay - C.per) : fixDay; }
+  let fix = 0; const st = {};
+  for (let t = a; t < b; t += DAY) {
+    const d = fmtDate(t, 'yyyy-MM-dd'), mk = d.slice(0, 7); fix += fixDay;
+    if (!(P && C && P.mon[mk]) || d > P.last) continue;
+    const s = st[mk] = st[mk] || { act: 0, avg: 0, add: 0 }; s.act += P.by[d] || 0; s.avg += fixDay - C.per;
+    const ex = Math.max(0, s.act - s.avg - s.add); s.add += ex; fix += ex;
+  }
   const [o] = await all(x.db, "SELECT COALESCE(SUM(total), 0) AS v, COUNT(*) AS n FROM orders WHERE time >= ? AND time < ? AND status NOT LIKE '%hoàn%' AND status NOT LIKE '%huỷ%' AND status NOT LIKE '%hủy%'", a, b);
   const [s] = await all(x.db, 'SELECT COALESCE(SUM(spend), 0) AS v FROM ad_spend WHERE day BETWEEN ? AND ?', fmtDate(a, 'yyyy-MM-dd'), fmtDate(b - 1, 'yyyy-MM-dd'));
-  const days = Math.round((b - a) / DAY), gp = o.v * (1 - rate);
-  return { rev: o.v, n: o.n, ads: s.v, fix, net: gp - s.v - fix };
+  const gp = o.v / (1 + PL_VAT) * (1 - rate), ads = s.v * PL_ADS;
+  return { rev: o.v, n: o.n, ads, fix, net: gp - ads - fix };
 }
 /** Số liệu chung cho tin sáng + kiểm tra: tỷ lệ giá vốn + chi phí cố định 1 ngày từ tháng kế toán gần nhất. */
 function baseCfg(O) {
@@ -325,9 +333,9 @@ export async function finMorning(x) {
   const L = ['💼 <b>Tài chính sáng ' + fmtDate(Date.now(), 'dd/MM') + '</b>',
     '', '<b>Hôm qua ' + fmtDate(y0, 'dd/MM') + '</b>: bán ' + tr(Y.rev) + ' (' + Y.n + ' đơn) → ' + (Y.net < 0 ? '🔴 lỗ ' : '🟢 lãi ') + tr(Math.abs(Y.net)),
     '<b>Từ đầu tháng</b> (' + md + ' ngày): bán ' + tr(M.rev) + ' → ' + (M.net < 0 ? '🔴 lỗ ' : '🟢 lãi ') + tr(Math.abs(M.net)) + (M.rev ? ' · quảng cáo ' + Math.round(M.ads * 100 / M.rev) + '% doanh số' : ''),
-    C.fix ? '⚖️ Hoà vốn cần bán ~' + tr(C.fix / Math.max(0.05, 1 - C.rate - (M.rev ? M.ads / M.rev : 0.25))) + ' / ngày' : ''];
+    C.fix ? '⚖️ Hoà vốn cần bán ~' + tr(C.fix / Math.max(0.05, (1 - C.rate) / (1 + PL_VAT) - (M.rev ? M.ads / M.rev : 0.25))) + ' / ngày' : ''];
   if (F && F.bank && F.bank.rows.length) {
-    const b = F.bank.rows[F.bank.rows.length - 1], burn = C.fix + (M.rev && md ? (M.rev * C.rate + M.ads) / md : 0);
+    const b = F.bank.rows[F.bank.rows.length - 1], burn = C.fix + (M.rev && md ? (M.rev / (1 + PL_VAT) * C.rate + M.ads) / md : 0);
     L.push('', '🏦 <b>Tiền ngân hàng</b> ' + fmtDate(new Date(b[0] + 'T12:00:00+07:00').getTime(), 'dd/MM') + ': ' + tr(b[1]) + (burn > 0 ? ' · đủ chi khoảng <b>' + Math.max(0, Math.floor(b[1] / burn)) + ' ngày</b>' : ''));
   }
   if (F && F.pay && F.pay.length) {
@@ -342,6 +350,6 @@ export async function finMorning(x) {
     if (last && last < fmtDate(y0 - DAY, 'yyyy-MM-dd')) L.push('<i>Sổ chi chưa cập nhật từ ' + fmtDate(new Date(last + 'T12:00:00+07:00').getTime(), 'dd/MM') + '.</i>');
   }
   if (KL.length) L.push('', ...KL);
-  L.push('', '<i>Ước tính: giá vốn ' + Math.round(C.rate * 100) + '% (kế toán ' + (C.rm ? 'T' + +C.rm.slice(5) : 'mặc định') + '), chi phí cố định ' + tr(C.fix) + '/ngày' + (C.fm ? ' (T' + +C.fm.slice(5) + ')' : '') + (P.last ? ', khoản phát sinh theo Sổ chi' : '') + ', chưa gồm sàn.</i>', CRM_URL);
+  L.push('', '<i>Ước tính: giá vốn ' + Math.round(C.rate * 100) + '% (kế toán ' + (C.rm ? 'T' + +C.rm.slice(5) : 'mặc định') + '), chi phí cố định ' + tr(C.fix) + '/ngày' + (C.fm ? ' (T' + +C.fm.slice(5) + ')' : '') + (P.last ? ', Sổ chi vượt trung bình thì cộng thêm' : '') + ', đã bỏ VAT 8%, quảng cáo +5% thuế, chưa gồm sàn.</i>', CRM_URL);
   return L.filter((s, i) => s !== '' || L[i - 1] !== '').join('\n');
 }

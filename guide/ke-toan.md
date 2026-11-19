@@ -456,6 +456,8 @@ Lãi lỗ ở tab này **cùng số** với Tổng quan của anh Sơn.
 ![Lãi lỗ từng ngày (2), nhập chi phí (3), tải file kế toán (4)](/huong-dan/img/ke-toan-lai-lo.webp)
 
 2. **💵 Lãi lỗ thật**: hôm nay, từ đầu tháng, dự kiến cả tháng; cột đỏ / xanh từng ngày; mỗi ngày cần bán bao nhiêu để hoà vốn. Bấm **Xem từng ngày** để xem bảng.
+   - Máy tính **giống cách kế toán**: doanh số bỏ thuế VAT 8%, giá vốn theo tỷ lệ trong file kế toán tháng gần nhất, quảng cáo Facebook cộng 5% thuế + phí thẻ, Shopee trừ đủ phí sàn (gồm quảng cáo, tiếp thị liên kết) theo file kế toán.
+   - Xem **Tháng trước** khi đã tải file kế toán: ô **📑 Kế toán chốt** là **số chính**. Ô CRM tạm tính chỉ để xem ngày nào lãi, ngày nào lỗ.
 3. Mở **🧮 Lãi lỗ sau mọi chi phí** → **✏️ Nhập chi phí tháng …**: gõ từng khoản (thuê văn phòng, lương, điện, nước, tiền ship trả hãng…), bấm Lưu.
 4. Hoặc **📎 Tải file kế toán** (file báo cáo tháng) và **👥 Tải bảng lương**: máy tự đọc các khoản chi phí.
 
@@ -468,11 +470,11 @@ Lãi lỗ ở tab này **cùng số** với Tổng quan của anh Sơn.
 | Loại khoản | Máy làm gì |
 |---|---|
 | Lương, bảo hiểm, thuê nhà / kho, điện nước, internet, phần mềm, ship trả hãng | **Chia đều mỗi ngày** theo chi phí cả tháng (bước 3, 4). Ghi vào Sổ chi vẫn được, máy không trừ lần 2. |
-| Khoản phát sinh khác (tiếp khách, mua đồ, sửa chữa, quà, hỗ trợ marketing…) | **Trừ đúng ngày** ghi trong Sổ chi. |
+| Khoản phát sinh khác (tiếp khách, mua đồ, sửa chữa, quà, hỗ trợ marketing, chạy TikTok…) | Mỗi ngày tính **trung bình** theo file kế toán tháng gần nhất (vì nhiều khoản trả tiền mặt). Sổ chi + sao kê cộng dồn trong tháng **vượt** trung bình thì phần vượt trừ đúng ngày đó. Tháng đã có file kế toán thì lấy đủ theo file. |
 | Quảng cáo Facebook, phí sàn | Máy tự lấy, **không trừ lần 2**. |
 | Trả nợ / nhập hàng nhà cung cấp, chuyển tiền nội bộ, thuế | **Không phải chi phí** (giá vốn đã tính theo hàng bán ra). |
 
-- Bảng **Xem từng ngày**, cột **Chi phí**: ngày có 📒 là có khoản phát sinh (rê chuột vào số để xem từng khoản). Ngày có **~** là chưa có sao kê / Sổ chi tới ngày đó nên máy tạm tính trung bình. Vì vậy **tải sao kê mỗi ngày** để anh Sơn xem số đúng.
+- Bảng **Xem từng ngày**, cột **Chi phí**: ngày có 📒 là Sổ chi vượt trung bình nên trừ thêm (rê chuột vào số để xem từng khoản). Ngày có **~** là chưa có sao kê / Sổ chi tới ngày đó nên máy tạm tính trung bình. Vì vậy **tải sao kê mỗi ngày** để anh Sơn xem số đúng.
 - Khoản chuyển khoản lỡ ghi cả Sổ chi (cùng ngày, cùng số tiền) thì máy chỉ tính 1 lần.
 - Cột **Nhóm** trong Sổ chi nên ghi rõ (ví dụ "Tiếp khách", "Lương nhân viên", "Trả nợ nhà cung cấp") để máy xếp đúng loại.
 - Máy đọc lại file 3 tiếng 1 lần. Muốn thấy ngay thì bấm **↻ Lấy số mới** ở mục 🏦 Tiền & công nợ.

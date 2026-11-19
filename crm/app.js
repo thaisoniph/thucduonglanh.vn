@@ -5221,16 +5221,39 @@
   }
   /** Lãi gộp văn phòng (gpOf) + sàn (sanGp) cho kỳ này và kỳ trước: dùng chung cho ô 📈 Lãi gộp và mục 🧮 Lãi lỗ. */
   function dashGp(b, bp, sj) {
-    var g = gpOf(b), g0 = gpOf(bp), cr = sj ? sanCostRate(sj, b) : null, sg = cr ? sanGp(sanSum(sj.days, 2), cr) : null, sg0 = cr ? sanGp(sanSum(sj.prev, 1), cr) : null;
-    return { g: g, sg: sg, any: !!(g || sg), tot: (g ? g.gp : 0) + (sg ? sg.gp : 0), tot0: g0 || sg0 ? (g0 ? g0.gp : 0) + (sg0 ? sg0.gp : 0) : 0 };
+    var g = gpOf(b), g0 = gpOf(bp), cr = sj ? sanCostRate(sj, b) : null, sg = cr ? sanPl(sanSum(sj.days, 2), cr) : null, sg0 = cr ? sanPl(sanSum(sj.prev, 1), cr) : null;
+    var v = g ? plVat(b.rev - b.vRev) : 0, v0 = g0 ? plVat(bp.rev - bp.vRev) : 0; // 20/11/2026: lãi gộp tính trên doanh thu chưa VAT (như kế toán)
+    return { g: g, sg: sg, any: !!(g || sg), vat: v + (sg ? sg.vat : 0), tot: (g ? g.gp - v : 0) + (sg ? sg.gp : 0), tot0: g0 || sg0 ? (g0 ? g0.gp - v0 : 0) + (sg0 ? sg0.gp : 0) : 0 };
   }
+  /* ---------- Lãi lỗ cho đúng như kế toán (20/11/2026, anh Sơn: CRM báo T10 lãi 41,5 tr, kế toán lỗ 17 tr → "số liệu mà sai thì quyết định sai").
+   * ① Doanh số CRM là giá khách trả (gồm VAT, mặc định 8%, nsvVat) → lãi lỗ trừ phần VAT (plVat).
+   * ② Quảng cáo: Meta trả về chi phí chưa thuế, hoá đơn thật cao hơn ~4–14% (T8 1,14 · T9 1,07 · T10 1,04) → nhân PL_ADS.
+   * ③ Shopee: ngoài phí trên đơn còn quảng cáo Shopee, tiếp thị liên kết, buff… → dùng tỷ lệ phí sàn ÷ doanh thu Shopee của tháng kế toán gần nhất (sanFeeR), chưa có thì phí trên đơn.
+   * ④ Tháng đã có file kế toán: chi phí lấy đủ theo file (không thay khoản phát sinh bằng sao kê vì nhiều khoản trả tiền mặt), khung 💵 hiện số kế toán chốt làm số chính.
+   * fin.js (tin 8h) có bản giống: sửa 1 bên sửa cả 2. */
+  var PL_ADS = 1.05;
+  function plVat(v) { var r = nsvVat() / 100; return v ? v - v / (1 + r) : 0; }
+  function adsReal(v) { return Math.round((v || 0) * PL_ADS); }
+  function sanFeeR() {
+    var O = (S.d.rules && S.d.rules.opex) || {}, ks = Object.keys(O).sort().reverse();
+    for (var i = 0; i < ks.length; i++) { var k = O[ks[i]] && O[ks[i]].kt; if (k && k.san > 0 && k.shopee > 0) return { r: k.san / k.shopee, m: ks[i] }; }
+    return null;
+  }
+  /** Lãi sàn sau VAT + phí sàn thật: doanh thu chưa VAT − giá vốn − phí (tỷ lệ kế toán, chưa có thì phí trên đơn của sàn). */
+  function sanPl(s, r) {
+    var x = sanGp(s, r); if (!x) return null;
+    var vat = plVat(s.g), ex = s.g - vat, F = sanFeeR(), fee = F ? Math.round(F.r * ex) : s.g - x.back;
+    x.vat = Math.round(vat); x.fee = fee; x.gp = Math.round(ex - x.cogs - fee); x.feeKt = F ? F.m : ''; return x;
+  }
+  /** Tháng m đã có file kế toán chốt (có lãi lỗ) → { profit, dt, … } */
+  function ktClosed(m) { var x = opexMonth(m); return x && x.kt && x.kt.profit != null && x.kt.dt > 0 ? x.kt : null; }
   /** Ô 📈 Lãi gộp = văn phòng (doanh số đã trừ hoàn / huỷ − giá vốn, cả quà tặng) + sàn (tiền thực về − giá vốn, sanGp). Dòng dưới: trừ tiếp toàn bộ quảng cáo (cả quảng cáo sàn)
    *  và chi phí văn phòng nếu Quản trị đã nhập (mục 🧮 Lãi lỗ, 01/11/2026). */
   function dashGpTile(b, bp, M, sj) {
     if (!costCfg()) return dashTile('biz', '', '📈 Lãi gộp', '–', '', lvl() >= 3 ? 'Chưa nhập giá vốn: vào Cài đặt → 💰 Giá vốn sản phẩm' : 'Chưa có giá vốn');
     var G = dashGp(b, bp, sj), g = G.g, sg = G.sg;
     if (!G.any) return dashTile('biz', '', '📈 Lãi gộp', '–', '', 'Chưa có đơn trong kỳ');
-    var ads = M && M.tot || 0, after = G.tot - ads, ox = lvl() >= 3 ? opexFor(perRange(S.f.g.p)) : null, net = ox && ox.has ? after - ox.v : null;
+    var ads = adsReal(M && M.tot), after = G.tot - ads, ox = lvl() >= 3 ? opexFor(perRange(S.f.g.p)) : null, net = ox && ox.has ? after - ox.v : null;
     return dashTile(ox ? 'pnl' : 'biz', (net !== null ? net : after) < 0 ? 'bad' : '', '📈 Lãi gộp', moneyShort(G.tot), G.tot0 ? delta(G.tot, G.tot0) : '',
       (sg ? 'Văn phòng ' + (g ? moneyShort(g.gp) : '0đ') + ' · sàn ' + moneyShort(sg.gp) : (g ? g.pct + '% doanh số văn phòng' : '')) + (!sj ? ' · ⏳ đang cộng sàn' : '') +
       (net !== null ? ' · trừ quảng cáo + chi phí văn phòng: <span class="dash-in">' + (net < 0 ? 'lỗ ' : 'lãi ') + moneyShort(Math.abs(net)) + '</span>' : ads ? ' · trừ quảng cáo còn <span class="dash-in">' + moneyShort(after) + '</span>' : '') +
@@ -5822,15 +5845,15 @@
   function dashPnl(T, b, bp, M, sj, R, P, month) {
     var ML = monthLabel(month), btn = '<button class="btn sm pri" data-dash="opex" data-m="' + month + '">✏️ Nhập chi phí ' + ML + '</button><button class="btn sm" data-dash="kt">📎 Tải file kế toán</button><button class="btn sm" data-dash="pay">👥 Tải bảng lương</button>';
     if (!costCfg()) return { line: '⚠️ Chưa nhập giá vốn', body: '<div class="box"><p class="notice" style="margin:0">Cần giá vốn sản phẩm để tính lãi: vào <b>Cài đặt → 💰 Giá vốn sản phẩm</b>.</p></div>' };
-    var G = dashGp(b, bp, sj), ox = opexFor(R), op = opexFor(P), ads = M ? M.tot : 0, ads0 = M ? M.totp : 0, net = G.tot - ads - ox.v, net0 = G.tot0 - ads0 - op.v, cmp = !!CMP_LABEL;
+    var G = dashGp(b, bp, sj), ox = opexFor(R), op = opexFor(P), ads = M ? adsReal(M.tot) : 0, ads0 = M ? adsReal(M.totp) : 0, net = G.tot - ads - ox.v, net0 = G.tot0 - ads0 - op.v, cmp = !!CMP_LABEL;
     var c = function (v, neg) { return '<td>' + (v === null ? '–' : (neg && v ? '−' : v < 0 ? '−' : '') + moneyShort(Math.abs(v))) + '</td>'; };
     var row = function (cls, l, v, v0, neg) { return '<tr class="' + cls + '"><td>' + l + '</td>' + c(v, neg) + (cmp ? c(v0, neg) : '') + '</tr>'; };
     var names = Object.keys(ox.items).concat(Object.keys(op.items).filter(function (k) { return !(k in ox.items); })).sort(function (x, y) { return (ox.items[y] || 0) - (ox.items[x] || 0); });
     var t = '<div class="bcdt-wrap pnl-wrap"><table class="pnl-t"><thead><tr><th>Khoản</th><th>Kỳ này</th>' + (cmp ? '<th>' + esc(CMP_LABEL.replace(/^\S/, function (s) { return s.toUpperCase(); })) + '</th>' : '') + '</tr></thead><tbody>' +
       row('', '💰 Doanh số <small>(văn phòng + sàn, đã trừ hoàn / huỷ)</small>', T.net, T.netP) +
-      row('pnl-x', 'Giá vốn hàng bán, phí sàn', T.net - G.tot, T.netP - G.tot0, true) +
-      row('pnl-sub', '📈 Lãi gộp', G.tot, G.tot0) +
-      row('pnl-x', '📣 Quảng cáo <small>(tự lấy từ tab Marketing)</small>', M ? ads : null, M ? ads0 : null, true) +
+      row('pnl-x', 'Thuế VAT trong giá bán, giá vốn, phí sàn', T.net - G.tot, T.netP - G.tot0, true) +
+      row('pnl-sub', '📈 Lãi gộp <small>(trên doanh thu chưa VAT)</small>', G.tot, G.tot0) +
+      row('pnl-x', '📣 Quảng cáo <small>(tab Marketing + ' + Math.round((PL_ADS - 1) * 100) + '% thuế, phí thẻ)</small>', M ? ads : null, M ? ads0 : null, true) +
       (names.length ? names.map(function (k) { return row('pnl-x', esc(k), Math.round(ox.items[k] || 0), Math.round(op.items[k] || 0), true); }).join('') : row('pnl-x', '🏢 Chi phí văn phòng <small>(chưa nhập)</small>', 0, 0, true)) +
       row('pnl-end ' + (net < 0 ? 'bad' : 'ok'), net < 0 ? '🔴 Lỗ' : '🟢 Lãi ròng', net, net0) + '</tbody></table></div>';
     var say = !ox.has ? '⚠️ Chưa nhập chi phí văn phòng ' + ML + ' nên số dưới đây mới trừ giá vốn và quảng cáo.'
@@ -5858,7 +5881,7 @@
   }
   /* ---------- 💵 Lãi lỗ từng ngày (05/11/2026, anh Sơn + anh Hiếu): mở Tổng quan là thấy ngay hôm nay lãi / lỗ bao nhiêu, từ đầu tháng tới giờ, dự kiến cả tháng, bán bao nhiêu 1 ngày thì hoà vốn.
    * Mỗi ngày = lãi gộp (văn phòng + sàn) − quảng cáo chạy ngày đó (M.day) − chi phí cố định 1 ngày (chi phí văn phòng tháng ÷ số ngày, opexFor; tháng chưa có file kế toán → tạm lấy tháng gần nhất).
-   * Giá vốn: theo bảng giá CRM (mặc định, khớp các ô khác) hoặc theo tỷ lệ giá vốn ÷ doanh thu trong file kế toán gần nhất (nút chuyển, nhớ trên máy: dash_cogs). */
+   * Giá vốn: theo tỷ lệ giá vốn ÷ doanh thu chưa VAT trong file kế toán gần nhất (mặc định từ 20/11/2026) hoặc theo bảng giá CRM (nút chuyển, nhớ trên máy: dash_cogs = 'crm'). */
   function ktCogsRate() {
     var O = (S.d.rules && S.d.rules.opex) || {}, ks = Object.keys(O).sort().reverse();
     for (var i = 0; i < ks.length; i++) { var k = O[ks[i]] && O[ks[i]].kt; if (k && k.cogs > 0 && k.dt > 0) return { r: k.cogs / k.dt, m: ks[i] }; }
@@ -5879,21 +5902,26 @@
     return { by: by, last: last, mon: mon };
   }
   /** Chi phí 1 ngày bắt đầu lúc a: { v: tổng, fa: trung bình tháng như cũ, per: phần chia đều, act: phát sinh thật (null = tạm tính), L: các dòng Sổ chi }. */
-  function fxDay(a, P) {
-    var o = opexFor([a, a + DAY]), dk = isoDate(a), r = { v: o.v, fa: o.v, per: o.v, act: null, L: [] };
-    if (!P.mon[dk.slice(0, 7)]) return r;
+  /* 20/11/2026: khoản phát sinh không còn thay hẳn bằng Sổ chi / sao kê (T10 sao kê không có tiền mặt chi TikTok, hỗ trợ MKT… → thiếu 19,7 tr).
+   * Tháng đã có file kế toán: chia đều đủ theo file. Tháng đang chạy: phát sinh = trung bình tháng kế toán gần nhất; Sổ chi cộng dồn vượt trung bình thì phần vượt trừ đúng ngày đó (st nhớ theo tháng). */
+  function fxDay(a, P, st) {
+    var o = opexFor([a, a + DAY]), dk = isoDate(a), mk = dk.slice(0, 7), r = { a0: a, v: o.v, fa: o.v, per: o.v, act: null, L: [] };
+    if (!P.mon[mk] || ktClosed(mk)) return r;
     var per = 0; Object.keys(o.items).forEach(function (k) { if (FX_PER.test(norm(k))) per += o.items[k]; }); per = Math.round(per);
-    if (dk > P.last) { r.per = per; r.est = 1; return r; } // Sổ chi chưa ghi tới ngày này: phần phát sinh vẫn tạm tính trung bình
-    var x = P.by[dk] || { v: 0, L: [] }; r.per = per; r.act = x.v; r.L = x.L; r.v = per + x.v; return r;
+    r.per = per; r.avg = o.v - per;
+    if (dk > P.last) { r.est = 1; return r; } // Sổ chi chưa ghi tới ngày này: phần phát sinh tạm tính trung bình
+    var x = P.by[dk] || { v: 0, L: [] }, s = (st = st || {})[mk] = st[mk] || { act: 0, avg: 0, add: 0 };
+    s.act += x.v; s.avg += r.avg; var ex = Math.max(0, Math.round(s.act - s.avg - s.add)); s.add += ex;
+    r.act = x.v; r.L = x.L; r.ex = ex; r.v = o.v + ex; return r;
   }
   function dashDays(R, b, M, sj) {
     var B = trendBuckets(R); if (B.unit !== 'day' || !B.L.length) return null;
-    var BZ = trendEachMemo('biz', B, bizStats), g0 = gpOf(b), r0 = g0 ? g0.r : null, cr = sj ? sanCostRate(sj, b) : null, KR = store('dash_cogs') === 'kt' ? ktCogsRate() : null, sd = {};
+    var BZ = trendEachMemo('biz', B, bizStats), g0 = gpOf(b), r0 = g0 ? g0.r : null, cr = sj ? sanCostRate(sj, b) : null, KR = store('dash_cogs') !== 'crm' ? ktCogsRate() : null, sd = {}; // 20/11/2026: mặc định theo tỷ lệ kế toán (bảng giá CRM cộng 15% vận chuyển, kho → cao hơn kế toán ~34 tr/tháng)
     if (sj) sj.days.forEach(function (r) { (sd[r[0]] = sd[r[0]] || []).push(r); });
-    var FP = fxPlan();
+    var FP = fxPlan(), FS = {};
     return { KR: KR, FP: FP, D: B.L.map(function (L, i) {
-      var x = BZ[i], dk = isoDate(L.a), on = x.rev - x.vRev, rr = x.irv ? x.cg / x.irv : r0, oc = KR ? KR.r * on : rr === null ? 0 : rr * x.irvAll + x.cgGift;
-      var s = sanSum(sd[dk] || [], 2), sg = s.g ? sanGp(s, KR ? { r: KR.r } : cr) : null, ads = M ? M.day[dk] || 0 : 0, F = fxDay(L.a, FP), fx = F.v, gp = Math.round(on - oc + (sg ? sg.gp : 0));
+      var x = BZ[i], dk = isoDate(L.a), on = x.rev - x.vRev, ex = on - plVat(on), rr = x.irv ? x.cg / x.irv : r0, oc = KR ? KR.r * ex : rr === null ? 0 : rr * x.irvAll + x.cgGift; // KR.r = giá vốn ÷ doanh thu chưa VAT
+      var s = sanSum(sd[dk] || [], 2), sg = s.g ? sanPl(s, KR ? { r: KR.r / (1 + nsvVat() / 100) } : cr) : null, ads = M ? adsReal(M.day[dk]) : 0, F = fxDay(L.a, FP, FS), fx = F.v, gp = Math.round(ex - oc + (sg ? sg.gp : 0));
       return { a: L.a, rev: on + s.g, gp: gp, ads: Math.round(ads), fx: fx, F: F, net: Math.round(gp - ads - fx) };
     }) };
   }
@@ -5909,7 +5937,9 @@
     var be = cm > 0 && fx1 ? fx1 / cm : null, ox = opexFor(R), C = [];
     if (isT) { var nd = last.net < 0 && cm > 0 ? -last.net / cm : 0; C.push(['Hôm nay <small>(tới ' + fDateTime(Date.now()).slice(0, 5) + ')</small>', last.net, 'Bán ' + ms(last.rev) + (nd ? ' · bán thêm khoảng <b>' + ms(nd) + '</b> là hoà vốn' : last.net >= 0 && last.rev ? ' · đã qua mức hoà vốn 🎉' : '')]); }
     var cur = (p.k === 'month' || p.k === 'lmonth') ? (p.k === 'month' ? 'Từ đầu ' + ML + ' tới nay' : 'Cả ' + ML) : D.length === 1 ? fDate(D[0].a) : 'Cả kỳ đang xem';
-    if (!(isT && D.length === 1)) C.push([cur + ' <small>(' + D.length + ' ngày)</small>', net, 'Doanh số ' + ms(rev) + (rev ? ' · ' + (net < 0 ? 'lỗ ' : 'lãi ') + Math.abs(pct(net, rev)) + '% doanh số' : '')]);
+    var MRk = monthRange(month), KC = !isT && D[0].a === MRk[0] && D.length === Math.round((MRk[1] - MRk[0]) / DAY) ? ktClosed(month) : null; // trọn 1 tháng đã có file kế toán
+    if (KC) C.push(['📑 Kế toán chốt cả ' + ML, KC.profit, 'Doanh thu chưa VAT ' + ms(KC.dt) + ' · ' + (KC.profit < 0 ? 'lỗ ' : 'lãi ') + Math.abs(pct(KC.profit, KC.dt)) + '% · <b>đây là số chính</b>']);
+    if (!(isT && D.length === 1)) C.push([(KC ? 'CRM tạm tính' : cur) + ' <small>(' + D.length + ' ngày)</small>', net, 'Doanh số ' + ms(rev) + (rev ? ' · ' + (net < 0 ? 'lỗ ' : 'lãi ') + Math.abs(pct(net, rev)) + '% doanh số' : '') + (KC ? ' · lệch kế toán ' + (net - KC.profit < 0 ? '−' : '+') + ms(Math.abs(net - KC.profit)) : '')]);
     if (p.k === 'month' && full.length >= 3) {
       var MR = monthRange(month), dim = Math.round((MR[1] - MR[0]) / DAY), fc = Math.round(fCm + fCm / full.length * (dim - full.length) - fx1 * dim);
       C.push(['Dự kiến cả ' + ML, fc, 'Nếu giữ nhịp ' + full.length + ' ngày qua (bán ' + ms(fRev / full.length) + ' / ngày)']);
@@ -5921,15 +5951,16 @@
     }).join('') + '</div><div class="dpl-x"><span>' + fDate(D[0].a).slice(0, 5) + '</span><span>' + fDate(last.a).slice(0, 5) + '</span></div>';
     var nOk = D.filter(function (d) { return d.net >= 0 && d.rev; }).length, nBad = D.filter(function (d) { return d.net < 0; }).length;
     var fxCell = function (F) {
-      var t = F.act === null ? (F.est ? 'Sổ chi chưa ghi tới ngày này: tạm tính trung bình' : 'Chi phí tháng chia đều') : 'Chia đều (lương, thuê nhà, điện nước, ship…): ' + ms(F.per) + (F.L.length ? '\n' + F.L.map(function (r) { return '• ' + r[1] + (r[3] ? ' – ' + r[3] : '') + ': ' + ms(r[2]); }).join('\n') : '\nKhông có khoản phát sinh');
-      return '<td title="' + esc(t) + '">' + (F.v ? '−' : '') + ms(F.v) + (F.act ? ' <small>📒</small>' : F.est ? ' <small>~</small>' : '') + '</td>';
+      var t = F.act === null ? (F.est ? 'Sổ chi chưa ghi tới ngày này: tạm tính trung bình' : 'Chi phí tháng chia đều' + (ktClosed(isoDate(F.a0 || 0).slice(0, 7)) ? ' (đủ theo file kế toán)' : '')) : 'Chia đều (lương, thuê nhà, điện nước, ship…): ' + ms(F.per) + '\nPhát sinh trung bình 1 ngày (cả khoản trả tiền mặt): ' + ms(F.avg) + (F.ex ? '\nSổ chi vượt trung bình, trừ thêm: ' + ms(F.ex) : '') + (F.L.length ? '\nSổ chi ngày này:\n' + F.L.map(function (r) { return '• ' + r[1] + (r[3] ? ' – ' + r[3] : '') + ': ' + ms(r[2]); }).join('\n') : '');
+      return '<td title="' + esc(t) + '">' + (F.v ? '−' : '') + ms(F.v) + (F.ex ? ' <small>📒</small>' : F.est ? ' <small>~</small>' : '') + '</td>';
     };
     var acc = 0, rows = D.map(function (d) { acc += d.net; return { d: d, acc: acc }; }).reverse().map(function (x) {
       var d = x.d, c = function (v, neg) { return '<td>' + (neg && v ? '−' : v < 0 ? '−' : '') + ms(Math.abs(v)) + '</td>'; };
       return '<tr><td>' + fDate(d.a).slice(0, 5) + (d.a === td ? ' <small>đang chạy</small>' : '') + '</td>' + c(d.rev) + c(d.gp) + c(d.ads, true) + fxCell(d.F) + '<td class="' + cl(d.net) + '"><b>' + (d.net < 0 ? '−' : '') + ms(Math.abs(d.net)) + '</b></td><td class="' + cl(x.acc) + '">' + (x.acc < 0 ? '−' : '') + ms(Math.abs(x.acc)) + '</td></tr>';
     }).join('');
     var KR = ktCogsRate(), notes = [];
-    if (X.FP.last) notes.push('📒 Cột Chi phí: lương, thuê nhà, điện nước, ship… chia đều theo tháng; khoản phát sinh lấy đúng ngày trong <b>Sổ chi</b> của kế toán (đã ghi tới ' + fDate(new Date(X.FP.last + 'T12:00:00+07:00').getTime()).slice(0, 5) + '). Ngày có 📒 là có khoản phát sinh (rê chuột vào số để xem từng khoản), ngày ~ là Sổ chi chưa ghi tới nên tạm tính trung bình.');
+    notes.push('Lãi lỗ tính như kế toán: doanh số bỏ ' + oneDec(nsvVat()) + '% VAT, quảng cáo Facebook cộng ' + Math.round((PL_ADS - 1) * 100) + '% thuế + phí thẻ' + (sanFeeR() ? ', Shopee trừ phí sàn ' + Math.round(sanFeeR().r * 100) + '% doanh thu (gồm quảng cáo, tiếp thị liên kết, theo kế toán ' + monthLabel(sanFeeR().m).replace(/^tháng /, 'T') + ')' : '') + '.' + (KC ? ' Tháng đã có file kế toán thì <b>số kế toán là số chính</b>; CRM chỉ để xem ngày nào lãi, ngày nào lỗ.' : ''));
+    if (X.FP.last && !KC) notes.push('📒 Cột Chi phí: lương, thuê nhà, điện nước, ship… chia đều theo tháng; khoản phát sinh (cả khoản trả tiền mặt) tính trung bình theo file kế toán gần nhất, nếu <b>Sổ chi</b> / sao kê (đã ghi tới ' + fDate(new Date(X.FP.last + 'T12:00:00+07:00').getTime()).slice(0, 5) + ') cộng dồn vượt trung bình thì phần vượt trừ đúng ngày đó (📒). Ngày ~ là Sổ chi chưa ghi tới.');
     if (ox.est.length) notes.push('Chi phí cố định ' + ox.est.map(function (e) { return monthLabel(e[0]); }).join(', ') + ' tạm lấy theo file kế toán ' + ox.est.map(function (e) { return monthLabel(e[1]); }).join(', ') + ' (' + ms(fx1) + ' / ngày: lương, mặt bằng, điện, ship…).');
     else if (!ox.has) notes.push('⚠️ Chưa có chi phí văn phòng (lương, mặt bằng…) nên số trên mới trừ giá vốn + quảng cáo: bấm <b>📎 Tải file kế toán</b> ở mục 🧮 Lãi lỗ bên dưới.');
     if (!M) notes.push(MK.err ? '⚠️ Chưa tải được chi phí quảng cáo.' : '⏳ Đang tải chi phí quảng cáo…');
@@ -6217,9 +6248,9 @@
     var c = function (v) { return '<td>' + (v == null ? '–' : (v < 0 ? '−' : '') + moneyShort(Math.abs(v))) + '</td>'; };
     var row = function (l, a, b, cls) { return '<tr' + (cls ? ' class="' + cls + '"' : '') + '><td>' + l + '</td>' + c(a) + c(b) + '<td>' + (a != null && b != null ? (a - b < 0 ? '−' : '+') + moneyShort(Math.abs(a - b)) : '') + '</td></tr>'; };
     return '<table class="pnl-t"><thead><tr><th>' + ML + '</th><th>CRM tính</th><th>Kế toán</th><th>Lệch</th></tr></thead><tbody>' +
-      row('Doanh thu', T.net, k.dt) + row('Giá vốn (CRM gồm cả phí sàn)', T.net - G.tot, k.cogs != null ? k.cogs + ktSan : null) + row('Quảng cáo', ads, ktAds) + row('Chi phí khác', ox.v, oth) +
+      row('Doanh thu chưa VAT', Math.round(T.net - (G.vat || 0)), k.dt) + row('Giá vốn (CRM gồm cả phí sàn)', Math.round(T.net - (G.vat || 0) - G.tot), k.cogs != null ? k.cogs + ktSan : null) + row('Quảng cáo', ads, ktAds) + row('Chi phí khác', ox.v, oth) +
       row(net < 0 ? '🔴 Lỗ' : '🟢 Lãi', net, k.profit, 'pnl-end ' + (net < 0 ? 'bad' : 'ok')) + '</tbody></table>' +
-      '<p class="small muted">Vì sao lệch: kế toán ghi doanh thu <b>chưa gồm thuế GTGT</b> và theo ngày xuất hoá đơn; CRM tính giá khách trả (đã gồm thuế) theo ngày lên đơn, đã trừ đơn hoàn / huỷ. Giá vốn CRM tính theo bảng giá nhập ở Cài đặt, kế toán theo phiếu xuất kho. Quảng cáo kế toán theo tiền đã thanh toán, CRM theo chi phí chạy trong tháng.</p>';
+      '<p class="small muted">Số chốt là số kế toán. Vì sao còn lệch: kế toán ghi doanh thu theo ngày xuất hoá đơn, CRM theo ngày lên đơn (đã trừ hoàn / huỷ, đã bỏ VAT ' + oneDec(nsvVat()) + '%). Giá vốn CRM theo bảng giá nhập ở Cài đặt (cộng % chi phí nhập hàng), kế toán theo phiếu xuất kho. Quảng cáo kế toán theo hoá đơn, CRM theo chi phí chạy + ' + Math.round((PL_ADS - 1) * 100) + '%.</p>';
   }
   /* ---------- 👥 Bảng lương / tạm ứng (02/11/2026): Quản trị tải file kế toán (mỗi tab 1 tháng), CRM đọc trên máy, so từng sale với lương CRM tạm tính (chỉ hiện lúc xem trước),
    * máy chủ chỉ lưu tổng theo bộ phận (opex_cfg[tháng].pay = { kind: 'luong' | 'tu', dept: [[bộ phận, số người, tiền]], n, tot, file }). Không đọc / lưu số tài khoản. */
@@ -13593,7 +13624,7 @@
         if (a === 'finlink') { finLinkEdit(); return; }
         if (a === 'finsync') { finSyncC(false); return; }
         if (a === 'fintest') { el.disabled = true; api('fin_test', {}).then(function () { toast('📲 Đã gửi, mở Telegram để xem'); }, function (e) { toast(e.message, true); }).then(function () { el.disabled = false; }); return; }
-        if (a === 'cogs') { store('dash_cogs', store('dash_cogs') === 'kt' ? '' : 'kt'); render(); return; }
+        if (a === 'cogs') { store('dash_cogs', store('dash_cogs') === 'crm' ? 'kt' : 'crm'); render(); return; }
         if (a === 'sfb') { f.sfb = f.sfb === false; store('dash_sfb', f.sfb ? '1' : '0'); render(); return; }
         if (a === 'fresh') { delete MK.cache[key]; MK.err = ''; delete GA.cache[key]; GA.err = ''; GA.busy = ''; gaFetch(key, true); render(); return; }
         if (a === 'cftok' || a === 'cfacct' || a === 'cfsite' || a === 'cfoff') { // Cloudflare Web Analytics (cfwSetupBox)
