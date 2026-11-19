@@ -14600,6 +14600,24 @@
     var called = cs.ok + cs.knm, w = Object.keys(won).length;
     return { cD: r.close, cM: T.close, oldWon: w, oldPct: cs.ok ? pct(w, cs.ok) : null, conn: called ? pct(cs.ok, called) : null, called: called, n: n, aov: n ? Math.round(rev / n) : 0 };
   }
+  /** 19/11/2026 (anh Sơn): gom lý do từ chối (sale gõ tự do) thành nhóm để quản lý thấy ngay khách hay từ chối vì gì. 1 lý do có thể thuộc nhiều nhóm. */
+  var WHY_GRP = [
+    ['📦 Còn hàng', /còn nhiều|vẫn còn|chưa hết|còn (hàng|thuốc|sp|sản phẩm|lm|lọ|hộp|gói|\d)/i],
+    ['🚫 Không dùng nữa / chán', /(không|k|ko|hông) dùng nữa|chán|ngừng|dừng dùng|bỏ dùng/i],
+    ['😕 Chê sản phẩm / chưa thấy hiệu quả', /chê|(không|k|ko|chưa) (thấy )?hiệu quả|chưa thấy (gì|đỡ|tác dụng)|không hợp|ko hợp/i],
+    ['🔀 Dùng hãng khác', /\bsa?n?g\b.*(bên|hãng|loại|sp|gafo)|chuyển sang|đổi sang|bên khác|hãng khác|chỗ khác|nơi khác|tv sag|tv sang/i],
+    ['💸 Giá / tài chính', /đắt|giá cao|(chưa|không|ko|hết) (có )?tiền|kinh tế|tài chính/i],
+    ['✈️ Đi vắng / chưa tiện', /nước ngoài|đi xa|đi vắng|vắng nhà|về quê|đang bận|nằm viện/i],
+    ['🕯 Người dùng đã mất', /đã mất|qua đời|mất (r|rồi)\b/i],
+    ['📅 Hẹn gọi lại', /hẹn|gọi lại/i]
+  ];
+  function whyGroups(list) {
+    var n = {}, other = 0;
+    list.forEach(function (w) { var hit = 0; WHY_GRP.forEach(function (g) { if (g[1].test(w)) { n[g[0]] = (n[g[0]] || 0) + 1; hit = 1; } }); if (!hit) other++; });
+    var out = WHY_GRP.filter(function (g) { return n[g[0]]; }).map(function (g) { return [g[0], n[g[0]]]; }).sort(function (a, b) { return b[1] - a[1]; });
+    if (other) out.push(['💬 Khác', other]); return out;
+  }
+  function whyGrpTxt(list) { return whyGroups(list).map(function (g) { return g[0] + ' ' + g[1]; }).join(' · '); }
   function dyRate(c) { return c && c.data ? c.won + '/' + c.data + ' · ' + c.pct + '%' : ''; }
   function dailyText(name, day) {
     var month = monthOf(day), d = bcdtData(name, month), R = monthRange(month), r = d.rows[Math.floor((dayStart(day) - R[0]) / DAY)] || d.rows[0];
@@ -14627,7 +14645,7 @@
     var ef = effortStats(name, dayStart(day), dayStart(day) + DAY);
     lines.push('🌱 Mở rộng khách: ' + ef.tot + ' việc (mời giới thiệu ' + ef.inv + ' · mời nhóm Zalo ' + ef.zl + ' · gọi lại khách cũ ' + ef.old + ' · khách tự tạo ' + ef.self + ' · nhận từ Kho ' + ef.pool + ' · bài Facebook ' + ef.fb + ') · hẹn gọi lại ' + ef.cb);
     effortCheer(name, day).forEach(function (t) { lines.push(t); });
-    lines.push('Lý do từ chối:' + (cs.why.length ? '' : ' –')); cs.why.slice(0, 12).forEach(function (w) { lines.push('- ' + w); });
+    lines.push('Lý do từ chối:' + (cs.why.length ? '' : ' –')); if (cs.why.length) lines.push('📊 ' + whyGrpTxt(cs.why)); cs.why.slice(0, 12).forEach(function (w) { lines.push('- ' + w); });
     var T = d.tot, mrev = sum(T.newR) + sum(T.oldR), tg = name ? targetOf(name, month) : null;
     if (tg && tg.amount) lines.push('', '📈 Luỹ kế ' + monthLabel(month) + ': đạt ' + pct(mrev, tg.amount) + '% mục tiêu'); // không ghi số tiền luỹ kế: sale ngại gửi vào nhóm chung (anh Sơn 31/10/2026), giống bảng thi đua
     return lines.join('\n');
@@ -14706,10 +14724,12 @@
     var img = name === null ? { head: ['Sale'].concat(cols.map(function (c) { return c[0] ? c[0] + ' · ' + c[1] : c[1]; })), sum: cols.map(function (c) { return !!c[4]; }), rows: ents.map(function (e, i) { return { c: [e.t].concat(cols.map(function (c) { return String(fv(c, e)); })), b: !i, z: i && !cols.some(function (c) { return c[2](e); }) }; }) }
       : { head: ['Chỉ số', name], rows: cols.map(function (c) { return { c: [c[0] ? c[0] + ' · ' + c[1] : c[1], String(fv(c, ents[0]) || '0')], b: !!c[4] }; }) };
     img.title = '📋 BÁO CÁO NGÀY ' + fDate(day) + ' – ' + (name || 'Cả nhóm');
-    img.why = []; ents.forEach(function (e, i) { if (name === null && !i) return; e.cs.why.slice(0, 12).forEach(function (w) { img.why.push((name === null ? e.t + ': ' : '') + w); }); });
+    var whyRaw = []; ents.forEach(function (e, i) { if (name === null && !i) return; whyRaw = whyRaw.concat(e.cs.why); });
+    var wg = whyGroups(whyRaw);
+    img.why = wg.length ? ['📊 Gom nhóm: ' + wg.map(function (g) { return g[0] + ' ' + g[1]; }).join(' · ')] : []; ents.forEach(function (e, i) { if (name === null && !i) return; e.cs.why.slice(0, 12).forEach(function (w) { img.why.push((name === null ? e.t + ': ' : '') + w); }); });
     var cheer = effortCheer(name, day); img.cheer = cheer;
     return { img: img, html: (cheer.length ? '<div class="notice info" style="margin:0 0 10px">' + esc(cheer[0]) + '</div>' : '') + '<div class="bcdt-wrap">' + h + '</div>' + (name === null ? '<p class="small muted" style="margin:6px 0 0">Mỗi sale 1 dòng, xếp theo doanh thu trong ngày. Dòng mờ = chưa có đơn / chưa ghi chăm sóc. Số mới = số quảng cáo vào trong ngày. Cột cả ngày bằng 0 được ẩn cho gọn.</p>' : '') + ('<p class="small muted" style="margin:6px 0 0">Tỷ lệ chốt = data quảng cáo đã ra đơn ÷ data quảng cáo nhận (hôm nay / cả tháng). Ra đơn trong ngày = khách cũ gọi kết nối hôm nay đã lên đơn trong ngày. % gọi được = kết nối ÷ số khách đã gọi.</p>') +
-      '<h3 style="margin:12px 0 6px">💬 Lý do khách từ chối</h3>' + (why.length ? '<ul class="dy-why">' + why.map(function (w) { return '<li>' + w + '</li>'; }).join('') + '</ul>' : '<p class="small muted" style="margin:0">Chưa có.</p>'), csv: csv };
+      '<h3 style="margin:12px 0 6px">💬 Lý do khách từ chối</h3>' + (wg.length ? '<div class="dy-whyg">' + wg.map(function (g) { return '<span>' + esc(g[0]) + ' <b>' + g[1] + '</b></span>'; }).join('') + '</div>' : '') + (why.length ? '<ul class="dy-why">' + why.map(function (w) { return '<li>' + w + '</li>'; }).join('') + '</ul>' : '<p class="small muted" style="margin:0">Chưa có.</p>'), csv: csv };
   }
   /** Vẽ bảng báo cáo ngày thành ảnh PNG (canvas, không cần thư viện) để dán / chia sẻ vào Zalo. */
   function dyImg(sp) {
@@ -14724,7 +14744,7 @@
     });
     var tblW = cw.reduce(function (a, b) { return a + b; }, 0), W = Math.max(tblW, 460) + pad * 2;
     var hl = sp.head.map(function (hd, i) { return wrap(hd, cw[i] - cp * 2, true, 14); }), hH = Math.max.apply(null, hl.map(function (l) { return l.length; })) * 18 + 14, rH = lh + 12;
-    var why = []; (sp.why || []).forEach(function (w) { wrap('• ' + w, W - pad * 2, false).forEach(function (l) { why.push(l); }); });
+    var why = []; (sp.why || []).forEach(function (w) { wrap((/^📊/.test(w) ? '' : '• ') + w, W - pad * 2, false).forEach(function (l) { why.push(l); }); });
     var chl = []; (sp.cheer || []).forEach(function (w) { wrap(w, W - pad * 2, true, 15).forEach(function (l) { chl.push(l); }); }); // 🌟 ghi nhận công sức (13/11/2026)
     var tl = wrap(sp.title, W - pad * 2, true, 19), H = pad + tl.length * 26 + 10 + (chl.length ? chl.length * lh + 10 : 0) + hH + sp.rows.length * rH + (why.length ? 16 + lh + why.length * lh : 0) + 30 + pad;
     cv.width = W * SC; cv.height = H * SC; x.scale(SC, SC); x.textBaseline = 'middle';
