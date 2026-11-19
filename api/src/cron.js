@@ -32,6 +32,7 @@ import { pmTick } from './phongai.js';
 import { gvTick, gvMorning } from './giaoviec.js';
 import { hrTick } from './hr.js';
 import { snhTick } from './sinhnhat.js'; // 🎂 ngày 25 + trước 3 ngày
+import { dutyTick } from './salemkt.js'; // 🌙 nhắc người trực số tối / CN / lễ
 import { nccDriveTick } from './ncc.js'; // ☁️ thứ Hai chép chứng từ nhà cung cấp lên Drive
 
 function careMessage(items, leads, today, isGroup, who, R) {
@@ -175,6 +176,7 @@ export async function scheduled(x, cron) {
     const L = await kvJson(x.db, 'kt_link', null);
     if (L && L.link && now - (L.last || 0) > 3 * 3600e3 && now - (L.errAt || 0) > 3 * 3600e3) { try { await finSync(x); } catch (e) { console.error('finSync', e.message); } }
   }
+  try { await dutyTick(x, telegramUser); } catch (e) { console.error('dutyTick', e.message); }
   const ads = await adsCfg(x);
   if (ads && ads.auto) { try { await adsSync(x, { name: 'Tự động', level: 3 }, false); } catch (e) { console.error('ads', e.message); } }
   const lastAuto = Number(await kvGet(x.db, 'auto_tick_last') || 0);

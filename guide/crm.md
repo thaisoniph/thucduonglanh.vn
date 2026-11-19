@@ -185,7 +185,7 @@ Mở tab **Hôm nay** là thấy ngay thẻ **🎯 Hôm nay bạn cần bán** (
 - 🟠 **Nhóm B** (từ 1,2đ): nhận **2 số**. Người mới (chưa đủ 15 số) cũng ở nhóm B.
 - 🔴 **Nhóm C** (dưới 1,2đ): nhận **1 số**. Lúc ít số thì chăm khách cũ, nhận Kho chung, xin khách giới thiệu. Bán tốt hơn thì tuần sau tự lên nhóm.
 
-Khung 💸 ghi rõ bạn đang ở nhóm nào và cần bao nhiêu để lên nhóm. Tối (từ giờ ca tối), Chủ nhật và ngày lễ: số mới chỉ chia cho bạn trực hôm đó. Số mới về thì Telegram báo bạn "🙋 số quảng cáo mới", tên bạn cũng tự hiện ở cột Sale trong file.
+Khung 💸 ghi rõ bạn đang ở nhóm nào và cần bao nhiêu để lên nhóm. Tối (từ giờ ca tối), Chủ nhật và ngày lễ: số mới chỉ chia cho bạn trực hôm đó. Ca trực của bạn 7 ngày tới hiện ở dòng **🌙 Ca trực số của bạn** đầu tab Hôm nay (xem cả lịch ở **Thêm → 🗓 Lịch trực số quảng cáo**), Telegram nhắc lúc vào ca. Số mới về thì Telegram báo bạn "🙋 số quảng cáo mới", tên bạn cũng tự hiện ở cột Sale trong file.
 
 ### 📦 Kho hôm nay: nên tư vấn sản phẩm gì?
 

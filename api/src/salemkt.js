@@ -115,21 +115,56 @@ export async function crmAdsTier(x, u, d) {
   const ca = await caCfg(x);
   return { ok: true, duty: ((await kvJson(x.db, 'ads_duty', null)) || {}).names || [], caNow: caOf(Date.now(), ca), evening: ca.evening || '17:30', t: await adsTier(x, !!d.force && u.level >= 3), W: TIER, sp: TIER_SP, minN: TIER_MINN, mode: cfg.mode || 'staff', today: w.cnt || {}, day: w.day || '' };
 }
-/** 🌙 19/11/2026 (anh Sơn): tối / Chủ nhật / lễ (theo Cài đặt → Ca làm việc) CRM chỉ chia số quảng cáo cho người trực (kv ads_duty { names }).
- *  Chưa chọn ai thì chia như ban ngày. Trả { ca, pool }: pool = danh sách được chia lúc này. */
+/* 🌙 Lịch trực số quảng cáo (19/11/2026, anh Sơn): tối (từ giờ ca tối) / Chủ nhật / ngày lễ CRM chỉ chia số cho người trực ca đó.
+ * kv ads_duty = { week: { '0'..'6': [tên] } (lịch cố định mỗi tuần, 0 = Chủ nhật), days: { 'YYYY-MM-DD': [tên] } (sửa riêng 1 ngày, [] = không ai),
+ *   boss: tên người phụ trách chia số (xếp lịch, nhặt số ban ngày, nhận nhắc), names: [] (bản đầu, chỉ còn để đọc lại) }. */
+const vnKey = t => isoVN(t), vnDow = t => new Date(t + 7 * 3600e3).getUTCDay();
+export async function dutyCfg(x) { const D = (await kvJson(x.db, 'ads_duty', null)) || {}; D.week = D.week || {}; D.days = D.days || {}; return D; }
+/** Người trực của 1 ngày (theo ngày sửa riêng → lịch tuần → bản đầu). */
+export function dutyOn(D, t) { const k = vnKey(t); if (Array.isArray(D.days[k])) return D.days[k]; const w = D.week[String(vnDow(t))]; return Array.isArray(w) ? w : (D.names || []); }
+/** Trả { ca, pool }: pool = danh sách được chia lúc này. Ban ngày hoặc ca chưa xếp ai → pool như cũ. */
 export async function adsDutyPool(x, pool, users) {
   const ca = caOf(Date.now(), await caCfg(x)); if (ca === 'Ngày') return { ca, pool };
-  const D = (await kvJson(x.db, 'ads_duty', null)) || {}, act = new Set(users.filter(y => y.active).map(y => y.name));
-  const duty = (D.names || []).filter(n => act.has(n));
+  const act = new Set(users.filter(y => y.active).map(y => y.name)), duty = dutyOn(await dutyCfg(x), Date.now()).filter(n => act.has(n));
   return { ca, pool: duty.length ? duty : pool, duty: duty.length > 0 };
 }
-/** Lệnh 'ads_duty_set' { names: [] }: Quản trị chọn người trực tối / Chủ nhật / lễ. */
-export async function crmAdsDutySet(x, u, d) {
-  if (u.level < 3) return { ok: false, error: 'Chỉ Quản trị.' };
-  const names = (Array.isArray(d.names) ? d.names : []).map(n => String(n).trim()).filter(Boolean).slice(0, 10);
-  await kvSet(x.db, 'ads_duty', JSON.stringify({ names, at: Date.now(), by: u.name }));
-  return { ok: true, names };
+const canDuty = (u, D) => u.level >= 2 || (D.boss && D.boss === u.name);
+const cleanNames = a => (Array.isArray(a) ? a : []).map(n => String(n).trim()).filter(Boolean).slice(0, 10);
+/** Lệnh 'ads_duty_get': ai cũng xem được lịch (sale thấy ca của mình), sửa: Quản lý / Quản trị / người phụ trách. */
+export async function crmAdsDutyGet(x, u) {
+  const D = await dutyCfg(x), ca = await caCfg(x);
+  return { ok: true, week: D.week, days: D.days, boss: D.boss || '', names: D.names || [], at: D.at || 0, by: D.by || '', canEdit: canDuty(u, D), canBoss: u.level >= 2,
+    evening: ca.evening || '17:30', holidays: ca.holidays || ['01/01', '30/04', '01/05', '02/09'], caNow: caOf(Date.now(), ca), today: vnKey(Date.now()) };
 }
+/** Lệnh 'ads_duty_set' { week?, days?, boss? }: lưu lịch trực. days chỉ giữ từ hôm nay trở đi. */
+export async function crmAdsDutySet(x, u, d) {
+  const D = await dutyCfg(x); if (!canDuty(u, D)) return { ok: false, error: 'Chỉ Quản lý, Quản trị hoặc người phụ trách chia số.' };
+  if (d.week && typeof d.week === 'object') { const w = {}; for (let i = 0; i < 7; i++) w[i] = cleanNames(d.week[i]); D.week = w; delete D.names; }
+  if (d.days && typeof d.days === 'object') { const today = vnKey(Date.now()), o = {}; Object.keys(d.days).filter(k => /^\d{4}-\d{2}-\d{2}$/.test(k) && k >= today).slice(0, 120).forEach(k => { o[k] = cleanNames(d.days[k]); }); D.days = o; }
+  if ('boss' in d) { if (u.level < 2) return { ok: false, error: 'Chỉ Quản lý, Quản trị giao người phụ trách.' }; D.boss = String(d.boss || '').trim().slice(0, 60); }
+  D.at = Date.now(); D.by = u.name;
+  await kvSet(x.db, 'ads_duty', JSON.stringify(D));
+  return { ok: true };
+}
+/** Cron 10 phút: 🌙 nhắc người trực lúc vào ca (tối: giờ ca tối; Chủ nhật / lễ: 8h), 📅 thứ Sáu 9h nhắc người phụ trách nếu 7 ngày tới còn ca trống. */
+export async function dutyTick(x, send) {
+  const now = Date.now(), vn = new Date(now + 7 * 3600e3), hm = vn.getUTCHours() * 60 + vn.getUTCMinutes(), ca = await caCfg(x), D = await dutyCfg(x);
+  const ev = String(ca.evening || '17:30').split(':'), evM = (+ev[0]) * 60 + (+ev[1] || 0), allDay = caOf(Date.UTC(vn.getUTCFullYear(), vn.getUTCMonth(), vn.getUTCDate(), 3), ca) !== 'Ngày'; // 10h sáng hôm nay đã là ca Tối/CN/Lễ → cả ngày
+  const start = allDay ? 8 * 60 : evM, k = 'duty_tg_' + vnKey(now);
+  if (hm >= start && hm < start + 30 && !(await kvGet(x.db, k))) {
+    await kvSet(x.db, k, '1', 2 * DAY);
+    const who = dutyOn(D, now), lbl = allDay ? (vn.getUTCDay() === 0 ? 'Chủ nhật hôm nay' : 'Ngày lễ hôm nay') : 'Tối nay (từ ' + (ca.evening || '17:30') + ')';
+    for (const n of who) await send(x, n, '🌙 <b>' + lbl + ' bạn trực số quảng cáo</b>\nNhặt số khách nhắn page vào file (để trống ô Sale). CRM sẽ chia số ca này cho ' + (who.length > 1 ? 'các bạn trực: ' + who.join(', ') : 'bạn') + '.\nGọi số mới ngay khi Telegram báo nhé 💚');
+    if (!who.length && D.boss) await send(x, D.boss, '⚠️ <b>' + lbl + ' chưa xếp ai trực số quảng cáo</b> → CRM đang chia cho mọi người. Mở CRM → 🗓 Lịch trực số để xếp.');
+  }
+  const kb = 'duty_wk_' + vnKey(now);
+  if (D.boss && vn.getUTCDay() === 5 && hm >= 9 * 60 && hm < 9 * 60 + 30 && !(await kvGet(x.db, kb))) {
+    await kvSet(x.db, kb, '1', 2 * DAY);
+    const empty = []; for (let i = 1; i <= 7; i++) { const t = now + i * DAY; if (!dutyOn(D, t).length) empty.push(dutyLbl(t, ca)); }
+    if (empty.length) await send(x, D.boss, '📅 <b>Lịch trực số 7 ngày tới còn ' + empty.length + ' ca trống</b>: ' + empty.join(', ') + '\nCa trống thì CRM chia cho mọi người. Mở CRM → 🗓 Lịch trực số để xếp.');
+  }
+}
+function dutyLbl(t, ca) { const d = new Date(t + 7 * 3600e3), dm = d.getUTCDate() + '/' + (d.getUTCMonth() + 1), w = d.getUTCDay(); return (w === 0 ? 'CN ' : 'Tối T' + (w + 1) + ' ') + dm; }
 /** Nhóm của 1 người (không có số liệu → B). */
 export function tierOf(t, name) { return (t && t.people && t.people[name]) || { g: 'B', nw: true }; }
 

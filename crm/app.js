@@ -948,6 +948,7 @@
       group('Khác',
         vrow(VIEWS.filter(function (v) { return v.id === 'cai-dat'; })[0]) +
         row('<a class="mr-row" href="/huong-dan/' + (isMkt() ? 'marketing' : isKho() ? 'kho' : isKt() ? 'ke-toan' : 'crm') + '/" target="_blank" rel="noopener">', I.help, '#30b0c7', 'Hướng dẫn sử dụng', 'Cách dùng từng màn hình, có hình', 0) + '</a>' +
+        row('<button type="button" class="mr-row" data-mr="duty">', '🗓', '#1f5fa8', 'Lịch trực số quảng cáo', 'Ai trực tối, Chủ nhật, ngày lễ', 0) + '</button>' +
         (htForms().pf ? row('<button type="button" class="mr-row" data-mr="pf">', '📝', '#3a7bd5', 'Thông tin của tôi', 'Cập nhật để công ty hỗ trợ, chăm sóc bạn', 0) + '</button>' : '') +
         (htForms().ht ? row('<button type="button" class="mr-row" data-mr="ht">', '🤝', '#2f7d5b', 'Hiểu & Thương của tôi', '9 câu để đội hiểu bạn, ghép Đệ nhị thân', 0) + '</button>' : '') +
         row('<button type="button" class="mr-row" data-mr="fb">', '💡', '#ffcc00', 'Góp ý', 'Báo lỗi, chỗ khó dùng, ý tưởng', lvl() >= 2 ? S.d.fbNew : 0) + '</button>' +
@@ -986,13 +987,14 @@
       group('④ Công cụ & trợ giúp',
         pick(['hoi-so-lieu']) +
         row('<a class="mr-row" href="/huong-dan/crm/" target="_blank" rel="noopener">', I.help, '#30b0c7', 'Hướng dẫn sử dụng', 'Từng bước làm, có hình minh hoạ', 0) + '</a>' +
+        row('<button type="button" class="mr-row" data-mr="duty">', '🗓', '#1f5fa8', 'Lịch trực số quảng cáo', 'Ai trực tối, Chủ nhật, ngày lễ', 0) + '</button>' +
         vrow(VIEWS.filter(function (v) { return v.id === 'cai-dat'; })[0]) +
         (fb ? '' : row('<button type="button" class="mr-row" data-mr="fb">', '💡', '#ffcc00', 'Góp ý', 'Báo lỗi, chỗ khó dùng, ý tưởng', 0) + '</button>') +
         '<details class="mr-fold"><summary>Công cụ ít dùng</summary>' + more + '</details>');
   }
   function bindMore() {
     $$('[data-mr]').forEach(function (b) {
-      b.onclick = function () { var k = b.getAttribute('data-mr'); if (k === 'search') openGlobalSearch(); else if (k === 'ht') openHtForm(); else if (k === 'pf') openPfForm(); else if (k === 'fb') openFeedback(); else if (k === 'inst') openInstall(); else if (k === 'use') openUsage(null); else { load(); toast('Đang tải lại dữ liệu…'); } };
+      b.onclick = function () { var k = b.getAttribute('data-mr'); if (k === 'search') openGlobalSearch(); else if (k === 'duty') openDuty(); else if (k === 'ht') openHtForm(); else if (k === 'pf') openPfForm(); else if (k === 'fb') openFeedback(); else if (k === 'inst') openInstall(); else if (k === 'use') openUsage(null); else { load(); toast('Đang tải lại dữ liệu…'); } };
     });
   }
   function meHTML() { return '<b>' + esc(S.user.name) + '</b>'; } // chỉ tên: mỗi người là chủ công việc của mình
@@ -1948,6 +1950,7 @@
     // 16/11/2026 anh Sơn: không hiện "còn 81 việc" + danh sách dài nữa. Màn chính = khung giờ đang làm + lượt 5 khách (tdsHero/tdsBatch).
     var h = tdsHero(items, q, growOn, gn);
     var meU = (S.d.users || []).filter(function (u) { return u.name === S.user.name; })[0]; if (S.user.role === 'Sale & CSKH' && !(meU && meU.ctv) && !isMkt()) { h += todayMust(); S.tdmOn = 1; } else S.tdmOn = 0; // 🎯 hôm nay cần bán (19/11/2026)
+    h += dutyMine(); // 🌙 ca trực số của bạn
     h += '<section class="section tds-more">' + (S.tdmOn ? '' : todayGoalLine()) + '<div class="td-jump"><button type="button" data-gopen="tdgoal"' + raceHeroAttr() + '>' + raceHero() + '</button>' + (growOn ? '<button type="button" data-gopen="grow">🌱 Mở rộng khách ' + gn + '/5 ›</button>' : '') + '</div></section>';
     var TOP = h; h = ''; // 19/11/2026: chào + nút gọi + dòng thi đua giữ trên cùng, phần dưới chia thẻ (TD_SG)
     var S_ZALO = zsMineBlock(); // 💬 Zalo của tôi: khách chờ trả lời, khách muốn mua (17/11/2026)
@@ -14409,22 +14412,87 @@
       '<p class="small muted" style="margin:8px 0 0">Xếp nhóm theo số quảng cáo từ ' + esc(fDate(new Date(T.from + 'T00:00:00+07:00').getTime())) + ' tới ' + esc(fDate(new Date(T.to + 'T00:00:00+07:00').getTime())) + ', tự xếp lại 7 ngày / lần (lần này ' + when(T.at) + '). 🟢 A: 1đ quảng cáo mang về từ ' + oneDec(W.A.min) + 'đ (gần hoặc qua mức khoảng 2đ là đủ bù quảng cáo sau tiền hàng, ship, thuế, hoa hồng) · 🟠 B: từ ' + oneDec(W.B.min) + 'đ · 🔴 C: dưới ' + oneDec(W.B.min) + 'đ. Cột Gọi trong ngày để quản lý nhắc nhở (gọi mà không ghi CRM thì không được tính). Người mới (dưới ' + j.minN + ' số) để nhóm B. Tắt <b>Nhận khách mới</b> ở Nhân sự thì không nhận số.</p>' +
       (lvl() >= 3 ? '<button class="btn" data-retier style="margin-top:8px">↻ Xếp lại ngay</button>' : '') + adsDutyBox(j) + '</div>';
   }
-  /* 🌙 19/11/2026: tối (từ giờ ca tối) / Chủ nhật / ngày lễ CRM chỉ chia số cho người trực (lệnh ads_duty_set, kv ads_duty). */
-  function adsDutyBox(j) {
-    var duty = j.duty || [], act = (S.d.users || []).filter(function (u) { return u.active !== false; }).map(function (u) { return u.name; });
-    var now = j.caNow === 'Ngày' ? '☀️ Bây giờ là giờ hành chính: chia theo nhóm cho mọi người nhận số.' : '🌙 Bây giờ là ' + (j.caNow === 'Lễ' ? 'ngày lễ' : 'tối / Chủ nhật') + ': ' + (duty.length ? 'chỉ chia cho ' + esc(duty.join(', ')) + '.' : 'chưa chọn người trực nên vẫn chia cho mọi người.');
-    return '<div class="adt-duty" style="margin-top:14px;padding-top:12px;border-top:1px solid var(--line)"><h4 style="margin:0 0 6px">🌙 Người trực tối / Chủ nhật / ngày lễ</h4>' +
-      '<p class="hint" style="margin:0 0 8px">Từ <b>' + esc(j.evening || '17:30') + '</b> tối, cả ngày Chủ nhật và ngày lễ (giờ lấy ở Cài đặt → <b>🕘 Ca tối & ngày lễ</b>), số quảng cáo mới <b>chỉ chia cho người được tích</b>. Tích nhiều người thì chia lần lượt. Không tích ai thì chia cho mọi người như ban ngày. Khách cũ vẫn về sale cũ.</p>' +
-      '<p class="small" style="margin:0 0 8px">' + now + '</p>' +
-      (lvl() >= 3 ? '<div class="steps" style="flex-wrap:wrap">' + act.map(function (n) { return '<label style="display:inline-flex;align-items:center;gap:4px;margin:0 14px 6px 0"><input type="checkbox" data-duty value="' + esc(n) + '"' + (duty.indexOf(n) >= 0 ? ' checked' : '') + '> ' + esc(n) + '</label>'; }).join('') + '</div>' +
-        '<button class="btn pri" data-dutysave style="margin-top:8px">Lưu người trực</button>' : '<p class="small muted">Người trực: ' + esc(duty.join(', ') || 'chưa chọn') + '</p>') + '</div>';
+  /* 🗓 Lịch trực số quảng cáo (19/11/2026, anh Sơn): tối / Chủ nhật / ngày lễ CRM chỉ chia số cho người trực ca đó.
+   * Lịch cố định mỗi tuần + 4 tuần tới sửa riêng từng ngày; chỉ hiện sale nhận số (coSales). Máy chủ: salemkt.js ads_duty_get / ads_duty_set, kv ads_duty. */
+  var DUTY_COL = ['#1f7a4b', '#1f5fa8', '#9a4d00', '#7b3fa0', '#b02a5b', '#2a7f86', '#6b6b1f'];
+  var DOW_VN = ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
+  function dutyLoad(cb) { api('ads_duty_get', {}).then(function (j) { j.at0 = Date.now(); S.dty = j; if (cb) cb(); }, function (e) { if (cb) toast(e.message, true); }); }
+  function dutySales() { var a = coSales(), d = S.dty || {}; [].concat.apply([], [Object.keys(d.week || {}).map(function (k) { return d.week[k]; }), Object.keys(d.days || {}).map(function (k) { return d.days[k]; })]).forEach(function (l) { (l || []).forEach(function (n) { if (a.indexOf(n) < 0 && (S.d.users || []).some(function (u) { return u.name === n && u.active !== false; })) a.push(n); }); }); return a; }
+  function dutyShort(n, all) { var w = n.trim().split(/\s+/), l = w[w.length - 1]; return all.filter(function (m) { return m !== n && m.trim().split(/\s+/).pop() === l; }).length ? w.slice(-2).join(' ') : l; }
+  function dKey(t) { var d = new Date(t + 7 * 3600e3); return d.toISOString().slice(0, 10); }
+  function dutyWeekOf(d, dow) { var w = d.week || {}; return Array.isArray(w[dow]) ? w[dow] : (d.names || []); }
+  function dutyOnKey(d, k, dow) { return Array.isArray((d.days || {})[k]) ? d.days[k] : dutyWeekOf(d, dow); }
+  /** Các ca 28 ngày tới: tối T2–T7, cả ngày CN, cả ngày lễ. */
+  function dutySlots(d, n) {
+    var out = [], t0 = new Date(dKey(Date.now()) + 'T12:00:00+07:00').getTime();
+    for (var i = 0; i < (n || 28); i++) { var t = t0 + i * DAY, k = dKey(t), dt = new Date(t + 7 * 3600e3), dow = dt.getUTCDay(), dm = ('0' + dt.getUTCDate()).slice(-2) + '/' + ('0' + (dt.getUTCMonth() + 1)).slice(-2), hol = (d.holidays || []).indexOf(dm) >= 0;
+      out.push({ k: k, dow: dow, dm: dm, hol: hol, all: hol || dow === 0, own: Array.isArray((d.days || {})[k]), who: dutyOnKey(d, k, dow), t: t }); }
+    return out;
   }
-  document.addEventListener('click', function (e) {
-    var b = e.target.closest && e.target.closest('[data-dutysave]'); if (!b) return; b.disabled = true;
-    var names = [].slice.call(document.querySelectorAll('[data-duty]:checked')).map(function (c) { return c.value; });
-    api('ads_duty_set', { names: names }).then(function () { toast(names.length ? 'Tối / Chủ nhật / lễ chỉ chia cho ' + names.join(', ') + ' ✓' : 'Đã bỏ người trực: tối / Chủ nhật chia cho mọi người ✓'); S.adt = null; tierLoad(); }, function (e) { toast(e.message, true); b.disabled = false; });
-  });
-  document.addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('[data-retier]'); if (!b) return; b.disabled = true; tierLoad(true); });
+  function dutyChips(list, on, attr, edit, all) {
+    return '<div class="dty-ch">' + list.map(function (n, i) { var c = DUTY_COL[i % DUTY_COL.length], o = on.indexOf(n) >= 0;
+      return '<button type="button" class="dty-c' + (o ? ' on' : '') + '" ' + attr + ' data-n="' + esc(n) + '" title="' + esc(n) + '" style="--c:' + c + '"' + (edit ? '' : ' disabled') + '>' + (o ? '✓ ' : '') + esc(dutyShort(n, all)) + '</button>'; }).join('') + '</div>';
+  }
+  function dutyBody() {
+    var d = S.dty, list = dutySales(), ed = d.canEdit, slots = dutySlots(d), cnt = {}; list.forEach(function (n) { cnt[n] = 0; });
+    slots.forEach(function (s) { s.who.forEach(function (n) { cnt[n] = (cnt[n] || 0) + 1; }); });
+    var users = (S.d.users || []).filter(function (u) { return u.active !== false; });
+    var h = '<p class="hint" style="margin:0 0 10px">Từ <b>' + esc(d.evening) + '</b> tối thứ 2 – thứ 7, cả ngày <b>Chủ nhật</b> và <b>ngày lễ</b>: người trực nhặt số khách nhắn page vào file, CRM <b>chỉ chia số ca đó cho người trực</b> (2 người thì chia lần lượt). Ca để trống thì CRM chia cho mọi người như ban ngày. Khách cũ vẫn về sale cũ. Người trực được Telegram nhắc lúc vào ca.</p>';
+    h += '<div class="dty-sec"><h3>👤 Người phụ trách chia số</h3><p class="small muted" style="margin:0 0 6px">Người này xếp lịch trực bên dưới, nhặt số ban ngày vào file, được Telegram nhắc khi tuần sau còn ca trống (thứ 6, 9h) và khi tối nay chưa ai trực.</p>' +
+      (d.canBoss ? '<select id="dtyBoss"><option value="">– Chưa giao (sale cùng trực page, tự nhặt số như hiện nay) –</option>' + users.map(function (u) { return '<option' + (u.name === d.boss ? ' selected' : '') + '>' + esc(u.name) + '</option>'; }).join('') + '</select>' : '<p><b>' + esc(d.boss || 'Chưa giao') + '</b></p>') + '</div>';
+    h += '<div class="dty-sec"><h3>🔁 Lịch cố định mỗi tuần</h3><p class="small muted" style="margin:0 0 6px">Xếp 1 lần, các tuần sau tự lặp lại. Tuần nào khác thì sửa riêng ngày đó ở phần 📅 bên dưới.</p><table class="dty-tb">' +
+      [1, 2, 3, 4, 5, 6, 0].map(function (w) { var on = dutyWeekOf(d, w); return '<tr><th>' + DOW_VN[w] + '<small>' + (w === 0 ? 'cả ngày' : 'tối') + '</small></th><td>' + dutyChips(list, on, 'data-dtw="' + w + '"', ed, list) + (on.length ? '' : '<span class="dty-empty">trống</span>') + '</td></tr>'; }).join('') + '</table></div>';
+    h += '<div class="dty-sec"><h3>📅 4 tuần tới</h3><p class="small muted" style="margin:0 0 6px">Đi theo lịch tuần ở trên. Bấm tên để đổi riêng 1 ngày (ví dụ đổi ca, nghỉ phép); ngày đã đổi có nhãn ✏️, bấm ↺ để về lịch tuần.</p>';
+    var wk = -1; slots.forEach(function (s, i) {
+      var wn = Math.floor((i + (new Date(slots[0].t + 7 * 3600e3).getUTCDay() + 6) % 7) / 7);
+      if (wn !== wk) { if (wk >= 0) h += '</table>'; wk = wn; var end = slots.filter(function (x, j) { return Math.floor((j + (new Date(slots[0].t + 7 * 3600e3).getUTCDay() + 6) % 7) / 7) === wn; }); h += '<p class="dty-wk">' + (wn === 0 ? 'Tuần này' : wn === 1 ? 'Tuần sau' : 'Tuần ' + end[0].dm + ' – ' + end[end.length - 1].dm) + '</p><table class="dty-tb">'; }
+      h += '<tr' + (s.k === d.today ? ' class="dty-today"' : '') + '><th>' + (s.dow === 0 ? 'CN' : 'T' + (s.dow + 1)) + ' ' + s.dm + '<small>' + (s.hol ? '🎉 lễ, cả ngày' : s.all ? 'cả ngày' : 'tối') + (s.k === d.today ? ' · hôm nay' : '') + '</small></th><td>' + dutyChips(list, s.who, 'data-dtd="' + s.k + '" data-dow="' + s.dow + '"', ed, list) +
+        (s.who.length ? '' : '<span class="dty-empty">⚠️ trống → chia mọi người</span>') + (s.own ? '<span class="dty-own">✏️ đổi riêng' + (ed ? ' <button type="button" class="lnk" data-dtr="' + s.k + '" title="Về lịch tuần">↺</button>' : '') + '</span>' : '') + '</td></tr>';
+    });
+    h += '</table></div>';
+    h += '<div class="dty-sec"><h3>⚖️ Số ca mỗi người (4 tuần)</h3><p class="small">' + list.map(function (n) { return '<b>' + esc(dutyShort(n, list)) + '</b> ' + (cnt[n] || 0) + ' ca'; }).join(' · ') + '</p>' + (d.by ? '<p class="small muted">Sửa lần cuối: ' + esc(d.by) + ', ' + when(d.at) + '</p>' : '') + '</div>';
+    return h;
+  }
+  function openDuty() {
+    var show = function () {
+      var m = modal('🗓 Lịch trực số quảng cáo', dutyBody(), S.dty.canEdit ? '<button class="btn" data-close>Đóng</button><button class="btn pri" id="dtySave">💾 Lưu lịch</button>' : '<button class="btn" data-close>Đóng</button>');
+      S.dtyDirty = 0; m.classList.add('dty-modal');
+      var redraw = function () { var b = $('.sheet-b', m), y = b.scrollTop; b.innerHTML = dutyBody(); b.scrollTop = y; S.dtyDirty = 1; };
+      m.addEventListener('click', function (e) {
+        var c = e.target.closest('.dty-c'), r = e.target.closest('[data-dtr]'), d = S.dty; if (!d.canEdit) return;
+        if (r) { delete d.days[r.getAttribute('data-dtr')]; redraw(); return; }
+        if (!c || c.disabled) return; var n = c.getAttribute('data-n'), tg = function (l) { var i = l.indexOf(n); if (i >= 0) l.splice(i, 1); else l.push(n); return l; };
+        if (c.hasAttribute('data-dtw')) { var w = c.getAttribute('data-dtw'); d.week = d.week || {}; d.week[w] = tg(dutyWeekOf(d, w).slice()); }
+        else { var k = c.getAttribute('data-dtd'), dw = +c.getAttribute('data-dow'); d.days = d.days || {}; var l = tg(dutyOnKey(d, k, dw).slice()), wl = dutyWeekOf(d, dw);
+          if (l.length === wl.length && l.every(function (x) { return wl.indexOf(x) >= 0; })) delete d.days[k]; else d.days[k] = l; }
+        redraw();
+      });
+      var sv = $('#dtySave', m); if (sv) sv.onclick = function () {
+        var d = S.dty, wk = {}; for (var i = 0; i < 7; i++) wk[i] = dutyWeekOf(d, i).slice();
+        var p = { week: wk, days: d.days || {} }, bs = $('#dtyBoss', m); if (bs && d.canBoss) p.boss = bs.value;
+        sv.disabled = true; api('ads_duty_set', p).then(function () { toast('Đã lưu lịch trực số ✓'); S.dtyDirty = 0; closeModal(); dutyLoad(function () { S.adt = null; softRender(true); }); }, function (e) { toast(e.message, true); sv.disabled = false; });
+      };
+    };
+    if (S.dty && Date.now() - S.dty.at0 < 60e3) show(); else dutyLoad(show);
+  }
+  document.addEventListener('click', function (e) { if (e.target.closest && e.target.closest('[data-dutyopen]')) openDuty(); });
+  /** Dòng tóm tắt (Cài đặt, bảng nhóm A/B/C). */
+  function adsDutyBox(j) {
+    var d = S.dty; if (!d) { if (!S.dtyBusy) { S.dtyBusy = 1; dutyLoad(function () { S.dtyBusy = 0; if (route().view === 'cai-dat') softRender(true); }); } return '<p class="small muted" style="margin-top:12px">⏳ Đang tải lịch trực…</p>'; }
+    var sl = dutySlots(d, 7), em = sl.filter(function (s) { return !s.who.length; });
+    var now = d.caNow === 'Ngày' ? '☀️ Bây giờ là giờ hành chính: chia theo nhóm cho mọi người nhận số.' : '🌙 Bây giờ là ' + (d.caNow === 'Lễ' ? 'ngày lễ' : 'tối / Chủ nhật') + ': ' + (sl[0].who.length ? 'chỉ chia cho ' + esc(sl[0].who.join(', ')) + '.' : 'chưa xếp người trực nên vẫn chia cho mọi người.');
+    return '<div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--line)"><h4 style="margin:0 0 6px">🗓 Lịch trực tối / Chủ nhật / ngày lễ</h4><p class="small" style="margin:0 0 6px">' + now + '</p>' +
+      '<p class="small" style="margin:0 0 8px">👤 Phụ trách chia số: <b>' + esc(d.boss || 'chưa giao') + '</b> · 7 ngày tới ' + (em.length ? '<b style="color:var(--red)">còn ' + em.length + ' ca trống</b>' : '✅ đủ người trực') + '</p>' +
+      '<button class="btn" data-dutyopen>🗓 Mở lịch trực số</button></div>';
+  }
+  /** Tab Hôm nay của sale / người phụ trách: ca trực 7 ngày tới. */
+  function dutyMine() {
+    var d = S.dty, me = S.user.name; if (!d) { if (!S.dtyBusy && (!S.dtyTry || Date.now() - S.dtyTry > 30 * 60e3)) { S.dtyBusy = 1; S.dtyTry = Date.now(); dutyLoad(function () { S.dtyBusy = 0; if (route().view === 'hom-nay') softRender(true); }); } return ''; }
+    var mine = dutySlots(d, 7).filter(function (s) { return s.who.indexOf(me) >= 0; }), boss = d.boss === me;
+    if (!mine.length && !boss) return '';
+    var lbl = function (s) { return (s.k === d.today ? '<b>' + (s.all ? 'Hôm nay' : 'Tối nay') + '</b>' : (s.dow === 0 ? 'CN ' : (s.all ? '' : 'Tối ') + 'T' + (s.dow + 1) + ' ') + s.dm); };
+    return '<section class="section dty-mine"><p>🌙 <b>Ca trực số của bạn:</b> ' + (mine.length ? mine.map(lbl).join(' · ') : 'không có trong 7 ngày tới') + (boss ? ' · 👤 bạn phụ trách chia số' : '') + '</p><button type="button" class="btn sm" data-dutyopen>🗓 Lịch trực' + (boss ? ' (xếp lịch)' : '') + '</button></section>';
+  }
   function caBox() {
     var ca = (S.d.rules && S.d.rules.ca) || {};
     return '<div class="box"><h3>🕘 Ca làm việc (tính lương)</h3><p class="hint" style="margin:0 0 10px">Đơn lên sau giờ ca tối hoặc vào Chủ nhật → <b>Tối/CN</b>. Ngày lễ → <b>Lễ</b>. Sale vẫn sửa lại được khi lên đơn.</p>' +

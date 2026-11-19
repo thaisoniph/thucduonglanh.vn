@@ -3879,3 +3879,26 @@ details.top-fold.tf-focus .tf-all { display: block; }
 .tdm-lg u { display: inline-block; height: 12px; border-left: 3px solid; margin-right: 5px; vertical-align: -2px; text-decoration: none; }
 .tdm-st { margin: 8px 0 0; font-size: 15px; font-weight: 600; } .tdm-st.bad { color: var(--red); } .tdm-st.ok { color: var(--primary); }
 .tdm-more { margin-top: 8px; font-size: 14px; } .tdm-more summary { cursor: pointer; color: var(--primary); font-weight: 600; } .tdm-more p { margin: 6px 0 0; line-height: 1.45; }
+
+/* 🗓 Lịch trực số quảng cáo (19/11/2026) */
+.dty-modal .sheet { max-width: 760px; }
+.dty-sec { margin: 0 0 16px; }
+.dty-sec h3 { margin: 0 0 4px; font-size: 1rem; }
+.dty-sec select { width: 100%; max-width: 460px; }
+.dty-tb { width: 100%; border-collapse: collapse; }
+.dty-tb th { text-align: left; font-weight: 600; width: 108px; padding: 6px 8px 6px 0; vertical-align: top; white-space: nowrap; }
+.dty-tb th small { display: block; font-weight: 400; color: var(--muted); font-size: .78rem; }
+.dty-tb td { padding: 5px 0; border-bottom: 1px solid var(--line); }
+.dty-tb tr.dty-today th { color: var(--primary); }
+.dty-ch { display: inline-flex; flex-wrap: wrap; gap: 6px; vertical-align: middle; }
+.dty-c { border: 1.5px solid var(--c); color: var(--c); background: #fff; border-radius: 999px; padding: 5px 12px; font: inherit; font-size: .9rem; cursor: pointer; min-height: 34px; }
+.dty-c.on { background: var(--c); color: #fff; font-weight: 600; }
+.dty-c:disabled { cursor: default; opacity: .85; }
+.dty-c:not(.on):disabled { opacity: .45; }
+.dty-empty { display: inline-block; margin-left: 8px; font-size: .82rem; color: var(--red); }
+.dty-own { display: inline-block; margin-left: 8px; font-size: .8rem; color: var(--muted); }
+.dty-own .lnk { border: 0; background: none; color: var(--blue); font-size: 1rem; cursor: pointer; padding: 0 4px; }
+.dty-wk { margin: 12px 0 2px; font-weight: 700; color: var(--primary); }
+.dty-mine { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; background: var(--blue-light); border-radius: 12px; padding: 10px 12px; margin-top: 10px; }
+.dty-mine p { margin: 0; }
+@media (max-width: 560px) { .dty-tb th { width: 78px; font-size: .88rem; } .dty-c { padding: 4px 10px; font-size: .85rem; } }
