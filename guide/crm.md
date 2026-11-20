@@ -197,7 +197,7 @@ Mở tab **Hôm nay** là thấy ngay thẻ **🎯 Hôm nay bạn cần bán** (
 - 🔴 **Nhóm C** (dưới 1,2đ): nhận **1 số**. Lúc ít số thì chăm khách cũ, nhận Kho chung, xin khách giới thiệu. Bán tốt hơn thì tuần sau tự lên nhóm.
 - ↩️ **Đơn hoàn tính âm** (từ 20/11/2026): đơn bị hoàn không có doanh số, **còn bị trừ tiền ship 2 chiều** công ty đã mất (khoảng 30.000đ/đơn). Đơn huỷ trước khi gửi thì chỉ không tính. Nên **gọi xác nhận trước khi gửi**, đừng ép khách: ép chốt rồi hoàn thì tuần sau tụt nhóm.
 
-Khung 💸 ghi rõ bạn đang ở nhóm nào và cần bao nhiêu để lên nhóm. Tối (từ giờ ca tối), Chủ nhật và ngày lễ: số mới chỉ chia cho bạn trực hôm đó. Ca trực của bạn 7 ngày tới hiện ở dòng **🌙 Ca trực số của bạn** đầu tab Hôm nay (xem cả lịch ở **Thêm → 🗓 Lịch trực số quảng cáo**), Telegram nhắc lúc vào ca. Số mới về thì Telegram báo bạn "🙋 số quảng cáo mới", tên bạn cũng tự hiện ở cột Sale trong file.
+Khung 💸 ở tab **Hôm nay** ghi rõ: bạn đang ở nhóm nào, **cách tính** (công ty chi bao nhiêu quảng cáo cho số của bạn, bạn bán được bao nhiêu, chia ra được mấy đồng), **cần bán thêm bao nhiêu** để lên nhóm (nhóm A: còn dư bao nhiêu để giữ nhóm) và ngày CRM xếp lại nhóm. Tối (từ giờ ca tối), Chủ nhật và ngày lễ: số mới chỉ chia cho bạn trực hôm đó. Ca trực của bạn 7 ngày tới hiện ở dòng **🌙 Ca trực số của bạn** đầu tab Hôm nay (xem cả lịch ở **Thêm → 🗓 Lịch trực số quảng cáo**), Telegram nhắc lúc vào ca. Số mới về thì Telegram báo bạn "🙋 số quảng cáo mới", tên bạn cũng tự hiện ở cột Sale trong file.
 
 ### 📦 Kho hôm nay: nên tư vấn sản phẩm gì?
 

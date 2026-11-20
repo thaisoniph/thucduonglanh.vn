@@ -14072,11 +14072,28 @@
         (left ? '<p class="be-sale-left">' + DASH_LV[lv] + ' Còn thiếu <b>' + moneyShort(left) + '</b>' + (nO ? ', khoảng <b>' + nO + ' đơn</b>' : '') + ' nữa. Mỗi số là tiền thật của công ty, tư vấn hết sức nhé!</p>'
           : '<p class="be-sale-left">🎉 Đã qua mức hoà vốn! Từ đây mỗi đơn bạn chốt là công ty có lãi. Cảm ơn bạn 💚</p>');
     } else h += '<p>Bạn đã bán được <b>' + moneyShort(rev) + '</b> từ các số này' + (rev ? ' → cứ 1đ công ty chi, bạn mang về <b>' + oneDec(rev / b.cost) + 'đ</b> ' + (DASH_LV[lv] || '') : '') + '.</p>';
-    var tr = d.tier, TW = d.tierW; if (d.split === 'crm' && tr && TW) h += '<p class="be-sale-tier">' + DASH_LV[{ A: 'ok', B: 'mid', C: 'bad' }[tr.g]] + ' Bạn đang ở <b>nhóm ' + tr.g + '</b>: mỗi vòng chia số bạn nhận <b>' + TW[tr.g].w + ' số</b>' +
-      (tr.g === 'A' ? '. Giữ vững nhé 💚' : ', lên nhóm ' + (tr.g === 'C' ? 'B khi 1đ quảng cáo mang về từ ' + oneDec(TW.B.min) + 'đ' : 'A khi 1đ quảng cáo mang về từ ' + oneDec(TW.A.min) + 'đ') + (tr.roi != null ? ' (bạn đang ' + oneDec(tr.roi) + 'đ' + (tr.bn ? ', đã trừ ship ' + tr.bn + ' đơn hoàn' : '') + ')' : '') + '. Lúc ít số thì chăm khách cũ, Kho chung, khách giới thiệu.') + '</p>';
+    var tr = d.tier, TW = d.tierW; if (tr && TW) h += saleTierBox(d, tr, TW);
     if (b.none) h += '<p class="be-sale-none">📵 Còn <b>' + b.none + ' số chưa gọi</b> = <b>' + moneyShort(Math.round(b.none * cpl)) + '</b> tiền công ty đã trả. Gọi ngay để khách còn nhớ!</p>';
     else if (b.open) h += '<p class="small muted" style="margin:6px 0 0">Còn ' + b.open + ' số chưa có kết quả (≈ ' + moneyShort(Math.round(b.open * cpl)) + '), chăm tiếp để ra đơn.</p>';
     return h + '<p class="small muted" style="margin:6px 0 0">' + (need ? 'Hoà vốn = đủ trả tiền quảng cáo, tiền hàng, phí ship, thuế và hoa hồng của bạn (chưa tính lương cứng, văn phòng). ' : '') + 'Tính các số quảng cáo bạn nhận từ đầu tháng, cập nhật khoảng 30 phút một lần. <a href="#bao-cao">Xem chi tiết ›</a></p></section>';
+  }
+  /** 🅰️🅱️©️ Dòng nhóm chia số của sale (20/11/2026 anh Sơn): ghi rõ tiền quảng cáo, tiền bán (đã trừ ship đơn hoàn), phép chia,
+   *  cần bán thêm bao nhiêu để lên nhóm (hoặc còn dư bao nhiêu để giữ nhóm A), kỳ tính 60 ngày, ngày xếp lại; CRM chưa tự chia thì ghi ngày bật. */
+  function saleTierBox(d, tr, TW) {
+    var ic = DASH_LV[{ A: 'ok', B: 'mid', C: 'bad' }[tr.g]] || '', sell = Math.max(0, (tr.rev || 0) - (tr.bk || 0)), cost = tr.cost || 0;
+    var h = '<div class="be-sale-tier"><p class="bst-h">' + ic + ' <b>Bạn đang ở nhóm ' + tr.g + '</b>: mỗi vòng chia số nhận <b>' + TW[tr.g].w + ' số</b></p>';
+    if (d.split !== 'crm') h += '<p class="small muted">' + (d.splitAt ? 'Từ ' + fDateTime(d.splitAt) + ' CRM tự chia số theo nhóm này.' : 'Khi CRM bật tự chia, số quảng cáo chia theo nhóm này.') + '</p>';
+    if (tr.nw || tr.roi == null || !cost) return h + '<p>Bạn mới nhận <b>' + (tr.n || 0) + ' số</b> quảng cáo trong 60 ngày. Đủ <b>' + (d.tierMinN || 15) + ' số</b> CRM mới tính nhóm theo kết quả, trước đó bạn ở nhóm B.</p></div>';
+    var per = d.tierFrom && d.tierTo ? ' (' + fDate(new Date(d.tierFrom + 'T00:00:00+07:00').getTime()).slice(0, 5) + ' – ' + fDate(new Date(d.tierTo + 'T00:00:00+07:00').getTime()).slice(0, 5) + ')' : ' (60 ngày qua)';
+    h += '<p class="bst-k">Cách tính' + per + ':</p><ul class="bst-l">' +
+      '<li>Công ty chi <b>' + moneyShort(cost) + '</b> quảng cáo cho các số của bạn</li>' +
+      '<li>Bạn bán được <b>' + moneyShort(sell) + '</b>' + (tr.bn ? ' <small>(đã trừ ' + moneyShort(tr.bk) + ' ship của ' + tr.bn + ' đơn hoàn)</small>' : '') + '</li>' +
+      '<li>' + moneyShort(sell) + ' ÷ ' + moneyShort(cost) + ' = <b>' + oneDec(tr.roi) + ' đồng</b> cho mỗi 1 đồng quảng cáo</li></ul>';
+    var up = tr.g === 'C' ? 'B' : tr.g === 'B' ? 'A' : '', goal = up ? TW[up].min : TW.A.min, gap = Math.round(goal * cost - sell);
+    if (up) h += '<p class="bst-goal">🎯 Lên nhóm ' + up + ' (từ ' + oneDec(goal) + ' đồng): bán thêm khoảng <b>' + moneyShort(Math.max(0, gap)) + '</b>.</p>';
+    else h += '<p class="bst-goal">💚 Giữ nhóm A (từ ' + oneDec(goal) + ' đồng): bạn đang dư khoảng <b>' + moneyShort(Math.max(0, -gap)) + '</b>. Gọi xác nhận trước khi gửi để đơn không bị hoàn.</p>';
+    if (tr.g === 'C') h += '<p class="small muted">Lúc ít số thì chăm khách cũ, nhận Kho chung, xin khách giới thiệu.</p>';
+    return h + '<p class="small muted">' + (d.tierAt ? 'CRM xếp lại nhóm khoảng ngày <b>' + fDate(d.tierAt + 7 * 864e5).slice(0, 5) + '</b>. ' : '') + 'Đơn hoàn không tính và còn trừ tiền ship.</p></div>';
   }
   /** Mục chi tiết 📣 Từ quảng cáo: từng sản phẩm (của người này so với cả nhóm), tốc độ gọi lại, ưu đãi đang chạy. */
   function smkDetail(d, b) {

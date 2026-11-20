@@ -3577,7 +3577,13 @@ details.top-fold.tf-focus .tf-all { display: block; }
 .be-sale-bar i { display: block; height: 100%; background: var(--red); border-radius: 6px; }
 .be-sale.mid .be-sale-bar i { background: var(--mid); } .be-sale.ok .be-sale-bar i { background: var(--primary); }
 .be-sale-left { font-weight: 500; } .be-sale-none { color: var(--red); }
-.be-sale .be-sale-tier { font-size: 14px; background: var(--bg); border-radius: 8px; padding: 6px 10px; margin-top: 8px; }
+.be-sale .be-sale-tier { font-size: 14px; background: var(--bg); border-radius: 8px; padding: 8px 12px; margin-top: 8px; }
+.be-sale-tier p { margin: 4px 0; }
+.be-sale-tier .bst-h { font-size: 15px; }
+.be-sale-tier .bst-k { font-weight: 600; margin-top: 8px; }
+.be-sale-tier .bst-l { margin: 2px 0 6px; padding-left: 20px; }
+.be-sale-tier .bst-l li { margin: 2px 0; }
+.be-sale-tier .bst-goal { font-size: 15px; }
 .adt-tb td, .adt-tb th { white-space: nowrap; }
 
 /* ---------- 17/11/2026 anh Sơn: thanh Quản trị gọn – chữ vai trò không xuống dòng; ❓ 👁 ⚙ ↻ 💡 gom vào 1 nút tài khoản (chữ cái đầu + ▾) */
