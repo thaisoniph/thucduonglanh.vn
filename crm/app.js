@@ -11069,9 +11069,10 @@
       '<li>Trang CRM mở ra: nhập email CRM → nhập mã trong email → <b>✅ Cho phép kết nối</b>.</li>' +
       '<li>Hỏi: trong khung chat bấm <b>+</b> chọn <i>CRM Thực Dưỡng Lành</i>, hoặc bấm 🎙 nói chuyện và nói “Hỏi CRM doanh số hôm nay”. Điện thoại dùng chung tài khoản là có.</li></ol>' +
       '<p><b>Gemini</b> <span class="small muted">(làm trên máy tính, gemini.google.com)</span></p><ol class="small">' +
-      '<li>Cài đặt → <b>Ứng dụng đã kết nối</b> (Connected apps) → <b>Ứng dụng tùy chỉnh</b> → Thêm, dán địa chỉ trên.</li>' +
-      '<li>Đăng nhập như ChatGPT. Nếu Gemini bắt nhập <b>Client ID / Client Secret</b>: bấm nút dưới để tạo rồi dán vào.</li></ol>' +
-      '<p class="small muted">Tên menu có thể khác một chút theo bản cập nhật. Gemini “ứng dụng tùy chỉnh” có thể chưa mở ở Việt Nam; khi đó dùng ChatGPT, hoặc bấm 🎙 ngay ở CRM này.</p>' +
+      '<li>Vào <b>gemini.google.com/customize/connectors</b> (Trình kết nối) → nút <b>+</b> góc phải → dán địa chỉ trên → <b>Tiếp theo</b>.</li>' +
+      '<li>Kéo xuống tick <b>Tôi hiểu và chấp nhận…</b> → <b>Kết nối</b> → <b>Đồng ý và tiếp tục</b>.</li>' +
+      '<li>Đăng nhập như ChatGPT → <b>Kết nối</b> để lưu. Hỏi: gõ hoặc nói “Hỏi CRM Thực Dưỡng Lành doanh số hôm nay”. Nếu Gemini bắt nhập <b>Client ID / Client Secret</b>: bấm nút dưới để tạo rồi dán vào.</li></ol>' +
+      '<p class="small muted">Tên menu có thể khác một chút theo bản cập nhật (đúng đến 20/11/2026). Không gắn được thì bấm 🎙 ngay ở CRM này.</p>' +
       '<p><button type="button" class="btn sm" data-ask="mcpnew">🔑 Tạo Client ID / Secret</button></p>' +
       (M.cid ? '<div class="ask-mcp-key small"><p>Client ID: <code>' + esc(M.cid) + '</code> <button type="button" class="btn sm" data-copy="' + esc(M.cid) + '">📋</button></p><p>Client Secret: <code>' + esc(M.sec) + '</code> <button type="button" class="btn sm" data-copy="' + esc(M.sec) + '">📋</button></p><p class="muted">Chỉ hiện 1 lần, chép ngay. Không gửi cho người khác.</p></div>' : '') +
       '<p><b>Đang kết nối:</b> ' + (M.err ? '⚠️ ' + esc(M.err) : !li ? '⏳' : li.length ? li.map(function (c) { return esc(c.name) + ' <span class="muted small">(' + fDate(c.at) + ')</span>'; }).join(', ') + ' <button type="button" class="link" data-ask="mcpoff">Ngắt tất cả</button>' : '<span class="muted">chưa có</span>') + '</p></details>';
