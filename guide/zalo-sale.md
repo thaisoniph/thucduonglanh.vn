@@ -106,7 +106,7 @@ Gắn số xong, tin Zalo vào đúng **hồ sơ khách**, lần sau mở hồ s
 ### Lợi ích cho bạn
 
 - Không bỏ quên khách nào, kể cả lúc bận gọi điện.
-- Mở **hồ sơ khách** → mục **💬 Zalo với khách này**: đọc lại khách đã hỏi gì, mình đã tư vấn gì. Không cần chép lại.
+- Mở **hồ sơ khách** → mục **💬 Lịch sử tương tác Zalo với khách này**: đọc lại khách đã hỏi gì, mình đã tư vấn gì. Không cần chép lại.
 - 🏅 Xem mình hôm nay chăm bao nhiêu khách, trả lời nhanh cỡ nào.
 - Ở **Việc gọi**, khách có nhãn **💬 Hay nhắn Zalo** là khách hay nhắn với bạn: **nhắn Zalo trước, gọi sau** (bấm 💬 Ghi lại → chọn mẫu tin → Zalo).
 - Đồng nghiệp (tên Zalo có "Thực Dưỡng Lành" hoặc trùng tên nhân sự) CRM tự bỏ qua, không tính là khách chờ.

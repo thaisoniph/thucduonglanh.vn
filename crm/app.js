@@ -17730,7 +17730,7 @@
     }
   }
   /** 💬 Khối Zalo trong hồ sơ khách: chỉ Quản lý/Quản trị, tải tin khi mở ra (không tải sẵn cho nhẹ). */
-  function zsCustBox(c) { return (lvl() >= 3 && ZS.d && ZS.d.read) || (lvl() < 2 && ZSM.d && ZSM.d.on) ? '<details class="p-edit zs-cbox" id="zsCustBox"><summary>💬 Zalo của sale với khách này</summary><div class="zs-conv" id="zsCustBody" style="margin:8px 0 0">Bấm để xem…</div></details>' : ''; }
+  function zsCustBox(c) { return (lvl() >= 3 && ZS.d && ZS.d.read) || (lvl() < 2 && ZSM.d && ZSM.d.on) ? '<details class="p-edit zs-cbox" id="zsCustBox"><summary>💬 Lịch sử tương tác Zalo với khách này</summary><div class="zs-conv" id="zsCustBody" style="margin:8px 0 0">Bấm để xem…</div></details>' : ''; }
   function zsCustBind(m, c) {
     var dt = $('#zsCustBox', m); if (!dt) return;
     dt.addEventListener('toggle', function () {
