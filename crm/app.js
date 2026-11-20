@@ -6700,12 +6700,18 @@
       barList(subs.slice(0, 12).map(function (x) { return { l: x.g + ' – ' + x.l, v: x.v, sub: x.n + ' đơn · ' + pct(x.v, tot) + '%' }; }), moneyShort, 'Chưa có đơn trong kỳ.', { below: 1 }) +
       '<p class="bar-legend">Đây là cách đơn vào CRM, chưa phải khách đến từ đâu: Website = khách tự đặt trên web; Sale = đơn nhân viên lên (nhập tay, file sale); Khách hỏi = chốt từ tab Khách hỏi. Muốn biết khách đến từ quảng cáo nào, xem mục 📣 Quảng cáo.</p></div>');
     // ---- sản phẩm + khách hỏi
-    var prods = Object.keys(b.prod).map(function (k) { var x = b.prod[k]; return { l: k, v: x.v, sub: x.q + ' sản phẩm' + (x.cv ? ' · lãi gộp ' + pct(x.cv - x.c, x.cv) + '%' : costCfg() ? ' · chưa có giá vốn' : '') }; }).sort(function (x, y) { return y.v - x.v; });
+    // 20/11/2026: nút Theo tiền / Theo số hộp (anh Sơn muốn xem sản phẩm bán nhiều hộp nhất). Nhớ lựa chọn ở máy (dash_psort).
+    var pBy = store('dash_psort') === 'q' ? 'q' : 'v';
+    var prods = Object.keys(b.prod).map(function (k) { var x = b.prod[k]; return { l: k, v: x.v, q: x.q, sub: x.q + ' sản phẩm' + (x.cv ? ' · lãi gộp ' + pct(x.cv - x.c, x.cv) + '%' : costCfg() ? ' · chưa có giá vốn' : '') }; }).sort(function (x, y) { return y.v - x.v; });
     var lch = Object.keys(b.leadCh).map(function (k) { return { l: k, v: b.leadCh[k] }; }).sort(function (x, y) { return y.v - x.v; });
     var pAll = prods.reduce(function (s0, x) { return s0 + x.v; }, 0), pTop = prods.length && pAll ? pct(prods[0].v, pAll) : 0;
-    X.prod = dashMore('prod', '🏆 Sản phẩm bán chạy', prods.length ? 'Nhiều nhất: ' + esc(prods[0].l) + ' · ' + moneyShort(prods[0].v) + ' (' + pTop + '%)' + (pTop >= 50 ? ' · ⚠️ phụ thuộc 1 sản phẩm' : '') : 'Chưa có đơn trong kỳ', '<div class="box">' +
+    var pByQ = prods.slice().sort(function (x, y) { return y.q - x.q || y.v - x.v; }), qAll = prods.reduce(function (s0, x) { return s0 + x.q; }, 0);
+    var pRows = pBy === 'q' ? pByQ.map(function (x) { var k = x.sub.indexOf(' · '); return { l: x.l, v: x.q, sub: moneyShort(x.v) + (k > 0 ? x.sub.slice(k) : '') }; }) : prods;
+    var pChip = function (v, l) { return '<button type="button" class="chip' + (pBy === v ? ' on' : '') + '" data-psort="' + v + '">' + l + '</button>'; };
+    X.prod = dashMore('prod', '🏆 Sản phẩm bán chạy', !prods.length ? 'Chưa có đơn trong kỳ' : pBy === 'q' ? 'Nhiều hộp nhất: ' + esc(pByQ[0].l) + ' · ' + pByQ[0].q.toLocaleString('vi-VN') + ' sản phẩm (' + pct(pByQ[0].q, qAll) + '%)' : 'Nhiều nhất: ' + esc(prods[0].l) + ' · ' + moneyShort(prods[0].v) + ' (' + pTop + '%)' + (pTop >= 50 ? ' · ⚠️ phụ thuộc 1 sản phẩm' : ''), '<div class="box">' +
+      (prods.length ? '<div class="chips"><span class="small muted" style="align-self:center">Xếp theo:</span>' + pChip('v', '💰 Tiền bán ra') + pChip('q', '📦 Số hộp / gói bán ra') + '</div>' : '') +
       (pTop >= 50 ? '<p class="notice" style="margin:0 0 10px">⚠️ <b>' + esc(prods[0].l) + '</b> chiếm ' + pTop + '% tiền bán sản phẩm. Nếu sản phẩm này gặp sự cố (hết hàng, quảng cáo bị khoá, đối thủ hạ giá) thì doanh số giảm mạnh. Nên đẩy thêm 1–2 sản phẩm khác (combo, mua kèm).</p>' : '') +
-      barList(prods.slice(0, 10), moneyShort, 'Chưa có đơn trong kỳ.', { below: 1 }) + '<p class="bar-legend">Đơn văn phòng, theo doanh số. Sản phẩm bán chạy trên sàn xem ở tab Sàn.</p></div>');
+      barList(pRows.slice(0, 10), pBy === 'q' ? function (v) { return v.toLocaleString('vi-VN') + ' sp'; } : moneyShort, 'Chưa có đơn trong kỳ.', { below: 1 }) + '<p class="bar-legend">Đơn văn phòng (sale + web), ' + (pBy === 'q' ? 'theo số hộp / gói bán ra, dòng nhỏ là tiền' : 'theo tiền bán ra, dòng nhỏ là số hộp / gói') + '. Sản phẩm bán chạy trên sàn xem ở tab Sàn.</p></div>');
     X.lead = dashMore('lead', '🙋 Khách hỏi theo kênh', b.leads + ' khách để lại SĐT' + (lch.length ? ' · nhiều nhất từ ' + esc(lch[0].l) : ''), '<div class="box">' + barList(lch.slice(0, 10), String, 'Chưa có khách hỏi trong kỳ.', { below: 1 }) + '</div>');
     // ---- 🌱 khách giới thiệu + CTV (affiliate). Chưa có đơn cả kỳ này lẫn kỳ trước → 1 dòng, khỏi 1 màn hình toàn số 0
     var rf = refDash(R), rfp = refDash(P);
@@ -13869,6 +13875,7 @@
   }
   function bindDash() {
     $$('[data-dgt]').forEach(function (el) { el.onclick = function () { S.f.g.tab = el.getAttribute('data-dgt'); store('dash_tab', S.f.g.tab); render(); }; });
+    $$('[data-psort]').forEach(function (el) { el.onclick = function () { store('dash_psort', el.getAttribute('data-psort') === 'q' ? 'q' : null); S.f.g.open.prod = 1; render(); }; });
     [['#nsvX', 'x'], ['#nsvKho', 'kho'], ['#nsvKt', 'kt']].forEach(function (z) { var e = $(z[0]); if (e) e.onchange = function () { var v = z[1] === 'x' ? lgtF(e.value) : lgtNum(e.value); store('nsv_' + z[1], v > 0 ? String(v) : null); NSV_C = {}; S.f.g.open.nsv = 1; render(); }; });
     var nvt = $('#nsvV'); if (nvt) nvt.onchange = function () { var v = lgtF(nvt.value); store('nsv_v', v >= 0 && v < 100 ? String(v) : null); NSV_C = {}; S.f.g.open.nsv = 1; render(); };
     $$('[data-nsvt]').forEach(function (c) { c.onchange = function () { var T = nsvTick(), v = (T.f ? 'f' : '') + (T.b ? 'b' : '') + (T.o ? 'o' : ''), k = c.getAttribute('data-nsvt'); v = c.checked ? v + k : v.replace(k, ''); store('nsv_t', v || '-'); NSV_C = {}; S.f.g.open.nsv = 1; render(); }; });

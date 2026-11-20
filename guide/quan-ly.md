@@ -565,6 +565,7 @@ Các thẻ còn lại: đầu thẻ có ô xanh **📌 Dùng để**, mỗi mụ
     - Kế toán cập nhật hằng ngày 3 trang trong file đó: **Sổ chi** (mỗi khoản chi 1 dòng), **Số dư ngân hàng** (số dư cuối ngày), **Công nợ** (mỗi hoá đơn mua hàng 1 dòng, có **Hạn thanh toán**). Mẫu + hướng dẫn cho kế toán: Drive → 05_Tài chính & Kế toán → Báo cáo doanh thu - chi phí → *2026-11-05_Mẫu cập nhật thu chi hằng ngày cho kế toán.xlsx*.
     - **8h sáng** Quản trị đã nối Telegram nhận tin **💼 Tài chính**: hôm qua lãi / lỗ, từ đầu tháng, tiền ngân hàng, nợ tới hạn, khoản chi lớn. Bấm **📲 Gửi thử tin sáng** để xem trước.
 - **🔍 Vì sao doanh số tăng / giảm** (thẻ 📈 Doanh số): Doanh số = khách hỏi mới × tỷ lệ chốt × giá trị 1 đơn + khách cũ mua lại. Ô **viền đỏ** là khâu giảm nhiều nhất, nên sửa trước.
+- **🏆 Sản phẩm bán chạy** (thẻ 📈 Doanh số): 10 sản phẩm bán nhiều nhất trong kỳ đang chọn (chọn **Tháng này** ở đầu trang để xem theo tháng). Bấm **💰 Tiền bán ra** để xếp theo tiền, hoặc **📦 Số hộp / gói bán ra** để xếp theo số lượng. Máy nhớ cách xếp anh chọn lần sau. Chỉ gồm đơn văn phòng (sale + web), sản phẩm bán trên sàn xem ở tab **Sàn**.
 
 - **🧮 Lãi lỗ theo tháng, quý (sau mọi chi phí)** (thẻ 💵 Tiền & lãi lỗ, chỉ Quản trị thấy): cho biết công ty **lãi hay lỗ** bao nhiêu, đang tốt lên hay xấu đi.
     - Trên cùng là **📊 Bức tranh nhiều tháng** (lấy từ các tháng kế toán đã chốt). Bấm **📅 Theo tháng** hoặc **🗓 Theo quý** để đổi cách xem.
