@@ -692,6 +692,7 @@ async function adsSave(x, u, d) {
   const cfg = d.cfg || {}; cfg.fileId = fileIdOf(cfg.url); if (!cfg.fileId) return { ok: false, error: 'Link file chưa đúng.' };
   cfg.mode = cfg.mode === 'crm' ? 'crm' : 'staff';
   const old = await adsCfg(x); if (old && old.last) cfg.last = old.last;
+  if (old && old.crmAt && cfg.mode !== 'crm' && !('crmAt' in (d.cfg || {}))) cfg.crmAt = old.crmAt; // 20/11/2026: giữ hẹn giờ bật CRM tự chia (adsCrmAt) khi lưu cài đặt file
   await kvSet(x.db, 'ads_cfg', JSON.stringify(cfg));
   await crmLog(x, u, 'Cài đặt', '-', '', 'File số QC: ' + (cfg.mode === 'crm' ? 'CRM tự chia' : 'nhân sự chia') + (cfg.auto ? ', tự đồng bộ 10 phút/lần' : ''), '');
   return { ok: true };

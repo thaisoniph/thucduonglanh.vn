@@ -173,12 +173,22 @@ export async function dutyTick(x, send) {
     await send(x, dp, '☀️ <b>Hôm nay bạn phụ trách nhặt số quảng cáo ban ngày</b> (8h – ' + (ca.evening || '17:30') + ')\nKhách nhắn page để lại số → dán ngày, tên, số điện thoại vào file, <b>để trống ô Sale</b>, CRM tự chia. Trả lời khách sớm, đừng để tin nhắn chờ nhé 💚');
   }
   try { await adsSlowCheck(x, send, D, ca, now, hm, allDay, evM); } catch (e) { console.error('adsSlow', e.message); }
+  try { await adsCrmAt(x, send, D, now); } catch (e) { console.error('adsCrmAt', e.message); }
   const kb = 'duty_wk_' + vnKey(now);
   if (D.boss && vn.getUTCDay() === 5 && hm >= 9 * 60 && hm < 9 * 60 + 30 && !(await kvGet(x.db, kb))) {
     await kvSet(x.db, kb, '1', 2 * DAY);
     const empty = []; for (let i = 1; i <= 7; i++) { const t = now + i * DAY; if (!dutyOn(D, t).length) empty.push(dutyLbl(t, ca)); }
     if (empty.length) await send(x, D.boss, '📅 <b>Lịch trực số 7 ngày tới còn ' + empty.length + ' ca trống</b>: ' + empty.join(', ') + '\nCa trống thì CRM chia cho mọi người. Mở CRM → 🗓 Lịch trực số để xếp.');
   }
+}
+/** ⏰ Hẹn bật CRM tự chia số (20/11/2026 anh Sơn: bật từ sáng thứ Hai 23/11): ads_cfg.crmAt = mốc giờ → tới giờ đổi mode = 'crm', bỏ crmAt,
+ *  Telegram anh Sơn + người phụ trách chia số 1 lần (kv ads_crm_tg). Nếu lần đồng bộ file ghi đè ads_cfg cùng lúc thì 10 phút sau tự bật lại. */
+async function adsCrmAt(x, send, D, now) {
+  const cfg = await kvJson(x.db, 'ads_cfg', null); if (!cfg || !cfg.crmAt || now < Number(cfg.crmAt)) return;
+  cfg.mode = 'crm'; delete cfg.crmAt; await kvSet(x.db, 'ads_cfg', JSON.stringify(cfg));
+  if (await kvGet(x.db, 'ads_crm_tg')) return; await kvSet(x.db, 'ads_crm_tg', '1', 30 * DAY);
+  const boss = ((await crmUsers(x)).find(y => y.email === SUPER_ADMIN) || {}).name, msg = '🅰️🅱️©️ <b>Từ bây giờ CRM tự chia số quảng cáo theo nhóm A/B/C</b> (A 3 · B 2 · C 1 số mỗi vòng, tối đa 10 số / người / ngày, khách cũ về sale cũ).\nNgười nhặt số nhớ <b>để trống ô Sale</b> trong file. Xem bảng nhóm ở Cài đặt → Đồng bộ → File số quảng cáo.';
+  for (const n of [...new Set([boss, D.boss].filter(Boolean))]) await send(x, n, msg);
 }
 /** ⏰ Cảnh báo số về chậm (19/11/2026): 8h – 21h30, Facebook báo thêm ≥ 3 tin nhắn quảng cáo mà file 2 tiếng không có số mới
  *  → Telegram người đang phụ trách (ban ngày: người nhặt số; tối / CN / lễ: người trực) + anh Sơn. 2 tiếng báo tối đa 1 lần. kv ads_slow.
