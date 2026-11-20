@@ -22,6 +22,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { esc, run, all, first, kvGet, kvSet, kvJson, normPhone, fmtDate, CRM_URL, TZ_MS, DAY } from './lib.js';
 import { aiFetch } from './airelay.js';
+import { edAdd, edNorm } from './edlearn.js';
 import { kb, safe } from './chat.js';
 import { telegram } from './google.js';
 import { telegramUser, crmUsers } from './crm.js';
@@ -65,6 +66,26 @@ const isClosing = t => { const x = String(t || '').toLowerCase().replace(/[\p{Ex
 // tên Zalo ↔ tên khách trong CRM: bỏ dấu, bỏ xưng hô (chị, cô, anh…) để đoán khách khi Zalo ẩn số
 const normName = s => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').replace(/\b(chi|co|anh|em|bac|chu|di|ba|ong|me|kh|khach)\b/g, ' ').replace(/[^a-z ]/g, ' ').replace(/\s+/g, ' ').trim();
 const BUY_RE = /(đặt|lấy|mua|giá|bao nhiêu|bn tiền|ship|còn hàng|chốt|gửi (cho|về|giúp)|địa chỉ|chuyển khoản|stk|số tài khoản|cod)/i;
+// 20/11/2026 anh Sơn (khách cũ đến từ Zalo nhiều – không sót khách, gợi ý cách tiếp cận từng khách):
+// khách phàn nàn → lên đầu danh sách, nhãn đỏ "gọi ngay"
+const COMPLAIN_RE = /(chưa (nhận|thấy) (được )?hàng|chưa thấy giao|giao chậm|lâu quá|sao lâu|hỏng|bị vỡ|\bvỡ\b|móp|bị lỗi|sai hàng|giao sai|thiếu hàng|bị thiếu|hết hạn|bị mốc|bực|thất vọng|không hài lòng|trả hàng|trả lại hàng|hoàn tiền|đổi hàng|dị ứng|đau bụng|tiêu chảy|nổi mẩn)/i;
+// đồng nghiệp trong danh sách Zalo của sale (thật 20/11: "Thu Thuỷ Thực Dưỡng Lành" bị tính là khách chờ) → không tính là khách
+const STAFF_RE = /thuc duong lanh|vitagreen|vita green|vtg/;
+async function staffSet(x) { const s = new Set(); for (const z of await crmUsers(x)) { const k = normName(z.name); if (k.length >= 4) s.add(k); } return s; }
+const isStaff = (zname, ss) => { const k = normName(zname); return !!k && (STAFF_RE.test(k) || ss.has(k)); };
+const firstProd = p => String(p || '').split(/[,;\n|]/)[0].replace(/\s+\d+\s*(g|gr|gói|hộp|ml)\b.*$/i, '').trim().slice(0, 32);
+/** 🏷 Loại khách + việc nên làm (không tốn AI). prof: hồ sơ khách trong CRM (customers) nếu có. */
+function zsTag(r, prof, isLead, complain, now) {
+  if (complain) return { k: 'warn', t: '😟 Khách đang không vui', do: 'Gọi điện ngay, xin lỗi trước rồi hỏi rõ. Cần thì báo quản lý' };
+  if (prof && prof.orders > 0) {
+    if (prof.runout && prof.runout - now < 7 * DAY) return { k: 'out', t: '🔁 Khách cũ ' + (prof.runout < now ? 'đã hết ' : 'sắp hết ') + (firstProd(prof.products) || 'hàng'), do: 'Hỏi thăm dùng thấy thế nào, rồi mời đặt lại' };
+    return { k: 'old', t: '💚 Khách cũ · ' + prof.orders + ' đơn', do: 'Hỏi thăm việc dùng trước, sau mới giới thiệu thêm' };
+  }
+  if (isLead) return { k: 'lead', t: '🙋 Đã hỏi trước, chưa mua', do: 'Hỏi lại điều khách còn lo, nhắc ưu đãi đang có' };
+  if (r.buy || r.ask) return { k: 'new', t: '🌱 Khách mới hỏi mua', do: 'Hỏi dùng cho ai, đang lo gì, rồi báo giá + quà, xin số để lên đơn' };
+  if (!r.phone) return { k: 'unk', t: '❓ Chưa biết là ai', do: 'Bấm đúng tên khách bên dưới, hoặc xin số điện thoại' };
+  return null;
+}
 /** Ô Zalo (sale) → tên nhân sự CRM: ô được đặt theo tên nhân sự lúc Quản trị bấm Kết nối. */
 async function slotUser(x, sale) { return (await crmUsers(x)).find(z => z.active && slug(z.name) === sale) || null; }
 
@@ -134,6 +155,7 @@ async function zsMsg(x, d) {
   if (!phone && !self) { const m = text.match(PHONE_RE); if (m) phone = normPhone(m[0]); }
   const mid = sale + ':' + String(d.msgId || (ts + '_' + Math.round(Math.random() * 1e9)));
   await run(x.db, 'INSERT OR IGNORE INTO zs_msgs (mid, sale, uid, phone, self, text, ts, at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', mid, sale, uid, phone, self, text, ts, now);
+  if (self && text) await zsLearn(x, sale, uid, text);
   const th = await first(x.db, 'SELECT phone, last_cust, last_sale, alerted FROM zs_threads WHERE sale = ? AND uid = ?', sale, uid);
   if (!th) {
     await run(x.db, 'INSERT INTO zs_threads (sale, uid, phone, zname, last_cust, last_sale, n, cust_n, alerted, at) VALUES (?, ?, ?, ?, ?, ?, 1, ?, 0, ?)',
@@ -168,12 +190,17 @@ export async function zsaleTick(x) {
     }
   }
   if (!workNow(now)) return;
+  // ☀️ 8h sáng: nhắn riêng từng sale khách chờ từ hôm qua + khách im sau khi hỏi mua (20/11/2026: trước đây chỉ nhắc 1 lần, chờ quá 6 giờ là không ai nhắc nữa)
+  const amK = 'zs_am_' + fmtDate(now, 'yyMMdd');
+  if (vnHour(now) < 9.5 && !(await kvGet(x.db, amK))) { await kvSet(x.db, amK, '1', 2 * DAY); await zsMorning(x, now); }
   const mins = Math.max(5, Number(cfg.replyMins) || 30), cut = now - mins * 60e3;
   const wait = await all(x.db, 'SELECT sale, uid, phone, zname, last_cust FROM zs_threads WHERE last_cust > last_sale AND last_cust < ? AND last_cust > ? AND alerted = 0 ORDER BY last_cust LIMIT 60', cut, now - 6 * 3600e3);
   if (!wait.length) { if (Math.random() < 0.05) await run(x.db, 'DELETE FROM zs_msgs WHERE at < ?', now - RETAIN_DAYS * DAY); return; }
   const names = {}; for (const s of await all(x.db, 'SELECT sale, name FROM zs_sale')) names[s.sale] = s.name || s.sale;
   for (let i = wait.length - 1; i >= 0; i--) { const lt = await first(x.db, 'SELECT text FROM zs_msgs WHERE sale = ? AND uid = ? AND self = 0 ORDER BY id DESC LIMIT 1', wait[i].sale, wait[i].uid);
     if (lt && isClosing(lt.text)) { await run(x.db, 'UPDATE zs_threads SET alerted = 1 WHERE sale = ? AND uid = ?', wait[i].sale, wait[i].uid); wait.splice(i, 1); } } // khách chỉ chào / cảm ơn
+  const ss = await staffSet(x);
+  for (let i = wait.length - 1; i >= 0; i--) if (isStaff(wait[i].zname, ss)) { await run(x.db, 'UPDATE zs_threads SET alerted = 1 WHERE sale = ? AND uid = ?', wait[i].sale, wait[i].uid); wait.splice(i, 1); } // đồng nghiệp
   if (!wait.length) return;
   for (const w of wait) w.who = await custNameOwner(x, w.phone);
   const bySale = {}; for (const w of wait) (bySale[w.sale] || (bySale[w.sale] = [])).push(w);
@@ -188,6 +215,22 @@ export async function zsaleTick(x) {
   }
   if (grp.length) await telegram(x.env, '💬 <b>Khách nhắn Zalo chờ quá ' + mins + ' phút</b>\n' + grp.join('\n') + '\n(Đã nhắn riêng cho từng bạn. Nếu bạn đang bận gọi điện, nhờ người khác đỡ giúp.)');
   if (Math.random() < 0.05) await run(x.db, 'DELETE FROM zs_msgs WHERE at < ?', now - RETAIN_DAYS * DAY);
+}
+
+/** ☀️ Tin sáng cho từng sale đã nối Zalo: khách chờ ≥ 12 giờ + 💤 khách im sau khi hỏi mua. Chỉ nhắn riêng đúng sale (tên khách là khách của chính bạn ấy). */
+async function zsMorning(x, now) {
+  for (const [sale, a] of Object.entries(await zsAccounts(x))) {
+    if (!a || !a.want || !a.on) continue;
+    const su = await slotUser(x, sale); if (!su) continue;
+    const r = await zsMine(x, { name: su.name }); if (!r.on) continue;
+    const wait = r.list.filter(t => t.wait && t.mins >= 720).sort((p, q) => (q.hot || 0) - (p.hot || 0) || q.mins - p.mins), sil = r.list.filter(t => t.silent);
+    if (!wait.length && !sil.length) continue;
+    const ln = t => '• ' + esc(t.name) + (t.hot ? ' 😟' : '');
+    let m = '☀️ <b>Zalo của bạn sáng nay</b>';
+    if (wait.length) m += '\n⏰ <b>' + wait.length + '</b> khách nhắn từ hôm qua chưa được trả lời:\n' + wait.slice(0, 8).map(t => ln(t) + ' · chờ ' + (t.mins < 1440 ? Math.round(t.mins / 60) + ' giờ' : Math.round(t.mins / 1440) + ' ngày')).join('\n');
+    if (sil.length) m += '\n💤 <b>' + sil.length + '</b> khách hỏi mua rồi im, nhắn nhắc nhẹ 1 câu:\n' + sil.slice(0, 8).map(t => ln(t) + ' · im ' + t.silent + ' ngày').join('\n');
+    await telegramUser(x, su.name, m + '\n👉 CRM → Hôm nay → 💬 Zalo của tôi (bấm ✨ để có câu gợi ý): ' + CRM_URL + '/#hom-nay');
+  }
 }
 
 async function custNameOwner(x, phone) {
@@ -323,10 +366,12 @@ async function zsView(x, u) {
   const saleNm = {}; sales.forEach(s => saleNm[s.sale] = s.name);
   // khách đang chờ trả lời
   const waitRows = await all(x.db, 'SELECT sale, uid, phone, zname, last_cust, last_sale FROM zs_threads WHERE last_cust > last_sale AND last_cust > ? ORDER BY last_cust LIMIT 60', now - DAY);
-  for (let i = waitRows.length - 1; i >= 0; i--) { const lt = await first(x.db, 'SELECT text FROM zs_msgs WHERE sale = ? AND uid = ? AND self = 0 ORDER BY id DESC LIMIT 1', waitRows[i].sale, waitRows[i].uid); if (lt && isClosing(lt.text)) waitRows.splice(i, 1); }
+  const ss = await staffSet(x);
+  for (let i = waitRows.length - 1; i >= 0; i--) { if (isStaff(waitRows[i].zname, ss)) { waitRows.splice(i, 1); continue; } const lt = await first(x.db, 'SELECT text FROM zs_msgs WHERE sale = ? AND uid = ? AND self = 0 ORDER BY id DESC LIMIT 1', waitRows[i].sale, waitRows[i].uid); if (lt && isClosing(lt.text)) waitRows.splice(i, 1); }
   const waitN = {}; for (const w of waitRows) waitN[w.sale] = (waitN[w.sale] || 0) + 1;
   const stT = await zsStats(x, day0), stW = await zsStats(x, now - 7 * DAY);
-  const perSale = sales.map(s => ({ sale: s.sale, name: s.name, on: s.on, online: s.online, waiting: waitN[s.sale] || 0, today: stT[s.sale] || EMPTY_ST, week: stW[s.sale] || EMPTY_ST }));
+  const aiuse = await kvJson(x.db, 'zs_aiuse', {}); // ✨ gợi ý: bấm / có gửi / gửi y nguyên (20/11/2026 – đo để cải tiến)
+  const perSale = sales.map(s => ({ sale: s.sale, name: s.name, on: s.on, online: s.online, waiting: waitN[s.sale] || 0, today: stT[s.sale] || EMPTY_ST, week: stW[s.sale] || EMPTY_ST, ai: aiuse[s.sale] || null }));
   const tips = zsTips(perSale.filter(p => p.on), cfg.replyMins);
   // chương trình giữ Zalo đã cài & đang chạy chưa (poll gần đây) → để CRM biết hiện nút Kết nối hay hướng dẫn cài 1 lần
   const hostAt = Number(await kvGet(x.db, 'zs_host_at')) || 0;
@@ -343,7 +388,9 @@ async function zsView(x, u) {
   return Object.assign(out, { waiting, recent: recentOut, priv });
 }
 
-/** 💬 Zalo của tôi (sale): chỉ cuộc trò chuyện trên Zalo của chính mình. Ô Zalo = tên nhân sự (slug). */
+/** 💬 Zalo của tôi (sale): chỉ cuộc trò chuyện trên Zalo của chính mình. Ô Zalo = tên nhân sự (slug).
+ * 20/11/2026 anh Sơn (khách cũ đến từ Zalo nhiều): ẩn đồng nghiệp; 😟 khách phàn nàn lên đầu; 💤 khách im sau khi hỏi mua (nhắc lần 1 sau 2 ngày,
+ * lần 2 sau 7 ngày, quá 14 ngày thôi); ứng viên gắn số theo tên (cands, tối đa 3); 🏷 nhãn loại khách + việc nên làm (zsTag); zph = số khách hay nhắn Zalo. */
 async function zsMine(x, u) {
   const sale = slug(u.name), acc = (await zsAccounts(x))[sale];
   if (!acc || !acc.want || !acc.on) { // chưa kết nối → CRM hiện thẻ 📲 Kết nối Zalo của tôi (khi tính năng đang bật + chương trình trên máy chủ đang chạy)
@@ -351,26 +398,59 @@ async function zsMine(x, u) {
     return { ok: true, on: false, sale, read: readOn(cfg), can: cfg.on !== false && Date.now() - hostAt < 10 * 60e3, pending: !!(acc && acc.want), agreed: !!(await kvJson(x.db, 'zs_consent', {}))[sale] };
   }
   const now = Date.now(), cfg = await zsCfg(x), s = await first(x.db, 'SELECT at, down, live FROM zs_sale WHERE sale = ?', sale) || {};
-  const online = !!(s.live && s.at && now - s.at < 5 * 60e3 && !s.down);
+  const online = !!(s.live && s.at && now - s.at < 5 * 60e3 && !s.down), ss = await staffSet(x);
   const th = await all(x.db, 'SELECT uid, phone, zname, last_cust, last_sale, n, cust_n FROM zs_threads WHERE sale = ? AND max(last_cust, last_sale) > ? ORDER BY max(last_cust, last_sale) DESC LIMIT 80', sale, now - 30 * DAY);
-  const list = [], mine = {}; // khách mình phụ trách theo tên (đoán khách khi Zalo ẩn số)
-  if (th.some(t => !t.phone)) for (const c of await all(x.db, 'SELECT phone, name FROM customers WHERE owner = ? LIMIT 5000', u.name)) { const k = normName(c.name); if (k.length >= 4) (mine[k] || (mine[k] = [])).push(c); }
+  // ứng viên gắn số: khách + khách hỏi của chính bạn ấy, xếp theo tên gọi (chữ cuối của tên)
+  const byLast = {};
+  if (th.some(t => !t.phone)) {
+    const add = (c, lead) => { const tk = normName(c.name).split(' ').filter(Boolean); if (!tk.length || tk[tk.length - 1].length < 2) return; (byLast[tk[tk.length - 1]] || (byLast[tk[tk.length - 1]] = [])).push({ phone: c.phone, name: c.name, tk, orders: c.orders || 0, last: c.last || 0, lead }); };
+    for (const c of await all(x.db, 'SELECT phone, name, orders, last FROM customers WHERE owner = ? LIMIT 6000', u.name)) add(c, 0);
+    for (const l of await all(x.db, "SELECT phone, name, max(time) last FROM leads WHERE owner = ? AND phone <> '' GROUP BY phone LIMIT 4000", u.name)) add(l, 1);
+  }
+  const cands = zname => {
+    const zt = normName(zname).split(' ').filter(Boolean); if (!zt.length) return [];
+    const pool = byLast[zt[zt.length - 1]] || [], seen = {};
+    return pool.filter(c => c.tk.every(w => zt.includes(w)) || zt.every(w => c.tk.includes(w)))
+      .map(c => Object.assign({ sc: c.tk.filter(w => zt.includes(w)).length * 10 + (c.lead ? 0 : 5) }, c))
+      .sort((a, b) => b.sc - a.sc || b.last - a.last).filter(c => !seen[c.phone] && (seen[c.phone] = 1)).slice(0, 3)
+      .map(c => ({ phone: c.phone, name: c.name, info: c.lead ? 'đã hỏi' : c.orders ? c.orders + ' đơn' : '' }));
+  };
+  const list = [];
   for (const t of th) {
-    const who = await custNameOwner(x, t.phone); let wait = t.last_cust > t.last_sale;
+    if (isStaff(t.zname, ss)) continue; // đồng nghiệp: không phải khách
+    const prof = t.phone ? await first(x.db, 'SELECT name, owner, orders, products, runout, last FROM customers WHERE phone = ?', t.phone) : null;
+    const lead = t.phone && !prof ? await first(x.db, 'SELECT name, owner FROM leads WHERE phone = ? ORDER BY rid DESC LIMIT 1', t.phone) : null;
+    const who = prof || lead || {}; let wait = t.last_cust > t.last_sale, complain = false;
     const r = { uid: t.uid, phone: t.phone, zname: t.zname || '', name: who.name || t.zname || 'Khách Zalo', crm: !!who.name, owner: who.owner || '', n: t.n, last: Math.max(t.last_cust, t.last_sale), wait, mins: 0 };
-    if (wait || (now - t.last_cust < 3 * DAY && t.cust_n)) {
-      const lc = await all(x.db, 'SELECT text, ts FROM zs_msgs WHERE sale = ? AND uid = ? AND self = 0 ORDER BY id DESC LIMIT 5', sale, t.uid);
+    if (t.cust_n && (wait || now - t.last_cust < 14 * DAY)) {
+      const lc = await all(x.db, 'SELECT text, ts FROM zs_msgs WHERE sale = ? AND uid = ? AND self = 0 ORDER BY id DESC LIMIT 6', sale, t.uid);
       if (lc[0]) r.lastText = String(lc[0].text).slice(0, 120);
       if (wait && lc[0] && isClosing(lc[0].text)) { wait = r.wait = false; r.closed = 1; } // khách chỉ chào / cảm ơn / để sau
-      // khách có ý muốn mua: tin của khách 3 ngày gần đây có chữ đặt / giá / ship / địa chỉ…
-      const hit = lc.find(m => now - m.ts < 3 * DAY && BUY_RE.test(m.text) && !isClosing(m.text)); if (hit) { r.buy = String(hit.text).slice(0, 120); r.buyAt = hit.ts; }
+      complain = lc.some(m => now - m.ts < 3 * DAY && COMPLAIN_RE.test(m.text));
+      // khách có ý muốn mua: tin của khách gần đây có chữ đặt / giá / ship / địa chỉ…
+      const hit = lc.find(m => now - m.ts < 14 * DAY && BUY_RE.test(m.text) && !isClosing(m.text));
+      if (hit && r.phone && await first(x.db, "SELECT 1 FROM orders WHERE phone = ? AND time >= ? LIMIT 1", r.phone, hit.ts - 600e3)) r.bought = 1; // đã lên đơn sau tin đó
+      else if (hit) {
+        if (now - hit.ts < 3 * DAY && !wait) { r.buy = String(hit.text).slice(0, 120); r.buyAt = hit.ts; }
+        // 💤 sale đã trả lời, khách im: lần 1 sau 2 ngày, lần 2 sau 7 ngày (nếu bạn ấy mới nhắc 1 lần), quá 14 ngày thôi
+        const dC = (now - t.last_cust) / DAY, dS = (now - t.last_sale) / DAY;
+        if (!wait && dC >= 2 && dC <= 14) {
+          const nud = (await first(x.db, 'SELECT count(*) n FROM zs_msgs WHERE sale = ? AND uid = ? AND self = 1 AND ts > ?', sale, t.uid, t.last_cust + 20 * 3600e3)).n;
+          if (nud === 0 || (nud === 1 && dC >= 7 && dS >= 4)) { r.silent = Math.floor(dC); r.nudge = nud + 1; r.ask = String(hit.text).slice(0, 120); r.askAt = hit.ts; delete r.buy; }
+        }
+      }
     }
     if (wait) r.mins = Math.round((now - t.last_cust) / 60e3);
-    if (!t.phone) { const g = mine[normName(t.zname)]; if (g && g.length === 1) r.guess = { phone: g[0].phone, name: g[0].name }; }
+    if (!t.phone) { const cs = cands(t.zname); if (cs.length) { r.cands = cs; if (cs.length === 1) r.guess = cs[0]; } }
+    r.tag = zsTag(r, prof, !!lead, complain, now);
+    if (r.tag && r.silent) r.tag.do = r.nudge > 1 ? 'Nhắn lần cuối thật nhẹ: chúc khách khoẻ, cần thì nhắn em' : 'Nhắn nhắc nhẹ 1 câu: hỏi khách còn phân vân gì, đừng giục';
+    if (complain) r.hot = 1;
     list.push(r);
   }
+  const zph = {}; // khách hay nhắn Zalo với bạn ấy (90 ngày) → tab Việc gọi gắn nhãn 💬 nhắn trước, gọi sau
+  for (const z of await all(x.db, "SELECT phone FROM zs_threads WHERE sale = ? AND phone <> '' AND cust_n > 0 AND last_cust > ?", sale, now - 90 * DAY)) zph[z.phone] = 1;
   const st = (await zsStats(x, dayStartVn(now)))[sale] || EMPTY_ST, wk = (await zsStats(x, now - 7 * DAY))[sale] || EMPTY_ST;
-  return { ok: true, on: true, online, replyMins: cfg.replyMins, read: readOn(cfg), readUntil: readOn(cfg) ? cfg.readUntil : 0, list, today: st, week: wk };
+  return { ok: true, on: true, online, replyMins: cfg.replyMins, read: readOn(cfg), readUntil: readOn(cfg) ? cfg.readUntil : 0, list, today: st, week: wk, zph };
 }
 
 async function zsThread(x, d, onlySale) {
@@ -426,7 +506,36 @@ Quy tắc:
 - Dựa vào THÔNG TIN SẢN PHẨM. Không bịa giá, khuyến mãi, công dụng. Không chắc giá / quà thì để sale điền: "[giá]".
 - Không bao giờ nói sản phẩm "chữa", "điều trị", "khỏi bệnh", "đặc trị", "thay thuốc". Khách nhắc bệnh, thuốc, mang thai: nhắc nhẹ sản phẩm là thực phẩm, không phải là thuốc, nên hỏi bác sĩ nếu đang điều trị.
 - Khách phải chờ lâu: mở đầu bằng lời xin lỗi ngắn.
+- Tiếp cận theo LOẠI KHÁCH (20/11/2026):
+  · Khách đang không vui (giao chậm, hàng lỗi, dị ứng…): xin lỗi, nhận phần mình, hỏi rõ, hẹn gọi điện ngay. KHÔNG mời mua thêm.
+  · Khách cũ: hỏi thăm việc dùng trước (dùng có đều không, thấy thế nào), sau đó mới giới thiệu thêm. Sắp hết / đã hết: nhắc nhẹ, mời đặt lại đúng món khách hay dùng.
+  · Khách đã hỏi trước, chưa mua: hỏi lại điều khách còn lo (giá, cách dùng, có hợp không), nhắc ưu đãi nếu có trong THÔNG TIN SẢN PHẨM.
+  · Khách mới hỏi mua: hỏi dùng cho ai, đang lo gì (mẹ sau sinh, người lớn tuổi, dân văn phòng, người ăn chay…) rồi gợi ý 1 sản phẩm hợp nhất, báo giá.
+  · Khách im sau khi hỏi giá (tin cuối là của sale, đã vài ngày): 1 câu nhắc nhẹ, hỏi còn phân vân gì, không giục, không gửi lại cả bảng giá.
+- Chưa có số điện thoại mà khách muốn mua: khéo xin số + địa chỉ để giao hàng.
 - Văn tự nhiên như người Việt nhắn Zalo, không sáo rỗng, không dùng emoji quá 1 cái.`;
+
+/* ✍️ Học từ câu sale thật sự gửi (20/11/2026, nguyên tắc "trợ lý AI học từ người sửa"): sau khi bấm ✨, tin đầu tiên bạn ấy gửi khách trong 3 giờ
+ * được so với câu gợi ý gần nhất → lưu cặp (gợi ý → câu đã gửi) vào kv ed_zs_<sale> (edlearn.js, riêng từng sale, không ai xem) → lần gợi ý sau học giọng của bạn ấy.
+ * Số đo kv zs_aiuse {sale: {sug, sent, same}}: bấm gợi ý bao nhiêu lần, bao nhiêu lần có gửi, bao nhiêu lần gửi y nguyên. */
+async function zsUse(x, sale, k) { const m = await kvJson(x.db, 'zs_aiuse', {}); const o = m[sale] || (m[sale] = { sug: 0, sent: 0, same: 0, from: Date.now() }); o[k] = (o[k] || 0) + 1; await kvSet(x.db, 'zs_aiuse', JSON.stringify(m)); }
+async function zsLearn(x, sale, uid, text) {
+  const sk = 'zsai_sug_' + sale + '_' + uid, raw = await kvGet(x.db, sk); if (!raw) return;
+  await kvSet(x.db, sk, '', 1);
+  let g = {}; try { g = JSON.parse(raw); } catch (e) { return; }
+  const words = t => new Set(edNorm(t).toLowerCase().split(' ')), tw = words(text);
+  const sim = t => { const w = words(t); let n = 0; for (const v of w) if (tw.has(v)) n++; return n / Math.max(w.size, tw.size, 1); };
+  const best = (g.r || []).map(t => ({ t, s: sim(t) })).sort((a, b) => b.s - a.s)[0]; if (!best) return;
+  await zsUse(x, sale, 'sent');
+  if (edNorm(best.t) === edNorm(text)) { await zsUse(x, sale, 'same'); return; }
+  if (best.s < 0.15 || String(text).length < 8) return; // câu khác hẳn (nhắn chuyện khác) → không coi là sửa gợi ý
+  await edAdd(x, 'zs_' + sale, { id: uid, by: g.by || '', ch: 'Zalo riêng', t: g.t || '', ai: best.t, hu: String(text).slice(0, 600) });
+}
+async function zsLearnBlock(x, sale) {
+  const L = ((await kvJson(x.db, 'ed_zs_' + sale, [])) || []).filter(e => e && e.ai && e.hu && e.at > Date.now() - 90 * DAY).slice(0, 5);
+  if (!L.length) return '';
+  return '# CÁCH BẠN SALE NÀY HAY SỬA GỢI Ý (học giọng: xưng hô, độ dài, chữ hay dùng; KHÔNG chép nội dung)\n' + L.map((e, i) => (i + 1) + '. Gợi ý: "' + String(e.ai).slice(0, 250) + '"\n   Bạn ấy gửi: "' + String(e.hu).slice(0, 250) + '"').join('\n');
+}
 
 async function zsAi(x, u, d, sale) {
   const uid = String(d.uid || ''); if (!sale || !uid) return { ok: false, error: 'Thiếu cuộc trò chuyện.' };
@@ -447,6 +556,11 @@ async function zsAi(x, u, d, sale) {
     } else if (await first(x.db, 'SELECT 1 FROM leads WHERE phone = ? LIMIT 1', th.phone)) prof = 'Khách đã hỏi trước đây nhưng chưa mua.';
   }
   const now = Date.now(), last = msgs[msgs.length - 1];
+  const lastCust = [...msgs].reverse().find(m => !m.self), silentD = last.self && lastCust ? Math.floor((now - lastCust.ts) / DAY) : 0;
+  let kind = /^Khách cũ/.test(prof) ? 'Khách cũ' : /chưa mua/.test(prof) ? 'Khách đã hỏi trước, chưa mua' : 'Khách mới';
+  if (msgs.some(m => !m.self && now - m.ts < 3 * DAY && COMPLAIN_RE.test(m.text))) kind = 'Khách đang không vui (phàn nàn)';
+  else if (silentD >= 2) kind += ', đã im ' + silentD + ' ngày sau tin của sale';
+  const learn = await zsLearnBlock(x, sale);
   const conv = msgs.map(m => (m.self ? 'Sale' : 'Khách') + ' (' + fmtDate(m.ts, 'dd/MM HH:mm') + '): ' + String(m.text).slice(0, 600)).join('\n');
   const wait = !last.self ? ' Khách nhắn cuối lúc ' + fmtDate(last.ts, 'HH:mm dd/MM') + ', đã chờ ' + Math.round((now - last.ts) / 60e3) + ' phút.' : ' Tin cuối là của sale (gợi ý cách nhắn tiếp / chăm sóc tiếp).';
   let res;
@@ -454,7 +568,7 @@ async function zsAi(x, u, d, sale) {
     res = await zsAiClient(x.env).messages.create({
       model: 'claude-haiku-5-5', max_tokens: 3000, output_config: { effort: 'low' }, // 18/11: 700 bị AI dùng hết để suy nghĩ (stop max_tokens, không ra chữ)
       system: [{ type: 'text', text: ZS_RULES }, { type: 'text', text: '# THÔNG TIN SẢN PHẨM\n\n' + await kb(), cache_control: { type: 'ephemeral' } }],
-      messages: [{ role: 'user', content: 'Sale: ' + u.name + '. Hôm nay ' + fmtDate(now, 'dd/MM/yyyy HH:mm') + '.' + wait + '\n\n# HỒ SƠ KHÁCH\n' + prof + '\n\n# TIN NHẮN ZALO (cũ → mới)\n' + conv }]
+      messages: [{ role: 'user', content: 'Sale: ' + u.name + '. Hôm nay ' + fmtDate(now, 'dd/MM/yyyy HH:mm') + '.' + wait + '\n\n# LOẠI KHÁCH\n' + kind + '\n\n# HỒ SƠ KHÁCH\n' + prof + (learn ? '\n\n' + learn : '') + '\n\n# TIN NHẮN ZALO (cũ → mới)\n' + conv }]
     });
   } catch (e) { console.error('zs ai', e && (e.status || ''), e && e.message); return { ok: false, error: 'Trợ lý chưa trả lời được, thử lại sau ít phút.' }; }
   const t = safe(res.content.filter(b => b.type === 'text').map(b => b.text).join('\n'));
@@ -463,6 +577,8 @@ async function zsAi(x, u, d, sale) {
   const out = { need: String(j.need || pick('KHÁCH CẦN')).trim(), replies: [j.reply1 || pick('TRẢ LỜI 1'), j.reply2 || pick('TRẢ LỜI 2')].map(v => safe(String(v || '').trim())).filter(Boolean), next: String(j.next || pick('NÊN LÀM')).trim() };
   if (!out.replies.length) { console.error('zs ai parse', res.stop_reason, t.slice(0, 300)); return { ok: false, error: 'Trợ lý chưa gợi ý được, thử lại nhé.' }; }
   await kvSet(x.db, k, String(n + 1), 2 * DAY);
+  await kvSet(x.db, 'zsai_sug_' + sale + '_' + uid, JSON.stringify({ r: out.replies, by: u.name, t: lastCust ? String(lastCust.text).slice(0, 200) : '' }), 3 * 3600e3); // để học câu bạn ấy thật sự gửi (zsLearn)
+  await zsUse(x, sale, 'sug');
   return Object.assign({ ok: true }, out);
 }
 

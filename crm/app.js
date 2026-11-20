@@ -1812,7 +1812,7 @@
     var c = x.c, k = taskKey(c), cat = custCat(c), vl = vipLate(c);
     return '<div class="rw td-r click" data-cust="' + c.phone + '"><div class="rw-m"><div class="rw-1"><b>' + esc(c.name || 'Khách') + '</b>' +
       (vl ? tdTag('t-red', '⚠️ VIP trễ hạn') : tdTag(k === 'callback' ? 't-amber' : 't-green', TASKS[k].icon + ' ' + TD_SHORT[k])) +
-      (c.zalo ? '<span class="zl ic" title="Đã kết bạn Zalo">' + ZI + '</span>' : '') + custTags(c) + (cat.key !== 'new' ? catChip(cat) : '') + bdayChip(c) + '</div>' +
+      (c.zalo ? '<span class="zl ic" title="Đã kết bạn Zalo">' + ZI + '</span>' : '') + (ZSM.d && ZSM.d.zph && ZSM.d.zph[c.phone] ? '<span title="Khách hay nhắn Zalo với bạn: nhắn Zalo trước, gọi sau">' + tdTag('t-blue', '💬 Hay nhắn Zalo') + '</span>' : '') + custTags(c) + (cat.key !== 'new' ? catChip(cat) : '') + bdayChip(c) + '</div>' +
       '<div class="rw-2">' + ambChip(c) + '<b class="td-m">' + moneyShort(c.spent) + '</b> · ' + (c.task ? taskLine(c) : replyOf(c).days + ' ngày chưa phản hồi') + (c.products.length ? ' · ' + esc(shortProducts(c.products, 1)) : '') + sugLine(c) + '</div>' + lastTouch(c) + '</div>' +
       '<div class="rw-a"><a class="btn" href="tel:' + c.phone + '" aria-label="Gọi">📞<small>Gọi</small></a><button class="btn pri" data-care="' + c.phone + '" data-task="' + k + '" aria-label="Ghi lại kết quả">💬<small>Ghi lại</small></button></div></div>';
   }
@@ -17480,7 +17480,8 @@
         '<div><b>' + ZS_MIN(t.avgMin) + '</b><small>trả lời sau</small></div>' +
         '<div class="' + (p.waiting ? 'zs-bad' : '') + '"><b>' + p.waiting + '</b><small>đang chờ</small></div></div>' +
         '<p class="zs-wk">7 ngày: <b>' + w.threads + '</b> khách · trả lời sau <b>' + ZS_MIN(w.avgMin) + '</b>' + (w.slow ? ' · <b>' + w.slow + '</b> lần khách chờ hơn 1 giờ' : '') +
-        (D.admin && D.priv && D.priv[p.sale] ? ' · 🔒 ' + D.priv[p.sale] + ' cuộc "không phải khách"' : '') + '</p></article>';
+        (D.admin && D.priv && D.priv[p.sale] ? ' · 🔒 ' + D.priv[p.sale] + ' cuộc "không phải khách"' : '') + '</p>' +
+        (p.ai && p.ai.sug ? '<p class="zs-wk" title="Đếm từ ' + esc(fDate(p.ai.from)) + '. Có gửi = sau khi bấm gợi ý, bạn ấy nhắn khách trong 3 giờ. Câu đã sửa thì trợ lý học giọng của bạn ấy.">✨ Gợi ý trả lời: bấm <b>' + p.ai.sug + '</b> lần · có gửi <b>' + (p.ai.sent || 0) + '</b> · gửi y nguyên <b>' + (p.ai.same || 0) + '</b></p>' : '') + '</article>';
     }).join('') + '</div><p class="small muted">"Trả lời sau" = trung bình từ lúc khách nhắn đến lúc sale trả lời, chỉ tính tin khách nhắn trong giờ làm (8h–21h).</p></section>';
     var NUMS = h; h = '';
     // cuộc trò chuyện gần đây (chỉ Quản trị)
@@ -17535,10 +17536,12 @@
   /** Việc làm tiếp trong 1 cuộc trò chuyện (18/11/2026 gọn lại): 2 nút chính ✨ Gợi ý trả lời · 🛒 Lên đơn; khách chưa rõ số thì 1 dòng "Có phải khách…?" hoặc gắn số; 🔒 cất cuối. */
   function zsActs(m, j, title) {
     var el = $('#zsActs', m); if (!el) return;
-    var c = j.phone ? cust(j.phone) : null, me = lvl() < 2, gu = !j.phone && ZSM.d && ZSM.d.list ? (ZSM.d.list.filter(function (r) { return r.uid === j.uid; })[0] || {}).guess : null;
+    var row = !j.phone && ZSM.d && ZSM.d.list ? (ZSM.d.list.filter(function (r) { return r.uid === j.uid; })[0] || {}) : {};
+    var c = j.phone ? cust(j.phone) : null, me = lvl() < 2, gu = row.guess || null, cs = row.cands || [];
     var h = '<div class="zs-actrow zs-main"><button type="button" class="btn zs-aibtn" data-zsa="ai">✨ Gợi ý trả lời</button><button type="button" class="btn pri" data-zsa="buy">🛒 Lên đơn</button></div>';
     h += '<p class="zs-who">' + (c ? '📇 Khách trong CRM: <b>' + esc(c.name || j.phone) + '</b> · ' + esc(j.phone) + ' <button type="button" class="zs-linkbtn" data-zsa="prof">Mở hồ sơ</button>'
       : j.phone ? '📞 ' + esc(j.phone) + ' · chưa có trong CRM <button type="button" class="zs-linkbtn" data-zsa="lead">➕ Thêm vào CRM</button>'
+      : cs.length > 1 ? '❓ Có phải 1 trong các khách này của bạn? ' + cs.map(function (k, i) { return '<button type="button" class="zs-linkbtn" data-zsa="pick" data-zsi="' + i + '">' + esc(k.name) + ' · ' + esc(k.phone) + (k.info ? ' (' + esc(k.info) + ')' : '') + '</button>'; }).join(' ') + ' <button type="button" class="zs-linkbtn zs-mute" data-zsa="nolink">Không phải, gõ số</button>'
       : gu ? '❓ Có phải khách <b>' + esc(gu.name) + '</b> · ' + esc(gu.phone) + ' của bạn? <button type="button" class="zs-linkbtn" data-zsa="yes">✓ Đúng, gắn số</button> <button type="button" class="zs-linkbtn zs-mute" data-zsa="nolink">Không phải</button>'
       : '📞 Chưa biết số của khách (Zalo ẩn số). <button type="button" class="zs-linkbtn" data-zsa="nolink">📇 Gõ số khách</button>') + '</p>';
     h += '<div class="zs-link" id="zsLinkBox" hidden><div class="zs-actrow"><input type="tel" inputmode="tel" id="zsPh" placeholder="Số điện thoại khách"><button type="button" class="btn" data-zsa="link">Gắn số</button></div></div>';
@@ -17561,6 +17564,7 @@
       if (k === 'prof') { closeModal(true); openCustomer(j.phone); }
       if (k === 'lead') { closeModal(true); openLeadForm(null); setTimeout(function () { var f = $('#lfForm'); if (!f) return; f.phone.value = j.phone; f.name.value = j.zname || ''; f.phone.dispatchEvent(new Event('input', { bubbles: true })); var z = $('[data-lfch="Zalo"]'); if (z) z.click(); }, 50); }
       if (k === 'yes' && gu) link(gu.phone, b);
+      if (k === 'pick') { var pk = cs[+b.getAttribute('data-zsi')]; if (pk) link(pk.phone, b); }
       if (k === 'nolink') { var lb = $('#zsLinkBox', m); lb.hidden = false; $('#zsPh', m).focus(); }
       if (k === 'link') { var ph = ($('#zsPh', m).value || '').trim(); if (!ph) { toast('Gõ số điện thoại khách', true); return; } link(ph, b); }
       if (k === 'priv') { if (!confirm('Xoá hẳn cuộc trò chuyện này khỏi CRM và từ nay không lưu nữa?\n(Chỉ dùng cho người thân, bạn bè – không phải khách.)')) return; b.disabled = true;
@@ -17635,6 +17639,12 @@
       api('zs_self', { op: 'off', why: why }).then(function () { toast('Đã ngắt. Bạn nối lại bất cứ lúc nào ✓'); ZSM.at = 0; ZSM.d = null; zsMineFetch(); render(); }, function (er) { toast(er.message, true); }); }
   });
   document.addEventListener('click', function (e) {
+    var lk = e.target.closest && e.target.closest('[data-zslk]'); // ❓ 1 chạm: đúng khách này → gắn số (20/11/2026)
+    if (lk) { e.stopPropagation(); var q1 = lk.getAttribute('data-zslk').split('|'); lk.disabled = true;
+      api('zs_link', { uid: q1[0], phone: q1[1] }).then(function () { toast('Đã gắn: ' + q1[2] + ' ✓ Tin Zalo vào hồ sơ khách'); ZSM.at = 0; zsMineFetch(); }, function (er) { lk.disabled = false; toast(er.message, true); }); return; }
+    var nt = e.target.closest && e.target.closest('[data-zsnot]'); // 🔒 Không phải khách (người thân, bạn bè, đồng nghiệp)
+    if (nt) { e.stopPropagation(); if (!confirm('Đây không phải khách (người thân, bạn bè, đồng nghiệp)?\nCRM xoá hẳn cuộc trò chuyện này và từ nay không lưu nữa.')) return; nt.disabled = true;
+      api('zs_private', { uid: nt.getAttribute('data-zsnot') }).then(function () { toast('Đã xoá, từ nay không lưu ✓'); ZSM.at = 0; zsMineFetch(); }, function (er) { nt.disabled = false; toast(er.message, true); }); return; }
     var g = e.target.closest && e.target.closest('[data-zsgo]'); // nút việc chính trên dòng: ✨ Gợi ý trả lời / 🛒 Lên đơn
     if (g) { e.stopPropagation(); var q = g.getAttribute('data-zsgo').split('|'); if (q[0] === 'buy') zsOrderGo('', q[1], q[2], q[3]); else zsOpen('', q[1], q[2], q[3], 1); return; }
     var b = e.target.closest && e.target.closest('[data-zsm]'); if (!b) return; var p = b.getAttribute('data-zsm').split('|'); zsOpen('', p[0], p[1], p[2]);
@@ -17643,26 +17653,34 @@
   function zsMineRow(r, kind) {
     var key = esc(r.uid) + '|' + esc(r.phone || '') + '|' + esc(r.name), ini = String(r.name || '?').trim().split(/\s+/).pop().charAt(0).toUpperCase();
     var btn = kind === 'wait' ? '<button type="button" class="zr-btn" data-zsgo="ai|' + key + '">✨ Gợi ý trả lời</button>'
-      : kind === 'buy' ? '<button type="button" class="zr-btn buy" data-zsgo="buy|' + key + '">🛒 Lên đơn</button>' : '';
-    var t = kind === 'wait' ? (r.mins < 60 ? r.mins + ' phút' : r.mins < 1440 ? Math.round(r.mins / 60) + ' giờ' : Math.round(r.mins / 1440) + ' ngày') : esc(when(r.last));
-    var quote = kind === 'buy' ? r.buy : r.lastText;
-    return '<div class="zr' + (kind ? ' zr-' + kind : '') + '" role="button" tabindex="0" data-zsm="' + key + '"><span class="zr-av">' + esc(ini) + '</span>' +
-      '<span class="zr-m"><b>' + esc(r.name) + (r.crm ? ' <i title="Khách trong CRM">📇</i>' : '') + '</b><small>' + (quote ? '“' + esc(quote) + '”' : r.n + ' tin nhắn') + '</small></span>' +
-      '<span class="zr-r"><em' + (kind === 'wait' ? ' class="late"' : '') + '>' + (kind === 'wait' ? 'chờ ' : '') + t + '</em>' + btn + '</span></div>';
+      : kind === 'buy' ? '<button type="button" class="zr-btn buy" data-zsgo="buy|' + key + '">🛒 Lên đơn</button>'
+      : kind === 'sil' ? '<button type="button" class="zr-btn" data-zsgo="ai|' + key + '">✨ Gợi ý nhắn lại</button>' : '';
+    var t = kind === 'wait' ? (r.mins < 60 ? r.mins + ' phút' : r.mins < 1440 ? Math.round(r.mins / 60) + ' giờ' : Math.round(r.mins / 1440) + ' ngày')
+      : kind === 'sil' ? 'im ' + r.silent + ' ngày' + (r.nudge > 1 ? ' · lần 2' : '') : esc(when(r.last));
+    var quote = kind === 'buy' ? r.buy : kind === 'sil' ? r.ask : r.lastText, late = kind === 'wait' && r.mins >= 1440;
+    // 🏷 loại khách + việc nên làm (20/11/2026) · ❓ chưa rõ số: 1 chạm chọn đúng khách
+    var tag = kind && r.tag ? '<span class="zr-tag zt-' + esc(r.tag.k) + '">' + esc(r.tag.t) + ' <i>👉 ' + esc(r.tag.do) + '</i></span>' : '';
+    var cd = kind && !r.crm && !r.phone ? '<span class="zr-cands">' + (r.cands && r.cands.length ? 'Có phải: ' + r.cands.map(function (c) { return '<button type="button" class="zr-cb" data-zslk="' + esc(r.uid) + '|' + esc(c.phone) + '|' + esc(c.name) + '">' + esc(c.name) + (c.info ? ' <small>' + esc(c.info) + '</small>' : '') + '</button>'; }).join('') : '') +
+      '<button type="button" class="zr-cb mute" data-zsnot="' + esc(r.uid) + '">Không phải khách</button></span>' : '';
+    return '<div class="zr' + (kind ? ' zr-' + kind : '') + (late || r.hot ? ' zr-late' : '') + '" role="button" tabindex="0" data-zsm="' + key + '"><span class="zr-av">' + esc(ini) + '</span>' +
+      '<span class="zr-m"><b>' + esc(r.name) + (r.crm ? ' <i title="Khách trong CRM">📇</i>' : '') + '</b><small>' + (quote ? '“' + esc(quote) + '”' : r.n + ' tin nhắn') + '</small>' + tag + cd + '</span>' +
+      '<span class="zr-r"><em' + (kind === 'wait' || kind === 'sil' ? ' class="late"' : '') + '>' + (kind === 'wait' ? 'chờ ' : '') + t + '</em>' + btn + '</span></div>';
   }
   function zsMineBlock() {
     if (lvl() >= 2) return '';
     if (!ZSM.d || Date.now() - ZSM.at > 60e3) zsMineFetch();
     var D = ZSM.d; if (!D) return ''; if (!D.on) return zsJoinCard(D);
-    var bought = function (r) { return r.phone && S.d.orders.some(function (o) { return o.phone === r.phone && o.time >= r.buyAt - 600e3 && !isVoid(o.status); }); };
-    var wait = D.list.filter(function (r) { return r.wait; }).sort(function (a, b) { return b.mins - a.mins; }),
-      buy = D.list.filter(function (r) { return r.buy && !r.wait && !bought(r); }), t = D.today;
+    var bought = function (r, at) { return r.phone && S.d.orders.some(function (o) { return o.phone === r.phone && o.time >= at - 600e3 && !isVoid(o.status); }); };
+    var wait = D.list.filter(function (r) { return r.wait; }).sort(function (a, b) { return (b.hot || 0) - (a.hot || 0) || b.mins - a.mins; }), // 😟 phàn nàn lên đầu, rồi chờ lâu nhất
+      buy = D.list.filter(function (r) { return r.buy && !r.wait && !bought(r, r.buyAt); }), t = D.today,
+      sil = D.list.filter(function (r) { return r.silent && !bought(r, r.askAt); }).sort(function (a, b) { return a.silent - b.silent; }); // 💤 khách im sau khi hỏi mua (20/11/2026)
     var h = '<section class="section zs-mine"><div class="zm-head"><h2>💬 Zalo của tôi</h2>' +
       (t.threads ? '<span class="zm-stat">🏅 Hôm nay <b>' + t.threads + '</b> khách' + (t.avgMin != null ? ' · trả lời sau <b>' + ZS_MIN(t.avgMin) + '</b>' + (t.avgMin <= 10 ? ' 👏' : '') : '') + '</span>' : '') + '</div>';
     if (!D.online) h += '<p class="zs-warn">Zalo của bạn tạm chưa nối với CRM. Mở Zalo trên điện thoại 1 lần là được, vẫn vậy thì báo anh Sơn.</p>';
     if (wait.length) h += '<h3 class="zm-h">⏰ Khách đang chờ bạn <span class="zm-n">' + wait.length + '</span></h3><div class="zm-list">' + wait.slice(0, 8).map(function (r) { return zsMineRow(r, 'wait'); }).join('') + '</div>';
     if (buy.length) h += '<h3 class="zm-h">🛒 Khách muốn mua <span class="zm-n buy">' + buy.length + '</span></h3><div class="zm-list">' + buy.slice(0, 6).map(function (r) { return zsMineRow(r, 'buy'); }).join('') + '</div>';
-    if (!wait.length && !buy.length) h += '<p class="zs-allok">✅ Bạn đã trả lời hết khách nhắn Zalo. Tuyệt vời!</p>';
+    if (sil.length) h += '<h3 class="zm-h zm-hw"><span class="zm-nw">💤 Khách hỏi mua rồi im</span> <span class="zm-n">' + sil.length + '</span><small class="zm-hint">nhắn nhắc nhẹ 1 câu, đừng giục</small></h3><div class="zm-list">' + sil.slice(0, 6).map(function (r) { return zsMineRow(r, 'sil'); }).join('') + '</div>';
+    if (!wait.length && !buy.length && !sil.length) h += '<p class="zs-allok">✅ Bạn đã trả lời hết khách nhắn Zalo. Tuyệt vời!</p>';
     if (D.list.length) h += '<details class="zm-all" data-grp="zsall"' + (S.f.gopen && S.f.gopen.zsall ? ' open' : '') + '><summary>📜 Tất cả trò chuyện 30 ngày <span class="zm-n">' + D.list.length + '</span></summary><div class="zm-list">' + D.list.slice(0, 40).map(function (r) { return zsMineRow(r, ''); }).join('') + '</div></details>';
     h += '<p class="zm-foot">' + zsReadLine(D) + ' · <a href="/huong-dan/zalo-sale/" target="_blank" rel="noopener">Cách dùng</a> · <button type="button" class="zs-linkbtn" data-zsj="off">⏸ Tạm ngắt</button></p></section>';
     return h;

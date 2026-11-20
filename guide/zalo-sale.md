@@ -4,7 +4,7 @@ nav: Zalo của sale
 group: quan-ly
 short: Trợ lý Zalo nhắc khách chờ, khách muốn mua
 order: 9
-updated: 2026-11-19
+updated: 2026-11-20
 description: Trợ lý nhắc sale không bỏ sót khách nhắn Zalo, khách muốn mua thì lên đơn 1 chạm. Quản lý xem con số và gợi ý hỗ trợ.
 roles: [sale, ql]
 ---
@@ -42,6 +42,19 @@ Muốn nghỉ: cuối mục 💬 Zalo của tôi bấm **⏸ Tạm ngắt Zalo v
 
 Mỗi dòng là 1 khách: chữ cái đầu tên, câu khách nhắn cuối, bên phải là **1 nút việc cần làm**. Bấm vào dòng là đọc cả cuộc trò chuyện.
 
+Dưới tên khách có **1 nhãn màu**: khách là ai + 👉 nên làm gì. Đọc nhãn là biết cách tiếp cận:
+
+| Nhãn | Nên làm |
+|---|---|
+| 😟 Khách đang không vui | Gọi điện ngay, xin lỗi trước rồi hỏi rõ. Không mời mua thêm |
+| 🔁 Khách cũ sắp hết / đã hết … | Hỏi thăm dùng thấy thế nào, rồi mời đặt lại |
+| 💚 Khách cũ | Hỏi thăm việc dùng trước, sau mới giới thiệu thêm |
+| 🙋 Đã hỏi trước, chưa mua | Hỏi lại điều khách còn lo, nhắc ưu đãi |
+| 🌱 Khách mới hỏi mua | Hỏi dùng cho ai, đang lo gì, rồi báo giá + quà, xin số |
+| ❓ Chưa biết là ai | Bấm đúng tên khách ngay dưới nhãn, hoặc xin số |
+
+Dòng **viền đỏ** = khách chờ quá 1 ngày hoặc khách đang không vui. Làm những dòng này trước.
+
 ### Việc 1. ⏰ Khách đang chờ bạn → ✨ Gợi ý trả lời
 
 1. Mục **⏰ Khách đang chờ bạn** hiện khách nhắn mà bạn chưa trả lời, và **đã chờ bao lâu**.
@@ -51,7 +64,9 @@ Mỗi dòng là 1 khách: chữ cái đầu tên, câu khách nhắn cuối, bê
    - 👉 **Nên làm tiếp** (lên đơn, hẹn gọi lại, hỏi thăm sau khi dùng…)
 3. Sửa câu cho đúng giọng mình rồi tự gửi trên Zalo. **CRM không tự gửi.** Trả lời xong, khách tự biến khỏi danh sách.
 
-Khách chỉ nhắn "ok", "dạ", "cảm ơn", "để sau" thì CRM **không** tính là đang chờ. Khách chờ quá 30 phút (trong giờ làm), CRM **nhắn riêng** cho bạn qua Telegram.
+Khách chỉ nhắn "ok", "dạ", "cảm ơn", "để sau" thì CRM **không** tính là đang chờ. Khách chờ quá 30 phút (trong giờ làm), CRM **nhắn riêng** cho bạn qua Telegram. **8h sáng** CRM nhắn lại cho bạn khách nào chờ từ hôm qua chưa được trả lời, để không khách nào bị quên.
+
+Câu gợi ý càng dùng càng giống giọng bạn: bạn sửa câu gợi ý rồi gửi, lần sau trợ lý học theo cách bạn sửa. Chỉ trợ lý đọc, không ai khác xem.
 
 ### Việc 2. 🛒 Khách muốn mua → Lên đơn
 
@@ -63,10 +78,20 @@ Khách hỏi giá, hỏi ship, muốn đặt, gửi địa chỉ… thì hiện 
 
 Cần có **số điện thoại** mới mở được form. Số khách gõ trong tin nhắn thì CRM tự lấy.
 
+### Việc 2b. 💤 Khách hỏi mua rồi im → nhắn nhắc nhẹ
+
+Khách đã hỏi giá, hỏi ship, bạn trả lời rồi mà **khách im 2 ngày** thì hiện ở mục **💤 Khách hỏi mua rồi im**.
+
+1. Bấm **✨ Gợi ý nhắn lại** → chép 1 câu nhắc nhẹ (hỏi khách còn phân vân gì), sửa cho đúng giọng mình rồi gửi.
+2. Khách vẫn im: **7 ngày** sau CRM nhắc bạn thêm **1 lần cuối**. Sau đó thôi, không làm phiền khách.
+3. Khách đã lên đơn thì tự biến khỏi danh sách.
+
 ### Việc 3. Gắn số cho khách
 
-Zalo thường **ẩn số** của khách. Bấm vào khách để xem dòng dưới 2 nút:
-- **❓ Có phải khách … của bạn?** – CRM đoán theo tên. Đúng thì bấm **✓ Đúng, gắn số**.
+Zalo thường **ẩn số** của khách. Khách chưa rõ số có dòng **Có phải:** ngay trong danh sách, kèm 1–3 khách của bạn có tên giống. **Bấm đúng tên là xong**, không cần mở cuộc trò chuyện. Không phải khách (người thân, bạn bè, đồng nghiệp) thì bấm **Không phải khách**.
+
+Hoặc bấm vào khách để xem dòng dưới 2 nút:
+- **❓ Có phải khách … của bạn?** – CRM đoán theo tên. Đúng thì bấm tên khách đó.
 - **📇 Gõ số khách** – nếu bạn biết số.
 - **➕ Thêm vào CRM** – khách mới, có số nhưng chưa có trong CRM.
 
@@ -83,13 +108,15 @@ Gắn số xong, tin Zalo vào đúng **hồ sơ khách**, lần sau mở hồ s
 - Không bỏ quên khách nào, kể cả lúc bận gọi điện.
 - Mở **hồ sơ khách** → mục **💬 Zalo với khách này**: đọc lại khách đã hỏi gì, mình đã tư vấn gì. Không cần chép lại.
 - 🏅 Xem mình hôm nay chăm bao nhiêu khách, trả lời nhanh cỡ nào.
+- Ở **Việc gọi**, khách có nhãn **💬 Hay nhắn Zalo** là khách hay nhắn với bạn: **nhắn Zalo trước, gọi sau** (bấm 💬 Ghi lại → chọn mẫu tin → Zalo).
+- Đồng nghiệp (tên Zalo có "Thực Dưỡng Lành" hoặc trùng tên nhân sự) CRM tự bỏ qua, không tính là khách chờ.
 
 ## Dành cho Quản lý: 👀 Zalo của sale
 
 Mở **••• Thêm → 👀 Zalo của sale**. Từ 19/11/2026 trang chia thẻ: **👀 Mỗi ngày** (💡 Gợi ý hỗ trợ, 💬 Khách đang chờ) · **📊 Kết quả** (Con số từng sale, Trò chuyện gần đây) · **⚙️ Cài đặt** (Quản trị):
 
 - **💡 Gợi ý hỗ trợ chị em**: CRM tự gợi ý từ con số. Ví dụ: bạn đang có nhiều khách chờ → hỏi bạn có cần người đỡ không; bạn trả lời rất nhanh → khen bạn.
-- **📊 Con số từng sale**: hôm nay và 7 ngày (số khách nhắn, số lần trả lời, trả lời sau bao lâu, đang chờ mấy khách).
+- **📊 Con số từng sale**: hôm nay và 7 ngày (số khách nhắn, số lần trả lời, trả lời sau bao lâu, đang chờ mấy khách). Dòng **✨ Gợi ý trả lời**: bạn bấm gợi ý mấy lần, có gửi khách mấy lần, gửi y nguyên mấy lần (để biết gợi ý có giúp được bạn không).
 - 🟢 = Zalo đang nối với CRM · 🔴 = mất kết nối (nhắc bạn mở Zalo trên điện thoại, hoặc báo anh Sơn) · 🟡 = bạn chưa quét mã QR.
 
 Dùng con số để **hỏi han và giúp đỡ**, không dùng để phạt.
