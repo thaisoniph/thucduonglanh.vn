@@ -5623,7 +5623,7 @@
         if (!o.seller) return; if (!okP(o.seller)) { if (!users.some(function (z) { return z.name === o.seller; })) skip[o.seller] = (skip[o.seller] || 0) + 1; return; }
         var p = get(o.seller), t = Number(o.total) || 0;
         if (isVoid(o.status)) { if (isBack(o.status)) { p.back += backFee(o); p.backN++; } return; }
-        p.rev += t; p.n++; if (otypeOf(o) === 'Khách cũ') p.oldRev += t; mo(p, i).rev += t; mo(p, i).n++; p.ship += t * Mi.shipR;
+        p.rev += t; p.n++; var oc = cust(o.phone); if (oc && oc.first && oc.first < o.time - 3600e3) p.oldRev += t; // 20/11/2026: khách cũ = đã từng mua trước đơn này (giống Hiệu quả, Phiếu KPI), không theo Loại đơn tính hoa hồng mo(p, i).rev += t; mo(p, i).n++; p.ship += t * Mi.shipR;
         var it = parseItems(o.items), c = 0, iv = 0; it.forEach(function (q) { var k = itemCost(q); if (q.gift) { c += k || 0; return; } iv += q.qty * q.price; c += k !== null ? k : q.qty * q.price * r0; });
         p.cogs += it.length ? c : t * r0;
       });
@@ -5634,7 +5634,7 @@
         var ow = leadsOf(ph).filter(function (l) { return l.owner && okP(l.owner) && (l.time || 0) < R[1] + 30 * DAY; }).sort(function (x, y) { return (y.time || 0) - (x.time || 0); })[0], who = ow ? ow.owner : a[2];
         if (seen[ph] || !okP(who)) return; seen[ph] = 1;
         var p = get(who); p.nData++; p.data += Mi.cpl; if (Mi.est) p.est = 1; mo(p, i).nData++;
-        if ((byPh[ph] || []).some(function (o) { return o.seller === who && o.time >= a[0] - DAY && o.time < R[1] + 30 * DAY; })) p.won++;
+        if ((byPh[ph] || []).some(function (o) { return o.time >= a[0]; }) || leadsOf(ph).some(function (l) { return l.status === 'Đã chốt' && (l.lastAt || l.time || 0) >= a[0]; })) p.won++; // 20/11/2026: ra đơn tính giống tỷ lệ chốt ở Hiệu quả (closeStats)
       });
     });
     // sale văn phòng hiện có nhưng chưa bán gì cũng phải hiện (đang tốn lương)
@@ -7587,7 +7587,7 @@
   function ksLv(gr) { return gr === 'A' ? 'ok' : gr === 'D' ? 'bad' : 'mid'; }
   /** Thẻ phiếu KPI ở Hiệu quả của 1 người. */
   function ksCard(name, mo) {
-    var D = ksLoad(mo), mk = ksSmk(name, mo), mb = mk && mk.me, T = mk && mk.team, me = name === S.user.name;
+    var D = ksLoad(mo), mk = ksSmk(name, mo), mb = mk && mk.me, T = smkT(mk), me = name === S.user.name;
     var h = '<div class="box ks-card"><div class="ks-h"><h3>📋 Phiếu KPI ' + monthLabel(mo) + ' <small class="muted">chạy thử, chưa tính vào lương</small></h3>';
     if (D === undefined) return h + '</div><p class="muted small">⏳ Đang lấy phiếu…</p></div>';
     var r = ksResult(name, mo, mb, T), row = ksRow(mo, name);
@@ -7602,7 +7602,7 @@
   }
   /** Bảng phiếu KPI cả nhóm cho quản lý (thẻ 👥 Từng người). */
   function ksTeam(names, mo) {
-    var D = ksLoad(mo), mk = ksSmk('', mo), T = mk && mk.team;
+    var D = ksLoad(mo), mk = ksSmk('', mo), T = smkT(mk);
     var h = '<div class="box ks-card"><div class="ks-h"><h3>📋 Phiếu KPI ' + monthLabel(mo) + ' <small class="muted">chạy thử, chưa tính vào lương · bấm tên để chấm & chốt</small></h3></div>';
     if (D === undefined) return h + '<p class="muted small">⏳ Đang lấy phiếu…</p></div>';
     var L = names.map(function (n) { var mb = mk && mk.people ? mk.people[n] || null : mk === undefined ? undefined : null; return { n: n, r: ksResult(n, mo, mb, T), row: ksRow(mo, n) }; }).sort(function (a, b) { return b.r.tot - a.r.tot; });
@@ -7614,7 +7614,7 @@
   }
   /** Mở phiếu: từng nhóm, từng mục (số liệu + điểm). Quản lý chấm 2 mục quy trình, Lưu nháp / ✅ Chốt / 🔓 Mở lại. */
   function openKs(name, mo) {
-    var mgr = lvl() >= 2, row = ksRow(mo, name), done = !!(row && row.done), mkT = lvl() >= 2 ? ksSmk('', mo) : null, mk = mkT && mkT.people && mkT.people[name] ? null : ksSmk(name, mo), mb = mkT && mkT.people && mkT.people[name] || (mk && mk.me), T = (mkT && mkT.team) || (mk && mk.team);
+    var mgr = lvl() >= 2, row = ksRow(mo, name), done = !!(row && row.done), mkT = lvl() >= 2 ? ksSmk('', mo) : null, mk = mkT && mkT.people && mkT.people[name] ? null : ksSmk(name, mo), mb = mkT && mkT.people && mkT.people[name] || (mk && mk.me), T = smkT(mkT) || smkT(mk);
     var mv = (row && row.mgr && row.mgr.p) || [null, null], note = (row && row.mgr && row.mgr.n) || '', edit = mgr && !done;
     var body = '<p class="small muted">' + esc(name) + ' · ' + monthLabel(mo) + (done ? ' · ✅ chốt bởi ' + esc(row.doneBy) + ' (điểm giữ nguyên như lúc chốt)' : '') + '. Chạy thử, chưa tính vào lương.</p><div id="ksBody"></div>';
     if (mgr || note) body += '<fieldset class="kpt-g"><legend>✏️ Quản lý chấm <span class="kpt-w">10 điểm</span></legend>' + KS_MGR.map(function (t, i) {
@@ -7682,7 +7682,7 @@
   /** Tính hết bảng: K[i][n] = {v, gr, r (kết quả phiếu), att parts}. */
   function kstData(names, all, P) {
     return P.map(function (pd) {
-      var mk = smkGet('', { p: { k: 'x' }, R: pd.R }), T = mk && mk.team, rows = {}, careAvg = 0, cnt = 0;
+      var mk = smkGet('', { p: { k: 'x' }, R: pd.R }), T = smkT(mk), rows = {}, careAvg = 0, cnt = 0;
       if (pd.mo) ksLoad(pd.mo);
       all.forEach(function (n) { var c = perf(n, pd.R); rows[n] = { care: c.care }; if (c.care || c.orders) { careAvg += c.care; cnt++; } });
       careAvg = cnt ? careAvg / cnt : 0;
@@ -14169,6 +14169,8 @@
   }
   /** Tỷ lệ chốt cả nhóm theo file số quảng cáo (máy chủ gửi kèm cả cho sale). */
   function smkClose(T) { return T && T.n ? pct(T.won, T.n) : null; }
+  /** Mốc "cả nhóm" để so từng người (20/11/2026): chỉ sale văn phòng nhận số quảng cáo (máy chủ gửi teamS). Máy chủ cũ chưa có → cả nhóm như trước. */
+  function smkT(mk) { return mk ? (mk.teamS && mk.teamS.n ? mk.teamS : mk.team) : mk; }
   /** So với người giỏi nhất nhóm (máy chủ chỉ gửi tỷ lệ, không tên, không tiền). team: đang xem cả nhóm. */
   function repBest(best, mine, fmt, team) {
     if (best === null || best === undefined) return '';
@@ -14224,7 +14226,7 @@
    * Số liệu sâu (quảng cáo, chăm sóc, lý do, tỉnh) thu gọn bên dưới; công cụ (link web, báo cáo) ở cuối. */
   function viewPerson(name, cx) {
     var month = cx.month, c = salesAllFix(perf(name, cx.R), name, cx), p = perf(name, cx.P), me = name === S.user.name, who = me ? 'bạn' : name;
-    var ms = cx.whole ? c.sales : perf(name, monthRange(month)).sales, mk = smkGet(me && lvl() < 2 ? '' : name, cx), mb = mk && mk.me, T = mk && mk.team;
+    var ms = cx.whole ? c.sales : perf(name, monthRange(month)).sales, mk = smkGet(me && lvl() < 2 ? '' : name, cx), mb = mk && mk.me, T = smkT(mk);
     c.name = name; c.cx = cx;
     var h = (lvl() >= 2 && !me ? '<button class="btn ghost" data-who="team" style="margin-bottom:10px">← Quay lại cả nhóm</button>' : '') +
       targetBlock(name, month, ms, me || lvl() >= 2, c.avg || p.avg) + repMoneyLine(c, p, cx);
@@ -14297,7 +14299,7 @@
     if (r.mk && r.mk.none >= 3) w.push('📵 ' + r.mk.none + ' số quảng cáo chưa gọi');
     var sp0 = r.mk ? smkSpeed(r.mk) : null; if (sp0 !== null && r.mk.n >= 10 && sp0 < 60) w.push('📞 gọi chậm (' + sp0 + '% trong ngày)');
     if (r.pending >= 5) w.push('⏳ ' + r.pending + ' khách hỏi đang chờ gọi lại');
-    if (r.closePct !== null && t.closePct !== null && r.data >= 10 && r.closePct < t.closePct - 3) w.push('🎯 chốt ' + r.closePct + '%, nhóm ' + t.closePct + '%');
+    if (r.closePct !== null && t.closeRef !== null && r.data >= 10 && r.closePct < t.closeRef - 3) w.push('🎯 chốt ' + r.closePct + '%, nhóm ' + t.closeRef + '%');
     if (r.orders >= 3 && t.avg && r.avg < t.avg * 0.8) w.push('🛒 đơn nhỏ (' + moneyShort(r.avg) + ', nhóm ' + moneyShort(t.avg) + ')');
     if (careAvg >= 10 && r.care < careAvg * 0.5) w.push('💬 ít chăm sóc (' + r.care + ' lượt, TB nhóm ' + Math.round(careAvg) + ')');
     if (r.vipRisk) w.push('💎 ' + r.vipRisk + ' khách VIP chưa gọi');
@@ -14328,8 +14330,8 @@
     var vip = rows.filter(function (r) { return r.vipRisk; });
     if (t.vipRisk) L.push({ p: 2, t: '💎 <b>' + t.vipRisk + ' khách VIP</b> lâu chưa mua, chưa ai gọi' + (vip.length ? ' (' + nm(vip) + ')' : '') + '.' });
     if (noSeller.n) L.push({ p: 2, t: '🧾 <b>' + noSeller.n + ' đơn</b> (' + moneyShort(noSeller.v) + ') chưa có nhân viên bán, doanh số chưa tính cho ai.', a: '<button class="btn sm" data-who="-">Gán</button>' });
-    var low = rows.filter(function (r) { return r.closePct !== null && t.closePct !== null && r.data >= 10 && r.closePct < t.closePct - 3; });
-    if (low.length) L.push({ p: 2, t: '🎯 Chốt thấp hơn nhóm (' + t.closePct + '%): ' + nm(low) + '. Nghe lại vài cuộc gọi, xem lý do khách từ chối.', a: '<button class="btn sm" data-rgo="why">Lý do</button>' });
+    var low = rows.filter(function (r) { return r.closePct !== null && t.closeRef !== null && r.data >= 10 && r.closePct < t.closeRef - 3; });
+    if (low.length) L.push({ p: 2, t: '🎯 Chốt thấp hơn nhóm (' + t.closeRef + '%): ' + nm(low) + '. Nghe lại vài cuộc gọi, xem lý do khách từ chối.', a: '<button class="btn sm" data-rgo="why">Lý do</button>' });
     var noT = rows.filter(function (r) { return !(r.t && r.t.amount); });
     if (noT.length && cx.month === monthOf(Date.now())) L.push({ p: 3, t: '🎯 Chưa đặt mục tiêu ' + monthLabel(cx.month) + ': ' + nm(noT) + '.' });
     if (t.backPct !== null && t.backPct >= 10 && t.backN >= 3) L.push({ p: 3, t: '📦 Tỷ lệ hoàn đơn ' + t.backPct + '% (' + t.backN + ' đơn, mất phí ship ≈ ' + moneyShort(t.backLoss) + '). Nhắc gọi xác nhận trước khi gửi.' });
@@ -14353,6 +14355,8 @@
     var ms = cx.whole ? all.sales : perf(null, monthRange(month)).sales, mk = smkGet('', cx);
     rows.forEach(function (r) { r.mk = mk && mk.people ? mk.people[r.n] || null : null; });
     all.name = null; all.cx = cx;
+    var csN = coSales(), csD = 0, csW = 0; rows.forEach(function (r) { if (csN.indexOf(r.n) >= 0) { csD += r.data; csW += r.won; } });
+    all.closeRef = csD ? pct(csW, csD) : all.closePct; // mốc so từng người: chỉ sale văn phòng nhận số quảng cáo (giống 📊 So sánh, Phiếu KPI)
     var h = targetBlockTeam(ms, tt, month, all.avg || prev.avg) + repMoneyLine(all, prev, cx);
     // 29/10/2026: cùng thứ tự màn hình 1 người: mục tiêu → việc cần làm → 6 bước → khâu cần sửa nhất → từng người → chi tiết → công cụ
     h += '<section class="dash-hero">' + repMgrTodo(rows, all, cx, noSeller) + repSteps(all, prev, mk, mk && mk.team, mk && mk.team) + repFix(all, prev, mk && mk.team, mk && mk.team, mk && mk.best) + '</section>';
@@ -14383,6 +14387,7 @@
     orders: ['Số đơn', function (r) { return r.orders; }, String, function (r) { return r.orders ? 'TB ' + moneyShort(r.avg) : ''; }],
     avg: ['TB / đơn', function (r) { return r.orders ? r.avg : null; }, moneyShort, function (r) { return r.orders + ' đơn'; }],
     close: ['Tỷ lệ chốt', function (r) { return r.closePct; }, function (v) { return v + '%'; }, function (r) { return r.won + ' / ' + r.data + ' data quảng cáo'; }],
+    roi: ['1đ quảng cáo ra', function (r) { return r.mk && r.mk.cost ? r.mk.rev / r.mk.cost : null; }, function (v) { return oneDec(v) + 'đ'; }, function (r) { return r.mk && r.mk.cost ? 'công ty chi ' + moneyShort(r.mk.cost) + ' → mang về ' + moneyShort(r.mk.rev) : 'chưa có tiền quảng cáo'; }],
     target: ['% mục tiêu', function (r) { return r.t && r.t.amount ? Math.round(r.ms * 100 / r.t.amount) : null; }, function (v) { return v + '%'; }, function (r) { return r.t && r.t.amount ? moneyShort(r.ms) + ' / ' + moneyShort(r.t.amount) : 'chưa đặt mục tiêu'; }],
     care: ['Lượt chăm sóc', function (r) { return r.care; }, String, function (r) { return r.reorder + ' đặt lại'; }],
     conv: ['Chăm sóc ra đơn', function (r) { return r.convPct; }, function (v) { return v + '%'; }, function (r) { return r.conv + ' / ' + r.contacted + ' khách'; }],
@@ -14407,7 +14412,7 @@
     }, srt = function (a, b) { return (a.nul - b.nul) || (a.low - b.low) || (b.v - a.v); };
     var its = gA.map(function (r) { return mk(r, false); }).sort(srt), itB = gB.map(function (r) { return mk(r, true); }).sort(srt);
     var mx = Math.max.apply(null, its.concat(itB).map(function (x) { return x.v; }).concat(ref || 0)) || 1;
-    var refTxt = ref === null ? '' : X[0] === 'avg' ? 'Trung bình mỗi sale nhận số: <b>' + M[2](Math.round(ref)) + '</b>' : (gB.length ? gA.length + ' sale nhận số' : 'Cả nhóm') + ': <b>' + M[2](Math.round(ref)) + '</b>' + (k === 'close' ? ' (' + A.won + ' / ' + A.data + ' data quảng cáo)' : k === 'conv' ? ' (' + A.conv + ' / ' + A.contacted + ' khách)' : k === 'target' ? ' (' + moneyShort(A.tms) + ' / ' + moneyShort(A.tg) + ')' : '');
+    var refTxt = ref === null ? '' : X[0] === 'avg' ? 'Trung bình mỗi sale nhận số: <b>' + M[2](cmpR(k, ref)) + '</b>' : (gB.length ? gA.length + ' sale nhận số' : 'Cả nhóm') + ': <b>' + M[2](cmpR(k, ref)) + '</b>' + (k === 'close' ? ' (' + A.won + ' / ' + A.data + ' data quảng cáo)' : k === 'conv' ? ' (' + A.conv + ' / ' + A.contacted + ' khách)' : k === 'target' ? ' (' + moneyShort(A.tms) + ' / ' + moneyShort(A.tg) + ')' : k === 'roi' ? ' (chi ' + moneyShort(A.mkCost) + ' → ' + moneyShort(A.mkRev) + '; khoảng 2đ mới đủ bù quảng cáo sau giá vốn, ship, hoa hồng)' : '');
     return head + '<div class="box">' + barList(its, M[2], 'Chưa có số liệu.', { avg: ref, below: true, mx: mx }) +
       (itB.length ? '<p class="cmp-grp">' + CMP_OTH + '</p>' + barList(itB, M[2], '', { avg: null, below: true, mx: mx }) : '') +
       (refTxt ? '<p class="bar-legend"><span class="avg-k"></span> ' + refTxt + ' · <span class="cmp-d ok">xanh</span> bằng hoặc hơn · <span class="cmp-d mid">cam</span> thấp hơn chút · <span class="cmp-d bad">đỏ</span> thấp hơn nhiều' + (X[1] ? ' · xám: dưới ' + X[2] + ' ' + X[4] + ', chưa so' : '') + '</p>' : '') + '</div></section>';
@@ -14418,6 +14423,7 @@
     sales: ['avg'], orders: ['avg'], care: ['avg'],
     avg: [function (a) { return a.orders ? a.sales / a.orders : null; }, function (r) { return r.orders; }, 3, 0, 'đơn'],
     close: [function (a) { return a.data ? a.won * 100 / a.data : null; }, function (r) { return r.data; }, 5, 1, 'data'],
+    roi: [function (a) { return a.mkCost ? a.mkRev / a.mkCost : null; }, function (r) { return r.mk ? r.mk.n : 0; }, 5, 0, 'số quảng cáo'],
     target: [function (a) { return a.tg ? a.tms * 100 / a.tg : null; }, null, 0, 1],
     conv: [function (a) { return a.contacted ? a.conv * 100 / a.contacted : null; }, function (r) { return r.contacted; }, 5, 1, 'khách'],
     web: [function (a) { return a.webOf ? a.web * 100 / a.webOf : null; }, function (r) { return r.webOf; }, 3, 1, 'đơn'],
@@ -14426,7 +14432,8 @@
   function cmpAgg(rows) {
     var a = { tms: 0, tg: 0 }, F = ['sales', 'orders', 'won', 'data', 'contacted', 'conv', 'web', 'webOf', 'oldRev', 'care'];
     F.forEach(function (x) { a[x] = 0; });
-    rows.forEach(function (r) { F.forEach(function (x) { a[x] += r[x] || 0; }); if (r.t && r.t.amount) { a.tms += r.ms || 0; a.tg += r.t.amount; } });
+    a.mkCost = 0; a.mkRev = 0;
+    rows.forEach(function (r) { F.forEach(function (x) { a[x] += r[x] || 0; }); if (r.t && r.t.amount) { a.tms += r.ms || 0; a.tg += r.t.amount; } if (r.mk && r.mk.cost) { a.mkCost += r.mk.cost; a.mkRev += r.mk.rev || 0; } });
     return a;
   }
   function cmpRef(k, rows, A) {
@@ -14442,7 +14449,8 @@
     return !d ? 'bằng nhóm' : (d > 0 ? 'hơn nhóm ' : 'kém nhóm ') + Math.abs(d) + w;
   }
   /** 🧾 Tổng hợp: 1 dòng / người, mỗi ô tô màu so với cả nhóm → nhìn 1 lần thấy mạnh / yếu chỗ nào. */
-  var CMP_SUM = ['sales', 'target', 'orders', 'avg', 'close', 'conv', 'old'];
+  var CMP_SUM = ['sales', 'target', 'orders', 'avg', 'close', 'roi', 'conv', 'old'];
+  function cmpR(k, v) { return k === 'roi' ? v : Math.round(v); } // 1đ quảng cáo ra 1,9đ: giữ số lẻ
   var CMP_OTH = 'Không nhận số quảng cáo hằng ngày (quản lý, cộng tác viên): xem để biết, không so với nhóm trên';
   function cmpSum(rows, A, oth) {
     var refs = {}, best = {};
@@ -14454,15 +14462,15 @@
     var row = function (r, other) {
       return '<tr data-who="' + esc(r.n) + '" title="Bấm để xem chi tiết ' + esc(r.n) + '"' + (other ? ' class="oth"' : '') + '><td>' + esc(r.n) + '</td>' + CMP_SUM.map(function (k) {
         var v = CMP[k][1](r), low = !other && v !== null && cmpLow(k, r), lv = other ? '' : low ? 'low' : cmpLv(v, refs[k]);
-        return '<td class="' + (lv ? 'lv-' + lv : '') + (!other && v && v === best[k] && !low ? ' cmp-top' : '') + '" title="' + esc(CMP[k][3](r)) + '">' + (v === null ? '–' : CMP[k][2](Math.round(v))) + (low ? '<small>ít số</small>' : '') + '</td>';
+        return '<td class="' + (lv ? 'lv-' + lv : '') + (!other && v && v === best[k] && !low ? ' cmp-top' : '') + '" title="' + esc(CMP[k][3](r)) + '">' + (v === null ? '–' : CMP[k][2](cmpR(k, v))) + (low ? '<small>ít số</small>' : '') + '</td>';
       }).join('') + '</tr>';
     };
     var tr = rows.map(function (r) { return row(r, false); }).join('');
-    var tot = { sales: A.sales, orders: A.orders, target: refs.target, avg: refs.avg, close: refs.close, conv: refs.conv, old: refs.old };
-    tr += '<tr class="tot"><td>' + (oth && oth.length ? rows.length + ' sale nhận số' : 'Cả nhóm') + '</td>' + CMP_SUM.map(function (k) { var v = tot[k]; return '<td>' + (v === null || v === undefined ? '–' : CMP[k][2](Math.round(v))) + '</td>'; }).join('') + '</tr>';
+    var tot = { sales: A.sales, orders: A.orders, target: refs.target, avg: refs.avg, close: refs.close, roi: refs.roi, conv: refs.conv, old: refs.old };
+    tr += '<tr class="tot"><td>' + (oth && oth.length ? rows.length + ' sale nhận số' : 'Cả nhóm') + '</td>' + CMP_SUM.map(function (k) { var v = tot[k]; return '<td>' + (v === null || v === undefined ? '–' : CMP[k][2](cmpR(k, v))) + '</td>'; }).join('') + '</tr>';
     if (oth && oth.length) tr += '<tr class="grp"><td colspan="' + (CMP_SUM.length + 1) + '">' + CMP_OTH + '</td></tr>' + oth.map(function (r) { return row(r, true); }).join('');
     return '<div class="box"><div class="cmp-sum-w"><table class="cmp-sum">' + th + tr + '</table></div>' +
-      '<p class="bar-legend">Mỗi ô so với cả nhóm: <span class="cmp-d ok">xanh</span> bằng hoặc hơn · <span class="cmp-d mid">cam</span> thấp hơn chút · <span class="cmp-d bad">đỏ</span> thấp hơn nhiều · ★ cao nhất. Doanh số, số đơn so với trung bình mỗi sale nhận số quảng cáo. “ít số”: dưới 5 data / 3 đơn, chưa so. Rê chuột vào ô để xem số gốc.</p></div>';
+      '<p class="bar-legend">Mỗi ô so với cả nhóm: <span class="cmp-d ok">xanh</span> bằng hoặc hơn · <span class="cmp-d mid">cam</span> thấp hơn chút · <span class="cmp-d bad">đỏ</span> thấp hơn nhiều · ★ cao nhất. Doanh số, số đơn so với trung bình mỗi sale nhận số quảng cáo. “ít số”: dưới 5 data / 3 đơn, chưa so. “1đ quảng cáo ra”: tiền khách từ số quảng cáo của người đó mua ÷ tiền quảng cáo công ty chi cho các số ấy (khoảng 2đ mới đủ bù chi phí). Rê chuột vào ô để xem số gốc.</p></div>';
   }
   /** Mục “Chưa ai phụ trách” ở tab Hiệu quả: đơn chưa có NV bán, khách / khách hỏi chưa giao cho ai. */
   function viewNoOwner(cx) {

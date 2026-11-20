@@ -206,13 +206,17 @@ export async function crmSaleMkt(x, u, d) {
   if (![d.from, d.to].every(s => DAY_RE.test(String(s || '')))) return { ok: false, error: 'Khoảng thời gian chưa đúng.' };
   const T = await teamCalc(x, d.from, d.to), name = u.level < 2 ? u.name : String(d.name || '');
   const me = name ? T.people[name] || null : null;
+  // 20/11/2026: mốc "cả nhóm" để so từng người = chỉ các sale văn phòng nhận số quảng cáo (không số chưa chia, quản lý, CTV) — giống coSales() trong crm/app.js.
+  // team (mọi số) vẫn giữ cho chi phí / số liệu cả công ty.
+  const cs = (await crmUsers(x)).filter(v => v.role === 'Sale & CSKH' && !v.ctv && v.active).map(v => v.name);
+  const teamS = cs.reduce((t, n) => { const p = T.people[n]; if (p) { t.n += p.n; t.won += p.won; t.same += p.same; t.next += p.next; t.late += p.late; t.none += p.none; t.cost += p.cost; t.rev += p.rev; } return t; }, { n: 0, won: 0, same: 0, next: 0, late: 0, none: 0, cost: 0, rev: 0, names: cs.length });
   if (u.level < 2) { // sale chỉ xem chi phí quảng cáo dành cho mình (anh Sơn chốt 16/10/2026): cả nhóm chỉ còn tỷ lệ để so sánh, không có số tiền
     const tm = T.team || blank(), prod = {};
     Object.keys(tm.prod || {}).forEach(k => { const p = tm.prod[k]; prod[k] = { n: p.n, won: p.won, junk: p.junk }; });
     const team = { n: tm.n, won: tm.won, junk: tm.junk, lost: tm.lost, open: tm.open, same: tm.same, next: tm.next, late: tm.late, none: tm.none, wait: tm.wait, cost: 0, rev: 0, roi: tm.cost ? Math.round(tm.rev / tm.cost * 10) / 10 : null, prod };
-    return { ok: true, at: T.at, team, me, best: T.best || null, offers: await offersLive(x), mine: 1, co: await beCo(x, u, name), be: await kvJson(x.db, 'be_vr', null), tier: tierOf(await adsTier(x), name), tierW: TIER, split: ((await kvJson(x.db, 'ads_cfg', {})) || {}).mode || 'staff' };
+    return { ok: true, at: T.at, team, me, best: T.best || null, offers: await offersLive(x), mine: 1, teamS: { n: teamS.n, won: teamS.won, same: teamS.same, next: teamS.next, late: teamS.late, none: teamS.none, roi: teamS.cost ? Math.round(teamS.rev / teamS.cost * 10) / 10 : null }, co: await beCo(x, u, name), be: await kvJson(x.db, 'be_vr', null), tier: tierOf(await adsTier(x), name), tierW: TIER, split: ((await kvJson(x.db, 'ads_cfg', {})) || {}).mode || 'staff' };
   }
-  return { ok: true, co: await beCo(x, u, name || u.name), be: await kvJson(x.db, 'be_vr', null), at: T.at, spend: T.spend, n: T.n, cpl: T.cpl, cplBy: T.cplBy, cplRest: T.cplRest, team: T.team, me, best: T.best || null, offers: await offersLive(x), people: T.people };
+  return { ok: true, co: await beCo(x, u, name || u.name), be: await kvJson(x.db, 'be_vr', null), at: T.at, spend: T.spend, n: T.n, cpl: T.cpl, cplBy: T.cplBy, cplRest: T.cplRest, team: T.team, teamS, me, best: T.best || null, offers: await offersLive(x), people: T.people };
 }
 
 /** ⚖️ Hoà vốn số quảng cáo (16/11/2026 anh Sơn): Quản trị mở Tổng quan → CRM gửi 1 tỷ lệ gộp (giá vốn + ship + VAT trên 1đ doanh số).
