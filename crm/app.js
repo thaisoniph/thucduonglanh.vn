@@ -11060,8 +11060,8 @@
   function askMcpLoad() { ASK.mcp = ASK.mcp || {}; ASK.mcp.busy = 1; api('mcp_list', {}).then(function (j) { ASK.mcp.list = j.list || []; ASK.mcp.err = ''; }, function (er) { ASK.mcp.err = /Không rõ thao tác/.test(er.message) ? 'Máy chủ chưa có cổng kết nối (đang cập nhật), thử lại sau vài phút.' : er.message; }).then(function () { ASK.mcp.busy = 0; askRedraw(); }); }
   function askMcpBox() {
     var M = ASK.mcp || {}, li = M.list;
-    return '<details class="box ask-mcp" id="askMcp"' + (ASK.mcpOpen ? ' open' : '') + '><summary><b>🔌 Hỏi bằng ChatGPT / Gemini</b> <span class="muted small">(nói chuyện bằng giọng được)</span></summary>' +
-      '<p class="small">Gắn CRM vào ChatGPT hoặc Gemini 1 lần, sau đó hỏi số liệu ngay trong app ChatGPT / Gemini, kể cả khi nói chuyện bằng giọng. Chỉ đọc số, tên khách đã che như ở đây.</p>' +
+    return '<details class="box ask-mcp" id="askMcp"' + (ASK.mcpOpen ? ' open' : '') + '><summary><b>🔌 Hỏi bằng ChatGPT / Gemini / Claude</b> <span class="muted small">(nói chuyện bằng giọng được)</span></summary>' +
+      '<p class="small">Gắn CRM vào ChatGPT, Gemini hoặc Claude 1 lần, sau đó hỏi số liệu ngay trong app đó, kể cả khi nói chuyện bằng giọng. Chỉ đọc số, tên khách đã che như ở đây.</p>' +
       '<p class="ask-mcp-url"><span>Địa chỉ kết nối</span><code>' + MCP_URL + '</code><button type="button" class="btn sm" data-copy="' + MCP_URL + '">📋 Chép</button></p>' +
       '<p><b>ChatGPT</b> <span class="small muted">(làm trên máy tính, chatgpt.com, gói Plus trở lên)</span></p><ol class="small">' +
       '<li>Vào <b>chatgpt.com/plugins</b> → nút <b>Thêm</b> (góc phải) → <b>Thêm server MCP tùy chỉnh</b>.</li>' +
@@ -11072,6 +11072,9 @@
       '<li>Vào <b>gemini.google.com/customize/connectors</b> (Trình kết nối) → nút <b>+</b> góc phải → dán địa chỉ trên → <b>Tiếp theo</b>.</li>' +
       '<li>Kéo xuống tick <b>Tôi hiểu và chấp nhận…</b> → <b>Kết nối</b> → <b>Đồng ý và tiếp tục</b>.</li>' +
       '<li>Đăng nhập như ChatGPT → <b>Kết nối</b> để lưu. Hỏi: gõ hoặc nói “Hỏi CRM Thực Dưỡng Lành doanh số hôm nay”. Nếu Gemini bắt nhập <b>Client ID / Client Secret</b>: bấm nút dưới để tạo rồi dán vào.</li></ol>' +
+      '<p><b>Claude</b> <span class="small muted">(claude.ai)</span></p><ol class="small">' +
+      '<li>Settings → <b>Customize</b> → <b>Connectors</b> → <b>Add</b> → <b>Add custom connector</b>: tên <i>CRM Thực Dưỡng Lành</i>, dán địa chỉ trên → Continue → giữ mặc định → <b>Add</b> → <b>Connect</b>.</li>' +
+      '<li>Đăng nhập như ChatGPT. Hỏi: “Hỏi CRM Thực Dưỡng Lành doanh số hôm nay”, kể cả bằng giọng trong app Claude.</li></ol>' +
       '<p class="small muted">Tên menu có thể khác một chút theo bản cập nhật (đúng đến 20/11/2026). Không gắn được thì bấm 🎙 ngay ở CRM này.</p>' +
       '<p><button type="button" class="btn sm" data-ask="mcpnew">🔑 Tạo Client ID / Secret</button></p>' +
       (M.cid ? '<div class="ask-mcp-key small"><p>Client ID: <code>' + esc(M.cid) + '</code> <button type="button" class="btn sm" data-copy="' + esc(M.cid) + '">📋</button></p><p>Client Secret: <code>' + esc(M.sec) + '</code> <button type="button" class="btn sm" data-copy="' + esc(M.sec) + '">📋</button></p><p class="muted">Chỉ hiện 1 lần, chép ngay. Không gửi cho người khác.</p></div>' : '') +
