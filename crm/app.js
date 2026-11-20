@@ -5573,7 +5573,7 @@
     var ms6 = [0, 1, 2, 3, 4, 5].map(function (i) { return shiftMonth(mo, -i); }), rows = {};
     Promise.all(ms6.map(function (m) { return api('kt_luong', { op: 'list', month: m }).then(function (j) { rows[m] = j.row; if (m === mo) NSV.d = j; }, function () { if (m === mo) NSV.d = { staff: [], cfg: {}, err: 1 }; }); }))
       .then(function () { if (NSV.d) NSV.d.rows = rows; })
-      .then(function () { NSV.busy = false; NSV.m = mo; NSV.at = Date.now(); NSV_C = {}; if (route().view === 'tong-quan') softRender(true); });
+      .then(function () { NSV.busy = false; NSV.m = mo; NSV.at = Date.now(); NSV_C = {}; if (route().view === 'tong-quan' || route().view === 'bao-cao') softRender(true); }); // bao-cao: 🧭 Đánh giá 3 tháng (20/11/2026)
   }
   function nsvLv(r, x) { return r === null ? '' : r >= x ? 'ok' : r >= 1 ? 'mid' : 'bad'; }
   function nsvData(n) {
@@ -14363,6 +14363,7 @@
     // 19/11/2026: tiến độ hôm nay + thi đua + bảng từng người sang thẻ 👥 Từng người
     var TQ = h, NG = '<section class="dash-hero">' + teamBlock() /* tiến độ hôm nay (việc trễ, đơn chưa xác nhận…) ngay trong Hiệu quả, quản lý không phải sang tab Hôm nay */ + raceBlock() /* 14/11/2026: Quản trị xem bảng thi đua ngay ở Hiệu quả (Hôm nay nằm trong Thêm) */ + repPeople(rows, all, cx) + '</section>'; h = '';
     var RSB = refSaleBox(null);
+    NG += repMore('ev3', '🧭 Đánh giá 3 tháng để ra quyết định', 'Mỗi sale 1 dòng: doanh số, chốt, tiền quảng cáo, khách cũ, điểm KPI' + (lvl() >= 3 ? ', lãi cho công ty sau lương' : '') + ' + việc nên làm', ev3Block());
     NG += ksTeam(rows.map(function (r) { return r.n; }), month); // 📋 Phiếu KPI tháng từng sale (19/11/2026)
     NG += ksTrend(rows.map(function (r) { return r.n; }), rows.map(function (r) { return r.n; })); // 📈 KPI theo thời gian (20/11/2026)
     var lead = rows[0] && rows[0].sales ? rows[0] : null;
@@ -14380,6 +14381,62 @@
     var CC = RSB + h; h = repTabs(true, TQ, NG, BAN, KH, CC);
     h += '<p class="small muted">🟢 đúng tiến độ mục tiêu / tốt hơn ' + (CMP_LABEL || 'kỳ trước') + ' · 🟠 hơi chậm / giảm nhẹ · 🔴 đang chậm / giảm nhiều. 🥇🥈🥉 xếp theo doanh số trong kỳ đang chọn.</p>';
     return h;
+  }
+  /* ---------- 🧭 Đánh giá 3 tháng (20/11/2026, anh Sơn: "để anh và anh Hiếu đánh giá chính xác từng nhân sự, giá trị từng người để ra quyết định").
+   * 1 bảng cho 5 sale văn phòng nhận số quảng cáo (coSales), 3 tháng trọn gần nhất (giống 💎 Giá trị nhân sự): kết quả, dùng số quảng cáo,
+   * giữ khách, điểm KPI, lãi cho công ty sau lương (💎, chỉ Quản trị) + 1 gợi ý quyết định. Mốc so = cả 5 sale (tổng tử ÷ tổng mẫu). */
+  function ev3Block() {
+    var ms = rpmMonths(3), R = [monthRange(ms[0])[0], monthRange(ms[2])[1]], names = coSales(), adm = lvl() >= 3;
+    if (names.length < 2) return '';
+    var mk = smkGet('', { p: { k: 'e3' }, R: R }), T = smkT(mk), NV = null;
+    if (adm) { nsvLoad(); if (NSV.d) { try { NV = {}; nsvData(3).sales.forEach(function (p) { NV[p.name] = p; }); } catch (e) { NV = null; } } }
+    var rows = names.map(function (n) {
+      var p = perf(n, R), tg = 0, tms = 0, mo = ms.map(function (m) { var s0 = perf(n, monthRange(m)).sales, t = targetOf(n, m); if (t && t.amount) { tg += t.amount; tms += s0; } return s0; });
+      var mb = mk && mk.people ? mk.people[n] || null : mk === undefined ? undefined : null, ks = ksCalcR(n, R, mb, T, null);
+      return { n: n, p: p, mo: mo, sm: p.sales / 3, tg: tg, tms: tms, tp: tg ? tms * 100 / tg : null, cl: p.data >= 5 ? p.closePct : null, clN: p.data, won: p.won,
+        roi: mb && mb.cost && mb.n >= 5 ? mb.rev / mb.cost : null, mb: mb, old: p.sales ? p.oldPct : null, ks: ks, nv: NV ? NV[n] || null : null };
+    });
+    var S0 = function (f) { return rows.reduce(function (a, r) { return a + (f(r) || 0); }, 0); };
+    var ref = { sm: S0(function (r) { return r.sm; }) / rows.length, tp: S0(function (r) { return r.tg; }) ? S0(function (r) { return r.tms; }) * 100 / S0(function (r) { return r.tg; }) : null,
+      cl: S0(function (r) { return r.p.data; }) ? S0(function (r) { return r.p.won; }) * 100 / S0(function (r) { return r.p.data; }) : null,
+      roi: S0(function (r) { return r.mb && r.mb.cost; }) ? S0(function (r) { return r.mb && r.mb.rev; }) / S0(function (r) { return r.mb && r.mb.cost; }) : null,
+      old: S0(function (r) { return r.p.sales; }) ? S0(function (r) { return r.p.oldRev; }) * 100 / S0(function (r) { return r.p.sales; }) : null };
+    var cell = function (v, rf, txt, tip) { var lv = cmpLv(v, rf); return '<td class="' + (lv ? 'lv-' + lv : '') + '" title="' + esc(tip || '') + '">' + (v === null || v === undefined ? '–' : txt) + '</td>'; };
+    var ksLvC = function (g) { return g === 'A' ? 'ok' : g === 'D' ? 'bad' : 'mid'; }, NVL = { ok: 'ok', mid: 'mid', bad: 'bad' };
+    var dec = function (r) { // 1 gợi ý quyết định, dựa trên chỗ yếu nhất
+      var nv = r.nv, g = r.ks && r.ks.gr;
+      if (nv && nv.isNew) return '🌱 Đang học việc: kèm 1 người giỏi';
+      if ((nv && nv.lv === 'bad') || g === 'D') return '🔴 Họp riêng: đặt mục tiêu 30 ngày, theo dõi tuần';
+      var top = (!nv || nv.lv === 'ok') && (r.roi === null || ref.roi === null || r.roi >= ref.roi * 0.9) && (r.cl === null || ref.cl === null || r.cl >= ref.cl * 0.9); // lệch dưới 10% so với nhóm coi như bằng
+      if (top && (g === 'A' || g === 'B' || (nv && nv.lv === 'ok'))) return '⭐ Nhân rộng: ưu tiên chia thêm số, mời chia sẻ cách làm';
+      if (r.cl !== null && ref.cl && r.cl < ref.cl * 0.85) return '🎯 Kèm khâu chốt: nghe lại cuộc gọi, tạm chia ít số hơn';
+      if (r.roi !== null && ref.roi && r.roi < ref.roi * 0.8) return '💸 Số quảng cáo chưa ra tiền: giảm số, tăng khách cũ';
+      if (r.old !== null && r.old < 30) return '🔁 Tăng chăm khách cũ (đang ' + r.old + '% doanh số)';
+      if (r.tp !== null && r.tp < 70) return '🎯 Còn xa mục tiêu: chia nhỏ mục tiêu theo tuần';
+      return '👍 Giữ nhịp, khen kịp thời';
+    };
+    rows.sort(function (a, b) { return (b.nv ? b.nv.net : b.sm) - (a.nv ? a.nv.net : a.sm); });
+    var th = '<tr><th>Nhân viên</th><th>Doanh số / tháng</th><th>% mục tiêu</th><th>Tỷ lệ chốt</th><th>1đ quảng cáo ra</th><th>Từ khách cũ</th><th>Điểm KPI</th>' + (adm ? '<th>Lãi cho công ty / tháng</th>' : '') + '</tr>';
+    var tr = rows.map(function (r) {
+      var up = r.mo[0] ? Math.round((r.mo[2] - r.mo[0]) * 100 / r.mo[0]) : null, nv = r.nv;
+      return '<tr data-who="' + esc(r.n) + '" title="Bấm để xem chi tiết ' + esc(r.n) + '"><td>' + esc(r.n) + '</td>' +
+        cell(r.sm, ref.sm, moneyShort(r.sm) + (up !== null ? '<small>' + (up >= 5 ? '↗ ' : up <= -5 ? '↘ ' : '→ ') + ms.map(function (m, i) { return moneyShort(r.mo[i]); }).join(' · ') + '</small>' : ''), ms.map(function (m, i) { return rpmTh(m) + ': ' + money(r.mo[i]); }).join(' · ')) +
+        cell(r.tp, ref.tp, Math.round(r.tp) + '%', r.tg ? moneyShort(r.tms) + ' / ' + moneyShort(r.tg) + ' (tháng đã đặt mục tiêu)' : 'chưa đặt mục tiêu') +
+        (r.cl === null && r.clN ? '<td class="lv-low">' + r.p.closePct + '%<small>ít số</small></td>' : cell(r.cl, ref.cl, r.cl + '%', r.won + ' / ' + r.clN + ' data quảng cáo')) +
+        (mk === undefined ? '<td class="lv-low">⏳</td>' : cell(r.roi, ref.roi, oneDec(r.roi || 0) + 'đ', r.mb && r.mb.cost ? 'công ty chi ' + moneyShort(r.mb.cost) + ' → mang về ' + moneyShort(r.mb.rev) : 'chưa đủ 5 số quảng cáo')) +
+        cell(r.old, ref.old, r.old + '%', moneyShort(r.p.oldRev) + ' từ khách đã từng mua') +
+        '<td class="' + (r.ks && r.ks.W ? 'lv-' + ksLvC(r.ks.gr) : 'lv-low') + '" title="' + esc(r.ks && r.ks.why || 'Điểm CRM tự chấm 3 tháng (chưa có phần quản lý chấm)') + '">' + (r.ks && r.ks.W ? oneDec(r.ks.tot) + '<small>' + (KS_GR[r.ks.gr] || '') + '</small>' : '–') + '</td>' +
+        (adm ? '<td class="' + (nv && NVL[nv.lv] ? 'lv-' + NVL[nv.lv] : 'lv-low') + '" title="' + esc(nv ? nv.why || '' : NSV.d ? 'Chưa có lương / số liệu' : '⏳ Đang tính') + '">' + (nv && !nv.isNew && nv.cost ? nsvSign(nv.net) + '<small>' + (NSV_TXT[nv.lv] || '') + '</small>' : nv && nv.isNew ? '🌱' : NSV.d ? '–' : '⏳') + '</td>' : '') +
+        '</tr>';
+    }).join('');
+    var todo = '<div class="ev3-todo"><h4>👉 Nên làm với từng người <small class="muted">máy gợi ý theo chỗ yếu nhất, quản lý quyết định</small></h4>' + rows.map(function (r) { return '<p><button class="link" data-who="' + esc(r.n) + '">' + esc(r.n) + '</button>: ' + dec(r) + '</p>'; }).join('') + '</div>';
+    tr += '<tr class="tot"><td>5 sale</td><td>' + moneyShort(ref.sm) + '</td><td>' + (ref.tp === null ? '–' : Math.round(ref.tp) + '%') + '</td><td>' + (ref.cl === null ? '–' : Math.round(ref.cl) + '%') + '</td><td>' + (ref.roi === null ? '–' : oneDec(ref.roi) + 'đ') + '</td><td>' + (ref.old === null ? '–' : Math.round(ref.old) + '%') + '</td><td></td>' + (adm ? '<td></td>' : '') + '</tr>';
+    var lbl = rpmTh(ms[0]) + ' – ' + rpmTh(ms[2]);
+    return '<div class="box"><p class="small muted" style="margin:0 0 8px">' + esc(lbl) + ' (3 tháng trọn gần nhất, tháng này chưa hết nên chưa tính) · 5 sale văn phòng nhận số quảng cáo · mỗi ô so với cả 5 người: <span class="cmp-d ok">xanh</span> bằng hoặc hơn · <span class="cmp-d mid">cam</span> thấp hơn chút · <span class="cmp-d bad">đỏ</span> thấp hơn nhiều. Bấm tên để xem chi tiết.</p>' +
+      '<div class="cmp-sum-w"><table class="cmp-sum ev3">' + th + tr + '</table></div>' + todo +
+      '<p class="bar-legend"><b>Doanh số / tháng</b>: trung bình 3 tháng, dòng nhỏ là từng tháng (↗ tăng, ↘ giảm). <b>1đ quảng cáo ra</b>: khoảng 2đ mới đủ bù chi phí. <b>Điểm KPI</b>: CRM tự chấm cả 3 tháng (A ≥ 90, B ≥ 75, C ≥ 60), chưa gồm phần quản lý chấm.' +
+      (adm ? ' <b>Lãi cho công ty</b>: doanh số trừ thuế, giá vốn, ship, tiền data quảng cáo, lương + hoa hồng' + (NSV.d ? ' và chi phí chung đang tích ở 💎 Giá trị từng nhân sự (Tổng quan)' : '') + ', trung bình mỗi tháng.' : '') +
+      ' Số quảng cáo chỉ lưu 100 ngày gần nhất nên tháng đầu có thể thiếu một phần.</p></div>';
   }
   /** Biểu đồ so sánh nhân viên: chọn 1 chỉ số, mỗi người 1 thanh (xếp từ cao xuống), vạch đậm = trung bình nhóm, bấm vào thanh để xem chi tiết người đó. */
   var CMP = {

@@ -3950,3 +3950,7 @@ table.cmp-sum tr.tot td { font-weight: 700; background: var(--bg); border-top: 2
 .cmp-grp { font-size: 13px; color: var(--muted); margin: 12px 4px 4px; padding-top: 10px; border-top: 1px dashed var(--line); }
 table.cmp-sum tr.grp td { position: static; background: none; font-size: 12px; font-weight: 400; color: var(--muted); text-align: left; padding: 14px 8px 4px; white-space: normal; border-bottom: 1px dashed var(--line); }
 table.cmp-sum tr.oth td { color: var(--muted); }
+/* 🧭 Đánh giá 3 tháng (20/11/2026) */
+.ev3-todo { margin: 10px 0 4px; padding: 10px 12px; background: var(--primary-soft); border-radius: var(--radius-sm); }
+.ev3-todo h4 { margin: 0 0 6px; font-size: 14px; } .ev3-todo p { margin: 4px 0; font-size: 14px; }
+table.cmp-sum.ev3 td small { white-space: nowrap; }
