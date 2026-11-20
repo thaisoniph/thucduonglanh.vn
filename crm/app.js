@@ -11064,8 +11064,8 @@
       '<p class="small">Gắn CRM vào ChatGPT hoặc Gemini 1 lần, sau đó hỏi số liệu ngay trong app ChatGPT / Gemini, kể cả khi nói chuyện bằng giọng. Chỉ đọc số, tên khách đã che như ở đây.</p>' +
       '<p class="ask-mcp-url"><span>Địa chỉ kết nối</span><code>' + MCP_URL + '</code><button type="button" class="btn sm" data-copy="' + MCP_URL + '">📋 Chép</button></p>' +
       '<p><b>ChatGPT</b> <span class="small muted">(làm trên máy tính, chatgpt.com, gói Plus trở lên)</span></p><ol class="small">' +
-      '<li>Cài đặt → <b>Ứng dụng</b> (Apps) → <b>Nâng cao</b> → bật <b>Chế độ nhà phát triển</b> (Developer mode).</li>' +
-      '<li>Bấm <b>Tạo ứng dụng</b> (Create app): tên <i>CRM Thực Dưỡng Lành</i>, dán địa chỉ trên, xác thực chọn <b>OAuth</b> → Tạo.</li>' +
+      '<li>Vào <b>chatgpt.com/plugins</b> → nút <b>Thêm</b> (góc phải) → <b>Thêm server MCP tùy chỉnh</b>.</li>' +
+      '<li>Tên <i>CRM Thực Dưỡng Lành</i>, dán địa chỉ trên vào ô Kết nối, Xác thực để <b>OAuth</b>, tick <b>Tôi hiểu và muốn tiếp tục</b> → <b>Tạo dưới dạng plugin</b> → <b>Tiếp tục</b>.</li>' +
       '<li>Trang CRM mở ra: nhập email CRM → nhập mã trong email → <b>✅ Cho phép kết nối</b>.</li>' +
       '<li>Hỏi: trong khung chat bấm <b>+</b> chọn <i>CRM Thực Dưỡng Lành</i>, hoặc bấm 🎙 nói chuyện và nói “Hỏi CRM doanh số hôm nay”. Điện thoại dùng chung tài khoản là có.</li></ol>' +
       '<p><b>Gemini</b> <span class="small muted">(làm trên máy tính, gemini.google.com)</span></p><ol class="small">' +
