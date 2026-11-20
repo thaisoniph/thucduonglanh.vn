@@ -19,7 +19,7 @@ const SYS_WHAT = /^(Giao khách|Đồng bộ|Nhập|Cài đặt|Nhân sự|Đơn
 
 /** Tính cho cả nhóm 1 lần (lưu tạm 30 phút), rồi cắt phần của từng người. */
 async function teamCalc(x, from, to) {
-  const key = 'smkt2_' + from + '_' + to + '_' + ((await kvGet(x.db, 'ads_rows_v')) || '');
+  const key = 'smkt3_' + from + '_' + to + '_' + ((await kvGet(x.db, 'ads_rows_v')) || '');
   const c = await kvJson(x.db, key, null); if (c) return c;
   const R = [dayMs(from), dayMs(to) + DAY], today0 = startOfDay(Date.now());
   const [adRows, sp] = await Promise.all([kvJson(x.db, 'ads_rows', []),
@@ -37,7 +37,7 @@ async function teamCalc(x, from, to) {
   // kết quả từng số: đơn (không huỷ / hoàn) từ ngày có số, khách hỏi, lần liên hệ đầu tiên
   const phones = data.map(d0 => d0.ph);
   const [ords, lds, logs] = phones.length ? await Promise.all([
-    allIn(x.db, 'SELECT phone, time, total, status FROM orders WHERE phone IN (SELECT value FROM json_each(?)) AND time >= ?', phones, R[0]),
+    allIn(x.db, 'SELECT phone, time, total, status FROM orders WHERE phone IN (SELECT value FROM json_each(?))', phones), // cả đơn cũ: biết khách đã từng mua
     allIn(x.db, 'SELECT phone, time, last_at, status, reason FROM leads WHERE phone IN (SELECT value FROM json_each(?)) AND coalesce(last_at, time) >= ?', phones, R[0]),
     allIn(x.db, 'SELECT ref, time, what FROM logs WHERE ref IN (SELECT value FROM json_each(?)) AND time >= ?', phones, R[0])
   ]) : [[], [], []];
@@ -45,7 +45,10 @@ async function teamCalc(x, from, to) {
   ords.forEach(o => push(oBy, normPhone(o.phone), o)); lds.forEach(l => push(lBy, normPhone(l.phone), l)); logs.forEach(g => { if (!SYS_WHAT.test(g.what || '')) push(gBy, normPhone(g.ref), Number(g.time) || 0); });
   const people = {}, team = blank(), P = {};
   data.forEach(d0 => {
-    const os = (oBy[d0.ph] || []).filter(o => (Number(o.time) || 0) >= d0.day), ok = os.filter(o => !isVoid(o.status));
+    const all0 = oBy[d0.ph] || [], os = all0.filter(o => (Number(o.time) || 0) >= d0.day), ok = os.filter(o => !isVoid(o.status));
+    // 20/11/2026: tỷ lệ chốt (cn / cw) chỉ tính khách chưa từng mua, ra đơn trong 30 ngày (giống closeStats crm/app.js); n / won / rev giữ cho tiền quảng cáo
+    const was = all0.some(o => !isVoid(o.status) && (Number(o.time) || 0) < d0.day), end = d0.day + 30 * DAY;
+    const w30 = !was && (ok.some(o => (Number(o.time) || 0) < end) || (lBy[d0.ph] || []).some(l => { const t = Number(l.last_at) || Number(l.time) || 0; return t >= d0.day && t < end && l.status === 'Đã chốt'; }));
     const ls = (lBy[d0.ph] || []).filter(l => (Number(l.last_at) || Number(l.time) || 0) >= d0.day);
     const won = ok.length > 0 || ls.some(l => l.status === 'Đã chốt'), no = !won && ls.find(l => l.status === 'Không mua'), junk = no && /rác/i.test(no.reason || '');
     // lần liên hệ đầu: nhật ký có SĐT, khách hỏi đổi trạng thái (last_at), hoặc khách đã mua
@@ -54,9 +57,9 @@ async function teamCalc(x, from, to) {
     const sp0 = dd === null ? (d0.day < today0 ? 'none' : 'wait') : dd <= 0 ? 'same' : dd === 1 ? 'next' : 'late';
     const cost = costOf(d0.prod), rev = ok.reduce((s, o) => s + (Number(o.total) || 0), 0);
     [team, people[d0.sale] || (people[d0.sale] = blank())].forEach(b => {
-      b.n++; b.cost += cost; b.rev += rev; b[sp0]++;
+      b.n++; b.cost += cost; b.rev += rev; b[sp0]++; if (!was) { b.cn++; if (w30) b.cw++; }
       if (won) b.won++; else if (junk) b.junk++; else if (no) b.lost++; else b.open++;
-      const pp = b.prod[d0.prod] || (b.prod[d0.prod] = { n: 0, won: 0, junk: 0, cost: 0 }); pp.n++; pp.cost += cost; if (won) pp.won++; if (junk) pp.junk++;
+      const pp = b.prod[d0.prod] || (b.prod[d0.prod] = { n: 0, won: 0, junk: 0, cost: 0, cn: 0, cw: 0 }); pp.n++; pp.cost += cost; if (won) pp.won++; if (junk) pp.junk++; if (!was) { pp.cn++; if (w30) pp.cw++; }
     });
   });
   Object.keys(cpl).forEach(p => { P[p] = Math.round(cpl[p]); });
@@ -76,7 +79,7 @@ async function bestCalc(x, R, people) {
     const b = people[k]; if (!staff[k] || b.n < 10) return;
     const called = b.same + b.next + b.late + b.none;
     up('speed', called >= 10 ? Math.round(b.same * 100 / called) : null);
-    up('close', Math.round(b.won * 100 / b.n));
+    up('close', b.cn >= 10 ? Math.round(b.cw * 100 / b.cn) : null);
     up('roi', b.cost ? Math.round(b.rev / b.cost * 10) / 10 : null);
   });
   const by = {}; (await all(x.db, "SELECT seller, status, count(*) AS n FROM orders WHERE time >= ? AND time < ? GROUP BY seller, status", R[0], R[1])).forEach(r => {
@@ -85,7 +88,7 @@ async function bestCalc(x, R, people) {
   Object.keys(by).forEach(k => { if (staff[k] && by[k].n >= 10) up('ok', 100 - Math.round(by[k].v * 100 / by[k].n)); });
   return best;
 }
-function blank() { return { n: 0, won: 0, junk: 0, lost: 0, open: 0, cost: 0, rev: 0, same: 0, next: 0, late: 0, none: 0, wait: 0, prod: {} }; }
+function blank() { return { n: 0, won: 0, cn: 0, cw: 0, junk: 0, lost: 0, open: 0, cost: 0, rev: 0, same: 0, next: 0, late: 0, none: 0, wait: 0, prod: {} }; }
 function fin(b) { b.cost = Math.round(b.cost); Object.keys(b.prod).forEach(k => { b.prod[k].cost = Math.round(b.prod[k].cost); }); return b; }
 
 /* ---------- 🅰️🅱️©️ Chia số quảng cáo theo nhóm (16/11/2026 anh Sơn + anh Hiếu): quảng cáo đắt, số ít → ưu tiên số cho sale chốt tốt.
@@ -209,12 +212,12 @@ export async function crmSaleMkt(x, u, d) {
   // 20/11/2026: mốc "cả nhóm" để so từng người = chỉ các sale văn phòng nhận số quảng cáo (không số chưa chia, quản lý, CTV) — giống coSales() trong crm/app.js.
   // team (mọi số) vẫn giữ cho chi phí / số liệu cả công ty.
   const cs = (await crmUsers(x)).filter(v => v.role === 'Sale & CSKH' && !v.ctv && v.active).map(v => v.name);
-  const teamS = cs.reduce((t, n) => { const p = T.people[n]; if (p) { t.n += p.n; t.won += p.won; t.same += p.same; t.next += p.next; t.late += p.late; t.none += p.none; t.cost += p.cost; t.rev += p.rev; } return t; }, { n: 0, won: 0, same: 0, next: 0, late: 0, none: 0, cost: 0, rev: 0, names: cs.length });
+  const teamS = cs.reduce((t, n) => { const p = T.people[n]; if (p) { t.n += p.n; t.won += p.won; t.cn += p.cn || 0; t.cw += p.cw || 0; t.same += p.same; t.next += p.next; t.late += p.late; t.none += p.none; t.cost += p.cost; t.rev += p.rev; } return t; }, { n: 0, won: 0, cn: 0, cw: 0, same: 0, next: 0, late: 0, none: 0, cost: 0, rev: 0, names: cs.length });
   if (u.level < 2) { // sale chỉ xem chi phí quảng cáo dành cho mình (anh Sơn chốt 16/10/2026): cả nhóm chỉ còn tỷ lệ để so sánh, không có số tiền
     const tm = T.team || blank(), prod = {};
-    Object.keys(tm.prod || {}).forEach(k => { const p = tm.prod[k]; prod[k] = { n: p.n, won: p.won, junk: p.junk }; });
-    const team = { n: tm.n, won: tm.won, junk: tm.junk, lost: tm.lost, open: tm.open, same: tm.same, next: tm.next, late: tm.late, none: tm.none, wait: tm.wait, cost: 0, rev: 0, roi: tm.cost ? Math.round(tm.rev / tm.cost * 10) / 10 : null, prod };
-    return { ok: true, at: T.at, team, me, best: T.best || null, offers: await offersLive(x), mine: 1, teamS: { n: teamS.n, won: teamS.won, same: teamS.same, next: teamS.next, late: teamS.late, none: teamS.none, roi: teamS.cost ? Math.round(teamS.rev / teamS.cost * 10) / 10 : null }, co: await beCo(x, u, name), be: await kvJson(x.db, 'be_vr', null), tier: tierOf(await adsTier(x), name), tierW: TIER, split: ((await kvJson(x.db, 'ads_cfg', {})) || {}).mode || 'staff' };
+    Object.keys(tm.prod || {}).forEach(k => { const p = tm.prod[k]; prod[k] = { n: p.n, won: p.won, junk: p.junk, cn: p.cn, cw: p.cw }; });
+    const team = { n: tm.n, won: tm.won, cn: tm.cn, cw: tm.cw, junk: tm.junk, lost: tm.lost, open: tm.open, same: tm.same, next: tm.next, late: tm.late, none: tm.none, wait: tm.wait, cost: 0, rev: 0, roi: tm.cost ? Math.round(tm.rev / tm.cost * 10) / 10 : null, prod };
+    return { ok: true, at: T.at, team, me, best: T.best || null, offers: await offersLive(x), mine: 1, teamS: { n: teamS.n, won: teamS.won, cn: teamS.cn, cw: teamS.cw, same: teamS.same, next: teamS.next, late: teamS.late, none: teamS.none, roi: teamS.cost ? Math.round(teamS.rev / teamS.cost * 10) / 10 : null }, co: await beCo(x, u, name), be: await kvJson(x.db, 'be_vr', null), tier: tierOf(await adsTier(x), name), tierW: TIER, split: ((await kvJson(x.db, 'ads_cfg', {})) || {}).mode || 'staff' };
   }
   return { ok: true, co: await beCo(x, u, name || u.name), be: await kvJson(x.db, 'be_vr', null), at: T.at, spend: T.spend, n: T.n, cpl: T.cpl, cplBy: T.cplBy, cplRest: T.cplRest, team: T.team, teamS, me, best: T.best || null, offers: await offersLive(x), people: T.people };
 }

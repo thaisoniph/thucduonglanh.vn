@@ -744,7 +744,7 @@ async function crmRace(x, u) {
     all(x.db, `SELECT o.seller, o.time, o.total, o.phone, c.first FROM orders o LEFT JOIN customers c ON c.phone = o.phone WHERE o.time >= ? AND ${VOID.replace(/status/g, 'o.status')}`, from),
     all(x.db, "SELECT own_by, own_at FROM customers WHERE own_src IN ('self', 'ref') AND own_at >= ?", from).catch(() => []), // 🙋 khách tự mang về (10/11/2026)
     all(x.db, 'SELECT name, amount FROM targets WHERE month = ?', mk),
-    adPh.length ? allIn(x.db, `SELECT phone, time FROM orders WHERE phone IN (SELECT value FROM json_each(?)) AND time >= ? AND ${VOID}`, adPh, a0) : [],
+    adPh.length ? allIn(x.db, `SELECT phone, time FROM orders WHERE phone IN (SELECT value FROM json_each(?)) AND ${VOID}`, adPh) : [], // cả đơn trước ngày có số: biết khách đã từng mua
     adPh.length ? allIn(x.db, 'SELECT phone, time, last_at, status FROM leads WHERE phone IN (SELECT value FROM json_each(?)) AND coalesce(last_at, time) >= ?', adPh, a0) : []]);
   // 13/11/2026 (anh Sơn sau họp sale): 🌱 Công sức mở rộng khách = khách đã mời giới thiệu (1 / khách / ngày) + khách hỏi tự thêm + số nhận từ Kho chung → người chưa ra đơn vẫn được ghi nhận
   const [efLog, efLead] = await Promise.all([
@@ -752,8 +752,10 @@ async function crmRace(x, u) {
     all(x.db, "SELECT time, by_name FROM leads WHERE time >= ? AND coalesce(by_name, '') != '' AND by_name = owner AND coalesce(channel, '') NOT LIKE 'File%'", from).catch(() => [])]);
   const effortOf = (n, a, b) => efLog.filter(l => l.by_name === n && l.time >= a && l.time < b).length + efLead.filter(l => l.by_name === n && l.time >= a && l.time < b).length;
   const buyT = {}, ldBy = {}; ao.forEach(o => { (buyT[normPhone(o.phone)] = buyT[normPhone(o.phone)] || []).push(Number(o.time) || 0); }); al.forEach(l => { (ldBy[normPhone(l.phone)] = ldBy[normPhone(l.phone)] || []).push(l); });
-  const closeOf = (n, a, b) => { const seen = {}; let data = 0, won = 0; ads.forEach(r => { const [day, ph] = r; if (day < a || day >= b || r[2] !== n || seen[ph]) return; seen[ph] = 1; data++;
-    if ((buyT[ph] || []).some(t => t >= day) || (ldBy[ph] || []).some(l => (Number(l.last_at) || Number(l.time) || 0) >= day && l.status === 'Đã chốt')) won++; }); return { data, won }; };
+  // 20/11/2026 anh Sơn duyệt: chỉ số của khách chưa từng mua, ra đơn trong 30 ngày kể từ ngày nhận số (giống closeStats crm/app.js, teamCalc salemkt.js)
+  const closeOf = (n, a, b) => { const seen = {}; let data = 0, won = 0; ads.forEach(r => { const [day, ph] = r, end = day + 30 * DAY; if (day < a || day >= b || r[2] !== n || seen[ph]) return; seen[ph] = 1;
+    if ((buyT[ph] || []).some(t => t < day)) return; data++;
+    if ((buyT[ph] || []).some(t => t >= day && t < end) || (ldBy[ph] || []).some(l => { const t = Number(l.last_at) || Number(l.time) || 0; return t >= day && t < end && l.status === 'Đã chốt'; })) won++; }); return { data, won }; };
   const us = (await crmUsers(x)).filter(v => v.active && v.level >= 1 && v.level < 3), names = us.map(v => v.name), tgt = {}; tg.forEach(t => { tgt[t.name] = Number(t.amount) || 0; });
   const sum = (a, b, n) => os.filter(o => o.time >= a && o.time < b && (!n || o.seller === n)).reduce((s, o) => s + (Number(o.total) || 0), 0);
   const period = (a, b, pa, pb, minLead, gk) => {
