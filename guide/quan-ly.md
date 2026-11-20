@@ -176,7 +176,7 @@ Tài khoản Quản trị không nằm trong bảng so sánh nhân sự. Doanh s
 Học từ bảng KPI nhân viên kinh doanh của phòng khám Thăng Long: chấm cả việc làm ra doanh số, không chỉ doanh số. Có 4 nhóm, tổng 100 điểm:
 
 - **💰 Doanh số (60):** doanh số so với mục tiêu tháng. Tháng đang chạy thì so với tiến độ tới hôm nay. Sale văn phòng chưa đặt mục tiêu thì tính mức 100 triệu.
-- **🪜 Việc dẫn tới doanh số (20):** gọi ngay trong ngày nhận số (7), tỷ lệ chốt số quảng cáo so với cả nhóm (7), doanh số từ khách cũ (6).
+- **🪜 Việc dẫn tới doanh số (20):** gọi ngay trong ngày nhận số (7), tỷ lệ chốt số quảng cáo (7, đủ điểm từ **50%** theo Phụ lục 01 sửa 20/11/2026; chỉ tính khách chưa từng mua, ra đơn trong 30 ngày), doanh số từ khách cũ (6).
 - **💚 Chất lượng (10):** giao thành công (5), khách cũ quay lại mua so với tháng trước (5).
 - **📋 Quy trình (10):** quản lý chấm 2 mục theo mức 100 / 80 / 50 / 0%: làm đúng quy trình, ghi CRM đầy đủ (5); giờ giấc, 10 Quy tắc danh dự, hỗ trợ đồng đội (5).
 

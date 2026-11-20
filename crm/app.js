@@ -7535,6 +7535,7 @@
   var KS_GR = { A: 'Loại A', B: 'Loại B', C: 'Loại C', D: 'Họp riêng để kèm' };
   var KS_MLV = [[100, '✅ Luôn đúng'], [80, '🟡 Có 1–2 lần chưa đúng, đã sửa'], [50, '🟠 Nhiều lần chưa đúng / đã nhắc'], [0, '🔴 Vi phạm nặng']];
   var KS_GROUPS = [['ds', '💰 Doanh số', 60], ['lead', '🪜 Việc dẫn tới doanh số', 20], ['qual', '💚 Chất lượng phục vụ', 10], ['proc', '📋 Quy trình', 10]];
+  var KS_CLOSE = 50; // % tỷ lệ chốt đạt đủ điểm (Phụ lục 01 sửa 20/11/2026: 80% → 50%)
   var KS_MGR = ['Làm đúng quy trình bán hàng, ghi CRM đầy đủ (tư vấn, chăm sóc, lý do không mua)', 'Giờ giấc, 10 Quy tắc danh dự, hỗ trợ đồng đội'];
   function ksLoad(mo, force) {
     var c = KS.m[mo]; if (KS.busy[mo] || (!force && c && Date.now() - c.at < 120e3)) return c ? c.d : undefined;
@@ -7569,8 +7570,9 @@
     it.push({ k: 'ds', g: 'ds', t: cur ? 'Doanh số so với tiến độ mục tiêu tới hôm nay' : 'Doanh số so với mục tiêu ' + kw, w: 60, v: goal ? cl(c.sales / gNow) : null,
       txt: goal ? moneyShort(c.sales) + ' / ' + moneyShort(gNow) + ' = ' + pct(c.sales, gNow) + '%' + (cur ? ' (mục tiêu cả ' + kw + ' ' + moneyShort(goal) + ')' : '') + (G.set ? '' : ' · chưa đặt mục tiêu, tính mức tối thiểu 100 tr / tháng') : 'Chưa có mục tiêu', pc: goal ? pct(c.sales, gNow) : null });
     it.push({ k: 'call', g: 'lead', t: 'Gọi ngay trong ngày nhận số (đủ điểm từ 80%)', w: 7, v: sp === null ? null : cl(sp / 80), txt: sp === null ? (mb === undefined ? '⏳ Đang tính…' : 'Không nhận số quảng cáo') : sp + '%' + (mb.none ? ' · ' + mb.none + ' số chưa gọi' : '') });
-    var okC = c.closePct !== null && c.data >= 5 && tcl;
-    it.push({ k: 'close', g: 'lead', t: 'Tỷ lệ chốt số quảng cáo (đủ điểm khi bằng cả nhóm)', w: 7, v: okC ? cl(c.closePct / tcl) : null, txt: c.closePct === null || c.data < 5 ? 'Dưới 5 số quảng cáo, chưa tính' : c.closePct + '%' + (tcl ? ' · cả nhóm ' + tcl + '%' : ' · ⏳ đang lấy số cả nhóm') });
+    // 20/11/2026 anh Sơn: đủ điểm khi chốt từ 50% (mục tiêu Phụ lục 01/CĐ2026 bản 20/11, đo theo khách chưa từng mua, ra đơn trong 30 ngày); cả nhóm chỉ để tham khảo
+    var okC = c.closePct !== null && c.data >= 5;
+    it.push({ k: 'close', g: 'lead', t: 'Tỷ lệ chốt số quảng cáo (đủ điểm từ ' + KS_CLOSE + '%, theo Phụ lục 01)', w: 7, v: okC ? cl(c.closePct / KS_CLOSE) : null, txt: c.closePct === null || c.data < 5 ? 'Dưới 5 số quảng cáo, chưa tính' : c.closePct + '% / mục tiêu ' + KS_CLOSE + '%' + (tcl ? ' · cả nhóm ' + tcl + '%' : '') });
     it.push({ k: 'old', g: 'lead', t: 'Doanh số từ khách cũ (đủ điểm từ 50%)', w: 6, v: c.sales ? cl(c.oldPct / 50) : null, txt: c.sales ? c.oldPct + '% = ' + moneyShort(c.oldRev) : 'Chưa có đơn' });
     it.push({ k: 'ship', g: 'qual', t: 'Giao thành công (đủ điểm từ 95%, dưới 85% = 0)', w: 5, v: c.backPct === null ? null : cl((100 - c.backPct - 85) / 10), txt: c.backPct === null ? 'Chưa có đơn' : (100 - c.backPct) + '%' + (c.backN ? ' · ' + c.backN + ' đơn hoàn' : '') });
     it.push({ k: 'rep', g: 'qual', t: 'Khách cũ quay lại mua (đủ điểm khi bằng ' + (mo ? cur ? 'cùng kỳ tháng trước' : 'tháng trước' : 'kỳ trước') + ')', w: 5, v: p.repeat ? cl(c.repeat / p.repeat) : c.repeat ? 1 : null, txt: c.repeat + ' khách' + (p.repeat ? ' · trước ' + p.repeat + ' khách' : '') });
