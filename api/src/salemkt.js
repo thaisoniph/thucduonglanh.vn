@@ -19,11 +19,12 @@ const SYS_WHAT = /^(Giao khách|Đồng bộ|Nhập|Cài đặt|Nhân sự|Đơn
 
 /** Tính cho cả nhóm 1 lần (lưu tạm 30 phút), rồi cắt phần của từng người. */
 async function teamCalc(x, from, to) {
-  const key = 'smkt3_' + from + '_' + to + '_' + ((await kvGet(x.db, 'ads_rows_v')) || '');
+  const key = 'smkt4_' + from + '_' + to + '_' + ((await kvGet(x.db, 'ads_rows_v')) || '');
   const c = await kvJson(x.db, key, null); if (c) return c;
   const R = [dayMs(from), dayMs(to) + DAY], today0 = startOfDay(Date.now());
-  const [adRows, sp] = await Promise.all([kvJson(x.db, 'ads_rows', []),
-    all(x.db, 'SELECT channel, campaign, SUM(spend) AS s FROM ad_spend WHERE day BETWEEN ? AND ? GROUP BY channel, campaign', from, to)]);
+  const [adRows, sp, dcfg] = await Promise.all([kvJson(x.db, 'ads_rows', []),
+    all(x.db, 'SELECT channel, campaign, SUM(spend) AS s FROM ad_spend WHERE day BETWEEN ? AND ? GROUP BY channel, campaign', from, to), kvJson(x.db, 'dash_cfg', {})]);
+  const backCost = Number(dcfg && dcfg.backCost) > 0 ? Number(dcfg.backCost) : 60000; // phí ship mất 1 đơn hoàn (đi + về), giống backCost() crm/app.js
   // data trong kỳ: mỗi SĐT 1 lần (lần đầu trong kỳ), giống closeStats trong crm/app.js
   const seen = {}, data = [];
   (adRows || []).forEach(a => { const day = Number(a[0]) || 0, ph = normPhone(a[1]); if (!ph || day < R[0] || day >= R[1] || seen[ph]) return; seen[ph] = 1; data.push({ day, ph, sale: String(a[2] || ''), prod: prodOf(a[3]) || 'Khác' }); });
@@ -37,7 +38,7 @@ async function teamCalc(x, from, to) {
   // kết quả từng số: đơn (không huỷ / hoàn) từ ngày có số, khách hỏi, lần liên hệ đầu tiên
   const phones = data.map(d0 => d0.ph);
   const [ords, lds, logs] = phones.length ? await Promise.all([
-    allIn(x.db, 'SELECT phone, time, total, status FROM orders WHERE phone IN (SELECT value FROM json_each(?))', phones), // cả đơn cũ: biết khách đã từng mua
+    allIn(x.db, 'SELECT phone, time, total, status, ship_fee FROM orders WHERE phone IN (SELECT value FROM json_each(?))', phones), // cả đơn cũ: biết khách đã từng mua
     allIn(x.db, 'SELECT phone, time, last_at, status, reason FROM leads WHERE phone IN (SELECT value FROM json_each(?)) AND coalesce(last_at, time) >= ?', phones, R[0]),
     allIn(x.db, 'SELECT ref, time, what FROM logs WHERE ref IN (SELECT value FROM json_each(?)) AND time >= ?', phones, R[0])
   ]) : [[], [], []];
@@ -56,8 +57,10 @@ async function teamCalc(x, from, to) {
     const t1 = touch.length ? Math.min.apply(null, touch) : 0, dd = t1 ? Math.round((startOfDay(t1) - d0.day) / DAY) : null;
     const sp0 = dd === null ? (d0.day < today0 ? 'none' : 'wait') : dd <= 0 ? 'same' : dd === 1 ? 'next' : 'late';
     const cost = costOf(d0.prod), rev = ok.reduce((s, o) => s + (Number(o.total) || 0), 0);
+    // 20/11/2026 anh Sơn: đơn hoàn mất phí ship 2 chiều → trừ khi xếp nhóm A/B/C (phí thật từ file đối soát, chưa đối soát = backCost). Huỷ trước khi gửi không mất ship.
+    const backs = os.filter(o => /hoàn/i.test(String(o.status || ''))), bk = backs.reduce((s, o) => s + (o.ship_fee != null ? Number(o.ship_fee) || 0 : backCost), 0);
     [team, people[d0.sale] || (people[d0.sale] = blank())].forEach(b => {
-      b.n++; b.cost += cost; b.rev += rev; b[sp0]++; if (!was) { b.cn++; if (w30) b.cw++; }
+      b.n++; b.cost += cost; b.rev += rev; b.bk += bk; b.bn += backs.length; b[sp0]++; if (!was) { b.cn++; if (w30) b.cw++; }
       if (won) b.won++; else if (junk) b.junk++; else if (no) b.lost++; else b.open++;
       const pp = b.prod[d0.prod] || (b.prod[d0.prod] = { n: 0, won: 0, junk: 0, cost: 0, cn: 0, cw: 0 }); pp.n++; pp.cost += cost; if (won) pp.won++; if (junk) pp.junk++; if (!was) { pp.cn++; if (w30) pp.cw++; }
     });
@@ -88,11 +91,11 @@ async function bestCalc(x, R, people) {
   Object.keys(by).forEach(k => { if (staff[k] && by[k].n >= 10) up('ok', 100 - Math.round(by[k].v * 100 / by[k].n)); });
   return best;
 }
-function blank() { return { n: 0, won: 0, cn: 0, cw: 0, junk: 0, lost: 0, open: 0, cost: 0, rev: 0, same: 0, next: 0, late: 0, none: 0, wait: 0, prod: {} }; }
+function blank() { return { n: 0, won: 0, cn: 0, cw: 0, junk: 0, lost: 0, open: 0, cost: 0, rev: 0, bk: 0, bn: 0, same: 0, next: 0, late: 0, none: 0, wait: 0, prod: {} }; }
 function fin(b) { b.cost = Math.round(b.cost); Object.keys(b.prod).forEach(k => { b.prod[k].cost = Math.round(b.prod[k].cost); }); return b; }
 
 /* ---------- 🅰️🅱️©️ Chia số quảng cáo theo nhóm (16/11/2026 anh Sơn + anh Hiếu): quảng cáo đắt, số ít → ưu tiên số cho sale chốt tốt.
- * Nhóm theo 60 ngày gần nhất (tới hôm qua): tiền mang về từ số quảng cáo ÷ tiền quảng cáo của các số đó (ROI).
+ * Nhóm theo 60 ngày gần nhất (tới hôm qua): (tiền mang về từ số quảng cáo − phí ship mất của đơn hoàn, 20/11/2026) ÷ tiền quảng cáo của các số đó (ROI).
  * A ≥ 1,8đ (gần / qua mức ~2đ đủ bù quảng cáo sau giá vốn, ship, thuế, hoa hồng) → 3 lượt / vòng · B ≥ 1,2đ → 2 lượt · C dưới 1,2đ → 1 lượt (vẫn có số để cố gắng lên nhóm).
  * Thử với số thật 16/11: luật "gọi trong ngày dưới 60% xuống 1 nhóm" đẩy Lương (1,97đ, 57%) xuống C vì nhiều cuộc gọi không ghi CRM → bỏ, % gọi trong ngày chỉ để xem.
  * Dưới 15 số (người mới) → B. Tính lại 7 ngày / lần (kv ads_tier). */
@@ -103,9 +106,9 @@ export async function adsTier(x, force) {
   if (c && !force && Date.now() - c.at < 7 * DAY) return c;
   const to = isoVN(Date.now() - DAY), from = isoVN(Date.now() - TIER_DAYS * DAY), T = await teamCalc(x, from, to), P = {};
   Object.keys(T.people || {}).forEach(k => {
-    const b = T.people[k], called = b.same + b.next + b.late + b.none, roi = b.cost ? Math.round(b.rev / b.cost * 100) / 100 : null, sp = called ? Math.round(b.same * 100 / called) : null;
+    const b = T.people[k], called = b.same + b.next + b.late + b.none, bk = b.bk || 0, roi = b.cost ? Math.round((b.rev - bk) / b.cost * 100) / 100 : null, sp = called ? Math.round(b.same * 100 / called) : null;
     const g = b.n < TIER_MINN || roi === null ? 'B' : roi >= TIER.A.min ? 'A' : roi >= TIER.B.min ? 'B' : 'C', down = false;
-    P[k] = { g, roi, sp, n: b.n, rev: b.rev, cost: b.cost, down, nw: b.n < TIER_MINN };
+    P[k] = { g, roi, sp, n: b.n, rev: b.rev, cost: b.cost, bk, bn: b.bn || 0, down, nw: b.n < TIER_MINN }; // roi đã trừ ship đơn hoàn (bk, bn đơn)
   });
   const out = { at: Date.now(), from, to, people: P };
   await kvSet(x.db, 'ads_tier', JSON.stringify(out));
