@@ -15755,7 +15755,29 @@
         j.byMuc.map(function (r) { return '<tr><td>' + esc(j.muc[r.muc] || r.muc) + '</td><td>' + both(r.usd) + '</td><td>' + Number(r.n).toLocaleString('vi-VN') + '</td><td>' + money(Math.round(r.usd * rate / Math.max(1, r.n))) + '</td><td class="muted">' + kTok(r.inp + r.cr) + ' / ' + kTok(r.out) + '</td></tr>'; }).join('') + '</table>' : '<p class="hint">Chưa có lời gọi AI nào được đếm (bắt đầu đếm từ 10/11/2026).</p>');
       var modT = j.byModel.length ? '<p style="margin:0 0 4px"><b>Theo mô hình AI</b> <span class="muted small">(30 ngày)</span></p><table class="bcdt" style="margin:0 0 12px"><tr><th>Mô hình</th><th>Tiền</th><th>Lượt</th></tr>' + j.byModel.map(function (r) { return '<tr><td>' + esc(r.model) + '</td><td>' + both(r.usd) + '</td><td>' + Number(r.n).toLocaleString('vi-VN') + '</td></tr>'; }).join('') + '</table>' : '';
       var dayT = j.byDay.length ? '<p style="margin:0 0 4px"><b>Từng ngày</b> <span class="muted small">(14 ngày)</span></p><table class="bcdt" style="margin:0 0 8px"><tr><th>Ngày</th><th>Tiền</th><th>Lượt</th></tr>' + j.byDay.slice().reverse().map(function (r) { return '<tr><td>' + d8(r.day) + '</td><td>' + both(r.usd) + '</td><td>' + Number(r.n).toLocaleString('vi-VN') + '</td></tr>'; }).join('') + '</table>' : '';
-      box.innerHTML = top + form + tot + mucT + modT + dayT + '<p class="hint" style="margin:0">Tính theo bảng giá Anthropic (Haiku 5.5: 0,10$ / 1 triệu chữ vào, 0,50$ ra; Opus 5.5: 4$ / 20$). Lệch vài % so với hoá đơn thật là bình thường.' + (j.since ? ' Đếm từ ' + d8(j.since) + '.' : '') + '</p>';
+      // 🎛 chọn mô hình theo việc (20/11/2026, api ai_pick): Mặc định / Haiku / Sonnet / Opus + ước tính 30 ngày mỗi mô hình
+      var MN = { haiku: 'Haiku', sonnet: 'Sonnet', opus: 'Opus', mix: 'tuỳ việc' }, pick = j.pick || {}, def = j.def || {}, est = j.est || {}, pby = j.pickBy || {};
+      var pkKeys = Object.keys(j.muc || {}).filter(function (k) { return k !== 'khac'; }).sort(function (a, b) { var ea = est[a], eb = est[b], va = ea ? ea[pick[a] || def[a]] || ea.sonnet : -1, vb = eb ? eb[pick[b] || def[b]] || eb.sonnet : -1; return vb - va || String(j.muc[a]).localeCompare(String(j.muc[b])); });
+      var pkRow = function (k) {
+        var cur = pick[k] || '', eff = cur || def[k], e = est[k], d = def[k] || 'mix';
+        var sel = '<select data-aipk="' + esc(k) + '" style="min-width:150px"><option value=""' + (cur ? '' : ' selected') + '>Mặc định (' + MN[d] + ')</option>' +
+          ['haiku', 'sonnet', 'opus'].map(function (m) { return '<option value="' + m + '"' + (cur === m ? ' selected' : '') + '>' + { haiku: 'Haiku – rẻ nhất', sonnet: 'Sonnet – vừa', opus: 'Opus – mạnh nhất' }[m] + '</option>'; }).join('') + '</select>';
+        var cost = e ? ['haiku', 'sonnet', 'opus'].map(function (m) { var t = MN[m] + ' ' + vnd(e[m]); return m === eff ? '<b>' + t + '</b>' : '<span class="muted">' + t + '</span>'; }).join(' · ') + ' <span class="muted">(' + Number(e.n).toLocaleString('vi-VN') + ' lượt)</span>' : '<span class="muted">30 ngày qua chưa dùng</span>';
+        var by = pby[k] && cur ? '<br><span class="muted">' + esc(pby[k].n || '') + ' đổi ' + fDate(pby[k].at) + '</span>' : '';
+        return '<tr><td>' + esc(j.muc[k]) + by + '</td><td>' + sel + '</td><td class="small">' + cost + '</td></tr>';
+      };
+      var pkT = '<div class="box" style="margin:0 0 12px"><p style="margin:0 0 4px"><b>🎛 Chọn mô hình AI cho từng việc</b></p>' +
+        '<p class="small" style="margin:0 0 8px"><b>Haiku</b> rẻ nhất: trả lời nhanh, việc đơn giản. <b>Sonnet</b> vừa (đắt gấp ~20 lần Haiku): viết bài hằng ngày, tra số thường. <b>Opus</b> mạnh nhất (gấp ~2 lần Sonnet): việc cần nghĩ sâu, tính toán khó. ' +
+        'Đổi xong có hiệu lực sau khoảng 1 phút. Mô hình chọn không làm được việc đó thì CRM tự dùng lại mô hình cũ, không hỏng việc.</p>' +
+        '<p class="small muted" style="margin:0 0 6px">Cột bên phải: 30 ngày qua nếu cả việc đó dùng mô hình này thì tốn khoảng bao nhiêu (chữ đậm = đang dùng).</p>' +
+        '<div style="overflow-x:auto"><table class="bcdt" style="margin:0"><tr><th>Việc</th><th>Mô hình</th><th>30 ngày tốn khoảng</th></tr>' + pkKeys.map(pkRow).join('') + '</table></div></div>';
+      box.innerHTML = top + form + tot + pkT + mucT + modT + dayT + '<p class="hint" style="margin:0">Tính theo bảng giá Anthropic (Haiku 5.5: 0,10$ / 1 triệu chữ vào, 0,50$ ra; Opus 5.5: 4$ / 20$). Lệch vài % so với hoá đơn thật là bình thường.' + (j.since ? ' Đếm từ ' + d8(j.since) + '.' : '') + '</p>';
+      Array.prototype.forEach.call(box.querySelectorAll('[data-aipk]'), function (el) {
+        el.onchange = function () {
+          var k = el.getAttribute('data-aipk'), m = el.value; el.disabled = true;
+          api('ai_pick', { muc: k, model: m }).then(function () { toast('Đã đổi ' + (j.muc[k] || k) + ' sang ' + (m ? MN[m] : 'mặc định') + '. Áp dụng sau khoảng 1 phút.'); aiuShow(); }, function (e) { el.disabled = false; toast(e.message, true); });
+        };
+      });
       $('#aiuSave').onclick = function () {
         var btn = this; btn.disabled = true;
         api('ai_fund', { usd: $('#aiuUsd').value, day: $('#aiuDay').value, rate: $('#aiuRate').value }).then(function () { toast('Đã ghi số tiền nạp'); aiuShow(); }, function (e) { btn.disabled = false; toast(e.message, true); });

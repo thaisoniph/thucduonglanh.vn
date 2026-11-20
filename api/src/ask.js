@@ -14,7 +14,7 @@ import { SUPER_ADMIN } from './crm.js';
 import { finMorning, finFull } from './fin.js';
 import { sanAllowed } from './san.js';
 
-const ASK_MODEL = 'claude-opus-5-5'; // tra số cần chính xác (tự viết SQL, đối chiếu nhiều bảng) → Opus. ~2.000–5.000đ / câu. Muốn rẻ hơn: 'claude-sonnet-5-5' (~½) hoặc 'claude-haiku-5-5' (~1/30, kém chính xác hơn)
+const ASK_MODEL = 'claude-sonnet-5-5'; // 20/11/2026 anh Sơn: Opus → Sonnet cho rẻ (~1.000–2.500đ / câu); đổi lại được ở CRM → Cài đặt → 🤖 Chi phí AI → 🎛. Trước: tra số cần chính xác (tự viết SQL, đối chiếu nhiều bảng) → Opus. ~2.000–5.000đ / câu. Muốn rẻ hơn: 'claude-sonnet-5-5' (~½) hoặc 'claude-haiku-5-5' (~1/30, kém chính xác hơn)
 const PRICE = { in: 4, out: 20, cw: 5, cr: 0.2 }; // USD / 1 triệu token của ASK_MODEL (cw = ghi đệm, cr = đọc đệm)
 const USD_VND = 26500;
 const ASK_DAY_MAX = 200, ASK_USER_MAX = 60, ASK_STEPS = 8, Q_LEN = 1500, HIST_N = 6, ROW_MAX = 300, OUT_MAX = 20000;

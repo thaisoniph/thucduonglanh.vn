@@ -40,7 +40,7 @@ import { crmTb } from './thongbao.js';
 import { crmCamp } from './camp.js';
 import { crmGv } from './giaoviec.js';
 import { crmBt } from './bangtin.js';
-import { aiUsage, aiFund } from './aiuse.js';
+import { aiUsage, aiFund, aiPickSet } from './aiuse.js';
 import { aiTeam } from './aiteam.js';
 import { crmPm } from './phongai.js';
 import { crmAsk, askAllowed } from './ask.js';
@@ -2747,6 +2747,7 @@ export async function crmApi(x, d, sync, mgr) {
   if (/^pm_(view|add|review|cancel)$/.test(a)) return crmPm(x, u, a, d); // 📣 Phòng Marketing AI: giao việc cho Lành trên Mac, duyệt kết quả (phongai.js, 16/11/2026)
   if (a === 'aiteam') return aiTeam(x, u); // 🤖 Đội nhân sự AI: mỗi trợ lý 1 thẻ (Quản lý + Quản trị, 14/11/2026, aiteam.js)
   if (a === 'ai_usage') return aiUsage(x, u, d); // 🤖 mức dùng & chi phí AI theo mục (Quản trị, 10/11/2026, aiuse.js)
+  if (a === 'ai_pick') return aiPickSet(x, u, d); // 🎛 Quản trị chọn mô hình AI cho từng việc (20/11/2026)
   if (a === 'ai_fund') return aiFund(x, u, d); // ghi số tiền đã nạp Anthropic → tính tiền còn lại, nhắc sắp hết
   if (a === 'ai_sum') return crmAi(x, u, d); // ✨ AI tóm tắt hồ sơ / gợi ý tin nhắn (chỉ khi có ANTHROPIC_API_KEY)
   if (/^mcp_/.test(a)) return crmMcp(x, u, d); // 🔌 kết nối ChatGPT / Gemini (mcp.js): xem, tạo Client ID, ngắt

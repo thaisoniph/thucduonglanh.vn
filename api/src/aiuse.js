@@ -24,8 +24,36 @@ const HAIKU_BIG = ['claude-haiku-5-5', 0.50, 2.50, 0.05, 0.625];
 export const MUC = {
   chat: '💬 Chat An Lành trên web', zalo: '🤖 Trợ lý Zalo trả lời, chào, nhắn riêng', 'zalo-bai': '📝 Soạn bài nhóm Zalo', 'zalo-kh': '📋 Kế hoạch chủ đề nhóm Zalo',
   fanpage: '📘 Trợ lý Fanpage trả lời', 'fb-bai': '📝 Soạn bài Fanpage', 'web-bai': '📰 Trợ lý viết bài web', video: '🎬 Kịch bản video', insight: '🔍 Tìm / đọc insight', offer: '🎁 Viết offer', chamdiem: '🧪 Chấm bài trước khi đăng', crm: '✨ AI trong CRM (tóm tắt khách, gợi ý tin)',
-  loikhach: '🗣 Kho lời khách (phân loại câu)', youtube: '▶️ Báo cáo tuần YouTube', hoi: '📊 Hỏi số liệu CRM', giaoviec: '✅ Bot giao việc đọc tin Telegram', 'tg-so': '📊 Hỏi số quảng cáo qua Telegram', huongdan: '📖 Hỏi trợ lý ở trang hướng dẫn', tuyendung: '🧑‍💼 AI đọc CV ứng viên', san: '🛒 Trợ lý sàn Shopee (sức khoẻ shop, đối thủ)', ketoan: '🧾 AI đọc chứng từ nhà cung cấp', khac: 'Khác',
+  loikhach: '🗣 Kho lời khách (phân loại câu)', youtube: '▶️ Báo cáo tuần YouTube', hoi: '📊 Hỏi số liệu CRM', giaoviec: '✅ Bot giao việc đọc tin Telegram', 'tg-so': '📊 Hỏi số quảng cáo qua Telegram', huongdan: '📖 Hỏi trợ lý ở trang hướng dẫn', tuyendung: '🧑‍💼 AI đọc CV ứng viên', san: '🛒 Trợ lý sàn Shopee (sức khoẻ shop, đối thủ)', ketoan: '🧾 AI đọc chứng từ nhà cung cấp',
+  'insight-anh': '📸 Câu lệnh tạo ảnh', 'insight-big': '💡 Big idea', 'insight-kw': '🔑 Lập từ khoá bài web', 'fb-ca-nhan': '👤 Bài Facebook cá nhân cho sale', khac: 'Khác',
 };
+
+/* 🎛 Chọn mô hình theo việc (20/11/2026, anh Sơn: "setup để anh chủ động chọn mô hình với từng loại công việc").
+ * kv ai_models = { m: { <mục>: 'haiku' | 'sonnet' | 'opus' }, by: { <mục>: { n: tên, at } } }. Mục không có trong m = giữ mô hình code đang chọn (DEF).
+ * airelay.js aiFetch đổi trường model ngay trước khi gửi Anthropic; mô hình chọn bị lỗi 400 (không hỗ trợ tham số…) → tự gửi lại bằng mô hình gốc. */
+export const MODELS = { haiku: 'claude-haiku-5-5', sonnet: 'claude-sonnet-5-5', opus: 'claude-opus-5-5' };
+/** Mô hình code đang dùng cho từng mục (để CRM hiện "Mặc định (…)"); 'mix' = trong mục có nhiều việc dùng mô hình khác nhau. */
+export const DEF = { chat: 'haiku', zalo: 'haiku', 'zalo-bai': 'sonnet', 'zalo-kh': 'sonnet', fanpage: 'haiku', 'fb-bai': 'sonnet', 'web-bai': 'opus', video: 'opus', insight: 'mix', offer: 'opus', chamdiem: 'opus', crm: 'haiku',
+  loikhach: 'haiku', youtube: 'sonnet', hoi: 'sonnet', giaoviec: 'haiku', 'tg-so': 'haiku', huongdan: 'haiku', tuyendung: 'sonnet', san: 'mix', ketoan: 'sonnet', 'insight-anh': 'sonnet', 'insight-big': 'opus', 'insight-kw': 'sonnet', 'fb-ca-nhan': 'opus' };
+let pickCache = null, pickAt = 0;
+async function pickMap(db) {
+  if (pickCache && Date.now() - pickAt < 60e3) return pickCache; // đọc lại sau 1 phút (mỗi máy chủ giữ bản riêng)
+  pickCache = await kvJson(db, 'ai_models', { m: {}, by: {} }); if (!pickCache.m) pickCache.m = {}; if (!pickCache.by) pickCache.by = {}; pickAt = Date.now(); return pickCache;
+}
+/** Mô hình Quản trị chọn cho 1 mục ('' = giữ mặc định). Không bao giờ ném lỗi. */
+export async function aiPick(db, muc) { try { if (!db || !muc || muc === 'khac') return ''; const c = await pickMap(db); return MODELS[c.m[muc]] || ''; } catch (e) { return ''; } }
+/** Lệnh CRM ai_pick (Quản trị): đổi mô hình cho 1 mục. model '' = về mặc định. */
+export async function aiPickSet(x, u, d) {
+  if (u.level < 3) return { ok: false, error: 'Chỉ Quản trị đổi được mô hình AI.' };
+  const muc = String(d.muc || ''), m = String(d.model || '');
+  if (!MUC[muc] || muc === 'khac') return { ok: false, error: 'Không có việc này.' };
+  if (m && !MODELS[m]) return { ok: false, error: 'Mô hình không hợp lệ.' };
+  const c = await kvJson(x.db, 'ai_models', { m: {}, by: {} }); c.m = c.m || {}; c.by = c.by || {};
+  if (m && m !== DEF[muc]) c.m[muc] = m; else delete c.m[muc]; // chọn trùng mặc định = bỏ ghi đè
+  c.by[muc] = { n: u.name, at: Date.now() };
+  await kvSet(x.db, 'ai_models', JSON.stringify(c)); pickCache = null;
+  return { ok: true, pick: c.m };
+}
 const RATE_DEF = 26500; // đ / USD, Quản trị sửa được
 const slotDay = d => Date.UTC(+d.slice(0, 4), +d.slice(4, 6) - 1, +d.slice(6, 8)); // 'yyyyMMdd' → mốc ngày để trừ nhau
 
@@ -76,14 +104,25 @@ export async function aiUsage(x, u) {
   await schema(x.db);
   const now = Date.now(), today = fmtDate(now, 'yyyyMMdd'), d7 = fmtDate(now - 7 * DAY, 'yyyyMMdd'), d30 = fmtDate(now - 30 * DAY, 'yyyyMMdd'), m0 = today.slice(0, 6) + '01';
   const sum = async (from, to) => { const r = await first(x.db, 'SELECT COALESCE(SUM(usd), 0) usd, COALESCE(SUM(n), 0) n FROM ai_usage WHERE day >= ? AND day <= ?', from, to || '99999999'); return { usd: Number(r.usd), n: Number(r.n) }; };
-  const [bal, tDay, t7, t30, tMon, byMuc, byModel, byDay, since] = await Promise.all([
+  const [bal, tDay, t7, t30, tMon, byMuc, byModel, byDay, since, mm, pk] = await Promise.all([
     aiBalance(x.db), sum(today), sum(d7 > m0 ? d7 : d7), sum(d30), sum(m0),
     all(x.db, 'SELECT muc, SUM(n) n, SUM(usd) usd, SUM(inp) inp, SUM(out) out, SUM(cr) cr FROM ai_usage WHERE day >= ? GROUP BY muc ORDER BY usd DESC', d30),
     all(x.db, 'SELECT model, SUM(n) n, SUM(usd) usd FROM ai_usage WHERE day >= ? GROUP BY model ORDER BY usd DESC', d30),
     all(x.db, 'SELECT day, SUM(n) n, SUM(usd) usd FROM ai_usage WHERE day >= ? GROUP BY day ORDER BY day', fmtDate(now - 14 * DAY, 'yyyyMMdd')),
     first(x.db, 'SELECT MIN(day) d FROM ai_usage'),
+    all(x.db, 'SELECT muc, model, SUM(n) n, SUM(inp) inp, SUM(out) out, SUM(cr) cr, SUM(cw) cw FROM ai_usage WHERE day >= ? GROUP BY muc, model', d30),
+    kvJson(x.db, 'ai_models', { m: {}, by: {} }),
   ]);
-  return { ok: true, bal, today: tDay, d7: t7, d30: t30, month: tMon, byMuc, byModel, byDay, muc: MUC, since: since && since.d, aiOn: !!x.env.ANTHROPIC_API_KEY, now };
+  // 🎛 ước tính 30 ngày nếu cả mục dùng Haiku / Sonnet / Opus: tính trên lượt trung bình (để bắt bẫy Haiku > 100 nghìn token / lượt)
+  const est = {}, used = {};
+  mm.forEach(r => {
+    const n = Math.max(1, Number(r.n) || 0), avg = { input_tokens: r.inp / n, output_tokens: r.out / n, cache_read_input_tokens: r.cr / n, cache_creation_input_tokens: r.cw / n };
+    const e = est[r.muc] || (est[r.muc] = { haiku: 0, sonnet: 0, opus: 0, n: 0 }); e.n += Number(r.n) || 0;
+    Object.keys(MODELS).forEach(k => { e[k] += usdOf(MODELS[k], avg) * n; });
+    const k = Object.keys(MODELS).find(k => String(r.model || '').startsWith(MODELS[k])) || String(r.model || ''); (used[r.muc] = used[r.muc] || {})[k] = (used[r.muc][k] || 0) + (Number(r.n) || 0);
+  });
+  return { ok: true, bal, today: tDay, d7: t7, d30: t30, month: tMon, byMuc, byModel, byDay, muc: MUC, since: since && since.d, aiOn: !!x.env.ANTHROPIC_API_KEY, now,
+    pick: (pk && pk.m) || {}, pickBy: (pk && pk.by) || {}, def: DEF, est, used };
 }
 
 /** Quản trị ghi "đã nạp $X ngày Y" (+ tỷ giá). Nạp mới → xoá nhắc cũ để lần sắp hết sau còn nhắc. */

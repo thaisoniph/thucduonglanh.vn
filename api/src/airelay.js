@@ -6,7 +6,7 @@
  * (09/11 tài khoản hết tiền cả ngày: bài Zalo tối 09/11 + sáng 10/11 không được soạn, chỉ CRM ghi lỗi nhỏ, không ai biết.) */
 import { kvGet, kvSet, kvDel } from './lib.js';
 import { telegram } from './google.js';
-import { aiLog } from './aiuse.js';
+import { aiLog, aiPick } from './aiuse.js';
 
 export class AiRelay {
   constructor(state, env) { }
@@ -63,7 +63,15 @@ export function aiFetch(env) {
   const stub = env.AI_RELAY ? env.AI_RELAY.get(env.AI_RELAY.idFromName('anthropic'), { locationHint: 'wnam' }) : null;
   return async (url, init) => {
     const i = init || {}, h = new Headers(i.headers || {}), muc = h.get('x-tdl-muc') || 'khac'; h.delete('x-tdl-muc');
-    const res = stub ? await stub.fetch(new Request(String(url), { method: i.method || 'GET', headers: h, body: i.body })) : await fetch(url, Object.assign({}, i, { headers: h }));
+    const send = body => stub ? stub.fetch(new Request(String(url), { method: i.method || 'GET', headers: h, body })) : fetch(url, Object.assign({}, i, { headers: h, body }));
+    // 🎛 Quản trị chọn mô hình cho mục này (CRM → Cài đặt → 🤖 Chi phí AI) → đổi trường model; lỗi 400 thì gửi lại bằng mô hình gốc
+    let body = i.body, swapped = false;
+    if (typeof body === 'string' && /\/v1\/messages(\?|$)/.test(String(url)) && body.indexOf('"model"') > -1) {
+      const pick = await aiPick(env.DB, muc);
+      if (pick) { try { const j = JSON.parse(body); if (j.model && j.model !== pick) { j.model = pick; body = JSON.stringify(j); swapped = true; } } catch (e) { } }
+    }
+    let res = await send(body);
+    if (swapped && res.status === 400 && !/credit balance/i.test(await res.clone().text().catch(() => ''))) { console.log('aiPick lỗi 400 → dùng mô hình gốc', muc); res = await send(i.body); }
     await watch(env, res);
     await count(env, url, res, muc);
     return res;
