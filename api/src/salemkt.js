@@ -24,7 +24,7 @@ async function teamCalc(x, from, to) {
   const R = [dayMs(from), dayMs(to) + DAY], today0 = startOfDay(Date.now());
   const [adRows, sp, dcfg] = await Promise.all([kvJson(x.db, 'ads_rows', []),
     all(x.db, 'SELECT channel, campaign, SUM(spend) AS s FROM ad_spend WHERE day BETWEEN ? AND ? GROUP BY channel, campaign', from, to), kvJson(x.db, 'dash_cfg', {})]);
-  const backCost = Number(dcfg && dcfg.backCost) > 0 ? Number(dcfg.backCost) : 60000; // phí ship mất 1 đơn hoàn (đi + về), giống backCost() crm/app.js
+  const backCost = Number(dcfg && dcfg.backCost) > 0 ? Number(dcfg.backCost) : 30000; // phí ship mất 1 đơn hoàn (đi + về), giống backCost() crm/app.js
   // data trong kỳ: mỗi SĐT 1 lần (lần đầu trong kỳ), giống closeStats trong crm/app.js
   const seen = {}, data = [];
   (adRows || []).forEach(a => { const day = Number(a[0]) || 0, ph = normPhone(a[1]); if (!ph || day < R[0] || day >= R[1] || seen[ph]) return; seen[ph] = 1; data.push({ day, ph, sale: String(a[2] || ''), prod: prodOf(a[3]) || 'Khác' }); });

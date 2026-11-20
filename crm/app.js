@@ -33,8 +33,8 @@
    *  Huỷ = khách báo huỷ trước khi gửi, gần như không mất phí → chỉ đếm số đơn. Doanh số vẫn trừ cả hoàn lẫn huỷ (isVoid). */
   function isBack(st) { return /hoàn/i.test(String(st || '')); }
   function isCancel(st) { return /huỷ|hủy/i.test(String(st || '')); }
-  /** Phí ship mất cho 1 đơn hoàn (đi + về), ước tính. Quản trị sửa ở Cài đặt → 🚦 Mức đèn Tổng quan; mặc định 60.000đ (Best ~31k/chiều, 10/2026). */
-  function backCost() { var v = Number(S.d && S.d.rules && S.d.rules.backCost); return v > 0 ? v : 60000; }
+  /** Phí ship mất cho 1 đơn hoàn (đi + về), ước tính. Quản trị sửa ở Cài đặt → 🚦 Mức đèn Tổng quan; mặc định 30.000đ (anh Sơn 20/11/2026; Best ~31k/chiều, 10/2026). */
+  function backCost() { var v = Number(S.d && S.d.rules && S.d.rules.backCost); return v > 0 ? v : 30000; }
   /** Tiền ship mất của 1 đơn hoàn: phí thật từ file đối soát vận chuyển (o.shipFee) nếu có, chưa đối soát thì ước tính backCost(). */
   function backFee(o) { return o.shipFee != null ? o.shipFee : backCost(); }
   function isPaidOrder(o) { return !isVoid(o.status) && (/^(Đã giao|Đổi hàng)$/.test(o.status || '') || !!o.paid || !!o.cashAt); } // cashAt: kế toán ghi tiền về (09/11/2026)

@@ -210,7 +210,7 @@ Cách đọc nhanh: **KPI tổng thấp nhưng Thái độ cao** là bạn chăm
 
 **Đổi người phụ trách 1 khách:** mở hồ sơ khách → **⚙️ Sửa thông tin** → ô **Người phụ trách** → **Lưu thay đổi**.
 
-**Số quảng cáo chia theo nhóm 🟢 A / 🟠 B / 🔴 C** (từ 16/11/2026): xem ở **Cài đặt → Đồng bộ → 📣 File số quảng cáo chung → 🅰️🅱️©️ Chia số quảng cáo theo nhóm**. Bảng ghi từng sale: nhóm, 1đ quảng cáo mang về bao nhiêu (60 ngày gần nhất), % gọi trong ngày, phần số được chia. Chỉ chạy khi file để **CRM tự chia** (bấm **⚙️ Cài đặt** của file → chọn **CRM tự chia**): mỗi vòng nhóm A nhận 3 số, B nhận 2, C nhận 1, tối đa 10 số / người / ngày, khách cũ vẫn về sale cũ. Đơn hoàn tính âm (từ 20/11/2026): không có doanh số và còn trừ phí ship mất (phí thật từ 📦 Đối soát vận chuyển, chưa đối soát tính theo mức ở Cài đặt → 🚦 Mức đèn Tổng quan, mặc định 60.000đ); cột 1đ QC mang về ghi rõ đã trừ bao nhiêu. Đơn huỷ chỉ không tính. CRM tự xếp lại nhóm 7 ngày / lần; Quản trị bấm **↻ Xếp lại ngay** khi cần. Ai không nên nhận số (nghỉ phép, kiêm kho) thì tắt **Nhận khách mới** ở Nhân sự.
+**Số quảng cáo chia theo nhóm 🟢 A / 🟠 B / 🔴 C** (từ 16/11/2026): xem ở **Cài đặt → Đồng bộ → 📣 File số quảng cáo chung → 🅰️🅱️©️ Chia số quảng cáo theo nhóm**. Bảng ghi từng sale: nhóm, 1đ quảng cáo mang về bao nhiêu (60 ngày gần nhất), % gọi trong ngày, phần số được chia. Chỉ chạy khi file để **CRM tự chia** (bấm **⚙️ Cài đặt** của file → chọn **CRM tự chia**): mỗi vòng nhóm A nhận 3 số, B nhận 2, C nhận 1, tối đa 10 số / người / ngày, khách cũ vẫn về sale cũ. Đơn hoàn tính âm (từ 20/11/2026): không có doanh số và còn trừ phí ship mất (phí thật từ 📦 Đối soát vận chuyển, chưa đối soát tính theo mức ở Cài đặt → 🚦 Mức đèn Tổng quan, mặc định 30.000đ); cột 1đ QC mang về ghi rõ đã trừ bao nhiêu. Đơn huỷ chỉ không tính. CRM tự xếp lại nhóm 7 ngày / lần; Quản trị bấm **↻ Xếp lại ngay** khi cần. Ai không nên nhận số (nghỉ phép, kiêm kho) thì tắt **Nhận khách mới** ở Nhân sự.
 
 **🗓 Lịch trực số tối / Chủ nhật / ngày lễ** (từ 19/11/2026): mở ở **Thêm → 🗓 Lịch trực số quảng cáo** (hoặc nút **🗓 Mở lịch trực số** dưới bảng nhóm A/B/C).
 - **👤 Người phụ trách chia số** (Quản lý / Quản trị giao): người này xếp lịch, nhặt số ban ngày vào file, được Telegram nhắc thứ 6 lúc 9h nếu tuần sau còn ca trống và khi tối nay chưa ai trực. Để trống = như hiện nay, sale cùng trực page tự nhặt số.
@@ -323,7 +323,7 @@ Mỗi tháng (hoặc mỗi tuần) đối chiếu file của hãng vận chuyể
 
 CRM khớp đơn theo **mã đơn ghi ở ô Ghi chú của vận đơn** (vd `Phg281026-04`; đơn trước 14/11/2026 có mã tên đầy đủ như `Phuong281026-04`, vẫn khớp được) cộng **số điện thoại**. Sale ghi đúng mã đơn khi tạo vận đơn thì khớp được nhiều nhất.
 
-Sau khi đối soát, ô **↩️ Tỷ lệ hoàn** ở Tổng quan / Hiệu quả tính **tiền ship mất theo phí thật** của hãng. Đơn hoàn chưa đối soát tạm tính theo mức ở Cài đặt → 🚦 Mức đèn Tổng quan (mặc định 60.000đ/đơn). Bấm vào đơn sẽ thấy dòng "📦 Phí trả hãng".
+Sau khi đối soát, ô **↩️ Tỷ lệ hoàn** ở Tổng quan / Hiệu quả tính **tiền ship mất theo phí thật** của hãng. Đơn hoàn chưa đối soát tạm tính theo mức ở Cài đặt → 🚦 Mức đèn Tổng quan (mặc định 30.000đ/đơn). Bấm vào đơn sẽ thấy dòng "📦 Phí trả hãng".
 
 ## Cộng tác viên và đối tác
 
