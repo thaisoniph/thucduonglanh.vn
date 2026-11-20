@@ -5601,7 +5601,8 @@
     var VT = nsvVat() / 100, X = nsvOpt('x', 3), kho1 = nsvOpt('kho', 12000), kt1 = nsvOpt('kt', 6000000);
     var M = ms.map(function (m) {
       var R = monthRange(m), x = opexMonth(m), K = x && x.kt, ad = 0, ph = {}, vv = 0, sp = 0, kOk = function (k) { return !!(k && k.dt > 0 && k.cost > 0); }, kFrom = null;
-      if (K) (K.groups || []).forEach(function (g) { if (/quảng cáo/i.test(g[0]) && !/sàn|shopee|tiktok shop|lazada/i.test(g[0])) ad += g[1] || 0; });
+      // 20/11/2026: tiền để có số khách = quảng cáo (Meta, Google…) + chi phí hỗ trợ MKT (trước đây khoản này không trừ vào đâu cả)
+      if (K) (K.groups || []).forEach(function (g) { if (/quảng cáo|hỗ trợ mkt/i.test(g[0]) && !/sàn|shopee|tiktok shop|lazada/i.test(g[0])) ad += g[1] || 0; });
       // 16/11/2026 anh Sơn muốn luôn trừ chi phí văn phòng: tháng chưa có file kế toán → mượn chi phí cố định của tháng gần nhất có file (±3 tháng)
       var KB = kOk(K) ? K : null;
       for (var j = 1; !KB && j <= 3; j++) [shiftMonth(m, -j), shiftMonth(m, j)].forEach(function (k2) { var y = !KB && opexMonth(k2); if (y && kOk(y.kt)) { KB = y.kt; kFrom = k2; } });
@@ -5609,7 +5610,8 @@
       if (KB) (KB.groups || []).forEach(function (g) { if (RPM_VAR.test(g[0])) vv += g[1] || 0; if (/vận chuyển|giao hàng|\bship/i.test(g[0])) sp += g[1] || 0; if (STF.test(g[0]) && !RPM_VAR.test(g[0])) stK += g[1] || 0; });
       // không có file kế toán nào gần → bảng ✏️ Nhập chi phí (bỏ dòng lương sale, ship, quảng cáo vì đã trừ riêng từng sale)
       var man = null; if (!KB) { var xo = x && x.tot ? x : (opexEst(m) || {}).x; if (xo && xo.tot) man = xo.items.reduce(function (a, r) { var no = /sale|ship|vận chuyển|giao hàng|quảng cáo/i.test(r[0]); if (!no && STF.test(r[0])) stK += r[1] || 0; return a + (no ? 0 : r[1] || 0); }, 0); }
-      (S.d.adRows || []).forEach(function (a) { if (a[0] >= R[0] && a[0] < R[1]) ph[normPhone(a[1])] = 1; });
+      // giá 1 số = tiền quảng cáo ÷ số đã chia cho người bán (số bị đánh dấu Bỏ / không chia ai vẫn tốn tiền nên dồn vào số dùng được)
+      (S.d.adRows || []).forEach(function (a) { if (a[0] >= R[0] && a[0] < R[1] && a[2] && !/bỏ/i.test(String(a[2]))) ph[normPhone(a[1])] = 1; });
       var np = Object.keys(ph).length, gm = gpOf(bizStats(R));
       // back office (15/11/2026, Ý): chi phí cố định tháng = tổng chi phí − chi phí biến đổi (quảng cáo, sàn, vận chuyển) trong file kế toán
       return { m: m, R: R, ad: ad, np: np, cpl: ad && np ? ad / np : sdt0, est: !(ad && np), nwGp: gm ? gm.nw : 0, sent: 0, kFrom: kFrom, man: man !== null, stK: stK,
@@ -5628,7 +5630,9 @@
         if (!o.seller) return; if (!okP(o.seller)) { if (!users.some(function (z) { return z.name === o.seller; })) skip[o.seller] = (skip[o.seller] || 0) + 1; return; }
         var p = get(o.seller), t = Number(o.total) || 0;
         if (isVoid(o.status)) { if (isBack(o.status)) { p.back += backFee(o); p.backN++; } return; }
-        p.rev += t; p.n++; var oc = cust(o.phone); if (oc && oc.first && oc.first < o.time - 3600e3) p.oldRev += t; // 20/11/2026: khách cũ = đã từng mua trước đơn này (giống Hiệu quả, Phiếu KPI), không theo Loại đơn tính hoa hồng mo(p, i).rev += t; mo(p, i).n++; p.ship += t * Mi.shipR;
+        // 20/11/2026: khách cũ = đã từng mua trước đơn này (giống Hiệu quả, Phiếu KPI), không theo Loại đơn tính hoa hồng
+        p.rev += t; p.n++; var oc = cust(o.phone); if (oc && oc.first && oc.first < o.time - 3600e3) p.oldRev += t;
+        mo(p, i).rev += t; mo(p, i).n++; p.ship += t * Mi.shipR;
         var it = parseItems(o.items), c = 0, iv = 0; it.forEach(function (q) { var k = itemCost(q); if (q.gift) { c += k || 0; return; } iv += q.qty * q.price; c += k !== null ? k : q.qty * q.price * r0; });
         p.cogs += it.length ? c : t * r0;
       });
@@ -5733,7 +5737,7 @@
     sup.forEach(function (s) {
       if (s.k === 'kho') { s.val = sent * kho1 / nK('kho'); s.how = 'Làm ' + Math.round(sent / nK('kho')).toLocaleString('vi-VN') + ' đơn gửi / tháng × ' + moneyShort(kho1) + ' (giá thuê kho ngoài)'; }
       else if (s.k === 'kt') { s.val = kt1 / nK('kt'); s.how = 'Thuê dịch vụ kế toán ngoài ≈ ' + moneyShort(kt1) + ' / tháng'; }
-      else if (s.k === 'mkt') { s.val = adKnown && mktCost ? (nwM - adM) * s.cost / mktCost : null; s.how = adKnown ? 'Cả đội marketing: lãi gộp khách mới ' + moneyShort(nwM) + ' − quảng cáo ' + moneyShort(adM) + ' / tháng, chia theo lương' : 'Chưa đủ số quảng cáo của kế toán các tháng này'; }
+      else if (s.k === 'mkt') { s.val = adKnown && mktCost ? (nwM - adM) * s.cost / mktCost : null; s.how = adKnown ? 'Cả đội marketing: lãi gộp khách mới ' + moneyShort(nwM) + ' − quảng cáo + hỗ trợ MKT ' + moneyShort(adM) + ' / tháng, chia theo lương' : 'Chưa đủ số quảng cáo của kế toán các tháng này'; }
       else if (s.k === 'mgr') { var me = mgrs.filter(function (q) { return q.name === s.name; })[0]; s.team = teamBase; s.own = me ? me.val : 0; s.val = s.team; s.pct = s.team > 0 && s.cost > 0 ? s.cost * 100 / s.team : null;
         s.how = 'Nhóm ' + sales.filter(function (q) { return !q.isNew; }).length + ' sale làm ra ' + moneyShort(s.team) + ' / tháng (đã trừ giá vốn, quảng cáo, lương sale)' + (s.pct !== null ? '; lương quản lý = ' + Math.round(s.pct) + '% số đó' : '') + (me && me.revM ? '. Tự bán thêm ' + moneyShort(me.revM) + ' doanh số, lãi ' + nsvSign(me.val) + ' / tháng' : '') + '.'; }
       else { s.val = null; s.how = 'Việc chung: xem theo kết quả cả nhóm'; }
