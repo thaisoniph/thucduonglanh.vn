@@ -248,7 +248,7 @@ export async function crmZsale(x, u, d, crmLog) {
   // 👁 Quản trị chỉ đọc nội dung khi đã bật công tắc (tự tắt sau 24 giờ). Tắt = Quản trị thấy như Quản lý: con số + gợi ý.
   const full = admin && readOn(await zsCfg(x)), OFF_MSG = READ_ALLOWED ? 'Đang tắt xem nội dung tin nhắn. Bật ở đầu tab 👀 Zalo của sale (tự tắt sau 24 giờ).' : 'Nội dung tin nhắn chỉ sale đó xem. Quản trị và Quản lý xem con số + gợi ý ở tab 👀 Zalo của sale.';
   // 👁 Quản trị đang "Xem như" 1 nhân sự: KHÔNG lộ Zalo của bạn ấy (18/11/2026 – đã hứa với chị em: không ai đọc, kể cả Quản trị)
-  if (u.viewAs) { if (a === 'zs_mine') return { ok: true, on: false, can: false, va: 1 }; if (/^zs_(thread|ai|order|link|private|self|qr)$/.test(a)) return { ok: false, error: 'Zalo của nhân sự không hiện khi đang 👁 Xem như.' }; }
+  if (u.viewAs) { if (a === 'zs_mine') return { ok: true, on: false, can: false, va: 1 }; if (/^zs_(thread|ai|order|link|private|self|qr|done)$/.test(a)) return { ok: false, error: 'Zalo của nhân sự không hiện khi đang 👁 Xem như.' }; }
   // ----- sale: 💬 Zalo của tôi
   if (a === 'zs_mine') return zsMine(x, u);
   if (a === 'zs_thread') {
@@ -272,6 +272,14 @@ export async function crmZsale(x, u, d, crmLog) {
     const pv = await zsPriv(x); (pv[sale] || (pv[sale] = {}))[uid] = now; await kvSet(x.db, 'zs_priv', JSON.stringify(pv));
     await run(x.db, 'DELETE FROM zs_msgs WHERE sale = ? AND uid = ?', sale, uid);
     await run(x.db, 'DELETE FROM zs_threads WHERE sale = ? AND uid = ?', sale, uid);
+    return { ok: true };
+  }
+  if (a === 'zs_done') { // ✓ Xong (20/11/2026 PA A): khách không cần trả lời / đã gọi điện → ẩn khỏi Cần nhắn tới khi khách nhắn tin mới
+    const uid = String(d.uid || ''); if (!uid) return { ok: false, error: 'Thiếu cuộc trò chuyện.' };
+    const dn = await kvJson(x.db, 'zs_done', {}), m = dn[mySlot] || (dn[mySlot] = {});
+    if (d.undo) delete m[uid]; else { m[uid] = now; await run(x.db, 'UPDATE zs_threads SET alerted = 1 WHERE sale = ? AND uid = ?', mySlot, uid); }
+    for (const k of Object.keys(m)) if (now - m[k] > 30 * DAY) delete m[k];
+    await kvSet(x.db, 'zs_done', JSON.stringify(dn)); if (!d.undo) await zsUse(x, mySlot, 'done');
     return { ok: true };
   }
   if (a === 'zs_self') return zsSelf(x, u, d, crmLog); // 📲 sale tự kết nối / tự ngắt Zalo của mình (17/11/2026)
@@ -368,7 +376,8 @@ async function zsView(x, u) {
   const waitRows = await all(x.db, 'SELECT sale, uid, phone, zname, last_cust, last_sale FROM zs_threads WHERE last_cust > last_sale AND last_cust > ? ORDER BY last_cust LIMIT 60', now - DAY);
   const ss = await staffSet(x);
   for (let i = waitRows.length - 1; i >= 0; i--) { if (isStaff(waitRows[i].zname, ss)) { waitRows.splice(i, 1); continue; } const lt = await first(x.db, 'SELECT text FROM zs_msgs WHERE sale = ? AND uid = ? AND self = 0 ORDER BY id DESC LIMIT 1', waitRows[i].sale, waitRows[i].uid); if (lt && isClosing(lt.text)) waitRows.splice(i, 1); }
-  const waitN = {}; for (const w of waitRows) waitN[w.sale] = (waitN[w.sale] || 0) + 1;
+  const dnAll = await kvJson(x.db, 'zs_done', {}); // ✓ sale đã bấm Xong thì không tính là khách chờ
+  const waitN = {}; for (const w of waitRows) if (!((dnAll[w.sale] || {})[w.uid] >= w.last_cust)) waitN[w.sale] = (waitN[w.sale] || 0) + 1;
   const stT = await zsStats(x, day0), stW = await zsStats(x, now - 7 * DAY);
   const aiuse = await kvJson(x.db, 'zs_aiuse', {}); // ✨ gợi ý: bấm / có gửi / gửi y nguyên (20/11/2026 – đo để cải tiến)
   const perSale = sales.map(s => ({ sale: s.sale, name: s.name, on: s.on, online: s.online, waiting: waitN[s.sale] || 0, today: stT[s.sale] || EMPTY_ST, week: stW[s.sale] || EMPTY_ST, ai: aiuse[s.sale] || null }));
@@ -415,7 +424,7 @@ async function zsMine(x, u) {
       .sort((a, b) => b.sc - a.sc || b.last - a.last).filter(c => !seen[c.phone] && (seen[c.phone] = 1)).slice(0, 3)
       .map(c => ({ phone: c.phone, name: c.name, info: c.lead ? 'đã hỏi' : c.orders ? c.orders + ' đơn' : '' }));
   };
-  const list = [];
+  const list = [], dn = (await kvJson(x.db, 'zs_done', {}))[sale] || {};
   for (const t of th) {
     if (isStaff(t.zname, ss)) continue; // đồng nghiệp: không phải khách
     const prof = t.phone ? await first(x.db, 'SELECT name, owner, orders, products, runout, last FROM customers WHERE phone = ?', t.phone) : null;
@@ -440,6 +449,7 @@ async function zsMine(x, u) {
         }
       }
     }
+    if (dn[t.uid] && dn[t.uid] >= t.last_cust) { wait = r.wait = false; r.done = 1; delete r.buy; delete r.silent; } // ✓ sale đã bấm Xong sau tin cuối của khách
     if (wait) r.mins = Math.round((now - t.last_cust) / 60e3);
     if (!t.phone) { const cs = cands(t.zname); if (cs.length) { r.cands = cs; if (cs.length === 1) r.guess = cs[0]; } }
     r.tag = zsTag(r, prof, !!lead, complain, now);

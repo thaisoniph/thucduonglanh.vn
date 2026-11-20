@@ -1982,7 +1982,7 @@
     var tb = tdTab('td_stab', TD_SG, 'goi');
     h = TOP + grpMenu(TD_SG, tb, function (k) { return 'data-tdt="td_stab|' + k + '"'; });
     if (tb === 'goi') h += inTabi('Tất cả khách cần gọi hôm nay, lịch làm việc gợi ý, chuyển khoản chưa thấy tiền, dịp chúc khách.', ['Bấm <b>▶ Bắt đầu gọi</b> trên cùng là gọi lần lượt', 'Muốn chọn khách: mở <b>📞 Xem tất cả việc gọi</b>']) + (S_GOI || '<div class="box"><p>🎉 Hôm nay không còn khách cần gọi.</p></div>');
-    if (tb === 'zalo') h += inTabi('Khách nhắn Zalo đang chờ bạn trả lời, khách muốn mua.', ['Trả lời khách trên Zalo', 'Cần thì bấm <b>✨ Gợi ý trả lời</b>']) + (S_ZALO || '<div class="box"><p class="muted">Chưa có tin Zalo nào cần trả lời.</p></div>');
+    if (tb === 'zalo') h += (S_ZALO || '<div class="box"><p class="muted">Chưa có tin Zalo nào cần trả lời.</p></div>');
     if (tb === 'kho') h += inTabi('Hàng nào còn nhiều, sắp hết, đã hết; hàng kho cần đẩy bán.', ['Tư vấn ưu tiên sản phẩm 💚 / ⭐', 'Hàng 🔴 hết: báo khách ngày có hàng']) + (S_KHO || '<div class="box"><p class="muted">Kho chưa có số hôm nay.</p></div>');
     if (tb === 'grow') h += inTabi('Xong việc gọi thì làm 5 việc nhỏ để có thêm khách không tốn quảng cáo: mời giới thiệu, gọi lại khách cũ, Kho chung.', ['Làm lần lượt từng việc', 'Đủ 5 / 5 là xong']) + (S_GROW || '<div class="box"><p class="muted">Hôm nay chưa có việc mở rộng khách.</p></div>');
     if (tb === 'goal') h += inTabi('Mục tiêu tháng của bạn, số quảng cáo đã đủ hoà vốn chưa, bảng thi đua.', ['Xem mình đang ở đâu so với mục tiêu']) + S_GOAL;
@@ -17656,6 +17656,14 @@
       api('zs_self', { op: 'off', why: why }).then(function () { toast('Đã ngắt. Bạn nối lại bất cứ lúc nào ✓'); ZSM.at = 0; ZSM.d = null; zsMineFetch(); render(); }, function (er) { toast(er.message, true); }); }
   });
   document.addEventListener('click', function (e) {
+    var dn = e.target.closest && e.target.closest('[data-zsdone]'); // ✓ Xong: ẩn tới khi khách nhắn tin mới (20/11/2026 PA A)
+    if (dn) { e.stopPropagation(); var du = dn.getAttribute('data-zsdone'); dn.disabled = true;
+      api('zs_done', { uid: du }).then(function () { toast('Xong ✓ Khách nhắn tin mới sẽ hiện lại'); ZSM.d.list.forEach(function (r) { if (r.uid === du) { r.wait = false; delete r.buy; delete r.silent; r.done = 1; } }); render(); ZSM.at = 0; zsMineFetch(); }, function (er) { dn.disabled = false; toast(er.message, true); }); return; }
+    var no = e.target.closest && e.target.closest('[data-zsno]'); // "Không" phải người CRM đoán → hiện tên khác + gõ số
+    if (no) { e.stopPropagation(); (ZSM.no || (ZSM.no = {}))[no.getAttribute('data-zsno')] = 1; render(); return; }
+    var pz = e.target.closest && e.target.closest('[data-zsph]'); // 📇 gõ số khách ngay trên dòng
+    if (pz) { e.stopPropagation(); var ph = prompt('Số điện thoại của khách này (10 số):', ''); if (!ph) return; pz.disabled = true;
+      api('zs_link', { uid: pz.getAttribute('data-zsph'), phone: ph.trim() }).then(function (j) { toast('Đã gắn số ✓' + (j.who && j.who.name ? ' – ' + j.who.name : '') + ' Tin Zalo vào hồ sơ khách'); ZSM.at = 0; zsMineFetch(); }, function (er) { pz.disabled = false; toast(er.message, true); }); return; }
     var lk = e.target.closest && e.target.closest('[data-zslk]'); // ❓ 1 chạm: đúng khách này → gắn số (20/11/2026)
     if (lk) { e.stopPropagation(); var q1 = lk.getAttribute('data-zslk').split('|'); lk.disabled = true;
       api('zs_link', { uid: q1[0], phone: q1[1] }).then(function () { toast('Đã gắn: ' + q1[2] + ' ✓ Tin Zalo vào hồ sơ khách'); ZSM.at = 0; zsMineFetch(); }, function (er) { lk.disabled = false; toast(er.message, true); }); return; }
@@ -17664,40 +17672,51 @@
       api('zs_private', { uid: nt.getAttribute('data-zsnot') }).then(function () { toast('Đã xoá, từ nay không lưu ✓'); ZSM.at = 0; zsMineFetch(); }, function (er) { nt.disabled = false; toast(er.message, true); }); return; }
     var g = e.target.closest && e.target.closest('[data-zsgo]'); // nút việc chính trên dòng: ✨ Gợi ý trả lời / 🛒 Lên đơn
     if (g) { e.stopPropagation(); var q = g.getAttribute('data-zsgo').split('|'); if (q[0] === 'buy') zsOrderGo('', q[1], q[2], q[3]); else zsOpen('', q[1], q[2], q[3], 1); return; }
+    if (e.target.closest && e.target.closest('a')) return; // 💬 Mở Zalo: để link tự mở
     var b = e.target.closest && e.target.closest('[data-zsm]'); if (!b) return; var p = b.getAttribute('data-zsm').split('|'); zsOpen('', p[0], p[1], p[2]);
   });
-  /** 1 dòng khách (18/11/2026 gọn lại): chữ cái đầu · tên + câu khách nhắn cuối · bên phải thời gian + 1 nút việc chính. Bấm cả dòng = đọc cuộc trò chuyện. */
+  /** 1 dòng khách (20/11/2026 PA A "mỗi dòng 1 việc"): tên + thời gian · câu khách nhắn · 1 câu nhãn hoặc 1 câu hỏi "Là chị X? Đúng / Không" ·
+   *  bên phải 1 nút việc chính + 💬 Mở Zalo (biết số) + ✓ Xong (không cần trả lời / đã gọi: ẩn tới khi khách nhắn tin mới). Bấm cả dòng = đọc trò chuyện. */
   function zsMineRow(r, kind) {
-    var key = esc(r.uid) + '|' + esc(r.phone || '') + '|' + esc(r.name), ini = String(r.name || '?').trim().split(/\s+/).pop().charAt(0).toUpperCase();
+    var key = esc(r.uid) + '|' + esc(r.phone || '') + '|' + esc(r.name), uid = esc(r.uid);
     var btn = kind === 'wait' ? '<button type="button" class="zr-btn" data-zsgo="ai|' + key + '">✨ Gợi ý trả lời</button>'
       : kind === 'buy' ? '<button type="button" class="zr-btn buy" data-zsgo="buy|' + key + '">🛒 Lên đơn</button>'
       : kind === 'sil' ? '<button type="button" class="zr-btn" data-zsgo="ai|' + key + '">✨ Gợi ý nhắn lại</button>' : '';
-    var t = kind === 'wait' ? (r.mins < 60 ? r.mins + ' phút' : r.mins < 1440 ? Math.round(r.mins / 60) + ' giờ' : Math.round(r.mins / 1440) + ' ngày')
-      : kind === 'sil' ? 'im ' + r.silent + ' ngày' + (r.nudge > 1 ? ' · lần 2' : '') : esc(when(r.last));
+    var t = kind === 'wait' ? 'chờ ' + (r.mins < 60 ? r.mins + ' phút' : r.mins < 1440 ? Math.round(r.mins / 60) + ' giờ' : Math.round(r.mins / 1440) + ' ngày')
+      : kind === 'sil' ? 'im ' + r.silent + ' ngày' + (r.nudge > 1 ? ' · lần 2' : '') : kind === 'buy' ? '🛒 muốn mua' : esc(when(r.last));
     var quote = kind === 'buy' ? r.buy : kind === 'sil' ? r.ask : r.lastText, late = kind === 'wait' && r.mins >= 1440;
-    // 🏷 loại khách + việc nên làm (20/11/2026) · ❓ chưa rõ số: 1 chạm chọn đúng khách
-    var tag = kind && r.tag ? '<span class="zr-tag zt-' + esc(r.tag.k) + '">' + esc(r.tag.t) + ' <i>👉 ' + esc(r.tag.do) + '</i></span>' : '';
-    var cd = kind && !r.crm && !r.phone ? '<span class="zr-cands">' + (r.cands && r.cands.length ? 'Có phải: ' + r.cands.map(function (c) { return '<button type="button" class="zr-cb" data-zslk="' + esc(r.uid) + '|' + esc(c.phone) + '|' + esc(c.name) + '">' + esc(c.name) + (c.info ? ' <small>' + esc(c.info) + '</small>' : '') + '</button>'; }).join('') : '') +
-      '<button type="button" class="zr-cb mute" data-zsnot="' + esc(r.uid) + '">Không phải khách</button></span>' : '';
-    return '<div class="zr' + (kind ? ' zr-' + kind : '') + (late || r.hot ? ' zr-late' : '') + '" role="button" tabindex="0" data-zsm="' + key + '"><span class="zr-av">' + esc(ini) + '</span>' +
-      '<span class="zr-m"><b>' + esc(r.name) + (r.crm ? ' <i title="Khách trong CRM">📇</i>' : '') + '</b><small>' + (quote ? '“' + esc(quote) + '”' : r.n + ' tin nhắn') + '</small>' + tag + cd + '</span>' +
-      '<span class="zr-r"><em' + (kind === 'wait' || kind === 'sil' ? ' class="late"' : '') + '>' + (kind === 'wait' ? 'chờ ' : '') + t + '</em>' + btn + '</span></div>';
+    var line = '';
+    if (kind && !r.crm && !r.phone) { // ❓ chưa rõ khách: hỏi đúng 1 câu, bấm Không mới hiện thêm
+      var cs = r.cands || [], gu = cs[0], more = ZSM.no && ZSM.no[r.uid];
+      var lk = function (c) { return '<button type="button" class="zr-cb" data-zslk="' + uid + '|' + esc(c.phone) + '|' + esc(c.name) + '">' + esc(c.name) + (c.info ? ' <small>' + esc(c.info) + '</small>' : '') + '</button>'; };
+      line = '<span class="zr-ask">' + (gu && !more ? '❓ Là <b>' + esc(gu.name) + '</b>' + (gu.info ? ' (' + esc(gu.info) + ')' : '') + '? <button type="button" class="zr-cb" data-zslk="' + uid + '|' + esc(gu.phone) + '|' + esc(gu.name) + '">✓ Đúng</button><button type="button" class="zr-cb mute" data-zsno="' + uid + '">Không</button>'
+        : (cs.length > 1 && more ? 'Là ai? ' + cs.slice(1).map(lk).join('') : '❓ Chưa biết là ai') + '<button type="button" class="zr-cb" data-zsph="' + uid + '">📇 Gõ số khách</button><button type="button" class="zr-cb mute" data-zsnot="' + uid + '">Không phải khách</button>') + '</span>';
+    } else if (kind && r.tag) line = '<span class="zr-tag zt-' + esc(r.tag.k) + '">' + esc(r.tag.t) + ' <i>👉 ' + esc(r.tag.do) + '</i></span>';
+    var side = kind ? btn + '<span class="zr-sub">' + (r.phone ? '<a class="zr-mini" href="' + zalo(r.phone) + '" target="_blank" rel="noopener">💬 Mở Zalo</a>' : '') + '<button type="button" class="zr-mini" data-zsdone="' + uid + '" title="Không cần trả lời, hoặc đã gọi điện: ẩn tới khi khách nhắn tin mới">✓ Xong</button></span>' : '';
+    return '<div class="zr' + (kind ? ' zr-' + kind : '') + (late || r.hot ? ' zr-late' : '') + '" role="button" tabindex="0" data-zsm="' + key + '">' +
+      '<span class="zr-m"><span class="zr-top"><b>' + esc(r.name) + (r.crm ? ' <i title="Khách trong CRM">📇</i>' : '') + '</b><em' + (kind === 'wait' || kind === 'sil' ? ' class="late"' : kind === 'buy' ? ' class="buy"' : '') + '>' + t + '</em></span>' +
+      '<small>' + (quote ? '“' + esc(quote) + '”' : r.n + ' tin nhắn') + '</small>' + line + '</span>' +
+      (side ? '<span class="zr-r">' + side + '</span>' : '') + '</div>';
   }
   function zsMineBlock() {
     if (lvl() >= 2) return '';
     if (!ZSM.d || Date.now() - ZSM.at > 60e3) zsMineFetch();
     var D = ZSM.d; if (!D) return ''; if (!D.on) return zsJoinCard(D);
     var bought = function (r, at) { return r.phone && S.d.orders.some(function (o) { return o.phone === r.phone && o.time >= at - 600e3 && !isVoid(o.status); }); };
-    var wait = D.list.filter(function (r) { return r.wait; }).sort(function (a, b) { return (b.hot || 0) - (a.hot || 0) || b.mins - a.mins; }), // 😟 phàn nàn lên đầu, rồi chờ lâu nhất
-      buy = D.list.filter(function (r) { return r.buy && !r.wait && !bought(r, r.buyAt); }), t = D.today,
-      sil = D.list.filter(function (r) { return r.silent && !bought(r, r.askAt); }).sort(function (a, b) { return a.silent - b.silent; }); // 💤 khách im sau khi hỏi mua (20/11/2026)
-    var h = '<section class="section zs-mine"><div class="zm-head"><h2>💬 Zalo của tôi</h2>' +
+    // 📋 1 danh sách "Cần nhắn" (20/11/2026 PA A): 😟 phàn nàn → 🛒 muốn mua → ⏰ chờ lâu nhất → 💤 hỏi mua rồi im
+    var todo = [];
+    D.list.forEach(function (r) {
+      if (r.wait) todo.push({ r: r, k: 'wait', o: (r.hot ? 0 : 2) * 1e7 - r.mins });
+      else if (r.buy && !bought(r, r.buyAt)) todo.push({ r: r, k: 'buy', o: (r.hot ? 0 : 1) * 1e7 });
+      else if (r.silent && !bought(r, r.askAt)) todo.push({ r: r, k: 'sil', o: 3e7 + r.silent });
+    });
+    todo.sort(function (a, b) { return a.o - b.o; });
+    var t = D.today, h = '<section class="section zs-mine"><div class="zm-head"><h2>💬 Zalo của tôi</h2>' +
       (t.threads ? '<span class="zm-stat">🏅 Hôm nay <b>' + t.threads + '</b> khách' + (t.avgMin != null ? ' · trả lời sau <b>' + ZS_MIN(t.avgMin) + '</b>' + (t.avgMin <= 10 ? ' 👏' : '') : '') + '</span>' : '') + '</div>';
     if (!D.online) h += '<p class="zs-warn">Zalo của bạn tạm chưa nối với CRM. Mở Zalo trên điện thoại 1 lần là được, vẫn vậy thì báo anh Sơn.</p>';
-    if (wait.length) h += '<h3 class="zm-h">⏰ Khách đang chờ bạn <span class="zm-n">' + wait.length + '</span></h3><div class="zm-list">' + wait.slice(0, 8).map(function (r) { return zsMineRow(r, 'wait'); }).join('') + '</div>';
-    if (buy.length) h += '<h3 class="zm-h">🛒 Khách muốn mua <span class="zm-n buy">' + buy.length + '</span></h3><div class="zm-list">' + buy.slice(0, 6).map(function (r) { return zsMineRow(r, 'buy'); }).join('') + '</div>';
-    if (sil.length) h += '<h3 class="zm-h zm-hw"><span class="zm-nw">💤 Khách hỏi mua rồi im</span> <span class="zm-n">' + sil.length + '</span><small class="zm-hint">nhắn nhắc nhẹ 1 câu, đừng giục</small></h3><div class="zm-list">' + sil.slice(0, 6).map(function (r) { return zsMineRow(r, 'sil'); }).join('') + '</div>';
-    if (!wait.length && !buy.length && !sil.length) h += '<p class="zs-allok">✅ Bạn đã trả lời hết khách nhắn Zalo. Tuyệt vời!</p>';
+    if (todo.length) h += '<h3 class="zm-h zm-hw"><span class="zm-nw">📋 Cần nhắn hôm nay</span> <span class="zm-n">' + todo.length + '</span><small class="zm-hint">làm từ trên xuống · xong khách nào bấm ✓ Xong</small></h3><div class="zm-list">' + todo.slice(0, 12).map(function (x) { return zsMineRow(x.r, x.k); }).join('') + '</div>' +
+      (todo.length > 12 ? '<p class="small muted">Còn ' + (todo.length - 12) + ' khách, làm xong ở trên sẽ hiện tiếp.</p>' : '');
+    else h += '<p class="zs-allok">✅ Bạn đã nhắn hết khách cần nhắn trên Zalo. Tuyệt vời!</p>';
     if (D.list.length) h += '<details class="zm-all" data-grp="zsall"' + (S.f.gopen && S.f.gopen.zsall ? ' open' : '') + '><summary>📜 Tất cả trò chuyện 30 ngày <span class="zm-n">' + D.list.length + '</span></summary><div class="zm-list">' + D.list.slice(0, 40).map(function (r) { return zsMineRow(r, ''); }).join('') + '</div></details>';
     h += '<p class="zm-foot">' + zsReadLine(D) + ' · <a href="/huong-dan/zalo-sale/" target="_blank" rel="noopener">Cách dùng</a> · <button type="button" class="zs-linkbtn" data-zsj="off">⏸ Tạm ngắt</button></p></section>';
     return h;

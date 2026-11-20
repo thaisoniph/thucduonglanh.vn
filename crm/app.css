@@ -3977,3 +3977,15 @@ table.cmp-sum tr.oth td { color: var(--muted); }
 .ev3-todo { margin: 10px 0 4px; padding: 10px 12px; background: var(--primary-soft); border-radius: var(--radius-sm); }
 .ev3-todo h4 { margin: 0 0 6px; font-size: 14px; } .ev3-todo p { margin: 4px 0; font-size: 14px; }
 table.cmp-sum.ev3 td small { white-space: nowrap; }
+/* 💬 Zalo của tôi PA A (20/11/2026): 1 danh sách Cần nhắn, mỗi dòng 1 việc */
+.zr-top{display:flex;align-items:baseline;gap:8px;min-width:0}
+.zr-top b{flex:0 1 auto}
+.zr-top em{font-style:normal;font-size:12px;color:var(--muted);white-space:nowrap;margin-left:auto}
+.zr-top em.late{color:#b35c00;font-weight:700}
+.zr-top em.buy{color:#1a7f37;font-weight:700}
+.zr-ask{display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin-top:5px;font-size:12.5px;color:#3c4043;white-space:normal}
+.zr-sub{display:flex;gap:10px;justify-content:flex-end}
+.zr-mini{border:none;background:none;padding:0;font:inherit;font-size:12px;color:#0b63c4;cursor:pointer;text-decoration:none;white-space:nowrap}
+.zr-mini:hover{text-decoration:underline}
+@media (max-width:600px){.zr{flex-wrap:wrap}.zr-r{flex-direction:row;align-items:center;width:100%;justify-content:space-between}}
+.zr-m .zr-ask b{font-size:inherit;white-space:normal}
