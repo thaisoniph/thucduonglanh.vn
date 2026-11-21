@@ -406,7 +406,13 @@ async function importOrders(x, src, shCfg, data, dry) {
   // Dòng file cùng SĐT + cùng tiền, ngày từ 1 ngày trước tới 10 ngày sau đơn web → là đơn web đó: không tạo đơn file (đơn file đã nhập thì xoá), trạng thái theo file.
   // Đã ghép thì nhớ ở kv wlink {mã dòng file: rid đơn web} để sau khi đơn web đã giao vẫn nhận ra.
   const wlink = (await kvJson(x.db, 'wlink', {})) || {}, wTaken = {}; let wlDirty = 0; Object.values(wlink).forEach(r => { wTaken[r] = 1; });
-  parsed.forEach(p => { const k = [p.key].concat(p.alt).find(k => wlink[k] && webRid[wlink[k]]); if (k) p.web = webRid[wlink[k]]; });
+  // 21/11/2026: dòng file mang đúng mã của 1 đơn CRM cùng SĐT (đơn CRM tự ghi vào file) → chính là đơn đó, không ghép theo tiền.
+  // Trước đây Lương lên 3 đơn cùng khách cùng 799.000đ (Lng201126-03 huỷ, -04 huỷ, -05 giao): dòng -03 ghép nhầm vào đơn -04, dòng -04 (Hủy) vào đơn -05 → đơn -05 bị tự Huỷ.
+  const ownOf = p => { if (!p.valid) return null; const o = (webOf[p.phone] || []).find(o => o.id === p.codeRaw); return o || null; };
+  parsed.forEach(p => { const own = ownOf(p); if (own) { p.web = own; wTaken[own.rid] = 1; if (wlink[p.key] && wlink[p.key] !== own.rid) { wlink[p.key] = own.rid; wlDirty = 1; } return; } const k = [p.key].concat(p.alt).find(k => wlink[k] && webRid[wlink[k]]); if (k) p.web = webRid[wlink[k]]; });
+  const ownIds = {}; parsed.forEach(p => { const own = ownOf(p); if (own) ownIds[own.rid] = 1; }); // đơn CRM đã có dòng riêng trong file: dòng khác không được nhận
+  Object.keys(ownIds).forEach(r => { wTaken[r] = 1; });
+  parsed.forEach(p => { if (p.web && ownIds[p.web.rid] && p.web.id !== p.codeRaw) p.noSt = 1; }); // dòng khác cũng trỏ vào đơn đó: vẫn coi là đã có, nhưng không lấy trạng thái
   parsed.forEach(p => {
     if (p.web || !p.amount) return;
     const L = (webOf[p.phone] || []).filter(o => !wTaken[o.rid] && !FINAL[o.status] && !isVoid(o.status) && (Number(o.total) === p.amount || Number(o.subtotal) === p.amount) && p.when >= o.time - DAY && p.when - o.time <= 10 * DAY);
@@ -431,7 +437,7 @@ async function importOrders(x, src, shCfg, data, dry) {
     const { r, phone, when, product, amount, codeRaw, valid, key, alt } = p;
     if (p.web) {
       const o = p.web, st1 = mapStatus(cell(r, m, 'status'), when), set = {};
-      if (FINAL[st1] && st1 !== o.status && !FINAL[o.status]) set.status = st1;
+      if (FINAL[st1] && st1 !== o.status && !FINAL[o.status] && !p.noSt) set.status = st1;
       if (!o.seller) set.seller = sale;
       if (valid && o.id !== key && !String(o.source || '').match(/^(Nhập tay|Tiềm năng)/)) { set.id = key; set.from_id = o.id; if (/^TDL\d/.test(o.id) && String(o.note || '').indexOf('Mã web ' + o.id) < 0) set.note = (o.note ? o.note + ' · ' : '') + 'Mã web ' + o.id; }
       if (Object.keys(set).length && !seen['w' + o.rid]) { seen['w' + o.rid] = 1; wUpd.push(Object.assign({ rid: o.rid, id: o.id, name: o.name, from: o.status, status: o.status, seller: o.seller || sale, note: o.note || '', phone }, set)); delete set.from_id; Object.assign(o, set); }
