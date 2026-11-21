@@ -1,5 +1,5 @@
 // CRM: đăng nhập, dữ liệu, đơn hàng, khách, tiềm năng, cài đặt. Chuyển từ Apps Script sang, giữ nguyên cách làm việc & dữ liệu trả về cho giao diện.
-import { normPhone, nrm, esc, fmt, startOfDay, TZ_MS, fmtDate, dateOrBlank, slugName, codePre, replaceRows, isVoid, randHex, all, first, run, insertMany, allIn, kvGet, kvSet, kvDel, kvJson, DAY, CRM_URL, ROLE_URL, refCode, crmSeen, adjOut, adjTot } from './lib.js';
+import { normPhone, nrm, addrJoin, esc, fmt, startOfDay, TZ_MS, fmtDate, dateOrBlank, slugName, codePre, replaceRows, isVoid, randHex, all, first, run, insertMany, allIn, kvGet, kvSet, kvDel, kvJson, DAY, CRM_URL, ROLE_URL, refCode, crmSeen, adjOut, adjTot } from './lib.js';
 import { crmSnh } from './sinhnhat.js'; // 🎂 15/11/2026
 import { crmPartner, partnerSchema, partnerCfg, orderAttrib, refClaim, staffOf, staffHit } from './partner.js';
 import { chatSchema } from './chat.js';
@@ -1578,7 +1578,7 @@ async function crmOrderEdit(x, u, d) {
   await recalc(x, [o.phone, phone]);
   await wbSafe(async () => { // 30/10/2026 anh Sơn: sửa đơn trên CRM → ghi ngược vào dòng đơn trong file sale (sửa ở đâu cũng được)
     const ow = await ownerOf(x, phone), m = String(o.source || '').match(/^File .+? – (.+)$/), real0 = items.filter(i => !i.gift), gift0 = items.filter(i => i.gift)[0];
-    await wbEditQueue(x, [o.seller, ow], { id: o.id, sheet: m ? m[1] : '', time: Number(o.time) || 0, prev: { phone: o.phone, total: Number(o.total) || 0 }, name: set.name, phone, address: [set.address, set.ward, set.province].filter(Boolean).join(', '),
+    await wbEditQueue(x, [o.seller, ow], { id: o.id, sheet: m ? m[1] : '', time: Number(o.time) || 0, prev: { phone: o.phone, total: Number(o.total) || 0 }, name: set.name, phone, address: addrJoin(set.address, set.ward, set.province),
       product: real0.map(i => i.name + (i.variant ? ' ' + i.variant : '') + (real0.length > 1 ? ' x' + i.qty : '')).join(', '), qty: real0.length === 1 ? real0[0].qty : '', gift: gift0 ? gift0.name : '', giftQty: gift0 ? gift0.qty : '', total: sub + ship, ship: set.ship });
   });
   if (set.addr_old) await run(x.db, 'UPDATE customers SET addr_old = ? WHERE phone = ?', set.addr_old, phone);
@@ -1844,7 +1844,7 @@ async function crmOrderCreate(x, u, d) {
   await crmLog(x, u, 'Tạo đơn', id, c.name, fmt(sub + ship), src + (t < now ? ' · 🕐 chốt lúc ' + fmtDate(t, 'HH:mm dd/MM') : ''));
   await wbSafe(async () => { // ghi ngược vào sheet lên đơn của sale
     const cv = await first(x.db, 'SELECT owner, orders FROM customers WHERE phone = ?', phone), real0 = items.filter(i => !i.gift), gift0 = items.filter(i => i.gift)[0];
-    await wbOrderQueue(x, (cv && cv.owner) || u.name, { id, time: t, name: String(c.name).trim(), phone: raw, address: [c.address, c.ward, c.province].filter(Boolean).join(', '),
+    await wbOrderQueue(x, (cv && cv.owner) || u.name, { id, time: t, name: String(c.name).trim(), phone: raw, address: addrJoin(c.address, c.ward, c.province),
       product: real0.map(i => i.name + (i.variant ? ' ' + i.variant : '') + (real0.length > 1 ? ' x' + i.qty : '')).join(', '), qty: real0.length === 1 ? real0[0].qty : '', gift: gift0 ? gift0.name : '', giftQty: gift0 ? gift0.qty : '',
       total: sub + ship, status: ORDER_STATUS.indexOf(d.status) >= 0 ? d.status : 'Đã xác nhận', ship: shipText(items), note: c.note || '', ca: otypeCa(otype), otype, old: !!cv && Number(cv.orders) > 1 });
   });

@@ -1,6 +1,6 @@
 // Đồng bộ dữ liệu từ file Google Sheet của sale (lên đơn, cop số, từ chối) và file số quảng cáo chung.
 // Đọc bằng Google Sheets API (nhanh, không phải mở cả file như Apps Script). Nhập nhiều lần không trùng.
-import { normPhone, esc, fmtDate, nrm, isVoid, hashKey, hashKeyLegacy, all, first, run, insertMany, allIn, kvGet, kvSet, kvDel, kvJson, CRM_URL, DAY } from './lib.js';
+import { addrJoin, normPhone, esc, fmtDate, nrm, isVoid, hashKey, hashKeyLegacy, all, first, run, insertMany, allIn, kvGet, kvSet, kvDel, kvJson, CRM_URL, DAY } from './lib.js';
 import { sheetMeta, sheetValues, sheetBatchGet, sheetWrite, sheetAppend, a1, serialToMs } from './google.js';
 import { wbKeys, wbHas, wbPending } from './wb.js';
 import { adsTier, tierOf, TIER, adsDutyPool } from './salemkt.js';
@@ -465,8 +465,8 @@ async function importOrders(x, src, shCfg, data, dry) {
       }
       // tên / địa chỉ khách sửa trong file (30/10/2026 anh Sơn: sửa ở đâu cũng được) → đơn CRM theo file; khách lấy tên, địa chỉ theo đơn gần nhất. Ô trống: giữ như cũ.
       if (sync2(cur) && !WP.pendPh[phone] && !seen['i' + cur.rid] && (when > Date.now() - 60 * DAY || Number(cur.time) > Date.now() - 60 * DAY)) {
-        const nm1 = String(cell(r, m, 'name') || '').trim(), ad1 = String(cell(r, m, 'address') || '').trim().replace(/\s+/g, ' '), ad0 = (isFileO(cur) ? String(cur.address || '') : [cur.address, cur.ward, cur.province].filter(Boolean).join(', ')).trim().replace(/\s+/g, ' ');
-        const iu = {}; if (nm1 && nm1 !== String(cur.name || '').trim()) iu.name = nm1; if (ad1 && ad1 !== ad0) { iu.address = ad1; iu.ward = isFileO(cur) ? cur.ward || '' : ''; iu.province = isFileO(cur) ? cur.province || '' : ''; }
+        const nm1 = String(cell(r, m, 'name') || '').trim(), ad1 = String(cell(r, m, 'address') || '').trim().replace(/\s+/g, ' '), ad0 = (isFileO(cur) ? String(cur.address || '') : addrJoin(cur.address, cur.ward, cur.province)).trim().replace(/\s+/g, ' ');
+        const iu = {}; if (nm1 && nm1 !== String(cur.name || '').trim()) iu.name = nm1; if (ad1 && ad1 !== ad0 && addrJoin(ad1) !== addrJoin(ad0)) { iu.address = ad1; iu.ward = isFileO(cur) ? cur.ward || '' : ''; iu.province = isFileO(cur) ? cur.province || '' : ''; }
         if (Object.keys(iu).length) { seen['i' + cur.rid] = 1; infoUpd.push(Object.assign({ rid: cur.rid, id: cur.id, from: cur.name }, iu)); Object.assign(cur, iu); chgPh[phone] = 1; }
       }
       dup++; continue;

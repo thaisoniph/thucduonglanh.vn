@@ -22,6 +22,14 @@ export function dateOrBlank(s) { if (!s) return null; const t = new Date(String(
 /** Mã link giới thiệu (?ref=…): tên bỏ dấu, viết liền (Thủy → thuy, Văn Hiếu → vanhieu). Trùng công thức refCode trong crm/app.js. */
 export const refCode = name => nrm(name).replace(/[^a-z0-9]/g, '');
 export function nrm(s) { return String(s == null ? '' : s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').replace(/\s+/g, ' ').trim(); }
+/** 21/11/2026: ghép địa chỉ + phường + tỉnh, bỏ phần lặp (địa chỉ đã ghi sẵn phường / tỉnh, hoặc đã bị lặp từ trước) – giống fullAddr ở crm/app.js */
+export function addrJoin(address, ward, province) {
+  const seg = String(address || '').split(',').map(t => t.trim()).filter(Boolean);
+  // chỉ bỏ cụm ≥ 2 đoạn lặp liền nhau (", P. X, Tỉnh Y, P. X, Tỉnh Y"); 1 đoạn trùng thì giữ: "Cao Bằng, Cao Bằng" = thành phố + tỉnh, "Xuân Lộc, Xuân Lộc" = xã + huyện
+  for (let ch = 1; ch;) { ch = 0; for (let k = Math.floor(seg.length / 2); k >= 2 && !ch; k--) for (let i = 0; i + 2 * k <= seg.length && !ch; i++) if (seg.slice(i, i + k).every((t, j) => nrm(t) === nrm(seg[i + k + j]))) { seg.splice(i + k, k); ch = 1; } }
+  let ad = nrm(seg.join(', ')); [ward, province].forEach(v => { const k = nrm(v), i = ad.indexOf(k); if (v && !(i >= 0 && !/[a-z0-9]/.test(ad.charAt(i + k.length)))) { seg.push(String(v).trim()); ad += ', ' + k; } });
+  return seg.join(', ');
+}
 /** Tiền tố mã đơn ngắn ≤3 chữ (14/11/2026, anh Hiệp kho: phiếu Misa ghi mã đơn ở Ghi chú, tên dài chiếm 2 dòng): phụ âm đầu + chữ cuối,
  *  Phuong → Phg, Chang → Chg, Thuy → Thy, Luong → Lng (thiếu thì lấy 2 chữ cuối), Thu → Thu. Quản trị đặt riêng ở Cài đặt → Nhân sự → ô Tiền tố thì dùng ô đó. Giống codePre trong crm/app.js. */
 export function codePre(n) {

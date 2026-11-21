@@ -5,7 +5,7 @@
 // - "@cinfo {...}" → sửa tên / địa chỉ khách trên CRM → sửa ô tên, địa chỉ ở dòng đơn gần nhất của khách
 // - "@oed {...}" → sửa đơn trên CRM (tên, SĐT, địa chỉ, sản phẩm, tiền) → sửa các ô của dòng đơn; "@odel {...}" → Quản trị xoá đơn trên CRM → ô trạng thái "Huỷ" (không xoá dòng của sale)
 // Bấm trên CRM chỉ xếp hàng vào bảng wb_queue (nhanh); lịch 10 phút/lần wbTick ghi 1 lượt. Cần sale chia sẻ quyền CHỈNH SỬA file cho tài khoản Google của CRM.
-import { normPhone, nrm, fmtDate, all, first, run, allIn, kvGet, kvSet, TZ_MS, DAY } from './lib.js';
+import { normPhone, nrm, addrJoin, fmtDate, all, first, run, allIn, kvGet, kvSet, TZ_MS, DAY } from './lib.js';
 import { sheetValues, sheetBatchGet, sheetWrite, sheetAppend, a1 } from './google.js';
 import { fileIdOf, SRC_UTIL } from './sync.js';
 import { phoneAlias } from './crm.js';
@@ -311,7 +311,7 @@ export async function wbOrderInfo(x, u, d) {
     if (!(await wbSource(x, owner, true))) return { ok: false, error: owner ? 'File của ' + owner + ' chưa bật "Ghi ngược" hoặc chưa có sheet lên đơn. Vào Cài đặt → file sale của ' + owner + ' để bật.' : 'Khách chưa có người phụ trách.' };
     const L = String(o.items || '').split('\n').map(t => t.trim()).filter(Boolean), real = L.filter(t => t.indexOf('🎁') !== 0).map(t => t.replace(/\s*=.*$/, '')), g = L.filter(t => t.indexOf('🎁') === 0)[0];
     const gm = g && g.replace(/^🎁\s*/, '').replace(/\s*=.*$/, '').match(/^(.*?)(?:\s+x(\d+))?$/);
-    await wbOrderQueue(x, owner, { id: o.id, time: Number(o.time), name: o.name, phone: o.phone, address: [o.address, o.ward, o.province].filter(Boolean).join(', '), product: real.join(', '), qty: '', gift: gm ? gm[1] : '', giftQty: gm && gm[2] ? +gm[2] : '',
+    await wbOrderQueue(x, owner, { id: o.id, time: Number(o.time), name: o.name, phone: o.phone, address: addrJoin(o.address, o.ward, o.province), product: real.join(', '), qty: '', gift: gm ? gm[1] : '', giftQty: gm && gm[2] ? +gm[2] : '',
       total: Number(o.total) || 0, status: o.status, ship: o.ship || '', note: '', ca: o.ca || '', otype: o.otype || '', old: !!cv && Number(cv.orders) > 1 });
     return { ok: true, queued: true };
   }

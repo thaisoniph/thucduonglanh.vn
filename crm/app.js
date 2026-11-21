@@ -204,7 +204,13 @@
   function cp(v, html) { v = String(v == null ? '' : v).trim(); if (!v || v === '–') return html != null ? html : ''; return '<span class="cp" data-copy="' + esc(v) + '" title="Bấm để copy">' + (html != null ? html : esc(v)) + '</span>'; }
   function cpPhone(p) { return cp(normPhone(p), fPhone(p)); }
   function cpMoney(n, html) { return cp(String(Math.round(Number(n) || 0)), html != null ? html : money(n)); }
-  function fullAddr(x) { return [x.address, x.ward, x.province].filter(Boolean).join(', '); }
+  function fullAddr(x) { // 21/11/2026: địa chỉ đã ghi sẵn phường / tỉnh thì không ghép thêm, cụm bị lặp liền nhau (", P. X, Tỉnh Y, P. X, Tỉnh Y") chỉ giữ 1 lần – trước đây mỗi lần lên đơn lại địa chỉ dài thêm
+    var seg = String(x.address || '').split(',').map(function (t) { return t.trim(); }).filter(Boolean);
+    for (var ch = 1; ch;) { ch = 0; for (var k = Math.floor(seg.length / 2); k >= 2 && !ch; k--) for (var i = 0; i + 2 * k <= seg.length && !ch; i++) if (seg.slice(i, i + k).every(function (t, j) { return norm(t).trim() === norm(seg[i + k + j]).trim(); })) { seg.splice(i + k, k); ch = 1; } } // chỉ bỏ cụm ≥ 2 đoạn lặp liền nhau; "Cao Bằng, Cao Bằng" (thành phố + tỉnh) giữ nguyên
+    var ad = norm(seg.join(', ')); [x.ward, x.province].forEach(function (v) { var k = norm(v || ''), i = ad.indexOf(k); if (v && !(i >= 0 && !/[a-z0-9]/.test(ad.charAt(i + k.length)))) { seg.push(v); ad += ', ' + k; } });
+    return seg.join(', ');
+  }
+  window.TDL_fullAddr = fullAddr;
   function fPhone(p) { p = normPhone(p); return p.length === 10 ? p.slice(0, 4) + ' ' + p.slice(4, 7) + ' ' + p.slice(7) : p; }
   function zalo(p) { return 'https://zalo.me/' + normPhone(p); }
   var ZI = '<svg class="zi" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#0068ff"/><text x="16" y="20.5" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="11.5" font-weight="700" fill="#fff">Zalo</text></svg>'; // biểu tượng Zalo: khách đã kết bạn (khác 💬 = chăm sóc / nhắn tin)
@@ -3651,7 +3657,7 @@
     };
     var start = eo ? parseItems(eo.items) : [], sItems = start.filter(function (i) { return !i.gift; }), sGifts = start.filter(function (i) { return i.gift; });
     if (!eo && lead && lead.interest) sItems = [{ name: lead.interest, variant: '', qty: 1 }];
-    var fullAddr = c0 ? [c0.address].concat([c0.ward, c0.province].filter(function (x) { var ad = norm(c0.address || ''), k = norm(x), i = ad.indexOf(k); return x && !(i >= 0 && !/[a-z0-9]/.test(ad.charAt(i + k.length))); })).filter(Boolean).join(', ') : ''; // địa chỉ đã ghi sẵn phường / tỉnh thì không ghép thêm (trước đây mỗi lần đặt lại tên tỉnh bị lặp thêm 1 lần)
+    var fullAddr = c0 ? window.TDL_fullAddr(c0) : ''; // bỏ phần lặp, không ghép thêm phường / tỉnh đã có (21/11/2026)
     if (!eo && opt.prefill) { // 🛒 lên đơn từ Zalo (18/11/2026): địa chỉ + món CRM đọc từ tin nhắn
       if (opt.prefill.address && !fullAddr) fullAddr = opt.prefill.address;
       if (opt.prefill.items && opt.prefill.items.length) sItems = opt.prefill.items.map(function (i) { return { name: i.name, variant: '', qty: i.qty || 1 }; });
@@ -3806,7 +3812,7 @@
     function fillFrom(c) {
       if (!F.name.value) F.name.value = c.name;
       if (!F.full.value.trim()) {
-        F.full.value = [c.address, c.ward, c.province].filter(Boolean).join(', ');
+        F.full.value = window.TDL_fullAddr(c); // 21/11/2026: trước ghép thẳng → địa chỉ lặp phường / tỉnh mỗi lần lên đơn
         if (c.addrOld && OU) { var po = oldParse(OU, c.addrOld); if (po.p) { touchO = true; setOld(po.p, po.d, po.w); } }
         if (c.province) { touchN = true; setProvince(c.province, c.ward); if (!touchO) oldFromNew(); } else addrChanged();
       }
