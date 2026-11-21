@@ -6,7 +6,7 @@
  *   Đăng ký ứng dụng: tự động (RFC 7591 /oauth/register), client_id là URL (CIMD), hoặc Client ID / Secret tạo trong CRM (lệnh mcp_client) cho app bắt nhập tay.
  *   Chỉ chuyển hướng về ChatGPT / OpenAI, Google (Gemini – trả về oauth-redirect(-sandbox|-test).googleusercontent.com: 20/11/2026 Gemini đăng ký kèm 2 địa chỉ sandbox/test, thiếu là bị từ chối), Claude và máy mình (localhost, để thử) – REDIRECT_OK.
  *   Mã truy cập 30 ngày, mã làm mới 365 ngày (đổi mã mỗi lần làm mới); trong D1 chỉ lưu mã băm SHA-256 (kv oat_ / ort_ / oac_ / ocl_).
- * - Công cụ: hoi_so_lieu (trợ lý số liệu Claude của CRM tự tra và trả lời – chắc nhất), mo_ta_du_lieu + tra_cuu + san_pham_ban (+ tai_chinh cho Quản trị),
+ * - Công cụ: hoi_so_lieu (trợ lý số liệu Claude của CRM tự tra và trả lời – chắc nhất), mo_ta_du_lieu + tra_cuu + san_pham_ban + ty_le_chot (+ tai_chinh cho Quản trị),
  *   so_tay (14/11/2026: Sổ tay doanh nghiệp, sotay.js), insight_noi_dung (10/11/2026: ngân hàng insight + quy trình Insight → Tension → Phễu, gọi trước khi viết nội dung)
  *   để AI bên ngoài tự tra. Tất cả chỉ đọc; dữ liệu khách đã che như ✨ Hỏi số liệu. Giới hạn MCP_DAY_MAX lượt gọi / người / ngày. */
 import { esc, kvGet, kvSet, kvJson, run, all, randHex, fmtDate, DAY } from './lib.js';
@@ -165,6 +165,9 @@ function toolList(u) {
     { name: 'san_pham_ban', title: 'Sản phẩm bán ra', annotations: Object.assign({ title: 'Sản phẩm bán ra' }, RO),
       description: 'Số lượng và tiền từng sản phẩm bán ra (đơn văn phòng + web, đã trừ huỷ / hoàn) trong kỳ, kèm quà tặng.',
       inputSchema: { type: 'object', properties: { tu_ngay: { type: 'string', description: 'yyyy-mm-dd (giờ Việt Nam)' }, den_ngay: { type: 'string', description: 'yyyy-mm-dd, tính cả ngày này' }, nguoi_ban: { type: 'string', description: 'Tên nhân viên; bỏ trống = cả công ty' } }, required: ['tu_ngay', 'den_ngay'], additionalProperties: false } },
+    { name: 'ty_le_chot', title: 'Tỷ lệ chốt', annotations: Object.assign({ title: 'Tỷ lệ chốt' }, RO),
+      description: 'Tỷ lệ chốt số quảng cáo đúng cách tính của CRM (chỉ khách chưa từng mua, ra đơn trong 30 ngày kể từ ngày nhận số), cả kỳ và từng sale. Dùng cho mọi câu hỏi về tỷ lệ chốt, đừng tự tính bằng tra_cuu.',
+      inputSchema: { type: 'object', properties: { tu_ngay: { type: 'string', description: 'yyyy-mm-dd (giờ Việt Nam), theo ngày nhận số' }, den_ngay: { type: 'string', description: 'yyyy-mm-dd, tính cả ngày này' }, nguoi_ban: { type: 'string', description: 'Tên sale; bỏ trống = cả nhóm' } }, required: ['tu_ngay', 'den_ngay'], additionalProperties: false } },
     { name: 'insight_noi_dung', title: 'Insight khách hàng & quy trình nội dung', annotations: Object.assign({ title: 'Insight khách hàng & quy trình nội dung' }, RO),
       description: 'Ngân hàng insight của Thực Dưỡng Lành (nhóm khách mục tiêu, mong muốn, rào cản, tension) + quy trình Insight → Tension → Phễu TOFU / MOFU / BOFU. GỌI TRƯỚC khi viết bất kỳ nội dung nào (bài web, bài nhóm Zalo, Fanpage, kịch bản video, quảng cáo) để bài nhắm đúng 1 nhóm khách và 1 tension.',
       inputSchema: { type: 'object', properties: {}, additionalProperties: false } },
@@ -191,7 +194,7 @@ async function callTool(x, u, name, a) {
   if (name === 'so_tay') return txt(await stText(x));
   const ctx = await askCtx(x, u);
   if (name === 'mo_ta_du_lieu') return txt(askGuide(ctx));
-  if (!['tra_cuu', 'san_pham_ban', 'tai_chinh'].includes(name) || (name === 'tai_chinh' && u.level < 3)) return txt('Không có công cụ ' + name, true);
+  if (!['tra_cuu', 'san_pham_ban', 'ty_le_chot', 'tai_chinh'].includes(name) || (name === 'tai_chinh' && u.level < 3)) return txt('Không có công cụ ' + name, true);
   const out = await askTool(x, ctx, name, { muc_dich: '', nguoi_ban: '', ...a });
   return txt(JSON.stringify(out), !!out.error);
 }

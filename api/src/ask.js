@@ -4,12 +4,13 @@
  *   tra_cuu      – câu SELECT (SQLite) trên các bảng số liệu được phép. Máy chủ bọc câu lệnh thành "WITH <bảng đã che> SELECT * FROM (<câu của AI>) LIMIT 301"
  *                  → chỉ đọc được (lệnh sửa / xoá báo lỗi cú pháp), không đọc được bảng mật (kv, sessions, users, sources…), tên khách chỉ còn tên gọi, SĐT / email bị che.
  *   san_pham_ban – cộng sản phẩm bán ra từ cột items của đơn (SQL khó tách chữ nhiều dòng).
+ *   ty_le_chot   – (21/11/2026) tỷ lệ chốt số quảng cáo đúng cách của CRM (closeStats crm/app.js, crmRace crm.js): danh sách số nằm ở kv ads_rows nên AI không tự SQL được.
  *   tai_chinh    – (chỉ Quản trị) số kế toán đã nối ở Tổng quan: lãi lỗ ước tính, tiền ngân hàng, nợ nhà cung cấp, chi phí cố định.
  * Dùng chung khoá ANTHROPIC_API_KEY + trạm Bắc Mỹ (airelay.js) với ✨ AI tóm tắt khách và chat web.
  * Giới hạn ASK_DAY_MAX câu / ngày cả công ty, ASK_USER_MAX câu / người / ngày; mỗi câu tra tối đa ASK_STEPS lượt. Chi phí ghi vào kv ask_cost_yyMM. */
 import Anthropic from '@anthropic-ai/sdk';
 import { aiFetch } from './airelay.js';
-import { all, fmtDate, kvGet, kvSet, kvJson, startOfDay, nrm, DAY } from './lib.js';
+import { all, allIn, fmtDate, kvGet, kvSet, kvJson, startOfDay, nrm, normPhone, DAY } from './lib.js';
 import { SUPER_ADMIN } from './crm.js';
 import { finMorning, finFull } from './fin.js';
 import { sanAllowed } from './san.js';
@@ -66,7 +67,8 @@ Bạn là trợ lý số liệu nội bộ trong CRM của Thực Dưỡng Lành
 - Tỷ lệ hoàn = đơn Hoàn + Đang chuyển hoàn ÷ đơn đã gửi đi (bỏ Mới, Đã xác nhận, Huỷ). Huỷ (khách báo huỷ trước khi gửi) chỉ đếm số đơn.
 - Tiền tính hoa hồng = total - shipping.
 - Khách mới / khách cũ: theo cột otype của đơn. Giá trị 1 đơn = doanh số ÷ số đơn được tính.
-- Tỷ lệ chốt khách hỏi = khách hỏi có status 'Đã chốt' ÷ tổng khách hỏi vào trong kỳ (theo time).
+- Tỷ lệ chốt: LUÔN dùng công cụ ty_le_chot, không tự tính bằng SQL (danh sách số quảng cáo không nằm trong bảng nào). Cách tính (anh Sơn duyệt 20/11/2026): số điện thoại trong file số quảng cáo nhận trong kỳ (mỗi số 1 lần), bỏ khách đã từng mua; ra đơn = có đơn không huỷ / hoàn hoặc khách hỏi 'Đã chốt' trong 30 ngày kể từ ngày nhận số. Số chưa đủ 30 ngày là 'đang tư vấn' nên tỷ lệ kỳ gần đây còn tăng dần. Mốc phiếu KPI: 50% là đủ điểm. Chỉ có số của khoảng 100 ngày gần nhất.
+- Tỷ lệ khách hỏi đã chốt (khác tỷ lệ chốt, chỉ dùng khi người hỏi nói rõ theo kênh khách hỏi): khách hỏi có status 'Đã chốt' ÷ tổng khách hỏi vào trong kỳ (theo time).
 - Chi phí quảng cáo = SUM(spend) bảng ad_spend. Giá 1 khách hỏi quảng cáo = chi phí ÷ số khách hỏi kênh quảng cáo trong kỳ. Quảng cáo / doanh số (%) = chi phí ÷ doanh số.
 - Lãi lỗ, tiền ngân hàng, công nợ, chi phí cố định: dùng công cụ tai_chinh (nếu có).
 
@@ -186,6 +188,39 @@ async function toolProducts(x, inp) {
     san_pham: list.slice(0, 60), con_lai: Math.max(0, list.length - 60), qua_tang: Object.keys(G).map(k => ({ sp: k, sl: G[k] })).sort((p, q) => q.sl - p.sl).slice(0, 20) };
 }
 
+/* ---------- công cụ 4: ty_le_chot (21/11/2026 anh Sơn: trợ lý tính khớp CRM). Phải giống closeStats (crm/app.js), crmRace closeOf (crm.js), teamCalc cn/cw (salemkt.js). */
+const CLOSE_DAYS = 30;
+async function toolClose(x, inp) {
+  const ok = s => /^\d{4}-\d{2}-\d{2}$/.test(String(s || ''));
+  if (!ok(inp.tu_ngay) || !ok(inp.den_ngay)) return { error: 'tu_ngay / den_ngay phải dạng yyyy-mm-dd.' };
+  const a = new Date(inp.tu_ngay + 'T00:00:00+07:00').getTime(), b = new Date(inp.den_ngay + 'T00:00:00+07:00').getTime() + DAY;
+  if (!(b > a)) return { error: 'Kỳ không hợp lệ.' };
+  const who = String(inp.nguoi_ban || '').trim();
+  const ads = ((await kvJson(x.db, 'ads_rows', [])) || []).map(r => [Number(r[0]) || 0, normPhone(r[1]), String(r[2] || '').trim()]).filter(r => r[1]);
+  const oldest = ads.reduce((m, r) => Math.min(m, r[0]), Infinity), rows = ads.filter(r => r[0] >= a && r[0] < b && (!who || r[2] === who));
+  const phs = [...new Set(rows.map(r => r[1]))];
+  const [os, ls] = phs.length ? await Promise.all([
+    allIn(x.db, "SELECT phone, time FROM orders WHERE phone IN (SELECT value FROM json_each(?)) AND status NOT LIKE '%uỷ%' AND status NOT LIKE '%ủy%' AND status NOT LIKE '%oàn%'", phs),
+    allIn(x.db, 'SELECT phone, time, last_at, status, reason FROM leads WHERE phone IN (SELECT value FROM json_each(?)) AND coalesce(last_at, time) >= ?', phs, a)]) : [[], []];
+  const B = {}, L = {}; os.forEach(o => { (B[normPhone(o.phone)] = B[normPhone(o.phone)] || []).push(Number(o.time) || 0); }); ls.forEach(l => { (L[normPhone(l.phone)] = L[normPhone(l.phone)] || []).push(l); });
+  const blank = () => ({ so_quang_cao: 0, ra_don: 0, khong_mua: 0, so_rac: 0, dang_tu_van: 0, khach_cu_bo_ra: 0 }), all0 = blank(), per = {}, seen = {}, now = Date.now();
+  rows.forEach(([day, ph, sale]) => {
+    if (seen[ph]) return; seen[ph] = 1;
+    const P = per[sale || '(chưa giao sale)'] || (per[sale || '(chưa giao sale)'] = blank()), end = day + CLOSE_DAYS * DAY;
+    if ((B[ph] || []).some(t => t < day)) { all0.khach_cu_bo_ra++; P.khach_cu_bo_ra++; return; }
+    const lw = (L[ph] || []).filter(l => { const t = Number(l.last_at) || Number(l.time) || 0; return t >= day && t < end; });
+    const won = (B[ph] || []).some(t => t >= day && t < end) || lw.some(l => l.status === 'Đã chốt');
+    const no = !won && lw.find(l => l.status === 'Không mua');
+    const k = won ? 'ra_don' : no ? (/rác/i.test(no.reason || '') ? 'so_rac' : 'khong_mua') : now >= end ? 'khong_mua' : 'dang_tu_van';
+    [all0, P].forEach(r => { r.so_quang_cao++; r[k]++; });
+  });
+  const fin = r => Object.assign(r, { ty_le_chot: r.so_quang_cao ? Math.round(r.ra_don * 100 / r.so_quang_cao) + '%' : null });
+  return { ky: inp.tu_ngay + ' → ' + inp.den_ngay, nguoi_ban: who || 'tất cả', ca_ky: fin(all0),
+    theo_sale: Object.keys(per).map(n => Object.assign({ sale: n }, fin(per[n]))).sort((p, q) => q.so_quang_cao - p.so_quang_cao),
+    ghi_chu: 'Tỷ lệ chốt = ra_don ÷ so_quang_cao (cách CRM dùng ở Hiệu quả, Thi đua, So sánh nhân viên, Phiếu KPI; mốc KPI 50%). so_quang_cao đã bỏ khách đã từng mua (khach_cu_bo_ra). dang_tu_van = chưa đủ 30 ngày, tỷ lệ còn tăng.' +
+      (oldest > a ? ' CHÚ Ý: chỉ có số quảng cáo từ ' + fmtDate(oldest, 'dd/MM/yyyy') + ', phần trước ngày đó không tính được.' : '') };
+}
+
 /* ---------- công cụ 3: tai_chinh (Quản trị) */
 async function toolFin(x) {
   const O = (await kvJson(x.db, 'opex_cfg', {})) || {}, F = await finFull(x, await kvJson(x.db, 'fin_cfg', null));
@@ -206,6 +241,8 @@ const T_SQL = { name: 'tra_cuu', description: 'Chạy 1 câu SELECT (SQLite, ch�
   input_schema: { type: 'object', properties: { muc_dich: MUC, sql: { type: 'string', description: 'Câu SELECT hoặc WITH … SELECT, không có dấu chấm phẩy.' } }, required: ['muc_dich', 'sql'], additionalProperties: false } };
 const T_SP = { name: 'san_pham_ban', description: 'Cộng số lượng và tiền từng sản phẩm bán ra (đơn văn phòng + web, đã trừ huỷ / hoàn) trong kỳ, kèm quà tặng. Dùng khi hỏi sản phẩm bán chạy, số hộp / gói bán ra.', strict: true,
   input_schema: { type: 'object', properties: { muc_dich: MUC, tu_ngay: { type: 'string', description: 'Ngày đầu kỳ yyyy-mm-dd (giờ Việt Nam)' }, den_ngay: { type: 'string', description: 'Ngày cuối kỳ yyyy-mm-dd, tính cả ngày này' }, nguoi_ban: { type: 'string', description: 'Tên nhân viên bán, để "" nếu tính cả công ty' } }, required: ['muc_dich', 'tu_ngay', 'den_ngay', 'nguoi_ban'], additionalProperties: false } };
+const T_CLOSE = { name: 'ty_le_chot', description: 'Tỷ lệ chốt số quảng cáo đúng cách tính của CRM (chỉ khách chưa từng mua, ra đơn trong 30 ngày), cả kỳ và từng sale, kèm số không mua / số rác / đang tư vấn. Dùng cho MỌI câu hỏi về tỷ lệ chốt.', strict: true,
+  input_schema: { type: 'object', properties: { muc_dich: MUC, tu_ngay: { type: 'string', description: 'Ngày đầu kỳ yyyy-mm-dd (giờ Việt Nam), theo ngày nhận số' }, den_ngay: { type: 'string', description: 'Ngày cuối kỳ yyyy-mm-dd, tính cả ngày này' }, nguoi_ban: { type: 'string', description: 'Tên sale, để "" nếu tính cả nhóm' } }, required: ['muc_dich', 'tu_ngay', 'den_ngay', 'nguoi_ban'], additionalProperties: false } };
 const T_FIN = { name: 'tai_chinh', description: 'Số kế toán đã nối vào CRM: lãi lỗ ước tính hôm qua / từ đầu tháng, điểm hoà vốn, tiền ngân hàng, nợ nhà cung cấp, khoản chi lớn, số kế toán 6 tháng gần nhất (doanh thu, giá vốn, chi phí, lợi nhuận, chi phí cố định).', strict: true,
   input_schema: { type: 'object', properties: { muc_dich: MUC }, required: ['muc_dich'], additionalProperties: false } };
 
@@ -223,10 +260,10 @@ export async function askCtx(x, u) {
   const cols = await columns(x), tabs = BASE_T.concat(u.level >= 3 || u.mkv ? ADS_T : [], await sanAllowed(x, u) ? SAN_T : []).filter(t => cols[t]);
   return { tabs, cols, u };
 }
-/** Chạy 1 công cụ tra số (tra_cuu / san_pham_ban / tai_chinh) cho người hỏi trong ctx. */
+/** Chạy 1 công cụ tra số (tra_cuu / san_pham_ban / ty_le_chot / tai_chinh) cho người hỏi trong ctx. */
 export async function askTool(x, ctx, name, inp) {
   try {
-    return name === 'tra_cuu' ? await toolSql(x, inp || {}, ctx) : name === 'san_pham_ban' ? await toolProducts(x, inp || {}) : name === 'tai_chinh' && ctx.u.level >= 3 ? await toolFin(x) : { error: 'Không có công cụ ' + name };
+    return name === 'tra_cuu' ? await toolSql(x, inp || {}, ctx) : name === 'san_pham_ban' ? await toolProducts(x, inp || {}) : name === 'ty_le_chot' ? await toolClose(x, inp || {}) : name === 'tai_chinh' && ctx.u.level >= 3 ? await toolFin(x) : { error: 'Không có công cụ ' + name };
   } catch (e) { return { error: 'Lỗi khi tra: ' + String(e && e.message || e).slice(0, 200) }; }
 }
 /** Cách tính + bảng + mốc thời gian dạng chữ: cho AI bên ngoài (ChatGPT, Gemini qua MCP) tự viết câu tra. */
@@ -252,7 +289,7 @@ export async function crmAsk(x, u, d) {
   await kvSet(x.db, dk, String(nDay + 1), 2 * DAY); await kvSet(x.db, uk, String(nUser + 1), 2 * DAY);
 
   const ctx = await askCtx(x, u), { tabs, cols } = ctx;
-  const tools = [T_SQL, T_SP].concat(u.level >= 3 ? [T_FIN] : []);
+  const tools = [T_SQL, T_SP, T_CLOSE].concat(u.level >= 3 ? [T_FIN] : []);
   const system = [
     { type: 'text', text: RULES + '\n\n# Bảng được tra\n' + schemaText(cols, tabs), cache_control: { type: 'ephemeral' } }, // phần dài, ít đổi → lưu đệm
     { type: 'text', text: timeCtx(now) + '\n' + whoLine(ctx) + (d.voice ? '\nNgười hỏi đang nói chuyện bằng giọng: trả lời thật gọn (2–4 câu), nói số tròn dễ nghe, không bảng.' : '') }
