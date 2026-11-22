@@ -14230,6 +14230,26 @@
    * thanh "10 khách hỏi thì đi đâu" và tối đa 5 việc nên làm ngay. Số liệu chi tiết (xu hướng, chăm sóc, lý do, tỉnh) thu gọn, bấm mới mở; mục đang mở nhớ trên máy (localStorage rep_open). */
   /** Đèn cho tỷ lệ %: bằng / tăng = xanh, giảm dưới 3 điểm = cam, giảm từ 3 điểm = đỏ. */
   function repRateLv(cur, prev) { if (!CMP_LABEL || cur === null || prev === null || prev === undefined) return ''; var d = cur - prev; return d >= 0 ? 'ok' : d > -3 ? 'mid' : 'bad'; }
+  /* ---------- ✨ Tin AI chăm khách cả công ty (22/11/2026 anh Sơn): Quản lý so sánh sale dùng AI và khách mua lại. Máy chủ: ai_stats {team:1} (ai.js aiTeam), nhớ 10 phút. */
+  function aiTeamGet() {
+    var c = S.aiTeam;
+    if ((!c || Date.now() - c.at > 600e3) && !S.aiTeamBusy) {
+      S.aiTeamBusy = true;
+      api('ai_stats', { team: 1 }).then(function (j) { S.aiTeam = { at: Date.now(), d: j && j.rows ? j : null }; }, function () { S.aiTeam = { at: Date.now(), d: null }; })
+        .then(function () { S.aiTeamBusy = false; if (route().view === 'bao-cao') softRender(true); });
+    }
+    return c ? c.d : undefined;
+  }
+  function aiTeamHTML(d) {
+    if (d === undefined) return '<p class="muted">⏳ Đang tính…</p>';
+    if (!d || !d.rows.length) return '<p class="muted">Chưa có ai dùng ✨ Nhờ AI viết tin trong 30 ngày qua. Nút nằm trong hộp chăm khách → ✏️ Xem / sửa tin nhắn.</p>';
+    var rate = function (a, b) { return b ? pct(a, b) + '%' : '–'; };
+    var cell = function (r) { var ai = r.aiN ? pct(r.aiBuy, r.aiN) : null, no = r.careN ? pct(r.careBuy, r.careN) : null, up = ai !== null && no !== null && r.aiN >= 5 ? (ai > no ? ' <span style="color:var(--primary);font-weight:700">▲</span>' : ai < no ? ' <span class="bad-line">▼</span>' : '') : '';
+      return '<tr><td>' + esc(r.name) + '</td><td>' + r.sug + '</td><td>' + r.sent + '</td><td>' + rate(r.same, r.sent) + '</td><td><b>' + rate(r.aiBuy, r.aiN) + '</b>' + up + (r.aiN ? ' <small class="muted">' + r.aiBuy + '/' + r.aiN + '</small>' : '') + '</td><td>' + rate(r.careBuy, r.careN) + (r.careN ? ' <small class="muted">' + r.careBuy + '/' + r.careN + '</small>' : '') + '</td></tr>'; };
+    return '<div class="team-wrap"><table class="team"><thead><tr><th>Nhân viên</th><th>AI gợi ý</th><th>Đã gửi</th><th>Gửi y nguyên</th><th>Mua lại sau tin AI</th><th>Mua lại khi không dùng AI</th></tr></thead><tbody>' +
+      d.rows.map(cell).join('') + '</tbody><tfoot>' + cell(d.total).replace('<tr>', '<tr class="kai-tot">') + '</tfoot></table></div>' +
+      '<p class="small muted" style="margin:8px 0 0">30 ngày qua. <b>Mua lại</b> = khách có đơn (không huỷ / hoàn) trong 14 ngày sau lần nhắn. Cột cuối = khách cùng sale chăm sóc mà không dùng tin AI, để so sánh thô (khách nhận tin AI có thể khác nhóm). ▲▼ chỉ hiện khi sale gửi từ 5 tin AI. <b>Gửi y nguyên</b> tăng dần = AI đã hiểu giọng bạn ấy. Gợi ý / đã gửi tính từ 22/11/2026.</p>';
+  }
   function repMore(k, title, line, body) {
     var o = S.f.r.open || (S.f.r.open = (function () { try { return JSON.parse(store('rep_open') || '{}') || {}; } catch (e) { return {}; } })());
     return '<details class="dash-more" data-rk="' + k + '" id="rm-' + k + '"' + (o[k] ? ' open' : '') + '><summary><b>' + title + '</b><span>' + line + '</span></summary><div class="dash-more-b">' + body + '</div></details>';
@@ -14332,6 +14352,7 @@
     var TQ = h, RSB = refSaleBox(name); h = '';
     h += repMore('rtrend', '📈 Bán hàng theo ngày', 'Doanh số, số đơn, lượt chăm sóc từng ngày, so với ' + (CMP_LABEL || 'kỳ trước'), repTrend(name, cx));
     h += smkMore(mk, mb, smkInvest(mk, mb, who, cx.label).replace(/<button class="link" data-rgo="mkt">[^<]*<\/button>/, '') + repFunnel(c, who));
+    if (lvl() >= 2 && S.d.rules && S.d.rules.ai) { var ait = aiTeamGet(); h += repMore('aicare', '✨ Tin AI chăm khách', ait && ait.total.aiN ? ait.total.aiN + ' tin AI đã gửi · ' + pct(ait.total.aiBuy, ait.total.aiN) + '% khách mua lại trong 14 ngày' : '30 ngày qua · sale nào dùng AI, khách có mua lại nhiều hơn không', aiTeamHTML(ait)); }
     h += repMore('care', '💬 Chăm sóc khách', c.care + ' lượt' + (c.replyPct === null ? '' : ' · ' + c.replyPct + '% khách nghe máy') + (c.convPct === null ? '' : ' · ' + c.convPct + '% chăm sóc ra đơn'), careMetrics(c, p, me, name, cx.R));
     var BAN = h; h = '';
     var why = whyBlock(name, cx), wt = (why.match(/<span class="bar-l" role="cell">([^<]*)</) || [])[1];

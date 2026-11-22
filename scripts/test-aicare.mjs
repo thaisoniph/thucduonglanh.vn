@@ -12,7 +12,7 @@ const now = Date.now(), DAY = 864e5;
 raw.exec(`CREATE TABLE kv (k TEXT PRIMARY KEY, v TEXT, exp INTEGER);
 CREATE TABLE customers (phone TEXT, name TEXT, orders INTEGER, spent INTEGER, first INTEGER, last INTEGER, products TEXT, runout INTEGER, care_result TEXT, note TEXT, tag TEXT, recv TEXT, owner TEXT);
 CREATE TABLE orders (phone TEXT, time INTEGER, items TEXT, total INTEGER, status TEXT);
-CREATE TABLE logs (ref TEXT, time INTEGER, what TEXT, result TEXT, note TEXT);`);
+CREATE TABLE logs (ref TEXT, time INTEGER, what TEXT, result TEXT, note TEXT, by_name TEXT);`);
 raw.prepare('INSERT INTO customers VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)').run('0912345678', 'Chị Nguyễn Thị Lan', 2, 600000, now - 60 * DAY, now - 20 * DAY, 'Trà DILVANG', now + 3 * DAY, '', 'Chị Lan hay mất ngủ', '', '', 'Ngô Thị Lan');
 
 let calls = 0, lastBody = null;
@@ -47,4 +47,13 @@ assert.equal(st.sent, 2); assert.equal(st.same, 1); assert.equal(st.n30, 2); ass
 const all = await A.aiStats(x, 'Ai đó', true); assert.equal(all.sent, 2);
 // 6) tóm tắt (sum) vẫn như cũ
 r = await A.crmAi(x, lan, { phone: '0912345678', kind: 'sum' }); assert.equal(r.ok, true); assert.ok(r.text);
+// 7) bảng cả công ty: sale Lan có 2 tin AI (đều mua lại); 2 khách chăm không dùng AI (1 mua lại)
+raw.prepare('INSERT INTO customers (phone, name) VALUES (?,?)').run('0987000111', 'Anh Bình');
+raw.prepare('INSERT INTO logs (ref, time, what, by_name) VALUES (?,?,?,?)').run('0987000111', now - 10 * DAY, 'Nhắc đặt lại', 'Ngô Thị Lan');
+raw.prepare('INSERT INTO logs (ref, time, what, by_name) VALUES (?,?,?,?)').run('0911222333', now - 9 * DAY, 'Hỏi thăm sau 1 tuần', 'Ngô Thị Lan');
+raw.prepare('INSERT INTO logs (ref, time, what, by_name) VALUES (?,?,?,?)').run('0912345678', Date.now() - 1000, 'Nhắc đặt lại', 'Ngô Thị Lan'); // trùng lần có tin AI → bỏ
+raw.prepare('INSERT INTO orders VALUES (?,?,?,?,?)').run('0987000111', now - 5 * DAY, 'Trà', 200000, 'Đã giao');
+const T = await A.aiCareTeam(x);
+const rl = T.rows.find(r => r.name === 'Ngô Thị Lan');
+assert.equal(rl.aiN, 2); assert.equal(rl.aiBuy, 2); assert.equal(rl.careN, 2); assert.equal(rl.careBuy, 1); assert.equal(rl.sug, 3); assert.equal(T.total.careN, 2);
 console.log('✅ test-aicare: 3 tin, đo (gợi ý/gửi/y nguyên/mua lại), học giọng sale – tất cả đúng', st);
