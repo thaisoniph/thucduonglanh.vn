@@ -140,7 +140,7 @@ Dưới ô chọn kỳ là **các thẻ chia 3 nhóm** (từ 19/11/2026), mỗi 
 | --- | --- | --- |
 | **🎯 Tình hình** (mỗi ngày) | 🎯 Mục tiêu & việc | Mục 0–4 dưới đây |
 | | 👥 Từng người | Mục 5: tiến độ hôm nay, thi đua, từng nhân viên, 📊 So sánh nhân viên |
-| **🔎 Vì sao** (mỗi tuần) | 📈 Bán hàng | Bán hàng theo ngày, 📣 Từ quảng cáo, chăm sóc khách |
+| **🔎 Vì sao** (mỗi tuần) | 📈 Bán hàng | Bán hàng theo ngày, 📣 Từ quảng cáo, ✨ Tin AI chăm khách, chăm sóc khách |
 | | 🙅 Khách | Vì sao khách chưa mua, khách ở tỉnh nào |
 | **🧰 Công cụ** | 🧰 Báo cáo | Báo cáo ngày (bảng), bảng BCDT, link giới thiệu, KPI kế toán, bảng lương |
 
@@ -156,6 +156,7 @@ Bấm 1 ô trong **🪜 Các bước bán hàng** thì máy tự mở đúng th�
    **🧭 Đánh giá 3 tháng để ra quyết định** (thẻ 👥 Từng người): 5 sale văn phòng, 3 tháng trọn gần nhất. Mỗi người 1 dòng: doanh số / tháng (kèm từng tháng ↗ ↘), % mục tiêu, tỷ lệ chốt, 1đ quảng cáo ra bao nhiêu, % từ khách cũ, điểm KPI CRM tự chấm; Quản trị thấy thêm **lãi cho công ty / tháng** (lấy từ 💎 Giá trị từng nhân sự). Dưới bảng là **👉 Nên làm với từng người** (máy gợi ý: nhân rộng, kèm khâu chốt, giảm số quảng cáo, tăng chăm khách cũ, họp riêng…), quản lý quyết định.
 6. **Thẻ 📈 Bán hàng, 🙅 Khách**: **📊 So sánh nhân viên** (ở thẻ 👥 Từng người; mở ra là **🧾 Tổng hợp**: mỗi người 1 dòng, ô xanh = bằng/hơn cả nhóm, cam = thấp hơn chút, đỏ = thấp hơn nhiều, ★ = cao nhất; bấm chỉ số khác để xem thanh xếp hạng, vạch đậm = cả nhóm; chỉ so giữa 5 sale văn phòng nhận số quảng cáo, quản lý và cộng tác viên hiện riêng ở dưới để xem, không tô màu; cột **1đ quảng cáo ra** = khách từ số quảng cáo của người đó mua ÷ tiền quảng cáo công ty chi cho các số ấy, khoảng 2đ mới đủ bù chi phí), bán hàng theo ngày, **📣 Từ quảng cáo** (công ty đã đầu tư cho cả nhóm, khách hỏi đi về đâu), chăm sóc khách, vì sao khách chưa mua, khách ở tỉnh nào.
 7. **Thẻ 🧰 Báo cáo**: **📋 Báo cáo ngày (bảng)**: chọn *Cả nhóm* để xem mỗi sale 1 dòng như Excel (dòng TỔNG ở trên, dòng mờ = chưa có đơn/chưa ghi chăm sóc, lý do từ chối ghi kèm tên), chọn ngày khác để xem lại, **⬇️ Tải Excel** để lưu. Không cần đọc từng tin báo cáo trên Zalo nữa. Bảng BCDT, đơn khách tự đặt trên web.
+8. **✨ Tin AI chăm khách** (thẻ 📈 Bán hàng, từ 22/11/2026): mỗi sale 1 dòng, 30 ngày qua: AI gợi ý bao nhiêu lần, sale gửi bao nhiêu, bao nhiêu % **gửi y nguyên** (tăng dần = AI đã hiểu giọng bạn ấy), **% khách mua lại trong 14 ngày sau tin AI** so với **% khách mua lại khi không dùng AI** (khách cùng sale chăm sóc không qua tin AI). ▲ = tin AI cho kết quả tốt hơn, ▼ = kém hơn (chỉ hiện khi đã gửi từ 5 tin AI). Đây là so sánh thô, dùng để biết nên khuyến khích sale dùng AI hay không, và ai cần kèm cách sửa tin.
 
 Sale chỉ thấy mức "giỏi nhất nhóm" dưới dạng % (không thấy tên, không thấy tiền của người khác).
 

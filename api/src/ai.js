@@ -40,6 +40,30 @@ export async function aiStats(x, name, all30) {
   }
   return { sug: sum.sug, sent: sum.sent, same: sum.same, n30: L.length, buy, learn: (((await kvJson(x.db, 'ed_care_' + k, [])) || []).length) };
 }
+/** 📊 Tin AI cả công ty (Hiệu quả → ✨ Tin AI chăm khách, Quản lý trở lên): từng sale – gợi ý / gửi / y nguyên / khách mua lại trong 14 ngày sau tin AI,
+ *  so với khách cùng sale chăm sóc KHÔNG dùng tin AI (nhật ký chăm sóc 30 ngày, không trùng khách đã nhận tin AI trong 3 ngày quanh đó). Chỉ là so sánh thô, không phải thí nghiệm. */
+const CARE_WHAT = ['Gọi lại theo hẹn', 'Hỏi nhận hàng', 'Nhắc đặt lại', 'Hỏi thăm sau 1 tuần', 'Xin cảm nhận', 'Giới thiệu sản phẩm', 'Mời quay lại', 'Gọi khách cũ', 'Chăm sóc', 'Tư vấn', 'Ghi nhanh'];
+export async function aiCareTeam(x) {
+  const now = Date.now(), from = now - 30 * DAY, use = await kvJson(x.db, 'care_aiuse', {}) || {};
+  const sent = ((await kvJson(x.db, 'care_ai_sent', [])) || []).filter(e => e && e.at > from);
+  const logs = await all(x.db, 'SELECT time, by_name, ref FROM logs WHERE time > ? AND what IN (' + CARE_WHAT.map(() => '?').join(',') + ')', from, ...CARE_WHAT);
+  const os = await all(x.db, 'SELECT phone, time, status FROM orders WHERE time > ?', from);
+  const byPh = {}; for (const o of os) if (!isVoid(o.status)) (byPh[o.phone] || (byPh[o.phone] = [])).push(o.time);
+  const bought = (ph, t) => (byPh[ph] || []).some(v => v > t && v <= t + 14 * DAY);
+  const R = {}, row = n => R[n] || (R[n] = { name: n, sug: 0, sent: 0, same: 0, aiN: 0, aiBuy: 0, careN: 0, careBuy: 0 });
+  for (const e of sent) { const r = row(e.by); r.aiN++; if (bought(e.p, e.at)) r.aiBuy++; }
+  const seen = new Set();
+  for (const l of logs) {
+    const ph = normPhone(l.ref); if (!ph || !l.by_name) continue;
+    if (sent.some(e => e.p === ph && e.by === l.by_name && Math.abs(e.at - l.time) < 3 * DAY)) continue; // lần chăm sóc có tin AI → không đưa vào nhóm so sánh
+    const k = l.by_name + '|' + ph + '|' + Math.floor(l.time / DAY); if (seen.has(k)) continue; seen.add(k);
+    const r = row(l.by_name); r.careN++; if (bought(ph, l.time)) r.careBuy++;
+  }
+  for (const r of Object.values(R)) { const o = use[slug(r.name)]; if (o) Object.assign(r, { sug: o.sug || 0, sent: o.sent || 0, same: o.same || 0 }); }
+  const rows = Object.values(R).filter(r => r.sug || r.aiN || r.careN).sort((a, b) => b.aiN - a.aiN || b.careN - a.careN);
+  const T = rows.reduce((t, r) => { for (const k of ['sug', 'sent', 'same', 'aiN', 'aiBuy', 'careN', 'careBuy']) t[k] += r[k]; return t; }, { name: 'Cả công ty', sug: 0, sent: 0, same: 0, aiN: 0, aiBuy: 0, careN: 0, careBuy: 0 });
+  return { rows, total: T };
+}
 async function aiUse(x, name, key) { const m = await kvJson(x.db, 'care_aiuse', {}) || {}; const o = m[slug(name)] || (m[slug(name)] = { sug: 0, sent: 0, same: 0, from: Date.now() }); o[key] = (o[key] || 0) + 1; await kvSet(x.db, 'care_aiuse', JSON.stringify(m)); }
 async function learnBlock(x, name) {
   const L = ((await kvJson(x.db, 'ed_care_' + slug(name), [])) || []).filter(e => e && e.ai && e.hu && e.at > Date.now() - 90 * DAY).slice(0, 5);

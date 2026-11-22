@@ -1127,6 +1127,7 @@ button:focus-visible, a:focus-visible, summary:focus-visible, [role="button"]:fo
 .kai-opt b { display: block; font-size: 12px; color: var(--muted); font-weight: 600; margin-bottom: 2px; }
 .kai-opt.on { border-color: var(--primary); background: var(--primary-soft); box-shadow: inset 3px 0 0 var(--primary); }
 .kai-st { margin: 6px 0 2px; }
+.kai-tot td { font-weight: 700; border-top: 2px solid var(--line); }
 .ai-box { margin: 10px 0; } .ai-out { margin-top: 8px; padding: 10px 12px; background: var(--primary-soft); border: 1px solid var(--primary-light); border-radius: var(--radius-sm); font-size: 14px; line-height: 1.5; color: var(--ink); }
 
 /* 🖐 Sửa trò chơi Bạn còn mấy ngón tay (openQuizEdit) */
