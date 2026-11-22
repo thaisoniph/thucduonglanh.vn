@@ -1122,6 +1122,11 @@ button:focus-visible, a:focus-visible, summary:focus-visible, [role="button"]:fo
 .gs-it { display: block; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--radius-sm); margin-bottom: 6px; text-decoration: none; color: var(--ink); background: var(--card); min-height: 44px; }
 .gs-it span { display: block; font-size: 13px; color: var(--muted); } .gs-it .gs-x { font-size: 12.5px; margin-top: 2px; } .gs-it:hover { border-color: var(--primary); }
 /* ✨ AI tóm tắt hồ sơ (Đợt 3) */
+.kai-opts { margin: 4px 0 6px; }
+.kai-opt { display: block; width: 100%; text-align: left; font: inherit; font-size: 14px; line-height: 1.45; color: var(--ink); background: #fff; border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 8px 10px; margin: 0 0 6px; cursor: pointer; }
+.kai-opt b { display: block; font-size: 12px; color: var(--muted); font-weight: 600; margin-bottom: 2px; }
+.kai-opt.on { border-color: var(--primary); background: var(--primary-soft); box-shadow: inset 3px 0 0 var(--primary); }
+.kai-st { margin: 6px 0 2px; }
 .ai-box { margin: 10px 0; } .ai-out { margin-top: 8px; padding: 10px 12px; background: var(--primary-soft); border: 1px solid var(--primary-light); border-radius: var(--radius-sm); font-size: 14px; line-height: 1.5; color: var(--ink); }
 
 /* 🖐 Sửa trò chơi Bạn còn mấy ngón tay (openQuizEdit) */

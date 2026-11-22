@@ -1149,9 +1149,25 @@
     var kind = b.getAttribute('data-ai'), c = cust(b.getAttribute('data-aiph')); if (!c) return;
     var box = b.closest('.ai-box'), out = box && $('.ai-out', box), m = b.closest('.modal'), txt = b.textContent;
     b.disabled = true; b.textContent = '⏳ AI đang đọc hồ sơ…';
-    api('ai_sum', { phone: c.phone, kind: kind, task: b.getAttribute('data-aitask') || '' }).then(function (j) {
+    api('ai_sum', { phone: c.phone, kind: kind, task: b.getAttribute('data-aitask') || '', fresh: b.getAttribute('data-aifresh') ? 1 : 0 }).then(function (j) {
       var t = String(j.text || '').split('[Tên]').join(c.name || 'anh/chị');
-      if (kind === 'msg') { var ta = m && $('#kMsg', m); if (ta) { ta.value = t; ta.focus(); } toast('AI đã viết tin, bạn đọc lại và sửa trước khi gửi'); }
+      if (kind === 'msg') {
+        // 22/11/2026 (mang từ CRM mối quan hệ): 3 tin theo 3 góc, chọn 1 → ô tin; bấm Nhắn Zalo / Copy → ai_sent (đo + AI học giọng từng sale)
+        var ta = m && $('#kMsg', m), box2 = m && $('#kAiOpts', m), nm = String(c.name || '').replace(/\(.*?\)/g, ' ').trim().split(/\s+/).pop() || 'anh/chị';
+        var L = (j.msgs && j.msgs.length ? j.msgs : [{ goc: '', text: j.text || '' }]).map(function (x) { return { goc: x.goc, text: String(x.text || '').split('[Tên]').join(nm) }; });
+        var put = function (i) { if (ta) { ta.value = L[i].text; } if (m) m._cai = { nm: nm }; if (box2) $$('.kai-opt', box2).forEach(function (el, k) { el.classList.toggle('on', k === i); }); };
+        if (box2) {
+          var st = j.stats, pc = function (a, b) { return b ? Math.round(100 * a / b) + '%' : '–'; };
+          box2.hidden = false;
+          box2.innerHTML = '<p class="small muted" style="margin:8px 0 4px">✨ AI viết 3 cách – bấm chọn 1, sửa cho đúng giọng bạn rồi bấm <b>Nhắn Zalo</b>. Tin bạn sửa được ghi nhớ để lần sau AI viết giống bạn hơn.</p>' +
+            L.map(function (x, i) { return '<button type="button" class="kai-opt" data-kai="' + i + '">' + (x.goc ? '<b>' + esc(x.goc) + '</b>' : '') + '<span>' + esc(x.text) + '</span></button>'; }).join('') +
+            (st ? '<p class="small muted kai-st">📊 Tin AI của bạn: gợi ý ' + st.sug + ' · đã gửi ' + st.sent + ' (' + pc(st.sent, st.sug) + ') · gửi y nguyên ' + pc(st.same, st.sent) + (st.n30 ? ' · <b>' + st.buy + '/' + st.n30 + '</b> khách mua lại trong 14 ngày sau tin (30 ngày qua)' : '') + (st.learn ? ' · AI đang học từ ' + st.learn + ' tin bạn sửa' : '') + '</p>' : '') +
+            '<button type="button" class="link small" data-ai="msg" data-aifresh="1" data-aiph="' + c.phone + '" data-aitask="' + esc(b.getAttribute('data-aitask') || '') + '">↻ Gợi ý khác</button>';
+          $$('[data-kai]', box2).forEach(function (el) { el.onclick = function () { put(+el.getAttribute('data-kai')); }; });
+        }
+        put(0); if (ta) ta.focus();
+        toast('AI đã viết ' + L.length + ' tin, chọn 1 và sửa trước khi gửi');
+      }
       else if (out) { out.hidden = false; out.innerHTML = '<p class="small muted" style="margin:0 0 4px">✨ AI tóm tắt' + (j.cached ? ' (đã có sẵn hôm nay)' : '') + ' · chỉ để tham khảo, kiểm tra lại trước khi nói với khách</p>' + esc(t).replace(/\n/g, '<br>'); }
       b.disabled = false; b.textContent = txt;
     }, function (er) { b.disabled = false; b.textContent = txt; toast(er.message, true); });
@@ -2871,7 +2887,7 @@
       '<details class="k-msg"><summary>✏️ Xem / sửa tin nhắn <span class="muted small" style="font-weight:400">(bấm Nhắn Zalo là tự copy tin này)</span></summary>' + // luôn thu gọn: sale ít sửa tin, để kéo nhanh xuống Bước 2 (anh Sơn 31/10/2026)
       '<label class="f" style="margin-top:8px"><span>Mẫu tin</span><select id="kTpl"><option value="-1">– Tự viết –</option>' + tplOpts(tp, ti) + '</select></label>' +
       '<label class="f"><span>Nội dung (nhớ điền phần “…” nếu có)</span><textarea id="kMsg" rows="5">' + esc(ti >= 0 ? fillTpl(tp[ti][2], c) : '') + '</textarea></label>' +
-      '<button type="button" class="link small" id="kCopy">Chỉ copy tin (không mở Zalo)</button>' + (S.d.rules && S.d.rules.ai ? ' · <button type="button" class="link small" data-ai="msg" data-aiph="' + c.phone + '" data-aitask="' + esc(type || 'other') + '">✨ Nhờ AI viết tin</button>' : '') + '</details>' + careScript(c, type) + '</div>' +
+      '<button type="button" class="link small" id="kCopy">Chỉ copy tin (không mở Zalo)</button>' + (S.d.rules && S.d.rules.ai ? ' · <button type="button" class="link small" data-ai="msg" data-aiph="' + c.phone + '" data-aitask="' + esc(type || 'other') + '">✨ Nhờ AI viết tin</button><div class="kai-opts" id="kAiOpts" hidden></div>' : '') + '</details>' + careScript(c, type) + '</div>' +
       commBox(c, type, true) + giftBox(giftPerson(c.phone), type, true) + // thu gọn: để Bước 2 không bị đẩy xuống xa
       '<div class="box"><h3>Bước 2 · Ghi lại kết quả</h3>' +
       '<label class="f k-note-w"><span>✍️ Khách nói gì? <span class="muted" style="font-weight:400">(không bắt buộc)</span></span><textarea id="kNote" class="k-note" rows="2" placeholder="vd: chị bảo ngủ ngon hơn, còn nửa hộp…"></textarea></label>' +
@@ -2904,6 +2920,12 @@
     $('#kTpl', m).onchange = function () { var i = +this.value; msg.value = i >= 0 ? fillTpl(tp[i][2], c) : ''; };
     $('#kCopy', m).onclick = function () { copy(msg.value).then(function () { toast('Đã copy tin nhắn'); }); };
     $('#kZalo', m).onclick = function () { copy(msg.value).then(function () { toast('Đã copy – dán vào khung chat Zalo'); }); window.open(zalo(c.phone), '_blank', 'noopener'); };
+    var kaiSent = function () { // ✨ tin vừa gửi là tin AI (đã chọn ở kAiOpts): báo máy chủ để đo + học giọng (tên khách đổi về [Tên], không gửi tên đi)
+      if (!m._cai) return; var t = msg.value.trim(), nm = m._cai.nm; m._cai = null; if (!t) return;
+      if (nm && nm.length >= 2) t = t.split(nm).join('[Tên]');
+      api('ai_sent', { phone: c.phone, text: t }).then(function (r) { if (r && r.learned) toast('✍️ AI đã ghi nhớ cách bạn sửa tin'); }, function () {});
+    };
+    $('#kZalo', m).addEventListener('click', kaiSent); $('#kCopy', m).addEventListener('click', kaiSent);
     $$('input[name=kRes]', m).forEach(function (r) { r.onchange = function () { if (r.value === 'Hẹn gọi lại' && !$('#kCb', m).value) { $('#kCb', m).value = isoDate(Date.now() + 2 * DAY); $('#kCb', m).focus(); } }; });
     var kn = $('#kNote', m), dk = 'draft_k_' + c.phone; draftKeep(kn, dk);
     S.kPraise = null; $('#kPraise', m).onchange = function () { S.kPraise = this.checked ? { phone: c.phone, ta: kn } : null; if (this.checked && !kn.value.trim()) { kn.focus(); toast('Ghi lời khách khen vào ô “Khách nói gì?” nhé'); } }; // ⭐ lời khen → Tin vui (14/11/2026) // chữ đang gõ: lỡ đóng cửa sổ thì lần mở sau vẫn còn
