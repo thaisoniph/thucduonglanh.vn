@@ -425,7 +425,9 @@ Một số khách tự để lại số trên web. Họ vào tab **Khách hỏi*
 ## Nhờ AI gợi ý (nếu công ty đã bật)
 
 - **✨ Tóm tắt khách bằng AI**: tóm tắt khách mua gì, lần trước nói gì, lần này nên nói gì.
-- **✨ Nhờ AI viết tin**: AI viết thử tin nhắn.
+- **✨ Nhờ AI viết tin** (trong *✏️ Xem / sửa tin nhắn*): AI viết **3 cách** nhắn, mỗi cách 1 hướng: *Đúng việc hôm nay* · *Hỏi thăm cảm nhận / cách dùng* · *Cho đi trước* (mẹo nhỏ có ích, không bán). Bấm chọn 1 → tin vào ô nội dung → **sửa cho đúng giọng bạn** → bấm **Nhắn Zalo**. Muốn cách khác thì bấm **↻ Gợi ý khác**.
+  - **AI học giọng của bạn**: tin bạn sửa trước khi gửi được ghi nhớ (riêng của bạn, không ai khác xem). Lần sau AI viết giống cách bạn hay nhắn hơn. Gửi y nguyên cũng được tính là "AI viết đúng ý".
+  - Dòng **📊 Tin AI của bạn** cho biết: AI gợi ý bao nhiêu lần, bạn gửi bao nhiêu, bao nhiêu tin gửi y nguyên, và **bao nhiêu khách mua lại trong 14 ngày sau tin**. Số "gửi y nguyên" tăng dần = AI đã hiểu giọng bạn.
 
 AI chỉ **gợi ý**. Luôn **đọc lại và sửa** trước khi gửi. Không gửi câu nào hứa chữa bệnh.
 
