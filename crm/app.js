@@ -3166,12 +3166,14 @@
     return '<select class="assign" data-oassign="' + esc(o.id) + '" title="Giao đơn cho nhân sự gọi xác nhận"><option value="">' + (o.seller ? 'Bỏ giao' : 'Giao cho…') + '</option>' +
       names.map(function (n) { return '<option' + (n === o.seller ? ' selected' : '') + '>' + esc(n) + '</option>'; }).join('') + '</select>';
   }
+  // 22/11/2026 (anh Sơn): lọc đơn nào cũng thấy ngay tổng tiền – nhóm việc (chưa nhận tiền, hoàn, giao có vấn đề…) và Tất cả đơn
+  function ordMoney(L) { return L.reduce(function (s0, o) { return s0 + (Number(o.total) || 0); }, 0); }
   function renderOrdersBody(f, OS, q, qd) {
     if (f.tab !== 'all') { // 19/11/2026: mỗi thẻ (ORD_G) gồm 1–2 nhóm việc của orderTodo
       var G = ordTodoG(), keys = ORD_KEYS[f.tab] || [], any = false, h = '';
       G.forEach(function (g) {
         if (keys.indexOf(g.k) < 0 || !g.list.length) return; any = true;
-        h += '<details class="grp" data-grp="o-' + g.k + '"' + (!S.f.gopen || S.f.gopen['o-' + g.k] !== false ? ' open' : '') + '><summary><span class="g-t">' + g.t + '</span><span class="count">' + g.list.length + '</span><span class="g-tip">' + g.tip + '</span></summary><div class="rows">' + g.list.slice(0, 50).map(function (o) { return orderRow(o, true); }).join('') + (g.list.length > 50 ? '<p class="small muted" style="padding:8px 12px">… và ' + (g.list.length - 50) + ' đơn khác (xem ở Tất cả đơn)</p>' : '') + '</div></details>';
+        h += '<details class="grp" data-grp="o-' + g.k + '"' + (!S.f.gopen || S.f.gopen['o-' + g.k] !== false ? ' open' : '') + '><summary><span class="g-t">' + g.t + '</span><span class="count">' + g.list.length + '</span><span class="g-tip"><b>' + moneyShort(ordMoney(g.list)) + '</b> · ' + g.tip + '</span></summary><div class="rows">' + g.list.slice(0, 50).map(function (o) { return orderRow(o, true); }).join('') + (g.list.length > 50 ? '<p class="small muted" style="padding:8px 12px">… và ' + (g.list.length - 50) + ' đơn khác (xem ở Tất cả đơn)</p>' : '') + '</div></details>';
       });
       if (!any) h += empty('🎉 Không có đơn nào ở mục này.');
       return h;
@@ -3181,11 +3183,12 @@
     var chN = { web: 0, sale: 0 }; base.forEach(function (o) { chN[isWebOrder(o) ? 'web' : 'sale']++; });
     if (f.ch) base = base.filter(function (o) { return isWebOrder(o) === (f.ch === 'web'); });
     var list = f.st === 'all' ? base : base.filter(function (o) { return o.status === f.st; });
-    var sum = list.filter(function (o) { return !isVoid(o.status); }).reduce(function (s0, o) { return s0 + o.total; }, 0);
+    var one = f.st !== 'all', live = one ? list : list.filter(function (o) { return !isVoid(o.status); }), sum = ordMoney(live); // chọn 1 trạng thái (kể cả Huỷ / Hoàn) thì cộng hết đơn đang lọc
+    var done = one ? 0 : ordMoney(live.filter(function (o) { return /^(Đã giao|Đổi hàng)$/.test(o.status); })), way = sum - done;
     return perChips('o', f.p, ['all'], true) +
       '<div class="chips">' + [['', 'Mọi kênh', chN.web + chN.sale], ['web', '🌐 Khách tự đặt trên web', chN.web], ['sale', '💬 Sale lên đơn', chN.sale]].map(function (c) { return '<button class="chip' + ((f.ch || '') === c[0] ? ' on' : '') + '" data-och="' + c[0] + '">' + c[1] + ' <em>' + c[2] + '</em></button>'; }).join('') + '</div>' +
       '<div class="chips">' + ['all'].concat(STATUS).map(function (s0) { var n = s0 === 'all' ? base.length : base.filter(function (o) { return o.status === s0; }).length; return n || s0 === 'all' || f.st === s0 ? '<button class="chip' + (f.st === s0 ? ' on' : '') + '" data-os="' + esc(s0) + '">' + (s0 === 'all' ? 'Tất cả' : s0) + ' <em>' + n + '</em></button>' : ''; }).join('') + '</div>' +
-      '<p class="small muted" style="margin:0 0 8px">' + list.length + ' đơn' + ' · ' + money(sum) + ' (không tính huỷ / hoàn)' + '</p>' +
+      '<p class="small" style="margin:0 0 8px">' + list.length + ' đơn · tổng <b>' + money(sum) + '</b>' + (one ? '' : ' <span class="muted">(không tính huỷ / hoàn' + (list.length > live.length ? ' – ' + (list.length - live.length) + ' đơn' : '') + ')</span>' + (done && way ? '<br><span class="muted">✅ Đã giao ' + moneyShort(done) + ' · 🚚 chưa giao xong ' + moneyShort(way) + '</span>' : '')) + '</p>' +
       (list.length ? '<div class="crows">' + list.slice(0, f.n).map(orderRow).join('') + '</div>' +
         (list.length > f.n ? '<button class="btn more" data-more="o">Xem thêm ' + Math.min(60, list.length - f.n) + ' đơn</button>' : '') : f.q && f.q.trim() ? searchEmpty('đơn', f.q.trim()) : empty('Không có đơn nào.'));
   }
