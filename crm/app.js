@@ -10725,9 +10725,10 @@
   /** Nút trên thẻ bài (19/11/2026 gọn lại): 2 nút chính + ✏️ Sửa nhanh + 👎 Chưa ưng (mở hộp chọn cách xử lý) */
   function bwBtns(p, inModal) {
     var k = p.day + '|' + p.at, view = inModal ? '' : '<button class="btn" data-bw="view|' + k + '">👁 Đọc bài</button>';
-    var edit = '<button class="btn" data-bw="edit|' + k + '">✏️ Sửa nhanh</button>', no = '<button class="btn" data-bw="no|' + k + '">👎 Chưa ưng ▾</button>';
-    if (p.status === 'approved') return '<div class="lq-btns">' + view + edit + '<button class="btn" data-bw="unok|' + k + '">↩️ Huỷ duyệt</button>' + no + '</div>';
-    return '<div class="lq-btns"><button class="btn pri" data-bw="ok|' + k + '">✅ Đăng bài này</button>' + view + edit + no + '</div>';
+    var edit = '<button class="btn" data-bw="edit|' + k + '">✏️ Sửa · ⏰ Hẹn giờ</button>', no = '<button class="btn" data-bw="no|' + k + '">👎 Chưa ưng ▾</button>';
+    var now = '<button class="btn" data-bw="now|' + k + '">🚀 Đăng ngay</button>'; // 22/11/2026: đưa ra ngoài thẻ, không phải mở Sửa nhanh
+    if (p.status === 'approved') return '<div class="lq-btns">' + view + now + edit + '<button class="btn" data-bw="unok|' + k + '">↩️ Huỷ duyệt</button>' + no + '</div>';
+    return '<div class="lq-btns"><button class="btn pri" data-bw="ok|' + k + '">✅ Đăng bài này</button>' + now + view + edit + no + '</div>';
   }
   function bwPost(day) { return ((BW.d && BW.d.posts) || []).filter(function (x) { return x.day === day; })[0]; }
   function bwHour(p) { var v = Number(p && p.meta && p.meta.ph); return v >= 6 && v <= 21 ? v : (BW.d && BW.d.cfg ? BW.d.cfg.hour : 9); }
@@ -10824,7 +10825,7 @@
       var p = P[d], hr = bwHour(p), head = function (badge) { return '<div class="zb-ph"><b>' + bwDay(d) + ' · ' + hr + 'h' + (p && p.meta && p.meta.ph ? ' <span class="small muted">(hẹn riêng)</span>' : '') + '</b><span class="zb-due">' + badge + '</span></div>'; };
       if (!p) { var soon = dayStart(new Date(d + 'T12:00:00+07:00').getTime()) <= today() + DAY; h += '<div class="box zb-post" id="bw-card-' + d + '">' + head('⏳ chưa viết') + '<p class="small muted">' + (c && !c.on ? 'Trợ lý đang tắt.' : soon ? 'Trợ lý sẽ viết trong ít phút tới (10 phút kiểm tra 1 lần, từ 7h đến 20h). Viết xong sẽ nhắn Telegram.' : 'Trợ lý viết vào hôm trước ngày đăng.') + '</p>' + (soon ? '' : '<div class="lq-btns"><button class="btn" data-bw="early|' + d + '">✍️ Viết sớm ngay</button><button class="btn" data-bw="tday|' + d + '">💡 Giao chủ đề cho ngày này</button></div>') + '</div>'; return; }
       if (p.status === 'moved') { h += '<div class="box zb-post bw-off">' + head('↪️ đã dời') + '<p class="small muted">' + esc(p.topic || 'Bài đã dời sang ngày khác') + (p.by_name ? ' · ' + esc(p.by_name) : '') + '. Ngày này không đăng.</p><div class="lq-btns"><button class="btn" data-bw="early|' + d + '">✍️ Nhờ trợ lý viết bài cho ngày này</button></div></div>'; return; }
-      if (p.status === 'published' || p.status === 'dropped') { h += '<div class="box zb-post">' + head(esc(p.st)) + '<p>' + esc(p.title || '') + (p.url && !p.hidden ? ' · <a href="' + esc(p.url) + '" target="_blank" rel="noopener">Xem trên web</a>' : '') + '</p></div>'; return; }
+      if (p.status === 'published' || p.status === 'dropped') { h += '<div class="box zb-post">' + head(esc(p.st)) + '<p>' + esc(p.title || '') + (p.url && !p.hidden ? ' · <a href="' + esc(p.url) + '" target="_blank" rel="noopener">Xem trên web</a>' : '') + '</p>' + (p.status === 'dropped' && p.title ? '<div class="lq-btns"><button class="btn" data-bw="restore|' + d + '|' + p.at + '">♻️ Dùng lại bài này</button></div>' : '') + '</div>'; return; }
       if (p.status === 'writing' || p.status === 'rewrite') { h += '<div class="box zb-post">' + head('✍️ ' + esc(p.st)) + '<p class="small muted">Mỗi bài mất khoảng 2–5 phút (viết lại: trong 10–20 phút). Xong trợ lý nhắn Telegram.' + (p.title ? ' Bản trước: ' + esc(p.title) : '') + '</p></div>'; return; }
       if (p.status === 'error' && !p.title) { h += '<div class="box zb-post">' + head('⚠️ Viết lỗi') + '<p class="small">' + esc(p.err || '') + (p.tries < 3 ? ' · trợ lý tự thử lại sau 30 phút (lần ' + p.tries + '/3).' : ' · đã thử 3 lần, báo anh Sơn xem giúp.') + '</p></div>'; return; }
       var m = p.meta || {}, need = p.status === 'wait', warn = (m.checks || []).filter(function (x) { return /^⚠️/.test(x); }).length;
@@ -10855,6 +10856,7 @@
     ((BW.st && BW.st.list) || []).forEach(function (r) { stBy[r.slug] = r; });
     if (done.length) h += '<details class="zb-info small"><summary>📚 Bài trợ lý đã viết (' + done.length + ')</summary><div class="box bw-topics">' + done.slice(0, 40).map(function (p) {
       return '<div class="bw-trow"><div class="bw-tx">' + bwDay(p.day) + ' · ' + (p.url && !p.hidden ? '<a href="' + esc(p.url) + '" target="_blank" rel="noopener">' + esc(p.title) + '</a>' : esc(p.title)) + '<br><span class="small muted">' + bwFun(p.funnel) + ' ' + esc(p.st) + (p.by_name ? ' · ' + esc(p.by_name) : '') + '</span>' +
+        (p.status === 'dropped' && p.title ? ' <button class="btn sm" data-bw="restore|' + p.day + '|' + p.at + '">♻️ Dùng lại</button>' : '') +
         (p.status === 'published' && !p.hidden ? '<br><span class="small">' + (!BW.st ? '<span class="muted">' + (BW.stErr ? 'chưa lấy được số đọc' : '⏳ đang lấy số đọc…') + '</span>' : stBy[p.slug] ? '👀 ' + stBy[p.slug].v + ' lượt · ⏱ ' + bwSec(stBy[p.slug].sec) + ' · 🛒 ' + (stBy[p.slug].cart + stBy[p.slug].cta) + ' bấm mua' + (stBy[p.slug].n ? ' · <b>🧾 ' + stBy[p.slug].n + ' đơn, ' + money(stBy[p.slug].rev) + '</b>' : '') + ' <span class="muted">(' + (BW.days || 30) + ' ngày)</span>' : '<span class="muted">chưa có lượt đọc trong ' + (BW.days || 30) + ' ngày</span>') + '</span>' : '') + '</div></div>';
     }).join('') + '</div></details>';
     var DONE = h.replace('<details class="zb-info small"><summary>', '<details class="zb-info small" open><summary>');
@@ -10944,7 +10946,7 @@
   /** ✏️ Sửa nhanh: tiêu đề, mô tả, ảnh bìa, ngày giờ đăng, 🚀 đăng ngay – không cần vào /admin */
   function bwEdit(p) {
     var m0 = p.meta || {}, hr = bwHour(p), opt = '', t0 = new Date(BW.d.today + 'T12:00:00+07:00').getTime(), hrs = '';
-    for (var i = 0; i <= 14; i++) { var d = new Date(t0 + i * DAY + 7 * 3600e3).toISOString().slice(0, 10), o = bwPost(d), busy = d !== p.day && o && ['moved', 'dropped'].indexOf(o.status) < 0 && !(o.status === 'error' && !o.title);
+    for (var i = 0; i <= 60; i++) { var d = new Date(t0 + i * DAY + 7 * 3600e3).toISOString().slice(0, 10), o = bwPost(d), busy = d !== p.day && o && ['moved', 'dropped'].indexOf(o.status) < 0 && !(o.status === 'error' && !o.title);
       opt += '<option value="' + d + '"' + (d === p.day ? ' selected' : '') + (busy ? ' disabled' : '') + '>' + bwDay(d) + (busy ? ' (đã có bài)' : (BW.d.next || []).indexOf(d) >= 0 ? '' : ' · ngoài lịch') + '</option>'; }
     if (p.day < BW.d.today) opt = '<option value="' + p.day + '" selected>' + bwDay(p.day) + ' (đã qua)</option>' + opt;
     for (var H = 6; H <= 21; H++) hrs += '<option value="' + H + '"' + (H === hr ? ' selected' : '') + '>' + H + 'h</option>';
@@ -11009,11 +11011,13 @@
     if (a === 'no') return bwNo(bp);
     if (a === 'edit') return bwEdit(bp);
     if (a === 'rewrite') return bwRewrite(bp);
+    if (a === 'now' && !confirm('Đăng bài này lên web ngay bây giờ?')) return;
+    if (a === 'restore') { PG_TAB.blog = 'posts'; store('pg_blog', 'posts'); }
     if (a === 'unok' && !confirm('Huỷ duyệt? Bài quay lại chờ duyệt và chưa lên web.')) return;
     if (a === 'new' && !confirm('Bỏ bài này và để trợ lý viết bài chủ đề khác cho ngày này?')) return;
     if (a === 'skip' && !confirm('Bỏ bài này? Ngày này sẽ không đăng bài.')) return;
     if (a === 'admin' && !confirm('Đưa bài vào /admin ở dạng ẩn để bạn tự sửa? Sửa xong bạn bật “Hiển thị trên web” rồi bấm Xuất bản.')) return;
-    if (['ok', 'new', 'skip', 'admin', 'unok'].indexOf(a) < 0) return;
+    if (['ok', 'new', 'skip', 'admin', 'unok', 'now', 'restore'].indexOf(a) < 0) return;
     bwAct(t, day, a, at, '');
   });
   /* ================================================================ ✨ Hỏi số liệu (06/11/2026, api/src/ask.js)

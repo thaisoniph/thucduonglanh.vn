@@ -345,6 +345,12 @@ export async function blogRoute(x, req, path, url) {
 /** Việc của người duyệt (trang /bai và tab 📰 Bài web trong CRM): ok | rewrite | new | admin | skip. Trả lời nhắn (HTML ngắn). */
 async function doAct(x, u, p, act, at, hint) {
   const day = p.day; let note = '';
+  if (act === 'restore') { // ♻️ Dùng lại bài đã bỏ (22/11/2026): giữ nguyên bài, quay lại chờ duyệt
+    if (p.status !== 'dropped' || !p.md) return 'Bài này không dùng lại được.';
+    await run(x.db, "UPDATE bl_posts SET status = 'wait', remind = 1, err = '', by_name = ? WHERE day = ?", u.name, day);
+    await logIt(x, u, 'Dùng lại bài web đã bỏ', p.title);
+    return '♻️ Bài quay lại chờ duyệt. Bấm 🚀 Đăng ngay, hoặc ✏️ Sửa · ⏰ Hẹn giờ để chọn ngày giờ lên web.';
+  }
   if (p.status !== 'wait' && p.status !== 'approved' && p.status !== 'error') note = 'Bài đang ở trạng thái “' + stName(p) + '”, chưa làm được việc này.';
   else if (at !== p.at) note = 'Bài vừa được viết lại hoặc có người khác vừa xử lý. Đây là bản mới nhất, bạn xem lại nhé.';
   else if (act === 'ok') {
@@ -393,7 +399,8 @@ function view(p, note) {
   const st = '<p class="st">' + stName(p) + (p.by_name && p.status !== 'wait' ? ' · ' + esc(p.by_name) : '') + (p.url && p.status === 'published' && !p.hidden ? ' · <a href="' + esc(p.url) + '">Xem bài trên web</a>' : '') + '</p>';
   const form = can ? `<form method="post" class="acts"><input type="hidden" name="at" value="${p.at}">
 <button name="act" value="ok" class="b ok">✅ Đăng bài này</button>
-<p class="hint">Bài lên web lúc ${m.hour || 9}h ${dayTxt(p.day)}. Duyệt muộn hơn thì bài lên ngay.</p>
+<p class="hint">Bài lên web lúc ${m.ph || m.hour || 9}h ${dayTxt(p.day)}. Duyệt muộn hơn thì bài lên ngay.</p>
+<button name="act" value="now" class="b" onclick="return confirm('Đăng bài này lên web ngay bây giờ?')">🚀 Đăng ngay bây giờ</button>
 <label for="hint">Cần sửa gì? Ghi ý kiến cho trợ lý:</label>
 <textarea id="hint" name="hint" rows="3" placeholder="Ví dụ: mở bài ngắn lại, thêm ví dụ bữa sáng cho dân văn phòng, bỏ đoạn về giá…"></textarea>
 <button name="act" value="rewrite" class="b">✍️ Viết lại theo ý kiến</button>
@@ -518,7 +525,7 @@ export async function crmBlog(x, u, d) {
     // bl_move: dời ngày (to) và / hoặc hẹn giờ riêng (hour)
     const today = fmtDate(now, 'yyyy-MM-dd'), to = /^\d{4}-\d{2}-\d{2}$/.test(String(d.to || '')) ? d.to : p.day, hour = Math.round(Number(d.hour));
     if (to < today) return { ok: false, error: 'Không dời về ngày đã qua được.' };
-    if (to > addDays(today, 30)) return { ok: false, error: 'Chỉ hẹn trong 30 ngày tới.' };
+    if (to > addDays(today, 60)) return { ok: false, error: 'Chỉ hẹn trong 60 ngày tới.' };
     if (!(hour >= 6 && hour <= 21)) return { ok: false, error: 'Giờ đăng từ 6h tới 21h.' };
     if (to !== p.day) {
       const ex = await first(x.db, 'SELECT status, md FROM bl_posts WHERE day = ?', to);
