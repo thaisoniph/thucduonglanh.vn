@@ -4000,3 +4000,15 @@ table.cmp-sum.ev3 td small { white-space: nowrap; }
 .zr-mini:hover{text-decoration:underline}
 @media (max-width:600px){.zr{flex-wrap:wrap}.zr-r{flex-direction:row;align-items:center;width:100%;justify-content:space-between}}
 .zr-m .zr-ask b{font-size:inherit;white-space:normal}
+/* ✅ Việc tuần nhìn là hiểu (22/11/2026): 👉 việc nên làm bây giờ, số bước, câu giải thích, chú thích màu */
+.gv-intro2 { margin: -4px 0 12px; font-size: 14.5px; color: var(--ink); }
+.gv-now { border: 2px solid var(--primary); background: var(--primary-light); }
+.gv-now.calm { border-color: var(--line); background: #fff; }
+.gv-now .gv-p { font-size: 15px; }
+.gv-nbtn { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 6px; }
+.gv-sn { display: inline-grid; place-items: center; width: 19px; height: 19px; border-radius: 50%; background: var(--primary); color: #fff; font-style: normal; font-size: 12px; font-weight: 700; margin-right: 6px; vertical-align: 1px; flex: none; }
+.gv-rh-now { color: var(--primary); font-weight: 700; }
+.gv-sdesc { margin: -2px 0 10px; font-size: 13.5px; color: var(--muted); line-height: 1.4; }
+.gv-leg2 { margin: 14px 0 0; font-size: 12.5px; color: var(--muted); text-align: center; }
+.gv-help .gv-h3 { margin: 14px 0 6px; }
+.gv-help .gv-ol { margin: 0 0 6px; }

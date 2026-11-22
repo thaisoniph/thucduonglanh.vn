@@ -4,7 +4,7 @@ nav: Việc tuần
 group: chung
 short: Chốt 3 việc tuần, báo xong có minh chứng
 order: 1.7
-updated: 2026-11-19
+updated: 2026-11-22
 description: Mỗi tuần mỗi người chốt tối đa 3 việc trọng tâm, cập nhật tiến độ, chốt kết quả có minh chứng. Thứ Hai họp dùng báo cáo có sẵn. Đọc trang này khoảng 4 phút.
 ---
 
@@ -31,13 +31,19 @@ Khi tạo việc, ô **📝 Việc đã rõ chưa?** ở đầu tự kiểm 5 đ
 | Live stream 5 phiên trên tiktok shopee (không hạn) | **Livestream 5 phiên trên TikTok Shop** · mỗi phiên ≥60 phút · 🔢 5 phiên · 📅 Chủ nhật · 🟠 |
 | Tuyển dụng nhân sự Kinh doanh/ Marketing | **Thu 3 hồ sơ ứng tuyển Kinh doanh / Marketing** · 🔢 3 hồ sơ · 📅 Thứ Sáu · 🟠 |
 
-## Cập nhật tiến độ trong 1 chạm
+## Mỗi ngày: nhìn ô 👉 Việc nên làm bây giờ
+
+Mở **✅ Việc tuần**, ô viền xanh trên cùng **👉 Việc nên làm bây giờ** chỉ đúng **1 việc gấp nhất** của bạn kèm nút làm ngay (🙋 Nhận việc này, ✅ Xong rồi, 📍 Báo tiến độ hoặc ⭐ Chọn việc trọng tâm). Làm xong, ô tự đổi sang việc tiếp theo. Không có gì gấp thì ô ghi 🌿.
+
+Quên cách dùng? Bấm **❓ Hướng dẫn** cạnh nút ⟳ Tải lại (bảng này tự mở lần đầu bạn vào Việc tuần). Mỗi nhóm việc có 1 câu giải thích ngay dưới tiêu đề, cuối danh sách có dòng **Ý nghĩa màu**.
+
+## Báo tiến độ trong 1 chạm
 
 Mỗi việc của bạn có nút ngay trên dòng:
 
 - **＋1** (việc có con số): làm xong 1 phần bấm 1 cái. Trên Telegram: trả lời tin việc *+1*.
-- **📍 Cập nhật**: số đã làm, 🟢🟡🔴, 1 câu "đã làm gì → làm gì tiếp", cần ai hỗ trợ. Việc cũ chưa có hạn thì đặt hạn ở đây.
-- **✅ Xong**: mở thẳng phần ghi kết quả + link minh chứng.
+- **📍 Báo tiến độ**: số đã làm, 🟢🟡🔴, 1 câu "đã làm gì → làm gì tiếp", cần ai hỗ trợ. Việc cũ chưa có hạn thì đặt hạn ở đây.
+- **✅ Xong rồi**: mở thẳng phần ghi kết quả + link minh chứng (link để người khác mở ra thấy việc đã làm thật: bài đã đăng, file Drive, Sheet, Canva…).
 
 ## Đèn tiến độ
 
@@ -57,7 +63,7 @@ Người theo dõi (Quản trị, chị Thủy…) mở tab **👀 Nhóm tôi th
 - **Nhãn ✅ Việc tuần** ở dòng lời chào trên cùng màn hình đầu tiên: nhãn tô cam là có việc cần bạn. Bấm nhãn để mở dòng Việc tuần, bấm tiếp là vào việc.
 - Màn **Thêm** → mục **Việc của tôi** (đầu danh sách).
 
-Trong trang, các thẻ chia 2 nhóm (từ 19/11/2026): **✅ Việc** (Việc của tôi · Mình nhờ · Cả công ty / Nhóm tôi theo dõi) và **📋 Cuối tuần** (Báo cáo tuần · Đã xong). Dưới mỗi thẻ ghi số việc.
+Trong trang, các thẻ chia 2 nhóm (từ 19/11/2026): **✅ Việc** (Việc của tôi · Mình nhờ người khác · Cả công ty / Nhóm tôi theo dõi) và **📋 Cuối tuần** (Báo cáo tuần · Đã xong). Dưới mỗi thẻ ghi số việc.
 
 ## 🎯 Mục tiêu đếm được (vd 100 video / tháng)
 
@@ -120,7 +126,7 @@ Việc trọng tâm là **1–3 việc quan trọng nhất** tuần này, gắn 
 
 Cách chốt:
 
-- Trong CRM: bấm **⭐ Chốt việc trọng tâm**.
+- Trong CRM: bấm **⭐ Chọn việc trọng tâm**, điền lần lượt 7 bước có số (loại việc, việc cần làm, thế nào là xong, con số đích, ưu tiên, ai làm, hạn).
 - Hoặc nhắn Lành: *trọng tâm tuần: đăng 3 video trà DILVANG lên TikTok, hạn thứ Sáu*.
 
 > **Viết "hoàn thành video", "tối ưu Shopee", "báo cáo cuối tuần"?** Như vậy chưa đo được. Máy sẽ gợi ý câu rõ hơn. Bạn bấm **Dùng câu gợi ý**, hoặc tự sửa lại.

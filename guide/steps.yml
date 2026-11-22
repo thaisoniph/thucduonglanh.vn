@@ -1011,11 +1011,11 @@ gv-chot:
     - title: Việc tuần
       els:
         - ["h", "✅ Việc tuần · tuần này"]
-        - ["btn", "⭐ Chốt việc trọng tâm", "g"]
+        - ["btn", "⭐ Chọn việc trọng tâm", "g"]
         - ["btn", "＋ Việc phát sinh / nhờ ai đó", ""]
         - ["note", "Tối đa 3 việc trọng tâm mỗi tuần"]
       hi: 1
-      text: "Mở CRM → <b>✅ Việc tuần</b> (điện thoại: <b>••• Thêm</b> → Việc tuần). Bấm <b>⭐ Chốt việc trọng tâm</b>."
+      text: "Mở CRM → <b>✅ Việc tuần</b> (điện thoại: <b>••• Thêm</b> → Việc tuần). Bấm <b>⭐ Chọn việc trọng tâm</b>."
     - title: Chốt việc trọng tâm
       els:
         - ["in", "Việc cần làm (bắt đầu bằng động từ)", "Đăng video Tết trà DILVANG"]

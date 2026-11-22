@@ -17957,12 +17957,12 @@
   function gvNextStep(t) {
     var D = GV.d; if (!gvOpen(t) || (t.whoE !== D.me && t.helpers.indexOf(D.me) < 0)) return '';
     var wd = new Date(Date.now() + 7 * 3600e3).getUTCDay();
-    if (!t.due) return '👉 Đặt hạn để máy đo được tiến độ (bấm 📍 Cập nhật)';
+    if (!t.due) return '👉 Việc chưa có hạn: bấm 📍 Báo tiến độ để đặt hạn';
     if (t.st === 'Mới' && t.whoE === D.me) return '👉 Bấm 🙋 Nhận việc';
-    if (t.health && (t.health.h === 'behind' || t.health.h === 'noupd')) return t.health.h === 'behind' ? '👉 Đang chậm: cập nhật tiến độ, cần hỗ trợ thì ghi rõ' : '👉 Đã qua nửa thời gian: cập nhật tiến độ';
-    if (t.late) return '👉 Quá hạn: báo xong, hoặc xin lùi hạn';
-    if (t.kind === 'tt' && (wd === 0 || wd === 6) && (!t.result || !t.proof)) return '👉 Ghi kết quả + link minh chứng (trước 21h Chủ nhật)';
-    if (t.kind === 'tt' && (wd === 4 || wd === 5) && !(t.paceAt && Date.now() - t.paceAt < 3 * DAY)) return '👉 Cập nhật tiến độ (trước 21h thứ Năm)';
+    if (t.health && (t.health.h === 'behind' || t.health.h === 'noupd')) return t.health.h === 'behind' ? '👉 Đang chậm: bấm 📍 Báo tiến độ, cần ai giúp thì ghi rõ' : '👉 Đã qua nửa thời gian mà chưa báo: bấm 📍 Báo tiến độ';
+    if (t.late) return '👉 Đã qua hạn: xong rồi thì bấm ✅ Xong rồi, chưa kịp thì 📍 Báo tiến độ';
+    if (t.kind === 'tt' && (wd === 0 || wd === 6) && (!t.result || !t.proof)) return '👉 Bấm ✅ Xong rồi, ghi kết quả + link minh chứng (trước 21h Chủ nhật)';
+    if (t.kind === 'tt' && (wd === 4 || wd === 5) && !(t.paceAt && Date.now() - t.paceAt < 3 * DAY)) return '👉 Bấm 📍 Báo tiến độ (trước 21h thứ Năm)';
     return '';
   }
   function gvMine(t) { return t.whoE === GV.d.me || t.helpers.indexOf(GV.d.me) >= 0; }
@@ -17970,7 +17970,7 @@
   function gvTabs(D) {
     var me = D.me, mine = D.tasks.filter(function (t) { return gvMine(t) && gvOpen(t); }), gave = D.tasks.filter(function (t) { return t.byE === me && t.whoE !== me && gvOpen(t); });
     var all = D.tasks.filter(gvOpen), done = D.tasks.filter(function (t) { return !gvOpen(t); });
-    var T = [['mine', 'Việc của tôi', mine], ['gave', 'Mình nhờ', gave]]; if (D.lead) T.push(['all', D.all ? 'Cả công ty' : '👀 Nhóm tôi theo dõi', all]); T.push(['rep', '📋 Báo cáo tuần', null], ['done', 'Đã xong', done]);
+    var T = [['mine', 'Việc của tôi', mine], ['gave', 'Mình nhờ người khác', gave]]; if (D.lead) T.push(['all', D.all ? 'Cả công ty' : '👀 Nhóm tôi theo dõi', all]); T.push(['rep', '📋 Báo cáo tuần', null], ['done', 'Đã xong', done]);
     return T;
   }
   /** Thanh nhịp tuần: 4 mốc, mốc đang tới in đậm. */
@@ -17978,16 +17978,19 @@
     var x = vnDate(Date.now()), wd = new Date(Date.now() + 7 * 3600e3).getUTCDay(), m = x.h * 60 + x.mi;
     var cur = wd === 1 ? 0 : wd === 2 && m < 540 ? 1 : wd === 2 || wd === 3 || (wd === 4 && m < 1260) ? 2 : 3;
     if (wd === 1 && m >= 720) cur = 1;
-    var S = [['Thứ Hai', 'Họp tuần, báo cáo'], ['Trước 9h thứ Ba', 'Chốt tối đa 3 việc trọng tâm'], ['Trước 21h thứ Năm', 'Cập nhật tiến độ'], ['Trước 21h Chủ nhật', 'Kết quả + link minh chứng']];
-    return '<ol class="gv-rh" aria-label="Nhịp tuần">' + S.map(function (s, i) { return '<li class="' + (i === cur ? 'on' : i < cur ? 'past' : '') + '"><b>' + s[0] + '</b><span>' + s[1] + '</span></li>'; }).join('') + '</ol>';
+    var S = [['Thứ Hai', 'Họp tuần, xem báo cáo'], ['Trước 9h thứ Ba', 'Chọn tối đa 3 việc trọng tâm'], ['Trước 21h thứ Năm', 'Báo tiến độ'], ['Trước 21h Chủ nhật', 'Báo xong: kết quả + link minh chứng']];
+    return '<h2 class="gv-h">🗓 Lịch mỗi tuần <small>ô xanh = mốc sắp tới</small></h2><ol class="gv-rh" aria-label="Nhịp tuần">' + S.map(function (s, i) { return '<li class="' + (i === cur ? 'on' : i < cur ? 'past' : '') + '"><b><em class="gv-sn">' + (i + 1) + '</em>' + s[0] + '</b><span>' + s[1] + '</span>' + (i === cur ? '<small class="gv-rh-now">👈 sắp tới</small>' : '') + '</li>'; }).join('') + '</ol>';
   }
   function viewGv() {
     if (!GV.d && !GV.err) setTimeout(gvFetch, 0); else if (GV.d && !GV.busy && Date.now() - GV.at > 60e3) setTimeout(gvFetch, 0);
     var D = GV.d;
-    var h = '<div class="gv-wrap"><div class="page-head"><h1>✅ Việc tuần</h1><div class="grow"></div><button class="btn ghost" data-gv="reload" title="Tải lại việc mới nhất">⟳ Tải lại</button></div>';
+    var h = '<div class="gv-wrap"><div class="page-head"><h1>✅ Việc tuần</h1><div class="grow"></div><button class="btn ghost" data-gv="reload" title="Tải lại việc mới nhất">⟳ Tải lại</button><button class="btn ghost" data-gv="help" title="Cách dùng Việc tuần">❓ Hướng dẫn</button></div>';
     if (!D) return h + '<div class="box"><p class="muted">' + (GV.err ? '⚠️ ' + esc(GV.err) + ' <button class="btn sm" data-gv="reload">Thử lại</button>' : '⏳ Đang tải việc…') + '</p></div></div>';
-    h += gvRhythm() + gvSetup(D) + gvMyWeek(D) + gvGoals(D);
-    h += '<div class="gv-new2"><button class="btn pri lg" data-gv="new|tt">⭐ Chốt việc trọng tâm</button><button class="btn lg" data-gv="new|ps">＋ Việc phát sinh / nhờ ai đó</button></div>';
+    if (!gvLs('gv_seen')) setTimeout(function () { if (route().view === 'giao-viec' && !gvLs('gv_seen')) gvHelp(); }, 400); // ❓ tự mở lần đầu
+    h += '<p class="gv-intro2">Mỗi tuần, mỗi người chọn <b>tối đa 3 việc quan trọng nhất</b>. Làm xong thì báo kết quả kèm link chứng minh đã làm.</p>';
+    h += gvNow(D) + gvSetup(D) + gvRhythm() + gvMyWeek(D) + gvGoals(D);
+    h += '<div class="gv-new2"><button class="btn pri lg" data-gv="new|tt">⭐ Chọn việc trọng tâm</button><button class="btn lg" data-gv="new|ps">＋ Việc phát sinh / nhờ ai đó</button></div>' +
+      '<p class="gv-sdesc">⭐ <b>Việc trọng tâm</b>: tối đa 3 việc quan trọng nhất tuần này của bạn. ＋ <b>Việc phát sinh</b>: việc thêm trong tuần, hoặc nhờ người khác làm giúp.</p>';
     var T = gvTabs(D); if (!GV.tab || !T.some(function (x) { return x[0] === GV.tab; })) GV.tab = 'mine';
     var gi = {}, gic = { mine: '🙋', gave: '🤝', all: '👀', rep: '📋', done: '✅' }; T.forEach(function (x) { gi[x[0]] = [gic[x[0]] || '', x[1].replace(/^\S+\s(?=[A-ZĐÁÀẢÃẠ])/, '').replace(/^[^A-Za-zÀ-ỹĐđ]+/, ''), x[2] ? x[2].length + ' việc' : 'tuần này']; });
     h += grpPick([['✅ Việc', 'mỗi ngày', ['mine', 'gave', 'all']], ['📋 Cuối tuần', 'báo cáo, đã xong', ['rep', 'done']]], gi, GV.tab, function (k) { return 'data-gv="tab|' + k + '"'; }); // 19/11/2026: chip → thẻ nhóm
@@ -17997,13 +18000,17 @@
       if (GV.tab === 'all') h += gvTeamChart(D);
       if (GV.who) list = list.filter(function (t) { return t.who === GV.who; });
     }
+    var leg = '<p class="gv-leg2">Ý nghĩa màu: 🟢 đúng tiến độ · 🟡 hơi chậm hoặc chưa báo tiến độ · 🔴 chậm · ⏰ quá hạn · ⚪ chưa có hạn</p>', mt = GV.tab === 'mine';
     if (!list.length) return h + '<div class="box gv-empty">' + (GV.tab === 'mine' ? '🌿 Bạn không còn việc nào đang mở.' : GV.tab === 'gave' ? 'Bạn chưa nhờ ai việc nào đang mở. Bấm <b>＋ Việc phát sinh / nhờ ai đó</b>, hoặc nhắn bot Telegram.' : GV.tab === 'done' ? 'Chưa có việc nào xong trong 30 ngày.' : '🌿 Cả công ty không còn việc nào đang mở.') + '</div>' + gvAdmin(D) + '</div>';
-    if (GV.tab === 'done') return h + gvSec('', list.slice().sort(function (a, b) { return (b.done || b.upd) - (a.done || a.upd); })) + gvAdmin(D) + '</div>';
+    if (GV.tab === 'done') return h + gvSec('', list.slice().sort(function (a, b) { return (b.done || b.upd) - (a.done || a.upd); })) + leg + gvAdmin(D) + '</div>';
     var t0 = today(), tt = [], late = [], tod = [], next = [], none = [];
     list.forEach(function (t) { if (t.kind === 'tt' && t.thisWeek) tt.push(t); else if (t.late) late.push(t); else if (t.due && dayStart(t.due) === t0) tod.push(t); else if (t.due) next.push(t); else none.push(t); });
     var byDue = function (a, b) { return (GV_PO[a.prio] != null ? GV_PO[a.prio] : 1) - (GV_PO[b.prio] != null ? GV_PO[b.prio] : 1) || (a.due || 9e15) - (b.due || 9e15); };
-    h += gvSec('⭐ Việc trọng tâm tuần này', tt.sort(byDue)) + gvSec('⏰ Cần thêm thời gian', late.sort(byDue)) + gvSec('📅 Hạn hôm nay', tod.sort(byDue)) + gvSec('🗓 Sắp tới', next.sort(byDue)) + gvSec('⚪ Chưa có hạn (đặt hạn để đo được tiến độ)ạn', none);
-    return h + gvAdmin(D) + '</div>';
+    h += gvSec('⭐ Việc trọng tâm tuần này', tt.sort(byDue), mt && 'Việc quan trọng nhất tuần này. Làm được phần nào thì bấm 📍 Báo tiến độ.') +
+      gvSec('⏰ Cần thêm thời gian', late.sort(byDue), mt && 'Đã qua hạn. Xong rồi thì bấm ✅ Xong rồi. Chưa kịp thì bấm 📍 Báo tiến độ, ghi bao giờ xong.') +
+      gvSec('📅 Hạn hôm nay', tod.sort(byDue), mt && 'Cần xong trong hôm nay.') + gvSec('🗓 Sắp tới', next.sort(byDue), mt && 'Còn thời gian, làm dần từng phần.') +
+      gvSec('⚪ Chưa có hạn', none, 'Bấm 📍 Báo tiến độ để đặt hạn. Có hạn thì máy mới đo được nhanh hay chậm.');
+    return h + leg + gvAdmin(D) + '</div>';
   }
   /* ---------------- 🎯 Mục tiêu đếm được (17/11/2026, Thủy góp ý): vd 100 video / tháng, mỗi lần xong 1 phần bấm ＋1 → % + đúng nhịp hay chậm */
   var GV_GP = { ok: ['🟢 Đúng nhịp', 'ok'], slow: ['🟡 Hơi chậm', 'mid'], behind: ['🔴 Chậm', 'bad'], late: ['🔴 Quá hạn, chưa đạt', 'bad'], done: ['🎉 Đã đạt', 'ok'], stop: ['✖️ Đã dừng', ''] };
@@ -18074,19 +18081,50 @@
   /** Thẻ "Tuần này của bạn": x/3 việc trọng tâm. */
   function gvMyWeek(D) {
     var L = gvMyTT(), n = L.length;
-    return '<div class="box gv-me"><div class="gv-me-h"><b>Tuần ' + esc(D.weekLabel || '') + ' của bạn</b><span class="gv-me-n' + (n ? '' : ' zero') + '">⭐ ' + n + '/' + D.max + ' việc trọng tâm</span></div>' +
+    return '<div class="box gv-me"><div class="gv-me-h"><b>Tuần ' + esc(D.weekLabel || '') + ' của bạn</b><span class="gv-me-n' + (n ? '' : ' zero') + '">⭐ đã chọn ' + n + ' / tối đa ' + D.max + ' việc</span></div>' +
       (n ? '<ul class="gv-me-l">' + L.map(function (t) { return '<li><button class="gv-me-i" data-gv="open|' + t.id + '">' + (t.st === 'Xong' ? '✅' : t.pace ? GV_PACE[t.pace].split(' ')[0] : '⭐') + ' ' + esc(t.title) + '<small>' + esc(gvDue(t)) + (t.carry ? ' · chuyển ' + t.carry + ' lần' : '') + '</small></button></li>'; }).join('') + '</ul>'
-        : '<p class="gv-p" style="margin:6px 0 0">Chưa chốt việc trọng tâm. Chọn 1–3 việc <b>quan trọng nhất</b> tuần này, mỗi việc có kết quả đo được.</p>') + '</div>';
+        : '<p class="gv-p" style="margin:6px 0 0">Bạn chưa chọn việc trọng tâm. Bấm <b>⭐ Chọn việc trọng tâm</b> bên dưới, chọn 1–3 việc <b>quan trọng nhất</b> tuần này, mỗi việc có kết quả đếm được.</p>') + '</div>';
   }
-  function gvSec(title, L) {
+  /* 22/11/2026 anh Sơn: "bạn nhỏ lớp 5 nhìn vào cũng hiểu" → 👉 1 việc nên làm bây giờ + nút ❓ Hướng dẫn (tự mở lần đầu, localStorage gv_seen) */
+  function gvLs(k, v) { try { if (v === undefined) return localStorage.getItem(k) || ''; localStorage.setItem(k, v); } catch (e) { } return ''; }
+  /** 👉 Việc nên làm bây giờ: chọn đúng 1 việc gấp nhất của mình, kèm nút làm ngay. */
+  function gvNow(D) {
+    var me = D.me, open = D.tasks.filter(function (t) { return gvOpen(t) && gvMine(t); });
+    var ord = function (a, b) { return (GV_PO[a.prio] != null ? GV_PO[a.prio] : 1) - (GV_PO[b.prio] != null ? GV_PO[b.prio] : 1) || (a.due || 9e15) - (b.due || 9e15); };
+    var pick = function (f) { return open.filter(f).sort(ord)[0]; };
+    var t, txt = '', btn = '', nm = function (x) { return '<b>' + esc(x.title) + '</b>'; };
+    if ((t = pick(function (x) { return x.st === 'Mới' && x.whoE === me; }))) { txt = 'Có việc mới ' + (t.byE === me ? '' : esc(t.by) + ' ') + 'giao cho bạn: ' + nm(t) + '. Đọc xong thì bấm nhận.'; btn = '<button class="btn pri" data-gv="qn|' + t.id + '">🙋 Nhận việc này</button><button class="btn" data-gv="open|' + t.id + '">Xem chi tiết</button>'; }
+    else if ((t = pick(function (x) { return x.late; }))) { txt = 'Việc ' + nm(t) + ' đã qua hạn. Xong rồi thì báo xong. Chưa kịp thì báo tiến độ, ghi bao giờ xong.'; btn = '<button class="btn pri" data-gv="qx|' + t.id + '">✅ Xong rồi</button><button class="btn" data-gv="qu|' + t.id + '">📍 Báo tiến độ</button>'; }
+    else if (!gvMyTT().length) { t = null; txt = 'Tuần này bạn chưa chọn việc trọng tâm. Chọn 1 đến 3 việc quan trọng nhất, mỗi việc có kết quả đếm được.'; btn = '<button class="btn pri" data-gv="new|tt">⭐ Chọn việc trọng tâm</button>'; }
+    else if ((t = pick(function (x) { return !!gvNextStep(x); }))) { txt = nm(t) + ': ' + esc(gvNextStep(t).replace(/^👉\s*/, '')).replace(/(📍 Báo tiến độ|✅ Xong rồi)/g, '<b>$1</b>'); btn = /Xong rồi/.test(gvNextStep(t)) ? '<button class="btn pri" data-gv="qx|' + t.id + '">✅ Xong rồi</button>' : '<button class="btn pri" data-gv="qu|' + t.id + '">📍 Báo tiến độ</button>'; }
+    else txt = '🌿 Không có việc gì gấp. Cứ làm tiếp việc đang làm, xong phần nào báo phần đó.';
+    var more = open.filter(function (x) { return x !== t && (!!gvNextStep(x) || x.late); }).length;
+    return '<div class="box gv-now' + (btn ? '' : ' calm') + '"><h2 class="gv-h">👉 Việc nên làm bây giờ</h2><p class="gv-p">' + txt + '</p>' + (btn ? '<div class="gv-nbtn">' + btn + '</div>' : '') +
+      (more > 0 ? '<small class="muted">Làm xong việc này, còn ' + more + ' việc khác cần làm trong danh sách bên dưới (dòng có 👉).</small>' : '') + '</div>';
+  }
+  /** ❓ Hướng dẫn ngắn ngay trong trang (đủ để dùng, không cần hỏi ai). */
+  function gvHelp() {
+    gvLs('gv_seen', '1');
+    var body = '<div class="gv-m gv-help">' +
+      '<p class="gv-p"><b>Việc tuần là gì?</b> Mỗi tuần, mỗi người chọn <b>tối đa 3 việc quan trọng nhất</b> (⭐ việc trọng tâm). Làm xong thì báo kết quả kèm link chứng minh. Việc nhỏ thêm trong tuần, hoặc nhờ người khác giúp, là <b>＋ việc phát sinh</b>.</p>' +
+      '<h3 class="gv-h3">🗓 4 mốc mỗi tuần</h3><ol class="gv-ol"><li><b>Thứ Hai</b>: họp, xem 📋 Báo cáo tuần.</li><li><b>Trước 9h thứ Ba</b>: bấm ⭐ Chọn việc trọng tâm, chọn 1 đến 3 việc.</li><li><b>Trước 21h thứ Năm</b>: bấm 📍 Báo tiến độ cho từng việc.</li><li><b>Trước 21h Chủ nhật</b>: bấm ✅ Xong rồi, ghi kết quả + link minh chứng.</li></ol>' +
+      '<h3 class="gv-h3">☀️ Mỗi ngày chỉ cần</h3><p class="gv-p">Mở Việc tuần, nhìn ô <b>👉 Việc nên làm bây giờ</b> trên cùng, bấm nút trong ô đó. Xong lại mở ra, ô sẽ đổi sang việc tiếp theo.</p>' +
+      '<h3 class="gv-h3">🔘 Các nút</h3><ul class="gv-ol"><li><b>🙋 Nhận việc</b>: đồng ý làm việc người khác giao.</li><li><b>📍 Báo tiến độ</b>: cho mọi người biết đang tới đâu, cần ai giúp.</li><li><b>＋1</b>: vừa làm xong thêm 1 phần (vd thêm 1 video).</li><li><b>✅ Xong rồi</b>: ghi kết quả + link minh chứng.</li></ul>' +
+      '<h3 class="gv-h3">🎨 Màu nghĩa là gì</h3><p class="gv-p">🟢 đúng tiến độ · 🟡 hơi chậm hoặc chưa báo tiến độ · 🔴 chậm · ⏰ quá hạn · ⚪ chưa có hạn (đặt hạn thì máy mới đo được).</p>' +
+      '<h3 class="gv-h3">📎 Minh chứng là gì?</h3><p class="gv-p">Link để người khác mở ra thấy việc đã làm thật: bài đã đăng, file Google Drive, Sheet, Canva… Ảnh chụp màn hình thì gửi vào Telegram, trả lời đúng tin của việc đó.</p>' +
+      '<h3 class="gv-h3">📲 Telegram</h3><p class="gv-p">Nối Telegram 1 lần để nhận việc và lời nhắc. Trên Telegram bạn cũng nhận việc, báo tiến độ, báo xong được.</p>' +
+      '<p class="gv-p"><a href="/huong-dan/giao-viec/" target="_blank" rel="noopener">Đọc hướng dẫn đầy đủ, có ví dụ ↗</a></p></div>';
+    modal('❓ Cách dùng Việc tuần', body, '<button class="btn pri" data-close>👍 Đã hiểu</button>');
+  }
+  function gvSec(title, L, desc) {
     if (!L.length) return '';
     var me = GV.d.me;
-    return '<section class="gv-sec">' + (title ? '<h2 class="gv-h">' + title + ' <small>' + L.length + '</small></h2>' : '') + '<div class="gv-rows">' + L.map(function (t) {
+    return '<section class="gv-sec">' + (title ? '<h2 class="gv-h">' + title + ' <small>' + L.length + '</small></h2>' : '') + (desc ? '<p class="gv-sdesc">' + desc + '</p>' : '') + '<div class="gv-rows">' + L.map(function (t) {
       var who = t.whoE === me ? 'Bạn' : t.who, by = t.byE === t.whoE ? 'tự đặt' : t.byE === me ? 'bạn nhờ' : t.by + ' nhờ';
       var mineT = gvOpen(t) && (t.whoE === me || t.helpers.indexOf(me) >= 0), H = GV_H[gvH(t)];
       return '<div class="gv-rw"><button class="gv-row' + (t.late ? ' gv-late' : '') + (t.st === 'Xong' ? ' gv-done' : '') + (t.kind === 'tt' ? ' gv-tt' : '') + '" data-gv="open|' + t.id + '"><span class="gv-ic" aria-hidden="true">' + (t.kind === 'tt' && gvOpen(t) ? '⭐' : GV_IC[t.st]) + '</span><span class="gv-t"><b>' + (t.prio && GV_PRIO[t.prio] && gvOpen(t) ? '<em class="gv-pr gv-pr-' + t.prio + '">' + GV_PRIO[t.prio] + '</em> ' : '') + esc(t.title) + '</b>' + gvTaskBar(t) +
         (t.goal ? '<small class="gv-goal">🎯 ' + esc(t.goal) + '</small>' : '') + (t.goalId && gvGoalFind(t.goalId) ? '<small class="gv-goal">📈 Thuộc mục tiêu: ' + esc(gvGoalFind(t.goalId).title) + (t.qty ? ' (đã cộng ' + t.qty + ')' : '') + '</small>' : '') +
-        '<small>👤 ' + esc(who) + ' · 📅 ' + esc(gvDue(t)) + ' · ' + esc(by) + (t.src === 'hop' ? ' · 🎙 từ cuộc họp' : '') + '</small>' + (gvNextStep(t) ? '<small class="gv-next">' + gvNextStep(t) + '</small>' : '') + '<small class="gv-st">' + (H && t.st !== 'Huỷ' ? '<em class="gv-chip ' + H[1] + '">' + H[0] + '</em> ' : '') + esc(GV_TX[t.st]) + (t.st === 'Xong' && t.done ? ' ' + esc(when(t.done)) : '') + (t.pace && gvOpen(t) && !t.targetN ? ' · tự báo ' + GV_PACE[t.pace] : '') + (t.st === 'Xong' && t.kind === 'tt' && !t.proof ? ' · ⚠️ thiếu minh chứng' : '') + (t.qa ? ' · 🔎 ' + esc(t.qa) : '') + '</small></span><span class="mr-chev" aria-hidden="true">›</span></button>' + (mineT ? '<div class="gv-qk">' + (t.st === 'Mới' && t.whoE === me ? '<button class="btn sm" data-gv="qn|' + t.id + '">🙋 Nhận việc</button>' : '') + (t.targetN ? '<button class="btn sm pri" data-gv="qp|' + t.id + '">＋1 ' + esc(t.unit || '') + '</button>' : '') + '<button class="btn sm" data-gv="qu|' + t.id + '">📍 Cập nhật</button><button class="btn sm" data-gv="qx|' + t.id + '">✅ Xong</button></div>' : '') + '</div>';
+        '<small>👤 ' + esc(who) + ' · 📅 ' + esc(gvDue(t)) + ' · ' + esc(by) + (t.src === 'hop' ? ' · 🎙 từ cuộc họp' : '') + '</small>' + (gvNextStep(t) ? '<small class="gv-next">' + gvNextStep(t) + '</small>' : '') + '<small class="gv-st">' + (H && t.st !== 'Huỷ' ? '<em class="gv-chip ' + H[1] + '">' + H[0] + '</em> ' : '') + esc(GV_TX[t.st]) + (t.st === 'Xong' && t.done ? ' ' + esc(when(t.done)) : '') + (t.pace && gvOpen(t) && !t.targetN ? ' · tự báo ' + GV_PACE[t.pace] : '') + (t.st === 'Xong' && t.kind === 'tt' && !t.proof ? ' · ⚠️ thiếu minh chứng' : '') + (t.qa ? ' · 🔎 ' + esc(t.qa) : '') + '</small></span><span class="mr-chev" aria-hidden="true">›</span></button>' + (mineT ? '<div class="gv-qk">' + (t.st === 'Mới' && t.whoE === me ? '<button class="btn sm" data-gv="qn|' + t.id + '">🙋 Nhận việc</button>' : '') + (t.targetN ? '<button class="btn sm pri" data-gv="qp|' + t.id + '">＋1 ' + esc(t.unit || '') + '</button>' : '') + '<button class="btn sm" data-gv="qu|' + t.id + '">📍 Báo tiến độ</button><button class="btn sm" data-gv="qx|' + t.id + '">✅ Xong rồi</button></div>' : '') + '</div>';
     }).join('') + '</div></section>';
   }
   /** 📋 Báo cáo tuần: dùng trong buổi họp thứ Hai. */
@@ -18152,13 +18190,13 @@
   /** 📍 Cập nhật tiến độ nhanh: số đã làm (nếu có con số đích), 🟢🟡🔴, 1 câu, cần hỗ trợ; việc chưa có hạn thì đặt hạn luôn. */
   function openGvQuick(id) {
     var t = gvFind(id); if (!t) return;
-    var body = '<div class="gv-m"><p class="gv-m-t">' + esc(t.title) + '</p>' + (t.goal ? '<p class="gv-m-g">🎯 ' + esc(t.goal) + '</p>' : '') +
-      (t.targetN ? '<label class="f"><span>Đã làm được bao nhiêu? (đích ' + t.targetN + (t.unit ? ' ' + esc(t.unit) : '') + ')</span><span class="gv-num"><button type="button" class="btn" data-qn="-1">−</button><input type="number" inputmode="numeric" min="0" id="gqN" value="' + (t.doneN || 0) + '"><button type="button" class="btn" data-qn="1">＋</button><b>/ ' + t.targetN + (t.unit ? ' ' + esc(t.unit) : '') + '</b></span></label>'
-        : '<div class="f"><span class="gv-lbl">Việc đang thế nào?</span><div class="gv-pace">' + ['ok', 'risk', 'help'].map(function (k) { return '<button type="button" class="chip' + (t.pace === k ? ' on' : '') + '" data-gqp="' + k + '">' + GV_PACE[k] + '</button>'; }).join('') + '</div></div>') +
+    var body = '<div class="gv-m"><p class="gv-m-t">' + esc(t.title) + '</p>' + (t.goal ? '<p class="gv-m-g">🎯 ' + esc(t.goal) + '</p>' : '') + '<p class="gv-sdesc">Cho mọi người biết việc đang tới đâu. Chỉ cần điền bước 1 hoặc bước 2.</p>' +
+      (t.targetN ? '<label class="f"><span><em class="gv-sn">1</em>Đã làm được bao nhiêu? (đích ' + t.targetN + (t.unit ? ' ' + esc(t.unit) : '') + ')</span><span class="gv-num"><button type="button" class="btn" data-qn="-1">−</button><input type="number" inputmode="numeric" min="0" id="gqN" value="' + (t.doneN || 0) + '"><button type="button" class="btn" data-qn="1">＋</button><b>/ ' + t.targetN + (t.unit ? ' ' + esc(t.unit) : '') + '</b></span></label>'
+        : '<div class="f"><span class="gv-lbl"><em class="gv-sn">1</em>Việc đang thế nào?</span><div class="gv-pace">' + ['ok', 'risk', 'help'].map(function (k) { return '<button type="button" class="chip' + (t.pace === k ? ' on' : '') + '" data-gqp="' + k + '">' + GV_PACE[k] + '</button>'; }).join('') + '</div></div>') +
       (!t.due ? '<label class="f"><span>📅 Hạn hoàn thành (việc này chưa có hạn)</span><input type="date" id="gqD"></label>' : '') +
-      '<label class="f"><span>Đã làm được gì → làm gì tiếp (1 câu)</span><input type="text" id="gqX" value="' + esc(t.next || '') + '" placeholder="vd: Đã live 2 phiên, thứ Sáu live phiên 3"></label>' +
-      '<label class="f"><span>Cần ai hỗ trợ? (không bắt buộc)</span><input type="text" id="gqB" value="' + esc(t.block || '') + '" placeholder="vd: Cần Phương gửi ảnh sản phẩm trước thứ Năm"></label></div>';
-    var m = modal('📍 Cập nhật tiến độ', body, '<button class="btn" data-close>Thôi</button><button class="btn pri" id="gqSave">Lưu</button>'), pace = '';
+      '<label class="f"><span><em class="gv-sn">2</em>Đã làm được gì, sắp làm gì tiếp (1 câu)</span><input type="text" id="gqX" value="' + esc(t.next || '') + '" placeholder="vd: Đã live 2 phiên, thứ Sáu live phiên 3"></label>' +
+      '<label class="f"><span><em class="gv-sn">3</em>Cần ai giúp không? (không bắt buộc)</span><input type="text" id="gqB" value="' + esc(t.block || '') + '" placeholder="vd: Cần Phương gửi ảnh sản phẩm trước thứ Năm"></label></div>';
+    var m = modal('📍 Báo tiến độ', body, '<button class="btn" data-close>Thôi</button><button class="btn pri" id="gqSave">Lưu</button>'), pace = '';
     $$('[data-qn]', m).forEach(function (b) { b.onclick = function () { var i = $('#gqN'); i.value = Math.max(0, (+i.value || 0) + (+b.getAttribute('data-qn'))); }; });
     $$('[data-gqp]', m).forEach(function (c) { c.onclick = function () { pace = c.getAttribute('data-gqp'); $$('[data-gqp]', m).forEach(function (o) { o.classList.toggle('on', o === c); }); }; });
     $('#gqSave').onclick = function () {
@@ -18166,7 +18204,7 @@
       if ($('#gqN')) p.doneN = Math.max(0, Math.round(+$('#gqN').value || 0)); if (pace) p.pace = pace;
       if ($('#gqD')) { if (!$('#gqD').value) { toast('Chọn hạn để máy đo được tiến độ nhé.', true); $('#gqD').focus(); return; } p.due = gvMs($('#gqD').value); }
       if (p.doneN === undefined && !pace && !p.next) { toast('Ghi số đã làm, chọn 🟢🟡🔴 hoặc ghi 1 câu nhé.', true); return; }
-      gvDo('gv_set', p, this, 'Đã cập nhật tiến độ ✓').catch(function () { });
+      gvDo('gv_set', p, this, 'Đã báo tiến độ ✓').catch(function () { });
     };
   }
   function gvFind(id) { return GV.d && GV.d.tasks.filter(function (t) { return t.id === +id; })[0]; }
@@ -18190,7 +18228,7 @@
       body += '<section class="gv-blk"><h3 class="gv-h3">📍 Tiến độ <small>(trước 21h thứ Năm)</small></h3><div class="gv-pace">' + ['ok', 'risk', 'help'].map(function (k) { return '<button type="button" class="chip' + (t.pace === k ? ' on' : '') + '" data-gvp="' + k + '">' + GV_PACE[k] + '</button>'; }).join('') + '</div>' +
         '<label class="f"><span>Đã làm được gì → làm gì tiếp</span><input type="text" id="gvNext" value="' + esc(t.next || '') + '" placeholder="vd: Đã quay 2/3 video, mai dựng nốt video cuối"></label>' +
         '<label class="f"><span>Cần ai hỗ trợ, trước khi nào (không bắt buộc)</span><input type="text" id="gvBlk" value="' + esc(t.block || '') + '" placeholder="vd: Cần Thu gửi ảnh sản phẩm trước thứ Sáu"></label><button class="btn" data-gvm="pace">Lưu tiến độ</button></section>' +
-        '<details class="gv-blk gv-resd" id="gvResD"' + (t.result || t.proof || new Date(Date.now() + 7 * 3600e3).getUTCDay() === 0 ? ' open' : '') + '><summary><h3 class="gv-h3">🏁 Báo xong: kết quả + minh chứng <small>(trước 21h Chủ nhật)</small></h3></summary>' +
+        '<details class="gv-blk gv-resd" id="gvResD"' + (t.result || t.proof || new Date(Date.now() + 7 * 3600e3).getUTCDay() === 0 ? ' open' : '') + '><summary><h3 class="gv-h3">🏁 Báo xong: kết quả + minh chứng <small>(trước 21h Chủ nhật)</small></h3></summary><p class="gv-sdesc">Minh chứng = link để người khác mở ra thấy việc đã làm thật: bài đã đăng, file Google Drive, Sheet, Canva…</p>' +
         (t.goalId && !t.qty && gvGoalFind(t.goalId) ? '<label class="f"><span>📈 Làm được bao nhiêu' + (gvGoalFind(t.goalId).unit ? ' ' + esc(gvGoalFind(t.goalId).unit) : '') + '? (cộng vào mục tiêu ' + esc(gvGoalFind(t.goalId).title) + ')</span><input type="number" inputmode="numeric" min="0" id="gvQty" value="' + (t.doneN || '') + '" placeholder="vd 3"></label>' : '') +
         '<label class="f"><span>Kết quả thực tế: đạt bao nhiêu?' + (t.kind === 'tt' ? ' (bắt buộc)' : '') + '</span><input type="text" id="gvRes" value="' + esc(t.result || '') + '" placeholder="vd: Đã đăng 3 video, tổng 4.200 lượt xem"></label>' +
         '<label class="f"><span>Link minh chứng' + (t.kind === 'tt' ? ' (bắt buộc)' : '') + '</span><input type="url" id="gvProof" value="' + (t.proofTg ? '' : esc(t.proof || '')) + '" placeholder="' + (t.proofTg ? 'Đã có ảnh gửi trong Telegram' : 'https://… (bài đăng, Google Drive, Sheet, Canva)') + '"></label>' +
@@ -18239,25 +18277,25 @@
     var d0 = today(), wd = new Date(d0 + 7 * 3600e3).getUTCDay(), fri = d0 + ((5 - wd + 7) % 7 || 7) * DAY, sun = d0 + ((7 - wd) % 7) * DAY;
     var quick = [['Hôm nay', d0], ['Ngày mai', d0 + DAY], ['Thứ Sáu', fri], ['Chủ nhật', sun]], pr0 = edit && t.prio ? t.prio : kind === 'tt' ? 'qt' : 'bt';
     var x = edit && t.due ? vnDate(t.due) : null, myN = gvMyTT().length, hs = edit ? t.helpers : [];
-    var body = '<div class="gv-m">' +
+    var body = '<div class="gv-m"><p class="gv-sdesc">Điền lần lượt 7 bước có số. Ô ghi "không bắt buộc" thì bỏ trống được. Khung bên dưới tự kiểm tra việc đã rõ chưa.</p><span class="gv-lbl"><em class="gv-sn">1</em>Loại việc</span>' +
       '<div class="gv-kind" role="radiogroup"><label><input type="radio" name="gvK" value="tt"' + (kind === 'tt' ? ' checked' : '') + '><span><b>⭐ Việc trọng tâm tuần</b><small>Tối đa 3 việc quan trọng nhất / người' + (!edit ? ' · bạn đã chốt ' + myN + '/' + D.max : '') + '</small></span></label><label><input type="radio" name="gvK" value="ps"' + (kind === 'ps' ? ' checked' : '') + '><span><b>Việc phát sinh</b><small>Việc thêm trong tuần, nhờ ai đó</small></span></label></div>' +
       '<div class="gv-chk" id="gvChk"></div>' +
       '<details class="gv-ex"><summary>💡 Ví dụ việc rõ ràng, đo được</summary><ul>' +
       '<li><s>Live stream 5 phiên trên tiktok shopee</s> (không hạn)<br>✅ <b>Livestream 5 phiên trên TikTok Shop</b> · 🎯 mỗi phiên ≥60 phút, ghi số đơn từng phiên · 🔢 5 phiên · 📅 Chủ nhật · 🟠</li>' +
       '<li><s>Tuyển dụng nhân sự Kinh doanh/ Marketing</s><br>✅ <b>Thu 3 hồ sơ ứng tuyển Kinh doanh / Marketing</b> · 🎯 3 hồ sơ đạt yêu cầu trên hr. · 🔢 3 hồ sơ · 📅 Thứ Sáu · 🟠</li>' +
       '<li>✅ <b>Hoàn thiện bộ chào hàng đại lý</b> · 🎯 1 file thiết kế + bảng giá bán / chi phí + 2 phương án ưu đãi · 📅 T6 20/11 · 🔴</li></ul></details>' +
-      '<label class="f"><span>Việc cần làm (bắt đầu bằng động từ)</span><textarea id="gvT" rows="2" placeholder="vd: Đăng video Tết trà DILVANG lên TikTok">' + (edit ? esc(t.title) : '') + '</textarea></label>' +
-      '<label class="f"><span>🎯 Thế nào là xong? (con số hoặc sản phẩm bàn giao)</span><textarea id="gvG" rows="2" placeholder="vd: 3 video đã đăng, mỗi video có tiêu đề + ảnh bìa">' + (edit ? esc(t.goal || '') : '') + '</textarea></label><div id="gvFix"></div>' +
-      '<div class="f"><span class="gv-lbl">🔢 Con số đích (nên có, để máy tính % tiến độ)</span><div class="gv-g2"><input type="number" inputmode="numeric" min="1" id="gvTN" value="' + (edit && t.targetN ? t.targetN : '') + '" placeholder="vd 5" aria-label="Con số đích"><input type="text" id="gvTU" value="' + (edit ? esc(t.unit || '') : '') + '" placeholder="đơn vị: phiên, hồ sơ, video…" aria-label="Đơn vị"></div><small class="muted">Có số thì mỗi lần làm xong 1 phần bấm ＋1, máy tự ra % và báo đúng tiến độ hay chậm.</small></div>' +
-      '<div class="f"><span class="gv-lbl">Mức ưu tiên</span><div class="chips gv-prc" role="radiogroup">' + ['gap', 'qt', 'bt'].map(function (k) { return '<label class="chip' + (k === pr0 ? ' on' : '') + '"><input type="radio" name="gvPr" value="' + k + '"' + (k === pr0 ? ' checked' : '') + '>' + GV_PRIO[k] + '</label>'; }).join('') + '</div><small class="muted">🔴 Gấp: làm ngay, ảnh hưởng tiền / khách · 🟠 Quan trọng: việc trọng tâm tuần · 🟢 Bình thường: làm khi xong việc trên.</small></div>' +
-      '<label class="f"><span>Người làm</span><select id="gvW">' + (who ? '' : '<option value="">Chọn người làm…</option>') + ppl.map(function (z) { return '<option value="' + esc(z.email) + '"' + (z.email === who ? ' selected' : '') + '>' + esc(z.email === D.me ? 'Tôi (' + z.name + ')' : z.name) + ' · ' + esc(z.role) + (z.tg ? '' : ' (chưa nối Telegram)') + '</option>'; }).join('') + '</select></label>' +
+      '<label class="f"><span><em class="gv-sn">2</em>Việc cần làm (bắt đầu bằng động từ: Đăng, Gọi, Viết…)</span><textarea id="gvT" rows="2" placeholder="vd: Đăng video Tết trà DILVANG lên TikTok">' + (edit ? esc(t.title) : '') + '</textarea></label>' +
+      '<label class="f"><span><em class="gv-sn">3</em>🎯 Thế nào là xong? (con số, hoặc thứ gì bàn giao)</span><textarea id="gvG" rows="2" placeholder="vd: 3 video đã đăng, mỗi video có tiêu đề + ảnh bìa">' + (edit ? esc(t.goal || '') : '') + '</textarea></label><div id="gvFix"></div>' +
+      '<div class="f"><span class="gv-lbl"><em class="gv-sn">4</em>🔢 Con số đích (nên có, để máy tính % tiến độ)</span><div class="gv-g2"><input type="number" inputmode="numeric" min="1" id="gvTN" value="' + (edit && t.targetN ? t.targetN : '') + '" placeholder="vd 5" aria-label="Con số đích"><input type="text" id="gvTU" value="' + (edit ? esc(t.unit || '') : '') + '" placeholder="đơn vị: phiên, hồ sơ, video…" aria-label="Đơn vị"></div><small class="muted">Có số thì mỗi lần làm xong 1 phần bấm ＋1, máy tự ra % và báo đúng tiến độ hay chậm.</small></div>' +
+      '<div class="f"><span class="gv-lbl"><em class="gv-sn">5</em>Mức ưu tiên</span><div class="chips gv-prc" role="radiogroup">' + ['gap', 'qt', 'bt'].map(function (k) { return '<label class="chip' + (k === pr0 ? ' on' : '') + '"><input type="radio" name="gvPr" value="' + k + '"' + (k === pr0 ? ' checked' : '') + '>' + GV_PRIO[k] + '</label>'; }).join('') + '</div><small class="muted">🔴 Gấp: làm ngay, ảnh hưởng tiền / khách · 🟠 Quan trọng: việc trọng tâm tuần · 🟢 Bình thường: làm khi xong việc trên.</small></div>' +
+      '<label class="f"><span><em class="gv-sn">6</em>Ai làm việc này?</span><select id="gvW">' + (who ? '' : '<option value="">Chọn người làm…</option>') + ppl.map(function (z) { return '<option value="' + esc(z.email) + '"' + (z.email === who ? ' selected' : '') + '>' + esc(z.email === D.me ? 'Tôi (' + z.name + ')' : z.name) + ' · ' + esc(z.role) + (z.tg ? '' : ' (chưa nối Telegram)') + '</option>'; }).join('') + '</select></label>' +
       '<details class="gv-hlp"' + (hs.length ? ' open' : '') + '><summary>🤝 Người cùng làm (không bắt buộc)</summary><div class="gv-leads">' + ppl.map(function (z) { return '<label class="gv-lead"><input type="checkbox" data-gvh="' + esc(z.email) + '"' + (hs.indexOf(z.email) >= 0 ? ' checked' : '') + '><span>' + esc(z.name) + '</span></label>'; }).join('') + '</div></details>' +
-      '<div class="f"><span class="gv-lbl">📅 Hạn hoàn thành (bắt buộc)</span><div class="chips gv-qd">' + quick.map(function (q) { return '<button type="button" class="chip" data-gvq="' + (q[1] ? gvYmd(q[1]) : '') + '">' + q[0] + '</button>'; }).join('') + '</div>' +
+      '<div class="f"><span class="gv-lbl"><em class="gv-sn">7</em>📅 Hạn hoàn thành (bắt buộc)</span><div class="chips gv-qd">' + quick.map(function (q) { return '<button type="button" class="chip" data-gvq="' + (q[1] ? gvYmd(q[1]) : '') + '">' + q[0] + '</button>'; }).join('') + '</div>' +
       '<div class="gv-dt"><input type="date" id="gvD" value="' + (edit && t.due ? gvYmd(t.due) : !edit && kind === 'tt' ? gvYmd(sun) : '') + '" aria-label="Ngày hạn"><input type="time" id="gvH" value="' + (x && t.dueT ? pad(x.h) + ':' + pad(x.mi) : '') + '" aria-label="Giờ hạn (không bắt buộc)"></div><small class="muted">Giờ không bắt buộc. Có giờ thì máy nhắc trước 1 tiếng.</small></div>' +
       ((D.goals || []).some(function (g) { return g.st === 'open'; }) ? '<label class="f"><span>📈 Thuộc mục tiêu nào? (không bắt buộc)</span><select id="gvGo"><option value="0">Không thuộc mục tiêu nào</option>' + D.goals.filter(function (g) { return g.st === 'open' || (edit && g.id === t.goalId); }).map(function (g) { return '<option value="' + g.id + '"' + (edit && t.goalId === g.id ? ' selected' : '') + '>' + esc(g.title) + ' · ' + esc(g.who) + ' (' + g.done + '/' + g.target + ')</option>'; }).join('') + '</select><small class="muted">Xong việc thì ghi số lượng, máy tự cộng vào mục tiêu.</small></label>' : '') +
       '<label class="f"><span>Ghi chú thêm (không bắt buộc)</span><textarea id="gvB" rows="2" placeholder="Yêu cầu, link tài liệu…">' + (edit ? esc(t.body || '') : '') + '</textarea></label>' +
       (!edit && D.on ? '<label class="gv-cb"><input type="checkbox" id="gvTg" checked> Báo ngay qua Telegram</label>' : '') + '</div>';
-    var m = modal(edit ? '✏️ Sửa việc #' + t.id : kind === 'tt' ? '⭐ Chốt việc trọng tâm' : '＋ Việc phát sinh', body, '<button class="btn" data-close>Thôi</button><button class="btn pri" id="gvSave">' + (edit ? 'Lưu' : 'Lưu việc') + '</button>');
+    var m = modal(edit ? '✏️ Sửa việc #' + t.id : kind === 'tt' ? '⭐ Chọn việc trọng tâm' : '＋ Việc phát sinh', body, '<button class="btn" data-close>Thôi</button><button class="btn pri" id="gvSave">' + (edit ? 'Lưu' : 'Lưu việc') + '</button>');
     $$('[data-gvq]', m).forEach(function (c) { c.onclick = function () { $('#gvD').value = c.getAttribute('data-gvq'); if (!c.getAttribute('data-gvq')) $('#gvH').value = ''; $$('[data-gvq]', m).forEach(function (o) { o.classList.toggle('on', o === c); }); }; });
     $('#gvT').focus();
     /** Bảng kiểm "việc đã rõ chưa": cập nhật ngay khi gõ. */
@@ -18276,10 +18314,10 @@
     var force = false, noNum = false;
     var save = function (btn) {
       var title = $('#gvT').value.trim(), goal = $('#gvG').value.trim(), k = ($$('[name="gvK"]', m).filter(function (r) { return r.checked; })[0] || {}).value || 'ps';
-      if (!title) { toast('Ghi việc cần làm nhé.', true); $('#gvT').focus(); return; }
-      if (!goal) { toast('Ghi "Thế nào là xong" để hai bên cùng hiểu một kết quả nhé.', true); $('#gvG').focus(); return; }
-      if (!$('#gvW').value) { toast('Chọn người làm nhé.', true); $('#gvW').focus(); return; }
-      if (!$('#gvD').value) { toast('Chọn hạn hoàn thành để máy đo được tiến độ nhé.', true); $('#gvD').focus(); return; }
+      if (!title) { toast('Bước 2: ghi việc cần làm nhé.', true); $('#gvT').focus(); return; }
+      if (!goal) { toast('Bước 3: ghi "Thế nào là xong" để hai bên cùng hiểu một kết quả nhé.', true); $('#gvG').focus(); return; }
+      if (!$('#gvW').value) { toast('Bước 6: chọn người làm nhé.', true); $('#gvW').focus(); return; }
+      if (!$('#gvD').value) { toast('Bước 7: chọn hạn hoàn thành (bấm Hôm nay, Thứ Sáu… cho nhanh) nhé.', true); $('#gvD').focus(); return; }
       if (!chk().num && !noNum) { noNum = true; toast('💡 Việc chưa có con số đo được. Thêm số vào "Thế nào là xong" hoặc ô 🔢 Con số đích. Bấm Lưu lần nữa nếu việc này không đếm được.', true); $('#gvTN').focus(); return; }
       var dv = $('#gvD').value, hv = $('#gvH').value, p = { kind: k, title: title, goal: goal, who: $('#gvW').value, body: $('#gvB').value.trim(), due: dv ? gvMs(dv, hv) : 0, dueT: dv && hv ? 1 : 0, helpers: $$('[data-gvh]', m).filter(function (c) { return c.checked; }).map(function (c) { return c.getAttribute('data-gvh'); }), force: force ? 1 : 0 };
       if (edit) p.id = t.id; else p.tg = !!($('#gvTg') && $('#gvTg').checked);
@@ -18308,6 +18346,7 @@
         if (el.tagName === 'A') return; e.preventDefault();
         var a = el.getAttribute('data-gv').split('|'), k = a[0];
         if (k === 'reload') { GV.err = ''; GV.rep = null; gvFetch(); toast('Đang tải lại…'); }
+        else if (k === 'help') gvHelp();
         else if (k === 'tab') { GV.tab = a[1]; GV.who = ''; render(); }
         else if (k === 'who') { GV.who = a[1] || ''; render(); }
         else if (k === 'gnew') openGvGoalForm(null);
