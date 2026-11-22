@@ -740,11 +740,12 @@ wb-duyet:
         - ["card", "🎯 Dân văn phòng · vội ↔ muốn đủ chất", "📄 ~1.200 chữ · ⏱ 6 phút đọc · 🔗 3 chỗ dẫn nguồn", "g"]
         - ["btn", "👁 Đọc bài", ""]
         - ["btn", "✅ Đăng bài này", "g"]
-        - ["btn", "✏️ Sửa nhanh", ""]
+        - ["btn", "🚀 Đăng ngay", ""]
+        - ["btn", "✏️ Sửa · ⏰ Hẹn giờ", ""]
         - ["btn", "👎 Chưa ưng ▾", ""]
       hi: 2
       text: "Bấm <b>👁 Đọc bài</b> (cuối bài có danh sách nguồn). Bài ổn thì bấm <b>✅ Đăng bài này</b>: bài tự lên web đúng giờ."
-    - title: ✏️ Sửa nhanh
+    - title: ✏️ Sửa · ⏰ Hẹn giờ
       els:
         - ["in", "Tiêu đề (nên 50–80 ký tự)", "Bữa sáng 5 phút cho dân văn phòng"]
         - ["btn", "🖼 Chọn ảnh khác", ""]

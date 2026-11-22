@@ -64,7 +64,11 @@ Trợ lý tự viết bài cho Góc Sống Lành. **Bài chỉ lên web khi có 
 
 **📅 Lịch 7 ngày tới** (đầu thẻ Bài sắp đăng): mỗi ngày 1 ô màu. Vàng = chờ duyệt, xanh = đã duyệt / đã đăng, viền chấm ➕ = chưa viết. Bấm ô có bài để tới bài đó. Bấm ô trống để **✍️ Nhờ trợ lý viết ngay** hoặc **💡 Giao chủ đề cho ngày này** (trợ lý viết luôn chủ đề bạn giao).
 
-**⏰ Dời ngày giờ:** ✏️ Sửa nhanh → chọn ngày và giờ mới (6h–21h). Ngày cũ không đăng bài nữa; muốn có bài cho ngày cũ thì bấm **✍️ Nhờ trợ lý viết bài cho ngày này** trên thẻ ngày đó.
+**🚀 Đăng ngay:** nút ngay trên thẻ bài, bài lên web luôn (ngày đăng là hôm nay). Có cả trong link duyệt gửi qua Telegram.
+
+**♻️ Dùng lại bài đã bỏ:** thẻ bài ❌ Đã bỏ (hoặc thẻ 📚 Đã viết) có nút **♻️ Dùng lại**. Bài quay lại chờ duyệt, giữ nguyên nội dung; rồi bấm 🚀 Đăng ngay hoặc ⏰ hẹn giờ như dưới.
+
+**⏰ Hẹn / dời ngày giờ:** ✏️ Sửa · ⏰ Hẹn giờ → chọn ngày (trong 60 ngày tới) và giờ (6h–21h). Ngày cũ không đăng bài nữa; muốn có bài cho ngày cũ thì bấm **✍️ Nhờ trợ lý viết bài cho ngày này** trên thẻ ngày đó.
 
 **Thẻ 📚 Đã viết** hiện số lượt đọc, thời gian đọc, lần bấm mua và số đơn của từng bài.
 
