@@ -345,6 +345,8 @@ Cả hai đều không tính vào doanh số.
 
 **Tìm đơn cũ:** bấm thẻ **📋 Tất cả đơn**. Chọn thời gian: *Hôm nay, Tuần này, Tháng này…*
 
+**Tổng tiền khi lọc** (từ 22/11/2026): mỗi nhóm việc ghi tổng tiền ngay cạnh số đơn (vd 💳 Chưa nhận tiền: còn bao nhiêu tiền chưa về). Ở **📋 Tất cả đơn**, lọc thời gian / kênh / trạng thái / ô tìm đến đâu thì dòng dưới các nút ghi **số đơn · tổng tiền** đến đó, kèm phần ✅ đã giao và 🚚 chưa giao xong. Chọn riêng trạng thái *Huỷ* hoặc *Hoàn* thì cộng tiền các đơn đó (để biết hoàn mất bao nhiêu).
+
 ## Chọn loại đơn (để tính hoa hồng)
 
 Khi tạo đơn, chọn 1 trong 4 loại:
