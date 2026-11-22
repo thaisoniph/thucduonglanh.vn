@@ -485,6 +485,7 @@ Ghi chú:
 - Quảng cáo máy tự lấy, không cần nhập.
 - **💰 Giá vốn sản phẩm** (giá nhập từng sản phẩm) sửa ở **Cài đặt**. Có giá vốn thì máy mới tính được lãi.
 - **🏦 Tiền & công nợ** (thẻ 📊 Lãi lỗ): bấm **🔗 Nối link** để nối file Google Sheet kế toán (Sổ chi, Số dư ngân hàng). Công nợ nhà cung cấp ghi ở mục **🧾 Công nợ nhà cung cấp**. Máy tự đọc lại 3 tiếng 1 lần.
+  - **🏦 Tài sản ròng** (từ 22/11/2026, dưới 4 ô tiền): tiền ngân hàng + tiền đơn sắp về + hàng trong kho (số còn ở tab Kho × 💰 Giá vốn) − nợ nhà cung cấp. Dòng 💧 cho biết nếu trả hết nợ nhà cung cấp hôm nay thì ngân hàng còn bao nhiêu. Sản phẩm kho chưa có giá vốn thì chưa được cộng (máy ghi số sản phẩm thiếu): nhập ở ⚙️ Cài đặt → 💰 Giá vốn.
 
 ## Hàng tồn kho tính bằng tiền
 

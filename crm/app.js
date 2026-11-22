@@ -6256,10 +6256,30 @@
         (pay ? (over.length ? '⚠️ <b>Quá hạn ' + ms(over.reduce(function (s, r) { return s + r[4]; }, 0)) + '</b> · ' : '') + (due7.length ? 'Tới hạn 7 ngày: <b>' + ms(due7.reduce(function (s, r) { return s + r[4]; }, 0)) + '</b>' : 'Không khoản nào tới hạn 7 ngày') + (noHan ? ' · ' + noHan + ' hoá đơn chưa ghi hạn' : '') : 'Kế toán chưa ghi công nợ') + (F && F.paySrc === 'crm' ? ' · sổ CRM' + (F.payUnk ? ' · <b>⚠️ ' + F.payUnk + ' khoản sao kê chưa rõ trả ai</b>' : '') : '')) +
       card('', '💸 Đã chi ' + monthLabel(mk).replace(/^tháng /, 'T'), chi ? ms(cost) : '–', chi ? (top ? 'Lớn nhất: ' + esc(top) + ' ' + ms(G[top]) : '') + (nccPaid ? ' · trả nhà cung cấp ' + ms(nccPaid) : '') + (lastChi && lastChi < isoDate(Date.now() - 2 * DAY) ? ' · ⚠️ sổ chi chưa ghi từ ' + dd(lastChi) : '') : 'Chưa có trang Sổ chi') + '</div>';
     if (cash != null && pay && due30) { var gap = cash + coming - due30; h += '<p class="dpl-be">' + (gap < 0 ? '🔴 <b>Tiền đang có + sắp về chưa đủ trả nợ tới hạn trong 30 ngày (' + ms(due30) + '), thiếu khoảng ' + ms(-gap) + '.</b> Cần hẹn lại lịch trả hoặc thu tiền đơn đang giao sớm.' : '🟢 Tiền đang có + sắp về đủ trả nợ tới hạn trong 30 ngày (' + ms(due30) + '), còn dư khoảng ' + ms(gap) + '.') + '</p>'; }
+    h += finNet(cash, coming, cn, ptot, pay ? over.length : 0, K && !pay);
     if (over.length || due7.length) h += '<ul class="small fin-due">' + over.concat(due7).slice(0, 5).map(function (r) { return '<li>' + (r[3] < td ? '⚠️ <b>quá hạn</b> ' : '') + esc(r[0]) + (r[1] ? ' (HĐ ' + esc(r[1]) + ')' : '') + ': <b>' + ms(r[4]) + '</b> · hạn ' + dd(r[3]) + '</li>'; }).join('') + '</ul>';
     h += '<p class="small muted" style="margin:6px 0 0">' + (F && F.at ? 'Số kế toán đọc lúc ' + fDateTime(F.at) + (F.by ? ' (' + esc(F.by) + ')' : '') : KM[0] ? 'Số tiền / nợ lấy từ file kế toán ' + monthLabel(KM[0].m) : 'Nợ nhà cung cấp lấy từ sổ công nợ trong CRM') + '. Tiền sắp về tính từ đơn CRM.' + (FIN.err ? ' <span class="bad-line">⚠️ ' + esc(FIN.err) + '</span>' : L && L.err ? ' <span class="bad-line">⚠️ ' + esc(L.err) + '</span>' : '') +
       (L ? ' <button class="btn sm ghost" data-dash="fintest">📲 Gửi thử tin sáng</button>' : '') + '</p></div>';
     return h;
+  }
+  /** 🏦 Tài sản ròng (22/11/2026, anh Sơn – mang từ Trà Đỉnh): mình CÓ (tiền ngân hàng + tiền đơn sắp về + hàng tồn kho theo giá vốn) − mình NỢ (nhà cung cấp) = tài sản ròng;
+   *  thêm "Nếu trả hết nợ hôm nay" = tiền ngân hàng − nợ nhà cung cấp. Hàng tồn = số còn từng sản phẩm (kho_sum.inv) × giá vốn (itemCost, bảng 💰 Giá vốn). */
+  function khoInvValue() {
+    var I = S.d.kho && S.d.kho.inv; if (!I || !I.length || !costCfg()) return null;
+    var v = 0, miss = []; I.forEach(function (r) { var c = itemCost({ name: r[0], qty: Number(r[1]) || 0 }); if (c == null) miss.push(r[0]); else v += c; });
+    return { v: Math.round(v), n: I.length, miss: miss };
+  }
+  function finNet(cash, coming, cn, ptot, overN, monthOnly) {
+    if (cash == null) return '';
+    var ms = function (v) { return (v < 0 ? '−' : '') + moneyShort(Math.round(Math.abs(v))); }, IV = khoInvValue(), inv = IV ? IV.v : 0, debt = ptot || 0;
+    var net = cash + coming + inv - debt, after = cash - debt;
+    var row = function (l, sub, v, cls) { return '<li><span>' + l + (sub ? '<small>' + sub + '</small>' : '') + '</span><b' + (cls ? ' class="' + cls + '"' : '') + '>' + v + '</b></li>'; };
+    return '<div class="fin-net"><div class="fin-net-h"><span>🏦 Tài sản ròng</span><b class="' + (net < 0 ? 'bad-line' : '') + '">' + ms(net) + '</b></div><ul>' +
+      row('➕ Tiền ngân hàng', monthOnly ? 'số cuối tháng kế toán' : '', ms(cash)) +
+      row('➕ Tiền đơn sắp về', cn + ' đơn đang giao / chờ thu, tính theo giá bán', ms(coming)) +
+      row('➕ Hàng trong kho', IV ? IV.n + ' sản phẩm × giá vốn' + (IV.miss.length ? ' · <span class="bad-line">' + IV.miss.length + ' sản phẩm chưa có giá vốn</span>' : '') : !(S.d.kho && S.d.kho.n) ? 'kho chưa có sản phẩm' : !costCfg() ? 'chưa nhập 💰 Giá vốn' : 'mở tab Kho để cập nhật', IV ? ms(inv) : '–') +
+      row('➖ Nợ nhà cung cấp', overN ? '⚠️ ' + overN + ' khoản quá hạn' : '', ptot != null ? ms(-debt) : '–', debt ? 'bad-line' : '') + '</ul>' +
+      '<p class="small" style="margin:6px 0 0">💧 Nếu trả hết nợ nhà cung cấp hôm nay, ngân hàng còn <b class="' + (after < 0 ? 'bad-line' : '') + '">' + ms(after) + '</b>' + (after < 0 ? ' – chưa đủ, cần thu tiền đơn đang giao trước.' : '.') + '</p></div>';
   }
   /** Mục 📊: cơ cấu chi phí tháng kế toán gần nhất (% doanh thu, đèn theo mức tốt), tiết kiệm được bao nhiêu nếu về mức tốt, hoà vốn, sổ chi tháng này so với nhịp tháng trước. */
   function dashCost() {
@@ -18337,7 +18357,7 @@
   }
   function khoSet(j) {
     KH.d = j; KH.at = Date.now(); KH.err = '';
-    if (S.d && j && j.list) { var L = j.list; S.d.kho = { ret: (j.ret || []).length, n: L.length, need: L.filter(function (s) { return s.act; }).length, out: L.filter(function (s) { return s.lv === 'out'; }).length, late: L.filter(function (s) { return s.late; }).length, nobase: L.filter(function (s) { return s.lv === 'nobase'; }).length, top: L.filter(function (s) { return s.act || s.late || s.lv === 'out'; }).slice(0, 5).map(function (s) { return [s.name, s.lv, s.left, s.unit]; }) }; }
+    if (S.d && j && j.list) { var L = j.list; S.d.kho = { ret: (j.ret || []).length, n: L.length, need: L.filter(function (s) { return s.act; }).length, out: L.filter(function (s) { return s.lv === 'out'; }).length, late: L.filter(function (s) { return s.late; }).length, nobase: L.filter(function (s) { return s.lv === 'nobase'; }).length, top: L.filter(function (s) { return s.act || s.late || s.lv === 'out'; }).slice(0, 5).map(function (s) { return [s.name, s.lv, s.left, s.unit]; }), inv: L.filter(function (s) { return s.have > 0; }).map(function (s) { return [s.name, s.have]; }) }; }
     try { navBadges(); } catch (e) { }
   }
   function khoN(n) { return (Math.round((Number(n) || 0) * 10) / 10).toLocaleString('vi-VN'); }
