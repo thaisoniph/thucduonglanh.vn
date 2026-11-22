@@ -230,7 +230,8 @@ export async function khoCheck(x, opt) {
   if (!items.length) { await kvSet(x.db, 'kho_sum', JSON.stringify({ n: 0, at: now })); await khoSaleSave(x, []); return { list: [], A: {} }; }
   const list = await khoStats(x, items), cnt = k => list.filter(s => s.lv === k).length;
   const sum = { n: list.length, need: list.filter(s => s.act).length, out: cnt('out'), late: list.filter(s => s.late).length, nobase: cnt('nobase'), at: now,
-    top: list.filter(s => s.act || s.late || s.lv === 'out').slice(0, 5).map(s => [s.name, s.lv, s.left, s.unit]) };
+    top: list.filter(s => s.act || s.late || s.lv === 'out').slice(0, 5).map(s => [s.name, s.lv, s.left, s.unit]),
+    inv: list.filter(s => s.have > 0).map(s => [s.name, s.have]) }; // 22/11/2026: số còn từng sản phẩm → Tổng quan tính giá trị hàng tồn theo giá vốn (Tài sản ròng)
   await kvSet(x.db, 'kho_sum', JSON.stringify(sum));
   await khoSaleSave(x, list);
   const A0 = await kvJson(x.db, 'kho_alert', {}) || {}, A = {}, fresh = [];

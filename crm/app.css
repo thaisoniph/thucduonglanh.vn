@@ -1683,6 +1683,11 @@ table.dy-tbl tbody tr:nth-child(even):not(.tot) td.dy-sum { background: var(--pr
 @media (max-width: 760px) { .fin-n { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .fin-c { padding: 10px 12px; border-radius: var(--radius-sm); border: 1px solid var(--line); border-left: 5px solid var(--line); background: var(--card); min-width: 0; }
 .fin-c.mid { border-left-color: var(--mid); background: var(--orange-light); } .fin-c.bad { border-left-color: var(--red); background: var(--red-light); }
+/* 🏦 Tài sản ròng (22/11/2026) */
+.fin-net { margin: 10px 0 0; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--card); }
+.fin-net-h { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; } .fin-net-h span { font-weight: 600; } .fin-net-h b { font-size: 20px; }
+.fin-net ul { list-style: none; margin: 6px 0 0; padding: 0; } .fin-net li { display: flex; justify-content: space-between; gap: 10px; padding: 5px 0; border-top: 1px solid var(--line); font-size: 14px; }
+.fin-net li span small { display: block; font-size: 12px; color: var(--muted); } .fin-net li b { white-space: nowrap; }
 .fin-c span { display: block; font-size: 14px; color: var(--muted); } .fin-c span small { font-size: 12px; }
 .fin-c > b { display: block; font-size: 22px; line-height: 1.25; color: var(--ink); white-space: nowrap; } .fin-c.bad > b { color: var(--red); }
 .fin-c > small { display: block; font-size: 13px; line-height: 1.4; color: var(--text); }
