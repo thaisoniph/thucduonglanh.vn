@@ -749,6 +749,8 @@ Code `api/src/mktg.js`. Dùng bot ✅ Việc tuần (giaoviec.js, đã có webho
 - **Chưa làm (đợt 2–3)**: trang /dai-ly/ đăng ký, mục 🏪 ở Tổng quan, tự cộng thưởng sale vào bảng lương, đại lý tự đặt hàng. Chưa kiểm tra kỹ đơn đại lý rơi vào mảng nào ở các biểu đồ theo mảng của Tổng quan (nhiều khả năng cùng mảng đơn nhập tay của văn phòng). Đơn của số đại lý nhập từ file Google Sheet của sale (không qua form CRM) vẫn tính cho sale đó.
 - Hướng dẫn nhân sự: `guide/dai-ly.md`.
 
+- 23/11: anh Sơn chọn **chị Thủy phụ trách đại lý**. Tên người phụ trách lưu ở `dl_cfg.lead` (mặc định 'Thủy', Quản trị sửa ở ⚙️ Mức chiết khấu), hiện ở Cài đặt → 🏪, hồ sơ khách đại lý và câu báo lỗi khi sale lên đơn thấp hơn giá đại lý.
+
 ## 7. Tên miền, DNS, chuyển hướng
 
 - Nameserver: `liberty.ns.cloudflare.com`, `randy.ns.cloudflare.com`. **Mọi thay đổi DNS làm trên Cloudflare**, không làm ở Tenten.

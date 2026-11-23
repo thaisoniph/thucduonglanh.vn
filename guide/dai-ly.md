@@ -11,6 +11,8 @@ roles: [sale, ql]
 
 > **Một câu dễ nhớ:** Đại lý **mua về tự bán**. Bạn lên đơn như khách thường, CRM **tự trừ chiết khấu**.
 
+> 👩‍💼 **Chị Thủy phụ trách đại lý:** thêm đại lý mới, chăm sóc đại lý, duyệt khi cần giảm thêm. Bạn gặp người muốn làm đại lý thì báo chị Thủy (ghi tên bạn để nhận thưởng giới thiệu).
+
 ## Đại lý là ai, khác CTV thế nào
 
 | | 🤝 Cộng tác viên (CTV) | 🏪 Đại lý |

@@ -14,7 +14,7 @@ import { staffOf, staffHit } from './partner.js';
 export const DL_SELLER = 'Kênh đại lý';
 const CFG_DEF = {
   tiers: [{ name: 'Đại lý', pct: 30, min: 5000000 }, { name: 'Đại lý Bạc', pct: 35, min: 15000000 }, { name: 'Nhà phân phối tỉnh', pct: 40, min: 50000000 }],
-  first: 5000000, top3: 3, bonus: 3, bonusMonths: 3
+  first: 5000000, top3: 3, bonus: 3, bonusMonths: 3, lead: 'Thủy'
 };
 const COMPANY = { name: 'CÔNG TY TNHH TẬP ĐOÀN VITAGREEN NUTRITION', mst: '0111053409', addr: 'HA10-SP8A-15, Đường Hải Âu 8A, KĐT Vinhomes Ocean Park, Gia Lâm, TP. Hà Nội', hotline: '0966 326 522', rep: 'Nguyễn Văn Hiếu', repTitle: 'Giám đốc' };
 
@@ -57,7 +57,7 @@ export async function dlMap(x) {
   keys.forEach(ph => {
     const mine = os.filter(o => o.ph === ph), bm = {}; mine.forEach(o => { const mk = ym(o.t); bm[mk] = (bm[mk] || 0) + o.list; });
     const tr = tierOf(cfg, L[ph], bm, k), T = cfg.tiers[tr - 1];
-    out[ph] = { tier: tr, name: T.name, pct: T.pct, firstMin: mine.length ? 0 : cfg.first, shop: L[ph].name || '' };
+    out[ph] = { tier: tr, name: T.name, pct: T.pct, firstMin: mine.length ? 0 : cfg.first, shop: L[ph].name || '', lead: cfg.lead || '' };
   });
   return out;
 }
@@ -68,8 +68,8 @@ export async function dlOrderCheck(x, u, phone, items, sub, ship) {
   const m = (await dlMap(x))[phone], list = items.filter(i => !i.gift).reduce((s, i) => s + (Number(i.price) || 0) * (Number(i.qty) || 0), 0);
   if (!list) return { error: 'Đơn đại lý cần sản phẩm có giá niêm yết (chọn sản phẩm trong danh sách gợi ý) để CRM trừ chiết khấu.' };
   const want = Math.round(list * (1 - m.pct / 100));
-  if (u.level < 2 && sub < want - 1000) return { error: 'Tiền hàng ' + fmt(sub) + ' thấp hơn giá đại lý ' + m.name + ' (giá lẻ ' + fmt(list) + ' − ' + m.pct + '% = ' + fmt(want) + '). Muốn giảm thêm thì nhờ quản lý lên đơn.' };
-  if (u.level < 2 && m.firstMin && list < m.firstMin) return { error: 'Đại lý nhập lần đầu tối thiểu ' + fmt(m.firstMin) + ' (tính theo giá lẻ). Đơn này giá lẻ ' + fmt(list) + '. Thêm hàng, hoặc nhờ quản lý lên đơn.' };
+  if (u.level < 2 && sub < want - 1000) return { error: 'Tiền hàng ' + fmt(sub) + ' thấp hơn giá đại lý ' + m.name + ' (giá lẻ ' + fmt(list) + ' − ' + m.pct + '% = ' + fmt(want) + '). Muốn giảm thêm thì nhờ ' + (m.lead ? 'chị ' + m.lead + ' (phụ trách đại lý)' : 'quản lý') + ' lên đơn.' };
+  if (u.level < 2 && m.firstMin && list < m.firstMin) return { error: 'Đại lý nhập lần đầu tối thiểu ' + fmt(m.firstMin) + ' (tính theo giá lẻ). Đơn này giá lẻ ' + fmt(list) + '. Thêm hàng, hoặc nhờ ' + (m.lead ? 'chị ' + m.lead + ' (phụ trách đại lý)' : 'quản lý') + ' lên đơn.' };
   return { list, pct: m.pct, tierName: m.name, want, note: '🏪 Đơn đại lý ' + m.name + ' −' + m.pct + '% (giá lẻ ' + fmt(list) + ') · ' + u.name + ' lên đơn' };
 }
 /** Ghi giá lẻ của đơn đại lý vừa tạo. */
@@ -133,8 +133,9 @@ export async function crmDaily(x, u, d, log, staffNames) {
     if (!(tiers[1].pct >= tiers[0].pct && tiers[2].pct >= tiers[1].pct)) return { ok: false, error: 'Chiết khấu bậc sau không thấp hơn bậc trước.' };
     const firstMin = Math.round(Number(d.first) || 0), bonus = Number(d.bonus), bonusMonths = Math.round(Number(d.bonusMonths)), top3 = Math.round(Number(d.top3));
     if (!(firstMin >= 0) || !(bonus >= 0 && bonus <= 10) || !(bonusMonths >= 0 && bonusMonths <= 24) || !(top3 >= 1 && top3 <= 12)) return { ok: false, error: 'Kiểm tra lại: thưởng sale 0–10%, 0–24 tháng; số tháng liền để lên bậc 3 từ 1–12.' };
-    await kvSet(x.db, 'dl_cfg', JSON.stringify({ tiers, first: firstMin, bonus, bonusMonths, top3 }));
-    await log(x, u, 'Cài đặt đại lý', '', '', tiers.map(r => r.name + ' ' + r.pct + '% từ ' + fmt(r.min)).join(' · '), 'đơn đầu ' + fmt(firstMin) + ' · thưởng sale ' + bonus + '% ' + bonusMonths + ' tháng');
+    const lead = d.lead == null ? (await dlCfg(x)).lead : String(d.lead).trim().slice(0, 40);
+    await kvSet(x.db, 'dl_cfg', JSON.stringify({ tiers, first: firstMin, bonus, bonusMonths, top3, lead }));
+    await log(x, u, 'Cài đặt đại lý', '', '', tiers.map(r => r.name + ' ' + r.pct + '% từ ' + fmt(r.min)).join(' · '), 'phụ trách ' + (lead || '—') + ' · đơn đầu ' + fmt(firstMin) + ' · thưởng sale ' + bonus + '% ' + bonusMonths + ' tháng');
     return dlView(x, u);
   }
   return { ok: false, error: 'Không rõ thao tác: ' + a };
