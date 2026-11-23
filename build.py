@@ -638,7 +638,7 @@ def footer():
     about = "".join(f'<li><a href="{h}">{l}</a></li>' for l, h, _ in NAV)
     if BROCHURE:
         about = about.replace('<li><a href="/gioi-thieu/">Giới Thiệu</a></li>', f'<li><a href="/gioi-thieu/">Giới Thiệu</a></li><li><a href="{BR_PATH}">Hồ sơ thương hiệu</a></li>')
-    bct = f'<a href="{esc(SITE["bo_cong_thuong_url"])}" target="_blank" rel="noopener" class="bct"><img src="/assets/img/brand/bo-cong-thuong.png" alt="{t("Đã thông báo Bộ Công Thương")}" width="150" loading="lazy"></a>' if SITE.get("bo_cong_thuong_url") else ""
+    bct = f'<a href="{esc(SITE["bo_cong_thuong_url"])}" target="_blank" rel="noopener" class="bct" title="{t("Đã xác nhận với Bộ Công Thương")}"><img src="https://fileserver.online.gov.vn/uploads/Resources/iconxacnhan/DaThongBao.png" alt="{t("Đã xác nhận với Bộ Công Thương")}" style="height:44px;width:auto" loading="lazy"></a>' if SITE.get("bo_cong_thuong_url") else ""
     if IS_VI:
         about += (f'<li><a href="{REF_PATH}">Giới thiệu bạn bè, <span style="white-space:nowrap">nhận quà</span> <small style="white-space:nowrap">(khách đã mua)</small></a></li>' if REF_PATH else "") + (f'<li><a href="{CTVJ_PATH}">Làm cộng tác viên, <span style="white-space:nowrap">nhận hoa hồng</span></a></li>' if CTVJ_PATH else "") + '<li><a href="https://congsu.thucduonglanh.vn/" target="_blank" rel="noopener">Tuyển dụng</a></li>'
     year = datetime.date.today().year

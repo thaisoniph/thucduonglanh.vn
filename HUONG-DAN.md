@@ -809,7 +809,7 @@ Hai cách đều đổ về nhánh `main` trên GitHub → GitHub tự đăng ph
 
 ## 9. Việc nên làm tiếp
 
-- Khai báo website với Bộ Công Thương (online.gov.vn) → điền `bo_cong_thuong_url` trong `data/config.json`, đặt logo tại `assets/img/brand/bo-cong-thuong.png`.
+- Website đã được Bộ Công Thương xác nhận (23/11/2026): link ở `bo_cong_thuong_url` trong `data/config.json`, logo lấy thẳng từ fileserver.online.gov.vn (trong `footer()` của build.py).
 - Gửi mã Meta Pixel / TikTok Pixel khi có tài khoản quảng cáo.
 - Brochure PDF/Heyzine còn hotline cũ 0896 869 333 (trang 32) và câu công dụng DILVANG (trang 19) – sửa ở bản thiết kế mới.
 - Bổ sung ảnh + thông tin 4 sản phẩm: Trà Mâm Xôi, Bột Đậu Xanh Rau Má, Gafo Fucoidan, Fucoidan Progomax.
