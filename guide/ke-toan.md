@@ -428,6 +428,8 @@ Mục **👥 Bảng lương tháng** trên tab 💼 Kế toán. Bạn chỉ nh�
 
 **Hoa hồng sale** do máy tự tính từ đơn hàng. Bạn không thấy đủ đơn nên máy lấy số khi anh Sơn hoặc chị Thủy mở mục này. Nếu dòng sale báo "chưa có hoa hồng", nhắn anh / chị mở CRM 1 lần.
 
+**Thưởng giới thiệu đại lý** (sale giới thiệu được đại lý, 3% tiền đại lý nhập trong 3 tháng đầu) máy cũng tự cộng vào cột **Hoa hồng**, phiếu lương ghi rõ dòng "Thưởng giới thiệu đại lý". Bạn không cần nhập vào ô Thưởng nữa. Khi bảng lương được duyệt, số này được chốt lại.
+
 ### Lương thực trả từ file Tính lương
 
 Bạn vẫn tính lương trong file Google Sheet **Quản lý Nội Bộ** (tab **Tính lương**) như cũ. Mỗi tháng sau khi chi lương (ngày 10), cho CRM đọc file 1 lần:

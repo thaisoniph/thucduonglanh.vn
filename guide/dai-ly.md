@@ -93,7 +93,7 @@ Vào **⚙️ Cài đặt → 🌐 Website & khuyến mãi → 🏪 Đại lý �
 2. Mỗi đại lý có 1 thẻ: bậc đang được, tiền nhập tháng này, **còn bao nhiêu nữa để lên bậc**.
 3. Thẻ có ⚠️ **30 ngày chưa nhập hàng** → gọi hỏi đại lý bán thế nào, cần hỗ trợ gì.
 4. Nút **📄 Hợp đồng**: mở hợp đồng phân phối điền sẵn tên, bậc, 6 luật. Sửa chữ được, bấm **🖨 In**. Nên nhờ kế toán xem lại trước khi ký.
-5. Khung **🙋 Thưởng sale giới thiệu đại lý**: tiền thưởng từng sale tháng này / tháng trước. Gửi số này cho kế toán cộng vào ô thưởng ở bảng lương.
+5. Khung **🙋 Thưởng sale giới thiệu đại lý**: tiền thưởng từng sale tháng này / tháng trước. Số này **tự cộng vào bảng lương** (cột Hoa hồng, phiếu lương ghi rõ), không cần gửi kế toán. Đơn đại lý huỷ / hoàn không tính.
 
 Đổi mức chiết khấu: nút **⚙️ Mức chiết khấu** (chỉ Quản trị).
 

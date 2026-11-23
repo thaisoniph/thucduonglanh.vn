@@ -7910,6 +7910,7 @@
       var k = lgtKpi(mo, p.name); if (k) { main = lgtR(k.v * ratio); how = 'KPI ' + k.t + ' → ' + moneyShort(k.v); }
       else { main = lgtR(p.base * ratio); W.push('KPI tháng chưa chốt, tạm tính theo lương cơ bản'); }
     } else main = lgtR(p.base * ratio);
+    var dlb = Math.round(((D.dlb || {})[p.name]) || 0); comm += dlb; // 🏪 thưởng giới thiệu đại lý (máy chủ tính, mọi loại lương)
     if (!main && p.kind !== 'sale') W.push('chưa có lương cơ bản');
     if (I.cong == null || I.cong === '') W.push('chưa nhập công (tạm tính đủ ' + std + ' công)');
     var ccLost = (+I.kp || 0) > 0 || (+I.phep || 0) > (C.ccOff || 0) || (+I.late || 0) > (C.ccLate || 0), cc = ccLost ? 0 : p.cc || 0;
@@ -7917,7 +7918,7 @@
     var gross = main + comm + cc + pa + (p.other || 0) + (I.thuong || 0) - (I.phat || 0) - late;
     var bh = Math.round((p.bh || 0) * (C.bhPct || 0) / 100), net = gross - bh - (I.thue || 0) - (I.ung || 0);
     if (net < 0) W.push('thực lĩnh âm: tạm ứng nhiều hơn lương');
-    return { p: p, I: I, A: A, cong: cong, std: std, main: main, comm: comm, cc: cc, ccLost: ccLost && !!p.cc, pa: pa, other: p.other || 0, thuong: I.thuong || 0, phat: I.phat || 0, late: late, gross: gross, bh: bh, thue: I.thue || 0, ung: I.ung || 0, net: net, how: how, W: W };
+    return { p: p, I: I, A: A, cong: cong, std: std, main: main, comm: comm, dlb: dlb, cc: cc, ccLost: ccLost && !!p.cc, pa: pa, other: p.other || 0, thuong: I.thuong || 0, phat: I.phat || 0, late: late, gross: gross, bh: bh, thue: I.thue || 0, ung: I.ung || 0, net: net, how: how, W: W };
   }
   function lgtRows(mo) { return lgtStaff().filter(function (p) { return p.on !== false; }).map(function (p) { return lgtCalc(p, mo); }); }
   function lgtST(row) { return row.st === 'duyet' ? '✅ Đã duyệt' + (row.stBy ? ' bởi ' + row.stBy : '') : row.st === 'trinh' ? '📨 Đã trình' + (row.stBy ? ' (' + row.stBy + ')' : '') + ', chờ duyệt' : '✏️ Đang nhập'; }
@@ -8024,7 +8025,8 @@
   }
   function lgtSlipText(r, mo) {
     var L = ['PHIẾU LƯƠNG ' + kptMl(mo).toUpperCase() + ' – ' + r.p.name, 'Ngày công: ' + r.cong + '/' + r.std, 'Lương chính: ' + money(r.main) + (r.how ? ' (' + r.how + ')' : '')];
-    if (r.A && r.comm) L.push('Hoa hồng + thưởng doanh số: ' + money(r.comm) + ' (hoa hồng ' + money(r.A.comm) + (r.A.sen ? ', thâm niên ' + money(r.A.sen) : '') + (r.A.bon ? ', thưởng khách tự mang về ' + money(r.A.bon) : '') + ')');
+    if (r.A && r.comm - r.dlb) L.push('Hoa hồng + thưởng doanh số: ' + money(r.comm - r.dlb) + ' (hoa hồng ' + money(r.A.comm) + (r.A.sen ? ', thâm niên ' + money(r.A.sen) : '') + (r.A.bon ? ', thưởng khách tự mang về ' + money(r.A.bon) : '') + ')');
+    if (r.dlb) L.push('Thưởng giới thiệu đại lý: ' + money(r.dlb) + ' (từ đại lý bạn giới thiệu, tự tính trong CRM)');
     if (r.p.cc) L.push('Chuyên cần: ' + (r.ccLost ? '0đ (nghỉ / đi muộn quá quy định)' : money(r.cc)));
     if (r.pa) L.push('Phụ cấp theo công (xăng, ăn, điện thoại): ' + money(r.pa));
     if (r.other) L.push('Phụ cấp khác: ' + money(r.other));
@@ -17355,7 +17357,7 @@
       var bk = function (k, t) { var b = j.bonus[k] || {}, ks = Object.keys(b); return ks.length ? '<p class="small" style="margin:4px 0">' + t + ': ' + ks.map(function (n) { return esc(n) + ' <b>' + money(b[n]) + '</b>'; }).join(' · ') + '</p>' : ''; };
       var bh = bk(j.month, 'Tháng này') + bk(j.prev, 'Tháng trước');
       h += '<div class="box" style="margin-top:12px"><h3>🙋 Thưởng sale giới thiệu đại lý</h3>' + (bh || '<p class="small muted" style="margin:0">Chưa có. Khi thêm đại lý, chọn sale đã giới thiệu: CRM tự tính ' + cfg.bonus + '% tiền nhập trong ' + cfg.bonusMonths + ' tháng đầu.</p>') +
-        '<p class="hint" style="margin:6px 0 0">Quản lý gửi số này cho kế toán cộng vào ô thưởng ở bảng lương tháng (đợt 1 chưa tự cộng).</p></div>';
+        '<p class="hint" style="margin:6px 0 0">Số này tự cộng vào cột Hoa hồng ở 💼 Kế toán → 👥 Bảng lương tháng (ghi rõ trên phiếu lương), không cần nhập tay.</p></div>';
       if (aOld.length) h += '<details class="box" style="margin-top:12px"><summary><b>📝 Đăng ký đã xử lý gần đây (' + aOld.length + ')</b></summary>' + aOld.map(function (a) { return '<div class="small" style="margin:6px 0">' + (a.st === 'ok' ? '✅' : '✕') + ' <b>' + esc(a.name) + '</b> ' + esc(fPhone(a.phone)) + ' · ' + esc(a.area || '') + ' · ' + esc(a.doneBy || '') + ' ' + (a.doneAt ? fDate(a.doneAt) : '') + (a.reason ? ' · ' + esc(a.reason) : '') + '</div>'; }).join('') + '</details>';
       box().innerHTML = h;
       $$('[data-dlyok]', m).forEach(function (b) { b.onclick = function () { var a = aNew.filter(function (z) { return z.id === b.getAttribute('data-dlyok'); })[0]; edit(null, a); }; });

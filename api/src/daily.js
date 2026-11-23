@@ -190,6 +190,19 @@ export async function dlOrderWeb(x, d, h) {
   return { ok: true, id, total: paid, list, pct, off: list - paid };
 }
 
+/** 🙋 Thưởng sale giới thiệu: bonus% tiền đại lý trả (không ship) các đơn trong bonusMonths tháng từ đơn đầu, gộp theo tháng của đơn. */
+function bonusAdd(out, cfg, e, mine) {
+  const first0 = mine.length ? mine[0].t : 0; if (!e.by || !first0) return;
+  mine.forEach(o => { if (o.t < first0 + cfg.bonusMonths * 30.5 * DAY) { const mk = ym(o.t), m = out[mk] = out[mk] || {}; m[e.by] = (m[e.by] || 0) + Math.round(o.paid * cfg.bonus / 100); } });
+}
+/** Bảng lương (luong.js): thưởng giới thiệu đại lý của tháng `month` ('yyyy-MM') → {tên nhân sự: tiền}. Đơn huỷ / hoàn không tính. */
+export async function dlBonusMonth(x, month) {
+  const L = await dlList(x), phones = Object.keys(L).filter(ph => L[ph].by); if (!phones.length) return {};
+  const cfg = await dlCfg(x), os = await dlOrders(x), out = {};
+  phones.forEach(ph => bonusAdd(out, cfg, L[ph], os.filter(o => o.ph === ph)));
+  return out[month] || {};
+}
+
 /** Màn 🏪 Đại lý: danh sách, bậc, tiền theo tháng, thưởng sale giới thiệu. */
 async function dlView(x, u) {
   const cfg = await dlCfg(x), L = await dlList(x), os = await dlOrders(x), now = Date.now(), k = ym(now), kp = ymShift(k, -1);
@@ -200,7 +213,7 @@ async function dlView(x, u) {
     const e = L[ph], mine = os.filter(o => o.ph === ph), bm = {}, pm = {};
     mine.forEach(o => { const mk = ym(o.t); bm[mk] = (bm[mk] || 0) + o.list; pm[mk] = (pm[mk] || 0) + o.paid; });
     const tr = tierOf(cfg, e, bm, k), T = cfg.tiers[tr - 1], next = tierOf(cfg, Object.assign({}, e, { fix: 0 }), bm, ymShift(k, 1)), first0 = mine.length ? mine[0].t : 0;
-    if (e.by && first0) mine.forEach(o => { if (o.t < first0 + cfg.bonusMonths * 30.5 * DAY) { const mk = ym(o.t); (bonusOf[mk] = bonusOf[mk] || {})[e.by] = ((bonusOf[mk] || {})[e.by] || 0) + Math.round(o.paid * cfg.bonus / 100); } });
+    bonusAdd(bonusOf, cfg, e, mine);
     const last = mine.length ? mine[mine.length - 1].t : 0;
     return { ph, name: e.name || (C[ph] && C[ph].name) || '', cname: (C[ph] && C[ph].name) || '', area: e.area || (C[ph] && C[ph].province) || '', by: e.by || '', at: e.at || 0, fix: Number(e.fix) || 0, note: e.note || '',
       tier: tr, tierName: T.name, pct: T.pct, nextTier: next, key: e.key || '', thisList: bm[k] || 0, thisPaid: pm[k] || 0, prevList: bm[kp] || 0, allPaid: mine.reduce((s, o) => s + o.paid, 0), n: mine.length, first: first0, last, idle: last ? Math.floor((now - last) / DAY) : null,

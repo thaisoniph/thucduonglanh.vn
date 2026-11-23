@@ -3,6 +3,7 @@
 // - kv luong_cfg: {std: công chuẩn, bhPct: % người lao động đóng BH, ccOff: số buổi nghỉ có phép vẫn giữ chuyên cần, ccLate: số lần đi muộn vẫn giữ, lateFee: tiền trừ / lần đi muộn, prorate: lương cứng sale chia theo công}.
 // - Bảng luong_th: 1 dòng / tháng. inp = {tên: {cong, phep, kp, late, thuong, phat, ung, thue, note}} kế toán nhập.
 //   auto = {tên: {fixed, comm, sen, bon, rev, tier}} hoa hồng sale do CRM của Quản lý / Quản trị tính (kế toán không thấy đơn đầy đủ nên không tự tính được).
+//   dlb (trả kèm list) = {tên: tiền} thưởng sale giới thiệu đại lý của tháng (daily.js dlBonusMonth), CRM cộng vào cột Hoa hồng; duyệt thì chốt ở kv luong_dlb_<tháng>.
 //   st = '' (đang nhập) | 'trinh' (đã trình) | 'duyet' (đã duyệt, khoá sửa).
 // - kv luong_real (16/11/2026, anh Sơn gửi file "Quản lý Nội Bộ" của Trang): lương THỰC TRẢ từng tháng đọc từ tab "Tính lương".
 //   {tháng: {tên trong file: {u: tên CRM, g: nhóm, cong, std, dt, cb, kpi, hh, pc, tn, bhc, bhn, ung}}} – tn = tổng thu nhập chưa BH, bhc = phụ cấp BH trả tiền mặt (+), bhn = trích BH người lao động (−).
@@ -10,6 +11,7 @@
 // - Cộng trừ ra thực lĩnh ở CRM (lgCalc trong crm/app.js), máy chủ chỉ lưu. Không lưu số tài khoản ngân hàng.
 import { all, run, kvJson, kvSet } from './lib.js';
 import { telegramTo } from './google.js';
+import { dlBonusMonth } from './daily.js'; // 🏪 thưởng sale giới thiệu đại lý (23/11/2026): tự cộng vào bảng lương
 
 export const LG_CFG = { std: 26, bhPct: 10.5, ccOff: 1, ccLate: 3, lateFee: 0, prorate: 1 };
 const KINDS = { sale: 1, kpi: 1, fix: 1 };
@@ -75,7 +77,10 @@ export async function crmLuong(x, u, d, log, users) {
   const list = async m => {
     const cfg = Object.assign({}, LG_CFG, await kvJson(x.db, 'luong_cfg', null) || {});
     const crm = (users || []).filter(z => z.active).map(z => ({ name: z.name, full: z.full || '', role: z.role, joined: z.joined || '' }));
-    return { ok: true, cfg, staff: await staffOf(), crm, real: await kvJson(x.db, 'luong_real', null) || {}, realLink: await kvJson(x.db, 'luong_link', null) || {}, row: await getRow(m || month) || { month: m || month, inp: {}, auto: {}, st: '' }, can: { mgr, ceo: u.level >= 3 && !kt, kt } };
+    const mm = m || month, r0 = await getRow(mm);
+    // 🏪 thưởng giới thiệu đại lý: tính lại mỗi lần mở; bảng đã duyệt thì dùng số đã chốt lúc duyệt (kv luong_dlb_<tháng>)
+    const dlb = r0 && r0.st === 'duyet' ? await kvJson(x.db, 'luong_dlb_' + mm, null) || {} : await dlBonusMonth(x, mm).catch(e => { console.error('dlBonus', e.message); return {}; });
+    return { ok: true, cfg, staff: await staffOf(), crm, dlb, real: await kvJson(x.db, 'luong_real', null) || {}, realLink: await kvJson(x.db, 'luong_link', null) || {}, row: await getRow(m || month) || { month: m || month, inp: {}, auto: {}, st: '' }, can: { mgr, ceo: u.level >= 3 && !kt, kt } };
   };
   if (op === 'list') return list();
   const row = MON.test(month) ? await getRow(month) : null, locked = row && row.st === 'duyet';
@@ -122,6 +127,7 @@ export async function crmLuong(x, u, d, log, users) {
     else if (st === 'duyet' || st === '') { if (!mgr) return { ok: false, error: 'Chỉ Quản lý / Quản trị duyệt hoặc mở lại bảng lương.' }; }
     else return { ok: false, error: 'Không rõ trạng thái.' };
     await ensure(); await run(x.db, 'UPDATE luong_th SET st = ?, st_by = ?, st_at = ? WHERE month = ?', st, u.name, now, month);
+    if (st === 'duyet') await kvSet(x.db, 'luong_dlb_' + month, JSON.stringify(await dlBonusMonth(x, month).catch(() => ({})))); // chốt thưởng đại lý lúc duyệt
     const ml = 'tháng ' + (+month.slice(5)) + '/' + month.slice(0, 4), sum = d.sum ? ' (' + txt(d.sum, 80) + ')' : '';
     await log(x, u, 'Kế toán', '-', '', (st === 'trinh' ? 'Trình' : st === 'duyet' ? 'Duyệt' : 'Mở lại') + ' bảng lương ' + ml + sum, '');
     const to = (users || []).filter(z => z.active && z.tg && z.name !== u.name && (st === 'trinh' ? z.role === 'Quản trị' || z.role === 'Quản lý' : z.role === 'Kế toán'));
