@@ -1410,6 +1410,85 @@
       }, function () { btn.disabled = false; err('Mạng chập chờn, bạn bấm gửi lại nhé.'); });
     });
   }
+  /** 🛒 Đại lý tự đặt hàng /dai-ly/dat-hang/#<link riêng> (đợt 3, 23/11/2026): api daily.js dlMe (bậc, giá) → dlOrderWeb (máy chủ tự tính tiền theo /dl-gia.json). */
+  function initDlOrder() {
+    var box = $('#dlOrder'); if (!box || !CFG.endpoint) return;
+    var key = String(location.hash || '').replace(/^#k?=?/, '').replace(/[^a-f0-9]/g, '') || load('tdl_dl_key', '');
+    var msg = $('[data-dlo-msg]', box), out = $('[data-dlo-out]', box);
+    if (location.hash) try { history.replaceState(null, '', location.pathname); } catch (e) { }
+    if (!key) { msg.innerHTML = 'Bạn mở trang này bằng <b>link đặt hàng riêng</b> mà ' + esc(CFG.brand) + ' gửi qua Zalo nhé. Chưa có link thì nhắn Zalo ' + esc(CFG.hotline) + '.'; return; }
+    var post = function (b) { return fetch(CFG.endpoint, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(b) }).then(function (r) { return r.json(); }); };
+    var d2 = function (t) { var x = new Date(t); return ('0' + x.getDate()).slice(-2) + '/' + ('0' + (x.getMonth() + 1)).slice(-2) + '/' + x.getFullYear(); };
+    var tic = ['🏪', '🥈', '🥇'];
+    post({ type: 'dl_me', key: key }).then(function (j) {
+      if (!j || !j.ok) { if (j && j.bad) try { localStorage.removeItem('tdl_dl_key'); } catch (e) { } msg.textContent = (j && j.error) || 'Chưa tải được, bạn thử lại nhé.'; return; }
+      save('tdl_dl_key', key); msg.hidden = true; track('dl_view', { tier: j.tier });
+      $('[data-dlo-h]').innerHTML = 'Chào ' + String(j.shop || j.name).split(' – ').map(function (x) { return '<span class="nw">' + esc(x) + '</span>'; }).join(' – ') + '!'; // không ngắt giữa tên cửa hàng / tên người
+      var need = Math.max(j.firstMin || 0, j.selfMin || 0), lead = j.lead ? 'chị ' + j.lead : 'người phụ trách đại lý';
+      var prog = j.fixed ? 'Bậc này được giữ cố định cho bạn.' : j.nextTier > j.tier ? '🎉 Tháng sau bạn lên <b>' + esc(j.nextName) + ' −' + j.nextPct + '%</b>.' : j.nextTier < j.tier ? '⚠️ Nhập thêm <b>' + money(Math.max(0, j.tiers[j.tier - 1].min - j.thisList)) + '</b> (giá lẻ) trong tháng này để tháng sau giữ <b>' + esc(j.tierName) + ' −' + j.pct + '%</b>.' : j.tier < 2 && j.toT2 > 0 ? 'Nhập thêm <b>' + money(j.toT2) + '</b> (giá lẻ) trong tháng này để tháng sau lên <b>' + esc(j.tiers[1].name) + ' −' + j.tiers[1].pct + '%</b>.' : '';
+      var rows = j.items.map(function (i) {
+        return '<div class="dlo-it" data-id="' + esc(i.id) + '">' + (i.img ? '<img src="' + esc(i.img) + '" alt="" width="56" height="56" loading="lazy">' : '<span class="dlo-noimg"></span>') +
+          '<div class="dlo-nm"><b>' + esc(i.name) + '</b><small>' + esc(i.variant) + '</small><span class="dlo-pr"><s>' + money(i.price) + '</s> <b>' + money(i.dl) + '</b></span></div>' +
+          '<div class="dlo-q"><button type="button" class="btn ghost" data-m aria-label="Bớt 1">−</button><input type="number" inputmode="numeric" min="0" max="2000" value="0" aria-label="Số lượng ' + esc(i.name + ' ' + i.variant) + '"><button type="button" class="btn ghost" data-p aria-label="Thêm 1">+</button></div></div>';
+      }).join('');
+      var a = j.addr || {}, st = { 'Mới': '🕐 Chờ xác nhận', 'Đã xác nhận': '✅ Đã xác nhận', 'Đang giao': '🚚 Đang giao', 'Đã giao': '📦 Đã giao', 'Huỷ': '✖ Huỷ' };
+      out.innerHTML = '<div class="dlo-tier"><span class="dlo-tic">' + (tic[j.tier - 1] || '🏪') + '</span><div><small>Bậc của bạn tháng này</small><b>' + esc(j.tierName) + ' · −' + j.pct + '%</b>' +
+          '<p>Tháng này đã nhập <b>' + money(j.thisList) + '</b> (giá lẻ)' + (j.prevList ? ' · tháng trước ' + money(j.prevList) : '') + '. ' + prog + '</p></div></div>' +
+        '<p class="dlo-min">' + (j.firstMin ? '🚀 Lần nhập đầu tối thiểu <b>' + money(j.firstMin) + '</b> (giá lẻ).' : '📦 Mỗi đơn từ <b>' + money(j.selfMin) + '</b> (giá lẻ).') + ' Miễn phí ship, chuyển khoản trước.</p>' +
+        '<p class="rf-eye">1. Chọn số lượng</p><div class="dlo-list">' + rows + '</div>' +
+        '<form class="plg-form dlo-form" data-dlo-form novalidate><p class="rf-eye">2. Nhận hàng ở đâu?</p>' +
+          '<label class="plg-f"><span>Người nhận</span><input name="name" maxlength="80" value="' + esc(a.name || j.name || '') + '"></label>' +
+          '<label class="plg-f"><span>Số nhà, đường, thôn / xóm *</span><input name="address" maxlength="200" value="' + esc(a.address || '') + '"></label>' +
+          '<div class="dlo-2"><label class="plg-f"><span>Phường / xã</span><input name="ward" maxlength="80" value="' + esc(a.ward || '') + '"></label><label class="plg-f"><span>Tỉnh / thành *</span><input name="province" maxlength="60" value="' + esc(a.province || '') + '"></label></div>' +
+          '<label class="plg-f"><span>Ghi chú cho người phụ trách</span><input name="note" maxlength="300" placeholder="Ví dụ: giao giờ hành chính, cần xuất hoá đơn…"></label>' +
+          '<input type="text" name="website" tabindex="-1" autocomplete="off" class="hp" aria-hidden="true">' +
+          '<div class="dlo-sum" data-dlo-sum></div>' +
+          '<button class="btn btn-lg plg-submit" type="submit" data-cta="dl_order">🛒 Gửi đơn nhập hàng</button><p class="form-msg" data-dlo-fmsg role="status"></p></form>' +
+        '<div class="cj-done" data-dlo-done hidden></div>' +
+        (j.orders.length ? '<p class="rf-eye" style="margin-top:18px">🧾 Đơn đã nhập gần đây</p><div class="ctv-list">' + j.orders.map(function (o) { return '<div class="ctv-o"><span><b>' + esc(o.id) + '</b><small>' + d2(o.time) + '</small></span><span><b>' + money(o.total) + '</b><small>' + esc(st[o.status] || o.status) + '</small></span></div>'; }).join('') + '</div>' : '') +
+        '<p class="small muted" style="margin-top:14px">Cần đổi bậc, đặt số lượng lớn hay hỏi gì, bạn nhắn ' + esc(lead) + ' qua Zalo <a href="https://zalo.me/' + CFG.zalo + '" target="_blank" rel="noopener">' + esc(CFG.hotline) + '</a>.</p>';
+      out.hidden = false;
+      var f = $('[data-dlo-form]', out), sum = $('[data-dlo-sum]', out), fmsg = $('[data-dlo-fmsg]', out), btn = f.querySelector('button[type=submit]');
+      var byId = {}; j.items.forEach(function (i) { byId[i.id] = i; });
+      var pick = function () { return $$('.dlo-it', out).map(function (r) { return { id: r.getAttribute('data-id'), qty: Math.max(0, Math.min(2000, parseInt($('input', r).value, 10) || 0)) }; }).filter(function (i) { return i.qty > 0; }); };
+      var calc = function () {
+        var ls = pick(), list = 0, pay = 0, n = 0;
+        ls.forEach(function (i) { var p = byId[i.id]; list += p.price * i.qty; pay += p.dl * i.qty; n += i.qty; });
+        $$('.dlo-it', out).forEach(function (r) { r.classList.toggle('on', (parseInt($('input', r).value, 10) || 0) > 0); });
+        sum.innerHTML = n ? '<div><span>Giá lẻ (' + n + ' sản phẩm)</span><b>' + money(list) + '</b></div><div><span>Chiết khấu −' + j.pct + '%</span><b>−' + money(list - pay) + '</b></div><div class="dlo-tot"><span>Bạn chuyển khoản</span><b>' + money(pay) + '</b></div>' +
+          (list < need ? '<p class="dlo-warn">Còn thiếu <b>' + money(need - list) + '</b> (giá lẻ) để đủ mức ' + (j.firstMin ? 'nhập lần đầu' : 'tối thiểu mỗi đơn') + '.</p>' : '<p class="dlo-ok">Bán đúng giá web, bạn lãi khoảng <b>' + money(list - pay) + '</b>.</p>') : '<p class="muted">Chọn số lượng ở trên, tiền tự tính ở đây.</p>';
+        return { ls: ls, list: list, pay: pay };
+      };
+      $$('.dlo-it', out).forEach(function (r) {
+        var inp = $('input', r), step = function (k) { inp.value = Math.max(0, (parseInt(inp.value, 10) || 0) + k); calc(); };
+        $('[data-m]', r).onclick = function () { step(-1); }; $('[data-p]', r).onclick = function () { step(1); }; inp.oninput = calc;
+        inp.onfocus = function () { if (inp.value === '0') inp.select(); };
+      });
+      calc();
+      var err = function (t, el) { fmsg.textContent = t; fmsg.className = 'form-msg err'; if (el) el.focus(); };
+      f.addEventListener('submit', function (e) {
+        e.preventDefault(); fmsg.textContent = '';
+        var c = calc();
+        if (!c.ls.length) return err('Bạn chọn số lượng ít nhất 1 sản phẩm nhé.');
+        if (c.list < need) return err('Đơn còn thiếu ' + money(need - c.list) + ' (giá lẻ) để đủ mức tối thiểu.');
+        if (f.address.value.trim().length < 4) return err('Bạn ghi địa chỉ nhận hàng giúp nhé.', f.address);
+        if (!f.province.value.trim()) return err('Bạn ghi tỉnh / thành giúp nhé.', f.province);
+        if (!confirm('Gửi đơn nhập hàng ' + money(c.pay) + '?')) return;
+        btn.disabled = true; fmsg.textContent = 'Đang gửi…'; fmsg.className = 'form-msg';
+        post({ type: 'dl_order', key: key, items: c.ls, name: f.name.value.trim(), address: f.address.value.trim(), ward: f.ward.value.trim(), province: f.province.value.trim(), note: f.note.value.trim(), website: f.website.value }).then(function (r) {
+          btn.disabled = false;
+          if (!r || !r.ok) return err((r && r.error) || 'Chưa gửi được, bạn thử lại nhé.');
+          track('dl_order', { value: r.total, currency: 'VND', transaction_id: r.id });
+          var b = CFG.bank, qr = b ? '<div class="qr-box"><h3>Quét mã để chuyển khoản</h3><img src="https://img.vietqr.io/image/' + encodeURIComponent(b.bank_id) + '-' + encodeURIComponent(b.account_no) + '-compact2.png?amount=' + r.total + '&addInfo=' + encodeURIComponent(r.id) + '&accountName=' + encodeURIComponent(b.account_name) + '" alt="Mã QR chuyển khoản" width="260" height="300"><p><b>' + esc(b.bank_name) + '</b><br>STK: <b>' + esc(b.account_no) + '</b><br>Chủ TK: ' + esc(b.account_name) + '<br>Số tiền: <b>' + money(r.total) + '</b><br>Nội dung: <b>' + esc(r.id) + '</b></p></div>' : '';
+          var dn = $('[data-dlo-done]', out);
+          dn.innerHTML = '<p class="cj-ic">🎉</p><h2>Đã nhận đơn ' + esc(r.id) + '</h2><p>' + (r.dup ? 'Đơn này bạn đã gửi rồi, không tạo đơn trùng. ' : '') + 'Giá lẻ ' + money(r.list) + ', chiết khấu −' + r.pct + '% → bạn chuyển khoản <b>' + money(r.total) + '</b>. ' + esc(lead.charAt(0).toUpperCase() + lead.slice(1)) + ' sẽ gọi xác nhận, kho gửi hàng khi tiền vào.</p>' + qr +
+            '<p><button type="button" class="btn" data-dlo-again>🛒 Đặt đơn khác</button></p>';
+          f.hidden = true; $('.dlo-list', out).hidden = true; $$('.rf-eye', out)[0].hidden = true; dn.hidden = false; dn.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          $('[data-dlo-again]', dn).onclick = function () { location.reload(); };
+        }, function () { btn.disabled = false; err('Mạng chập chờn, bạn bấm gửi lại nhé (không lo trùng đơn).'); });
+      });
+    }, function () { msg.textContent = 'Mạng chập chờn, bạn tải lại trang nhé.'; });
+  }
   function initThanks() {
     var el = $('#thanksPage'); if (!el) return;
     var o = load('tdl_last_order', null);
@@ -1809,7 +1888,7 @@
     captureSource(); initConsent(); trackPageEvents();
     renderCounts(); renderMini(); markWish();
     initHeader(); initClicks(); initRail(); initLightbox(); initProduct(); initCerts(); initProof(); initTabs(); initReadmore(); initSort();
-    initDD(); initVoucherLink(); initCartPage(); initCartUpsell(); initCheckout(); initThanks(); renderWishPage(); initSearchPage(); initContact(); initGiftForm(); initGiftStatus(); initGiftPop(); initFloat(); initFlipbook(); initJourney(); initJourneyMap(); initPledge(); initRef(); initCtv(); initCtvJoin(); initDlJoin(); initWall(); initWallStrip(); initQuiz(); initGiftDock(); initZaloGate(); initOcx(); initQtet(); initMusic(); initBrandVideo(); initChat(); initLc();
+    initDD(); initVoucherLink(); initCartPage(); initCartUpsell(); initCheckout(); initThanks(); renderWishPage(); initSearchPage(); initContact(); initGiftForm(); initGiftStatus(); initGiftPop(); initFloat(); initFlipbook(); initJourney(); initJourneyMap(); initPledge(); initRef(); initCtv(); initCtvJoin(); initDlJoin(); initDlOrder(); initWall(); initWallStrip(); initQuiz(); initGiftDock(); initZaloGate(); initOcx(); initQtet(); initMusic(); initBrandVideo(); initChat(); initLc();
     window.addEventListener('storage', function (e) { if (e.key === 'tdl_cart') { cart = load('tdl_cart', []); cleanCart(); renderCounts(); renderMini(); } });
   }
   // ===== Hành trình 10 triệu người Việt sống khỏe hơn: bộ đếm [data-jr] + trang "Tôi chọn sống lành" /toi-chon-song-lanh/ (api journey.js) =====

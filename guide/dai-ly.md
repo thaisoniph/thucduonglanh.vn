@@ -97,6 +97,20 @@ Vào **⚙️ Cài đặt → 🌐 Website & khuyến mãi → 🏪 Đại lý �
 
 Đổi mức chiết khấu: nút **⚙️ Mức chiết khấu** (chỉ Quản trị).
 
+## Việc 5 (Quản lý): Gửi link để đại lý tự đặt hàng
+
+Đại lý đã ký thì không cần nhắn sale lên đơn nữa: đại lý tự đặt trên web bằng **link riêng**, giá đã trừ chiết khấu.
+
+1. Mở danh sách đại lý, ở thẻ đại lý bấm **🔗 Link đặt hàng**. CRM copy sẵn tin nhắn kèm link.
+![Thẻ đại lý: nút Link đặt hàng](/huong-dan/img/dl-link.webp)
+2. Dán vào Zalo gửi đại lý. Dặn đại lý **ghim tin nhắn** để lần sau mở lại.
+3. Đại lý mở link sẽ thấy: **(1)** bậc tháng này, còn bao nhiêu để giữ / lên bậc; **(2)** chọn số lượng từng sản phẩm; **(3)** giá lẻ, chiết khấu, số tiền chuyển; **(4)** bấm **Gửi đơn nhập hàng** → trang hiện mã QR chuyển khoản, nội dung là mã đơn (bắt đầu bằng **DL**).
+![Trang đặt hàng của đại lý](/huong-dan/img/dl-dat-hang.webp)
+4. Nhóm Telegram báo **🏪 ĐẠI LÝ TỰ ĐẶT HÀNG**. Người phụ trách gọi xác nhận, thấy tiền vào thì đổi đơn sang **Đã xác nhận** để kho soạn hàng.
+
+> Máy chủ tự tính tiền, tự chặn đơn dưới mức tối thiểu (lần đầu theo mức nhập lần đầu, các lần sau từ 1 triệu giá lẻ, Quản trị đổi ở ⚙️ Mức chiết khấu). Đại lý chỉ đặt được hộp / chai lẻ, không đặt combo.
+> Link bị lộ (đại lý gửi nhầm người khác): bấm **✏️ Sửa → 🔄 Đổi link đặt hàng**, link cũ không mở được nữa, gửi link mới cho đại lý.
+
 ## Anh Sơn xem kết quả kênh đại lý
 
 **Tổng quan → 📈 Doanh số → 🏪 Kênh đại lý**: tiền đại lý nhập, số đơn, số đại lý có nhập / tổng số, chiết khấu đã cho, đại lý nhập nhiều nhất, số đăng ký chờ duyệt.

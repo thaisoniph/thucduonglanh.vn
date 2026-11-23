@@ -2015,6 +2015,46 @@ def page_dl_join():
     return layout(DLJ_PATH, f"Đăng ký đại lý – chiết khấu đến {p3}% | {BRAND}", f"Làm đại lý {BRAND}: nhập hàng chiết khấu {p1}–{p3}% theo bậc, lần đầu từ {fst} triệu, bán đúng giá web. Đăng ký 1 phút, người phụ trách gọi trong 1–2 ngày.", body, body_class="page-ctvj")
 
 
+DLO_PATH = "/dai-ly/dat-hang/"
+_DL_SKIP = re.compile(r"combo|mua\s*\d|tặng|\bset\b", re.I)
+
+
+def dl_prices():
+    """🛒 Bảng giá lẻ cho đại lý tự đặt (/dl-gia.json, đợt 3 23/11/2026): máy chủ api/src/daily.js dlPrices đọc để tự tính tiền, trang web không gửi giá.
+    Chỉ hộp / chai / gói lẻ (bỏ combo, mua X tặng Y, gói giải pháp) vì chiết khấu đại lý đã tính trên giá lẻ. Giá = giá niêm yết như form lên đơn CRM (base_price)."""
+    out = []
+    for p in PRODUCTS:
+        if p.get("combo"):
+            continue
+        img = img_url(p["images"][0], 200) if p.get("images") else ""
+        vs = p.get("base_variants") or []
+        if vs:
+            for i, v in enumerate(vs):
+                if v.get("price") and not _DL_SKIP.search(v.get("name") or ""):
+                    out.append({"id": f'{p["slug"]}~{i}', "name": p["name"], "variant": v["name"], "price": int(v["price"]), "img": img})
+        elif p.get("base_price"):
+            out.append({"id": f'{p["slug"]}~0', "name": p["name"], "variant": p.get("unit") or "", "price": int(p["base_price"]), "img": img})
+    return {"items": out}
+
+
+def page_dl_order():
+    """🛒 Đại lý tự đặt hàng /dai-ly/dat-hang/#<link riêng> (đợt 3): link do người phụ trách gửi qua Zalo (CRM → Cài đặt → 🏪 Đại lý → 🔗 Link đặt hàng).
+    main.js initDlOrder gọi api daily.js dlMe / dlOrderWeb. noindex, không vào sitemap."""
+    body = f'''<section class="section plg-page ctv-page dlo-page"><div class="container plg-in">
+  <p class="join-eye">🏪 Đại lý {BRAND}</p>
+  <h1 class="plg-h" data-dlo-h>Đặt hàng cho đại lý</h1>
+  <div class="plg-card ctv-card" id="dlOrder"><p class="muted" data-dlo-msg>Đang tải…</p><div data-dlo-out hidden></div></div>
+  <details class="rf-rules"><summary>Cách đặt hàng</summary><ol>
+    <li>Chọn số lượng từng sản phẩm. Giá của bạn đã trừ chiết khấu theo bậc đại lý tháng này.</li>
+    <li>Kiểm tra địa chỉ nhận hàng rồi bấm <b>Gửi đơn nhập hàng</b>.</li>
+    <li>Chuyển khoản đúng số tiền, nội dung ghi <b>mã đơn</b> (quét mã QR là tự điền). Người phụ trách gọi xác nhận, kho gửi hàng khi tiền vào.</li>
+    <li>Bậc chiết khấu xét lại đầu mỗi tháng theo tổng tiền hàng (giá lẻ) bạn nhập tháng trước.</li>
+    <li>Giữ giá bán lẻ không thấp hơn giá trên thucduonglanh.vn. Khi giới thiệu sản phẩm, chỉ nói đúng công dụng ghi trên bao bì, không dùng các từ “chữa”, “điều trị”, “khỏi bệnh”; sản phẩm không phải là thuốc, không có tác dụng thay thế thuốc chữa bệnh.</li>
+  </ol><p>Link trang này là của riêng bạn, đừng chia sẻ cho người khác. Cần hỗ trợ, bạn nhắn Zalo <a href="tel:{tel(SITE["hotline"])}">{esc(SITE["hotline"])}</a>.</p></details>
+</div></section>'''
+    return layout(DLO_PATH, f"Đặt hàng đại lý {BRAND}", f"Trang riêng của đại lý {BRAND}: bảng giá chiết khấu, đặt hàng, đơn đã nhập.", body, body_class="page-ctv page-dlo", noindex=True)
+
+
 def page_ctv():
     """🤝 Trang Cộng tác viên tự xem hoa hồng /ctv/#<link bí mật> (28/10/2026): không đăng nhập, link do quản lý gửi qua Zalo (CRM → Cài đặt → 🤝 → 🔐 Link xem hoa hồng).
     main.js initCtv gọi api partner.js ctvMe. noindex, không vào sitemap."""
@@ -3486,6 +3526,7 @@ def main():
             routes.append(write(CTVJ_PATH, page_ctv_join()))
         if DLJ_PATH:
             routes.append(write(DLJ_PATH, page_dl_join()))
+        write(DLO_PATH, page_dl_order())  # 🛒 đại lý tự đặt hàng: link bí mật, không vào sitemap
         write(CTV_PATH, page_ctv())  # trang CTV tự xem hoa hồng: link bí mật, không vào sitemap
         if QUIZ.get("questions"):
             routes.append(write(QUIZ_PATH, page_quiz()))
@@ -3590,6 +3631,7 @@ def main():
     (DIST / "so-tay.json").write_text(json.dumps({"remind_days": SOTAY.get("remind_days") or 90, "vars": _vars, "seed": SOTAY.get("items") or [], "items": sotay_items()}, ensure_ascii=False), "utf-8")
     (DIST / "bot-proofs.json").write_text(json.dumps(bot_proofs(), ensure_ascii=False), "utf-8")  # ảnh giấy tờ cho trợ lý Fanpage (api/src/fb.js)
     (DIST / "ngay-doi.json").write_text(json.dumps(dd_api(), ensure_ascii=False), "utf-8")  # 🎉 Ngày Đôi: máy chủ đọc để miễn ship + thêm quà vào đơn (api/src/ngaydoi.js)
+    (DIST / "dl-gia.json").write_text(json.dumps(dl_prices(), ensure_ascii=False), "utf-8")  # 🛒 giá lẻ cho đại lý tự đặt hàng (api/src/daily.js dlPrices)
     (DIST / "anh-zalo.json").write_text(json.dumps(zalo_imgs(), ensure_ascii=False), "utf-8")  # kho ảnh thật cho bài đăng nhóm Zalo (api/src/zbot.js)
     if SITE.get("indexnow_key"):  # file xác minh IndexNow (Bing, Yandex…): workflow deploy.yml báo các trang mới sửa sau mỗi lần đăng
         (DIST / f'{SITE["indexnow_key"]}.txt').write_text(SITE["indexnow_key"], "utf-8")
