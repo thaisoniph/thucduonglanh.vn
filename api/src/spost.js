@@ -60,7 +60,9 @@ async function spWrite(x, u, d) {
   if (!x.env.ANTHROPIC_API_KEY) return { ok: false, error: 'Máy chủ chưa có khoá AI.' };
   const cats = await spCats(x), cat = cats.find(c => c.k === d.c) || null, to = SPF_TO[d.to] ? d.to : 'nhom', hint = cut(d.hint, 600);
   const f = cat ? cat.k : ['MOFU', 'BOFU'].includes(funOf(d.f)) ? funOf(d.f) : 'TOFU';
-  const know = await kb(), prods = prodMap(know), pk = Object.keys(prods), lib = await imgLib();
+  const know = await kb(), prods = prodMap(know), pk = Object.keys(prods), libAll = await imgLib();
+  const usedImg = new Set((await all(x.db, "SELECT img FROM sp_posts WHERE img != '' ORDER BY id DESC LIMIT 25")).map(r => String(r.img).replace(/^https?:\/\/[^/]+/, '')));
+  const libFresh = libAll.filter(i => !usedImg.has(String(i.url || '').replace(/^https?:\/\/[^/]+/, ''))), lib = libFresh.length >= 15 ? libFresh : libAll; // 🖼 tránh ảnh 25 bài gần nhất đã dùng → ảnh không lặp giữa các bài
   const prod = prods[d.prod] ? d.prod : f === 'BOFU' && pk.length ? pk[Math.floor(Math.random() * pk.length)] : ''; // bài 🟠 chưa chọn sản phẩm → chọn ngẫu nhiên
   const offers = f === 'BOFU' ? await offersLive(x).catch(() => []) : [];
   const p = await insPick(x, 'fbcn', cut(d.g, 80), prod ? { prod } : undefined);
