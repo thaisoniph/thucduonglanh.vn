@@ -95,6 +95,8 @@
       var q = new URLSearchParams(location.search), now = Date.now(), src = null;
       var ref = (q.get('ref') || '').toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 40);
       if (ref) save('tdl_ref', { r: ref, t: now }); // link riêng của nhân viên sale: đơn đặt trong 30 ngày tính cho bạn ấy
+      var bv = (q.get('bv') || '').replace(/\D/g, '').slice(0, 9); // 📣 link trong bài sale đăng (CRM → Kho bài): đếm lượt bấm + đơn theo từng bài
+      if (ref && bv) { var ob = load('tdl_bv', null); if (!ob || ob.b !== bv || ob.r !== ref || now - ob.t > 6 * 3600e3) { try { fetch(CFG.endpoint, { method: 'POST', keepalive: true, headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ type: 'spf_hit', bv: bv, ref: ref }) }).catch(function () { }); } catch (e) { } } save('tdl_bv', { b: bv, r: ref, t: now }); }
       if (q.get('utm_source')) src = { source: q.get('utm_source'), medium: q.get('utm_medium') || '', campaign: q.get('utm_campaign') || '', content: q.get('utm_content') || '' };
       else if (ref) src = { source: 'sale', medium: 'link', campaign: ref };
       else if (q.get('fbclid')) src = { source: 'facebook', medium: 'paid_or_social', campaign: '' };
@@ -1115,7 +1117,7 @@
     // gửi tên tiếng Việt (name_vi) để CRM nhận đúng sản phẩm / chu kỳ dùng dù khách đặt ở bản ngôn ngữ khác
     var clean = items.map(function (i) { var b = BY[i.slug] || {}; return { slug: i.slug, name: i.name_vi || i.name, variant: i.variant_vi || i.variant, qty: i.qty, price: i.price, subtotal: i.subtotal, days: b.days || undefined }; });
     var src = sourceLabel();
-    var order = { type: 'order', id: id, created: d.toISOString(), customer: data.customer, payment: data.payment, items: clean, subtotal: sub, shipping: t.fee, total: t.total, voucher: t.on ? VC.code : '', discount: t.off, page: location.href, marketing_consent: !!data.marketing, source: src.last, first_source: src.first, post: (function () { var p = load('tdl_post', null); return p && Date.now() - p.t < 7 * 864e5 ? p.s : ''; })(), ref: refCode(), ref_at: refCode() ? (load('tdl_ref', null) || {}).t || 0 : 0 }; // ref_at: lúc khách bấm link (CTV không được tính khách đã là khách hỏi của sale trước lúc này)
+    var order = { type: 'order', id: id, created: d.toISOString(), customer: data.customer, payment: data.payment, items: clean, subtotal: sub, shipping: t.fee, total: t.total, voucher: t.on ? VC.code : '', discount: t.off, page: location.href, marketing_consent: !!data.marketing, source: src.last, first_source: src.first, post: (function () { var p = load('tdl_post', null); return p && Date.now() - p.t < 7 * 864e5 ? p.s : ''; })(), ref: refCode(), bv: (function () { var b = load('tdl_bv', null); return b && b.r === refCode() && Date.now() - b.t < 30 * 864e5 ? b.b : ''; })(), ref_at: refCode() ? (load('tdl_ref', null) || {}).t || 0 : 0 }; // ref_at: lúc khách bấm link (CTV không được tính khách đã là khách hỏi của sale trước lúc này)
     var label = btn.innerHTML; btn.disabled = true; btn.textContent = T('Đang gửi đơn hàng…');
     send(order).then(function (r) { order.sent = r.sent; if (r.total) order.total = r.total; if (r.dd) order.dd = r.dd; if (r.qt) order.qt = r.qt; if (LANG !== 'vi') order.view = items.map(function (i) { return { name: i.name, variant: i.variant }; }); save('tdl_last_order', order); if (order.voucher) vcClear(); if (onSent) onSent(); location.href = U('/dat-hang-thanh-cong/') + '?id=' + id; })
       .catch(function (e) {

@@ -4070,3 +4070,17 @@ table.cmp-sum.ev3 td small { white-space: nowrap; }
 .spkb-sels { display: grid; grid-template-columns: 1fr 1fr; }
 .spkb-sels .spkb-sel { width: 100%; min-width: 0; padding: 6px 8px; font-size: 13px; }
 .spkb-sels .spkb-chip { grid-column: 1 / -1; justify-self: start; }
+.gr-row .gr-a .gr-a2 { margin-top: 6px; }
+.spkb-top { margin-bottom: 10px; }
+.spkb-sum .spkb-sumn { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 8px; text-align: center; }
+.spkb-sumn span { background: var(--primary-soft); border-radius: 10px; padding: 8px 4px; font-size: 12.5px; color: var(--muted); display: flex; flex-direction: column; }
+.spkb-sumn b { font-size: 20px; color: var(--primary); }
+.spkb-my { display: flex; gap: 10px; padding: 10px; border: 1px solid var(--line); border-radius: 12px; background: #fff; margin: 8px 0; }
+.spkb-myimg { flex: none; width: 84px; height: 84px; border: 0; padding: 0; border-radius: 10px; overflow: hidden; background: #eef1ea; cursor: pointer; font-size: 26px; }
+.spkb-myimg img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.spkb-myb { flex: 1; min-width: 0; }
+.spkb-myb p { margin: 0 0 3px; }
+.spkb-myt { font-weight: 600; font-size: 14px; line-height: 1.35; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.spkb-myn { display: flex; gap: 12px; flex-wrap: wrap; font-size: 13.5px; }
+.spkb-mytip { color: #5c4a14; background: var(--gold-light); border-radius: 8px; padding: 5px 8px; margin: 4px 0 6px !important; }
+.spkb-tabs.spkb-top { grid-template-columns: 1fr 1fr; }

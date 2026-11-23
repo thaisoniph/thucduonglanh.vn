@@ -6,7 +6,7 @@
  * Bảng D1 sp_posts. Lệnh spf_* (crm.js chuyển sang crmSpf). Đếm số lần sale copy (copies) để biết bài nào được dùng. */
 import Anthropic from '@anthropic-ai/sdk';
 import { aiFetch } from './airelay.js';
-import { run, all, first, kvGet, kvSet, kvJson, fmtDate, DAY } from './lib.js';
+import { run, all, first, kvGet, kvSet, kvJson, fmtDate, nrm, DAY } from './lib.js';
 import { edAdd, edBlock, edCount } from './edlearn.js';
 import { kb, safe, TRUTH_RULES } from './chat.js';
 import { telegramTo, telegram } from './google.js';
@@ -42,6 +42,8 @@ async function schema(db) {
   await run(db, `CREATE TABLE IF NOT EXISTS sp_posts (id INTEGER PRIMARY KEY AUTOINCREMENT, at INTEGER, by_name TEXT DEFAULT '', f TEXT DEFAULT '', ins TEXT DEFAULT '',
     text TEXT DEFAULT '', cmt TEXT DEFAULT '', reply TEXT DEFAULT '', to_k TEXT DEFAULT 'nhom', status TEXT DEFAULT 'draft', copies INTEGER DEFAULT 0, ok_by TEXT DEFAULT '', ok_at INTEGER)`);
   for (const c of ["src TEXT DEFAULT ''", "src_ref TEXT DEFAULT ''", "path TEXT DEFAULT ''", "title TEXT DEFAULT ''", "zmsg TEXT DEFAULT ''", "grp TEXT DEFAULT ''", "znk TEXT DEFAULT ''", "imgh TEXT DEFAULT ''", "img TEXT DEFAULT ''", "cat TEXT DEFAULT ''", "prod TEXT DEFAULT ''"]) { try { await run(db, 'ALTER TABLE sp_posts ADD COLUMN ' + c); } catch (e) { } } // 13/11/2026: 1 bài → nhiều kênh (bài web / bài nhóm Zalo → bài FB cá nhân + tin Zalo gửi khách)
+  await run(db, 'CREATE TABLE IF NOT EXISTS sp_hits (post INTEGER, ref TEXT, day TEXT, n INTEGER DEFAULT 0, PRIMARY KEY (post, ref, day))'); // 👆 lượt khách bấm link trong bài sale đăng (web gửi spf_hit)
+  await run(db, 'CREATE TABLE IF NOT EXISTS sp_conv (oid TEXT PRIMARY KEY, post INTEGER, ref TEXT, total INTEGER DEFAULT 0, at INTEGER)'); // 🛒 đơn web đặt sau khi bấm link trong bài (30 ngày)
   await run(db, 'CREATE TABLE IF NOT EXISTS zb_imgs (id TEXT PRIMARY KEY, data TEXT, at INTEGER)'); // ảnh tải từ máy (dùng chung với trợ lý Zalo, xem ở /zb-img/<id>)
   schemaOk = true;
 }
@@ -210,8 +212,10 @@ export async function crmSpf(x, u, d, crmLog) {
     const who = {}, mine = {}; // 🔥 số bạn đã đăng mỗi bài · ✓ bài mình đã đăng
     for (const r of await all(x.db, "SELECT result, COUNT(DISTINCT by_name) n FROM logs WHERE what = 'Đăng bài FB' AND time > ? GROUP BY result", now - 120 * DAY)) who[r.result] = r.n;
     for (const r of await all(x.db, "SELECT DISTINCT result FROM logs WHERE what = 'Đăng bài FB' AND by_name = ? AND time > ?", u.name, now - 120 * DAY)) mine[r.result] = 1;
-    const prods = prodMap(await kb()), q = await kvJson(x.db, 'spf_q', []);
-    return { ok: true, posts: rows.map(r => Object.assign(shape(r, all_), { th: th[r.img] || '', who: who[String(r.id)] || 0, mine: mine[String(r.id)] ? 1 : 0 })), to: Object.fromEntries(Object.entries(SPF_TO).map(([k, v]) => [k, v[1]])),
+    const prods = prodMap(await kb()), q = await kvJson(x.db, 'spf_q', []), S = await spStats(x, u).catch(e => { console.error('spStats', e.message); return { st: {}, my: [] }; });
+    const have = new Set(rows.map(r => r.id)), miss = S.my.map(m => m.id).filter(id => !have.has(id)).slice(0, 40); // bài mình đã đăng mà nay đã ẩn: vẫn hiện ở 📊 Bài tôi đã đăng
+    if (miss.length) for (const r of await all(x.db, 'SELECT * FROM sp_posts WHERE id IN (' + miss.map(() => '?').join(',') + ')', ...miss)) rows.push(Object.assign(r, { gone: 1 }));
+    return { ok: true, posts: rows.map(r => Object.assign(shape(r, all_), { th: th[r.img] || '', who: who[String(r.id)] || 0, mine: mine[String(r.id)] ? 1 : 0, s: S.st[r.id] || null, gone: r.gone ? 1 : 0 })), my: S.my, to: Object.fromEntries(Object.entries(SPF_TO).map(([k, v]) => [k, v[1]])),
       cats: await spCats(x), prods: Object.keys(prods).map(k => ({ k, n: prods[k].name, img: prods[k].img })), q: Array.isArray(q) ? q.length : 0, show, edit: canEdit(u), write: canIns(u), learnEd: await edCount(x, 'sp') };
   }
   if (a === 'spf_imgs') return { ok: true, list: (await imgLib()).slice(0, 200).map(i => ({ url: i.url, thumb: i.thumb || '', alt: i.alt || '' })) };
@@ -293,4 +297,31 @@ export async function spFillTick(x) {
     if (!nx.length) { const n = (await first(x.db, "SELECT COUNT(*) n FROM sp_posts WHERE status = 'draft' AND text != ''")).n; try { await telegram(x.env, '🗂 <b>Kho bài đăng cho sale</b>: trợ lý đã viết xong, ' + n + ' bài nháp chờ duyệt (đã có ảnh).\n👉 CRM → 🎯 Insight & nội dung → 📣 Kho bài đăng cho sale → ✅ Cho sale dùng'); } catch (e) { } }
   }
   await kvSet(x.db, 'spf_q_run', '0');
+}
+
+/* ================================================================ 📊 Hiệu quả từng bài (23/11/2026, anh Sơn: "sau khi đăng chưa có chỗ để sale xem lại và đánh giá hiệu quả")
+ * Link trong bài có thêm &bv=<mã bài> → web gửi { type: 'spf_hit', bv, ref } (mỗi khách 1 lần / 6 tiếng) và ghi `bv` vào đơn đặt trong 30 ngày. */
+const refOf = name => nrm(name).replace(/[^a-z0-9]/g, '');
+export async function spfHit(x, d) {
+  const post = Number(String(d.bv || '').replace(/\D/g, '').slice(0, 9)) || 0, ref = String(d.ref || '').toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 40);
+  if (!post || !ref) return { ok: false };
+  await schema(x.db);
+  if (!(await first(x.db, 'SELECT 1 FROM sp_posts WHERE id = ?', post))) return { ok: false };
+  await run(x.db, 'INSERT INTO sp_hits (post, ref, day, n) VALUES (?, ?, ?, 1) ON CONFLICT(post, ref, day) DO UPDATE SET n = n + 1', post, ref, fmtDate(Date.now(), 'yyyy-MM-dd'));
+  return { ok: true };
+}
+export async function spfOrder(x, o) {
+  const post = Number(String(o.bv || '').replace(/\D/g, '').slice(0, 9)) || 0, ref = String(o.ref || '').toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 40);
+  if (!post || !ref || !o.id) return;
+  await schema(x.db);
+  await run(x.db, 'INSERT OR IGNORE INTO sp_conv (oid, post, ref, total, at) VALUES (?, ?, ?, ?, ?)', String(o.id).slice(0, 60), post, ref, Math.round(Number(o.total) || 0), Date.now());
+}
+/** Số liệu cho CRM: st = cả nhóm theo bài { id: [bấm, đơn, tiền] }, my = bài mình đã đăng [{ id, at, h, o, r }] */
+async function spStats(x, u) {
+  const since = Date.now() - 120 * DAY, ref = refOf(u.name), st = {}, mh = {}, mo = {};
+  for (const r of await all(x.db, 'SELECT post, ref, SUM(n) n FROM sp_hits WHERE day >= ? GROUP BY post, ref', fmtDate(since, 'yyyy-MM-dd'))) { (st[r.post] = st[r.post] || [0, 0, 0])[0] += r.n; if (r.ref === ref) mh[r.post] = (mh[r.post] || 0) + r.n; }
+  for (const r of await all(x.db, 'SELECT post, ref, COUNT(*) n, SUM(total) t FROM sp_conv WHERE at >= ? GROUP BY post, ref', since)) { const s0 = (st[r.post] = st[r.post] || [0, 0, 0]); s0[1] += r.n; s0[2] += r.t || 0; if (r.ref === ref) mo[r.post] = [r.n, r.t || 0]; }
+  const my = (await all(x.db, "SELECT result, MIN(time) at, COUNT(*) n FROM logs WHERE what = 'Đăng bài FB' AND by_name = ? AND time > ? GROUP BY result ORDER BY at DESC LIMIT 60", u.name, since))
+    .map(r => ({ id: Number(r.result) || 0, at: r.at, n: r.n, h: mh[r.result] || 0, o: (mo[r.result] || [0])[0], r: (mo[r.result] || [0, 0])[1] })).filter(r => r.id);
+  return { st, my };
 }

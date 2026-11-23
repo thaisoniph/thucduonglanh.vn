@@ -163,6 +163,23 @@ Một bài dùng được cho nhiều nhóm, mỗi nhóm cách nhau vài ngày.
 
 Hôm nay trang cá nhân, mai hội nhóm, ngày kia Zalo. Bước 1 ở nơi nào xong là việc 5 tự có dấu ✓.
 
+**📣 Đăng thêm bài và xem bài nào hiệu quả**
+
+![Việc 5 đã xong: Đăng thêm, Bài đã đăng](/huong-dan/img/mr-them-bai.webp)
+
+1. **📣 Đăng thêm**: việc 5 xong rồi vẫn mở lại kho để đăng bài nữa (hội nhóm khác, Zalo…). Đăng thêm vẫn được tính vào thi đua.
+2. **📊 Bài đã đăng**: xem lại các bài bạn đã đăng và hiệu quả của từng bài.
+
+![Bài tôi đã đăng: lượt bấm link, đơn](/huong-dan/img/mr-hieu-qua.webp)
+
+- **👆 Lượt bấm**: số lần khách bấm link riêng trong bài của bạn (câu có link dưới bình luận, nhật ký Zalo, mã QR hội nhóm).
+- **🛒 Đơn**: đơn khách đặt trên web trong 30 ngày sau khi bấm link.
+- Ô vàng gợi ý việc nên làm tiếp: bài ra đơn thì **đăng lại** ở nơi khác; có người bấm mà chưa mua thì **nhắn riêng** người bình luận; chưa ai bấm thì xem lại bước bình luận + câu có link + ghim.
+- Bấm **Xem lại & đăng tiếp** để mở lại bài. Cuối trang có **🏆 Bài đang hiệu quả nhất của cả nhóm**: bạn chưa đăng thì thử đăng bài đó.
+- Trong kho, thẻ bài cũng ghi **👆 lượt bấm · 🛒 đơn** của cả nhóm, nên chọn bài đã có đơn để đăng trước.
+
+> Khách nhắn bạn trực tiếp hoặc gọi điện thì không đếm được ở đây: bạn ghi khách hỏi như bình thường.
+
 ## Cuối ngày: báo cáo có ghi công sức của bạn
 
 Bấm **📋 Báo cáo cuối ngày** ở cuối tab Hôm nay.
