@@ -13,7 +13,7 @@ roles: [sale, ql]
 
 ## Mỗi ngày: làm 5 việc ở khung 🌱 tab Hôm nay
 
-Đầu tab **Hôm nay** có nút **🌱 Mở rộng khách … / 5 ›**. Bấm vào là khung 5 việc mở ra ngay. Khung này nằm dưới danh sách **📞 Cần gọi hôm nay**, bình thường thu gọn: gọi xong khách hôm nay thì mở ra làm. Mời Đại sứ, khách "Không mua", Kho chung đều nằm trong khung này.
+Đầu tab **Hôm nay** có nút **🌱 Mở rộng khách … / 5 ›**. Bấm vào là khung 5 việc mở ra ngay. Hoặc bấm thẻ **🌱 Mở rộng khách**: 5 việc hiện ra luôn, không phải bấm mở thêm. Mời Đại sứ, khách "Không mua", Kho chung đều nằm trong khung này.
 
 ![Khung 5 việc mở rộng khách ở tab Hôm nay](/huong-dan/img/mr-hom-nay.webp)
 

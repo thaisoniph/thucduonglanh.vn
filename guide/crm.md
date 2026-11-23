@@ -60,12 +60,14 @@ Tab **Hôm nay** có **1 nút ▶ Bắt đầu gọi**. Bấm là CRM hiện **t
 
 | Nhóm | Thẻ | Trong thẻ |
 | --- | --- | --- |
-| **📞 Mỗi ngày** | 📞 Việc gọi | Lịch làm việc gợi ý, tất cả khách cần gọi, chuyển khoản chưa thấy tiền, dịp chúc khách |
+| **📞 Mỗi ngày** | 📞 Việc gọi | Tất cả khách cần gọi, chuyển khoản chưa thấy tiền, dịp chúc khách, lịch làm việc gợi ý |
 | | 💬 Zalo của tôi | Khách nhắn Zalo đang chờ bạn trả lời |
 | | 📦 Hàng hôm nay | Hàng còn, sắp hết, cần đẩy bán |
 | **🌱 Xong việc gọi** | 🌱 Mở rộng khách | 5 việc nhỏ để có thêm khách, Kho chung |
 | **🏁 Kết quả của tôi** | 🏁 Mục tiêu & thi đua | Mục tiêu tháng, số đã đủ hoà vốn chưa, bảng thi đua |
 | | ✅ Đã làm | Việc đã ghi hôm nay |
+
+Bấm thẻ nào là việc trong thẻ đó **hiện ra luôn**, không phải bấm mở thêm từng mục (từ 23/11/2026).
 
 Nút **📋 Báo cáo cuối ngày** và **＋ Thêm khách hỏi** luôn ở cuối trang.
 
@@ -95,7 +97,7 @@ Trên màn hình:
 - Có khách hỏi chờ tư vấn thì có nút **🙋 Tư vấn khách hỏi ›**.
 - **Đơn giao chậm / chưa giao được** không hiện ở đây nữa (khách cũ, bạn tự theo dõi, tránh gọi nhiều làm phiền khách). Xem ở tab **Đơn hàng** (nút 🚚).
 - **Giờ nghỉ** là giờ của riêng bạn. CRM hiện màn **🍵 Giải lao một chút nhé** (trưa là **🍱 Nghỉ trưa thôi**) với 3 việc nhỏ cho mình: uống nước, vươn vai, cho mắt nghỉ… Bấm vào việc đã làm để đánh dấu ✓ (chỉ mình bạn thấy). Bấm **🌿 Thở cùng mình 1 phút** rồi hít vào khi vòng tròn to ra, thở ra khi vòng tròn nhỏ lại. Có việc gấp thì bấm **Làm tiếp luôn ›** ở góc dưới.
-- Muốn xem hết khách của hôm nay: bấm **📞 Xem tất cả việc gọi hôm nay** (đã thu gọn). Trong đó lọc được: **Tất cả · 🧾 Đơn mới · 🔥 Vừa hỏi · 💚 Chăm sóc · 🙋 Khách hỏi**.
+- Thẻ **📞 Việc gọi** hiện sẵn danh sách **📞 Xem tất cả việc gọi hôm nay**, không cần bấm mở. Lọc được: **Tất cả · 🧾 Đơn mới · 🔥 Vừa hỏi · 💚 Chăm sóc · 🙋 Khách hỏi**.
 - Cạnh tên mỗi khách có **nhãn màu ghi lý do gọi**, ví dụ **🧾 Xác nhận đơn**, **🔥 Vừa hỏi**, **📦 Hỏi nhận hàng**, **⏰ Sắp hết hàng**.
 - Ngay dưới lời chào là **🌿 điều văn hoá hôm nay**: bấm **💚 Mình cùng giữ** ngay trên dòng đó.
 - Phía dưới có doanh số tháng, dòng **🏁 thứ hạng thi đua tuần này** (bấm để xem bảng thi đua), **🌱 Mở rộng khách** và **🏁 Mục tiêu & thi đua**.

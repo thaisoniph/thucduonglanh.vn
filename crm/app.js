@@ -1541,7 +1541,7 @@
     var heads = soon.map(function (o) { return '<li>📅 <b>' + (o.from === d1 ? 'Ngày mai' : occDm(o.from)) + '</b>: ' + esc(o.n) + (o.k === 'qua' ? ' (gợi ý quà cho dịp ' + occDm(o.ev) + ')' : '') + '</li>'; }).join('') +
       (bT.length ? '<li>🎂 <b>Ngày mai</b> sinh nhật: ' + bT.slice(0, 6).map(function (c) { return esc(c.name || c.phone); }).join(', ') + (bT.length > 6 ? '… (' + bT.length + ' khách)' : '') + '</li>' : '');
     var sum = now.length ? now.map(function (o) { return o.n; }).join(' · ') : 'sắp tới: ' + soon.map(function (o) { return o.n; }).concat(bT.length ? ['sinh nhật'] : []).join(' · ');
-    var op = S.f.gopen && 'occ' in S.f.gopen ? S.f.gopen.occ : now.some(function (o) { return o.k !== 'qua'; }) && total > 0; // ngày lễ / sinh nhật hôm nay: mở sẵn
+    var op = S.tdOpen ? total > 0 : S.f.gopen && 'occ' in S.f.gopen ? S.f.gopen.occ : now.some(function (o) { return o.k !== 'qua'; }) && total > 0; // ngày lễ / sinh nhật hôm nay: mở sẵn
     return '<section class="section"><details class="grp occ-grp" data-grp="occ"' + (op ? ' open' : '') + '><summary><span class="g-t">🎉 Dịp chúc khách</span>' + (total ? '<span class="count">' + total + '</span>' : '') + '<span class="g-tip">' + esc(sum) + '</span></summary>' +
       '<div class="occ-body">' + cards + (heads ? '<ul class="occ-soon small">' + heads + '</ul>' : '') + '<p class="small muted occ-foot">Gửi qua Zalo của bạn, rải trong ngày. Lời chúc không tính vào 30 khách chăm sóc mỗi ngày.</p></div></details></section>';
   }
@@ -1977,33 +1977,32 @@
     h += dutyMine(); // 🌙 ca trực số của bạn
     h += '<section class="section tds-more">' + (S.tdmOn ? '' : todayGoalLine()) + '<div class="td-jump"><button type="button" data-gopen="tdgoal"' + raceHeroAttr() + '>' + raceHero() + '</button>' + (growOn ? '<button type="button" data-gopen="grow">🌱 Mở rộng khách ' + gn + '/5 ›</button>' : '') + '</div></section>';
     var TOP = h; h = ''; // 19/11/2026: chào + nút gọi + dòng thi đua giữ trên cùng, phần dưới chia thẻ (TD_SG)
+    S.tdOpen = 1; // 23/11/2026 anh Sơn: bấm thẻ là thấy ngay việc, không phải mở thêm từng mục bên dưới
     var S_ZALO = zsMineBlock(); // 💬 Zalo của tôi: khách chờ trả lời, khách muốn mua (17/11/2026)
     var S_BE = beSaleBlock(); // ⚖️ số của bạn đã đủ hoà vốn chưa (16/11/2026)
     var S_KHO = khoSaleBlock(); // 📦 Kho hôm nay (16/11/2026)
-    h += tdsPlan();
     if (items.length) {
       var chips = TD_F.filter(function (c) { return cnt[c[0]]; });
-      h += '<section class="section td-list"><details class="grp" data-grp="tdall"' + (S.f.gopen && S.f.gopen.tdall ? ' open' : '') + '><summary><span class="g-t">📞 Xem tất cả việc gọi hôm nay</span><span class="count">' + items.length + '</span><span class="g-tip">không cần làm theo thứ tự này, cứ làm từng lượt ở trên</span></summary><div style="padding:10px 12px">' +
+      h += '<section class="section td-list"><details class="grp" data-grp="tdall" open><summary><span class="g-t">📞 Xem tất cả việc gọi hôm nay</span><span class="count">' + items.length + '</span><span class="g-tip">không cần làm theo thứ tự này, cứ làm từng lượt ở trên</span></summary><div style="padding:10px 12px">' +
         (chips.length > 2 ? '<div class="chips td-chips">' + chips.map(function (c) { return '<button type="button" class="chip' + (f === c[0] ? ' on' : '') + '" data-tdf="' + c[0] + '">' + c[1] + ' <em>' + cnt[c[0]] + '</em></button>'; }).join('') + '</div>' : '') +
         '<div class="rows td-rows">' + capRows(shown, tdRow, 10) + '</div>' +
         (q.rest ? '<p class="small muted" style="margin:8px 0 0">Còn ' + q.rest + ' khách chăm sóc để các ngày sau (tối đa ' + dayLimit() + ' khách/ngày).</p>' : '') + '</div></details></section>';
     }
-    if (up.length) h += '<section class="section"><details class="grp" data-grp="unpaid"' + (S.f.gopen && S.f.gopen.unpaid ? ' open' : '') + '><summary><span class="g-t">💳 Chuyển khoản chưa nhận tiền</span><span class="count">' + up.length + '</span><span class="g-tip">tiền về thì mở đơn bấm “Xác nhận đã nhận tiền”</span></summary><div class="crows">' + capRows(up, orderRow) + '</div></details></section>';
-    h += occBlock() + refThanksBlock();
+    if (up.length) h += '<section class="section"><details class="grp" data-grp="unpaid" open><summary><span class="g-t">💳 Chuyển khoản chưa nhận tiền</span><span class="count">' + up.length + '</span><span class="g-tip">tiền về thì mở đơn bấm “Xác nhận đã nhận tiền”</span></summary><div class="crows">' + capRows(up, orderRow) + '</div></details></section>';
+    h += occBlock() + refThanksBlock() + tdsPlan(); // 23/11/2026: danh sách gọi lên đầu, lịch gợi ý xuống cuối
     var S_GOI = h; h = '';
     var busy = q.list.reduce(function (m, c) { m[c.phone] = 1; return m; }, {}), pool = isPoolStaff() && poolOn();
-    if (growOn) h += '<section class="section"><details class="grp td-grow" data-grp="grow"' + (S.f.gopen && S.f.gopen.grow ? ' open' : '') + '><summary><span class="g-t">🌱 Xong việc gọi? Mở rộng khách</span><span class="count">' + gn + ' / 5</span><span class="g-tip">mời giới thiệu, nhóm Zalo, khách “Không mua”' + (pool ? ', Kho chung' : '') + ', đăng bài</span></summary>' +
-      idleBlock() + ambBlock(busy, '') + (pool ? poolBlock() : '') + '</details></section>';
+    if (growOn) h += idleBlock() + ambBlock(busy, '') + (pool ? poolBlock() : '');
     else h += ambBlock(busy, '') + (pool ? poolBlock() : '');
-    var S_GROW = h; h = '';
+    S.tdOpen = 0; var S_GROW = h; h = '';
     h += '<section class="section td-tail" data-grp="tdgoal"><div class="section-h"><h2>🏁 Mục tiêu & thi đua</h2><a class="small" href="#bao-cao" style="margin-left:auto">Xem hiệu quả ›</a></div>' + myGoalToday() + raceBlock() + '</section>';
     var S_GOAL = S_BE + h; h = '';
     var doneToday = S.d.log.filter(function (l) { return l.time >= t0 && l.by === S.user.name && l.what !== 'Cài đặt' && l.what !== 'Nhân sự'; }).sort(function (a, b) { return b.time - a.time; });
-    if (doneToday.length) h += '<section class="section"><details class="grp" data-grp="done"' + (S.f.gopen && S.f.gopen.done ? ' open' : '') + '><summary><span class="g-t">✅ Đã làm hôm nay</span><span class="count">' + doneToday.length + '</span></summary><div class="timeline" style="padding:12px">' + doneToday.slice(0, 40).map(logItem).join('') + '</div></details></section>';
+    if (doneToday.length) h += '<section class="section" data-grp="done"><div class="section-h"><h2>✅ Đã làm hôm nay</h2><span class="count">' + doneToday.length + '</span></div><div class="timeline" style="padding:12px">' + doneToday.slice(0, 40).map(logItem).join('') + '</div></section>';
     var S_DONE = h;
     var tb = tdTab('td_stab', TD_SG, 'goi');
     h = TOP + grpMenu(TD_SG, tb, function (k) { return 'data-tdt="td_stab|' + k + '"'; });
-    if (tb === 'goi') h += inTabi('Tất cả khách cần gọi hôm nay, lịch làm việc gợi ý, chuyển khoản chưa thấy tiền, dịp chúc khách.', ['Bấm <b>▶ Bắt đầu gọi</b> trên cùng là gọi lần lượt', 'Muốn chọn khách: mở <b>📞 Xem tất cả việc gọi</b>']) + (S_GOI || '<div class="box"><p>🎉 Hôm nay không còn khách cần gọi.</p></div>');
+    if (tb === 'goi') h += inTabi('Tất cả khách cần gọi hôm nay, lịch làm việc gợi ý, chuyển khoản chưa thấy tiền, dịp chúc khách.', ['Bấm <b>▶ Bắt đầu gọi</b> trên cùng là gọi lần lượt', 'Hoặc chọn khách ngay ở danh sách bên dưới, bấm <b>📞 Gọi</b>']) + (S_GOI || '<div class="box"><p>🎉 Hôm nay không còn khách cần gọi.</p></div>');
     if (tb === 'zalo') h += (S_ZALO || '<div class="box"><p class="muted">Chưa có tin Zalo nào cần trả lời.</p></div>');
     if (tb === 'kho') h += inTabi('Hàng nào còn nhiều, sắp hết, đã hết; hàng kho cần đẩy bán.', ['Tư vấn ưu tiên sản phẩm 💚 / ⭐', 'Hàng 🔴 hết: báo khách ngày có hàng']) + (S_KHO || '<div class="box"><p class="muted">Kho chưa có số hôm nay.</p></div>');
     if (tb === 'grow') h += inTabi('Xong việc gọi thì làm 5 việc nhỏ để có thêm khách không tốn quảng cáo: mời giới thiệu, gọi lại khách cũ, Kho chung.', ['Làm lần lượt từng việc', 'Đủ 5 / 5 là xong']) + (S_GROW || '<div class="box"><p class="muted">Hôm nay chưa có việc mở rộng khách.</p></div>');
@@ -2067,7 +2066,7 @@
     var cs = (S.d.customers || []).filter(function (c) { return !c.owner && c.poolAt; }).sort(function (a, b) { return b.poolAt - a.poolAt; }); // 18/11/2026: khách ĐÃ MUA sale tự trả về kho
     if (!ls.length && !cs.length) return '';
     var R = S.d.rules || {}, t0 = today(), got = (S.d.log || []).filter(function (l) { return l.by === S.user.name && l.what === 'Nhận khách' && l.time >= t0; }).length;
-    return '<section class="section"><details class="grp" data-grp="pool"' + (S.f.gopen && S.f.gopen.pool ? ' open' : '') + '><summary><span class="g-t">🧺 Kho chung – ai nhận cũng được</span><span class="count">' + (ls.length + cs.length) + '</span><span class="g-tip">khách hỏi chưa ai chốt' + (cs.length ? ' · ' + cs.length + ' khách đã mua được trả về' : '') + ' · đọc lịch sử rồi bấm ✋ Nhận' + (R.poolMax ? ' · hôm nay bạn đã nhận ' + got + ' / ' + R.poolMax : '') + '</span></summary>' + poolRuleBar() + '<div class="list cols" style="padding:10px">' + capRows(cs, function (c) { return custCard(c, false); }) + capRows(ls, leadCard) + '</div></details></section>';
+    return '<section class="section"><details class="grp" data-grp="pool"' + (S.tdOpen || (S.f.gopen && S.f.gopen.pool) ? ' open' : '') + '><summary><span class="g-t">🧺 Kho chung – ai nhận cũng được</span><span class="count">' + (ls.length + cs.length) + '</span><span class="g-tip">khách hỏi chưa ai chốt' + (cs.length ? ' · ' + cs.length + ' khách đã mua được trả về' : '') + ' · đọc lịch sử rồi bấm ✋ Nhận' + (R.poolMax ? ' · hôm nay bạn đã nhận ' + got + ' / ' + R.poolMax : '') + '</span></summary>' + poolRuleBar() + '<div class="list cols" style="padding:10px">' + capRows(cs, function (c) { return custCard(c, false); }) + capRows(ls, leadCard) + '</div></details></section>';
   }
   /** 14/11/2026 (anh Sơn): dòng luật Kho chung + link trang hướng dẫn + nút góp ý luật, để sale xem lại và góp ý cải tiến. */
   function poolRuleBar() {
@@ -4293,7 +4292,7 @@
       '<div class="gr-list">' + T.map(row).join('') + '</div>' +
       '<div class="gr-plus"><span>📞 Khách đọc số bạn bè cho bạn, hoặc bạn tự tìm được khách?' + (ef.self ? ' <b>Hôm nay: ' + ef.self + ' khách</b>' : '') + '<small class="gr-g">💰 Mỗi khách bạn thêm là khách của bạn: ' + (PP.own || 6) + '% mọi đơn trong 6 tháng (cũng tính 1 việc).</small></span><button class="btn" data-newlead>＋ Thêm khách được giới thiệu</button></div>' +
       '<div class="gr-plus"><span>🔗 <b>Link riêng của bạn</b>: dán vào bài hội nhóm, tin Zalo, trang cá nhân. Khách đặt qua link trong 30 ngày thì đơn tính cho bạn.</span><button type="button" class="btn" data-copy="' + esc(refLink(me)) + '">📋 Copy link riêng</button></div>' +
-      (idle.length ? '<details class="grp" data-grp="idle"' + (S.f.gopen && S.f.gopen.idle ? ' open' : '') + '><summary><span class="g-t">😴 Khách từng nói “Không mua”</span><span class="count">' + idle.length + '</span><span class="g-tip">lâu nhất lên trước · bấm vào khách → 💬 Tư vấn, ghi kết quả như bình thường</span></summary><div class="list cols" style="padding:10px">' + capRows(idle.slice(0, 30), idleCard) + '</div></details>' : '') + '</section>';
+      (idle.length ? '<details class="grp" data-grp="idle"' + (S.tdOpen || (S.f.gopen && S.f.gopen.idle) ? ' open' : '') + '><summary><span class="g-t">😴 Khách từng nói “Không mua”</span><span class="count">' + idle.length + '</span><span class="g-tip">lâu nhất lên trước · bấm vào khách → 💬 Tư vấn, ghi kết quả như bình thường</span></summary><div class="list cols" style="padding:10px">' + capRows(idle.slice(0, 30), idleCard) + '</div></details>' : '') + '</section>';
   }
 
   function idleCard(l) {
@@ -18579,7 +18578,7 @@
       var main = kind === 'out' ? '<b>đã hết</b> · ' + khoSaleEta(s) : 'còn ' + s.a + ' ' + esc(s.u) + khoSaleDays(s) + (kind === 'low' ? ' · ' + khoSaleEta(s) : '');
       return '<li><b>' + (s.st ? '⭐ ' : '') + esc(s.n) + '</b><span>' + main + '</span>' + (s.sn ? '<small>📝 ' + esc(s.sn) + '</small>' : '') + '</li>';
     };
-    var h = '<section class="section"><details class="grp kss" data-grp="khosale"' + (S.f.gopen && S.f.gopen.khosale ? ' open' : '') + '><summary><span class="g-t">📦 Kho hôm nay</span><span class="g-tip">' + tip + '</span></summary><div class="kss-b">';
+    var h = '<section class="section"><details class="grp kss" data-grp="khosale"' + (S.tdOpen || (S.f.gopen && S.f.gopen.khosale) ? ' open' : '') + '><summary><span class="g-t">📦 Kho hôm nay</span><span class="g-tip">' + tip + '</span></summary><div class="kss-b">';
     if (G.push.length) h += '<div class="kss-g kss-push"><p class="kss-h">💚 Nên ưu tiên tư vấn <small>còn nhiều hàng' + (G.push.some(function (s) { return s.st; }) ? ', ⭐ = kho nhờ đẩy bán' : '') + '</small></p><ul>' + G.push.map(function (s) { return li(s, 'push'); }).join('') + '</ul></div>';
     if (bad.length) h += '<div class="kss-g kss-low"><p class="kss-h">🔴 Sắp hết / đã hết <small>báo khách trước, hẹn ngày giao, gợi ý sản phẩm khác</small></p><ul>' + G.out.map(function (s) { return li(s, 'out'); }).concat(G.low.map(function (s) { return li(s, 'low'); })).join('') + '</ul></div>';
     if (G.ok.length) h += '<div class="kss-g kss-ok"><p class="kss-h">🟢 Đủ hàng, bán bình thường</p><ul>' + G.ok.map(function (s) { return li(s, 'ok'); }).join('') + '</ul></div>';
