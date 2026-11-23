@@ -6,10 +6,13 @@
  * - Mức ở kv `dl_cfg` (Quản trị sửa ở Cài đặt → 🏪 Đại lý): 3 bậc {name, pct, min}, đơn đầu tối thiểu, thưởng sale giới thiệu.
  * - Đơn của đại lý: người bán = DL_SELLER ("Kênh đại lý") → tự đứng ngoài doanh số / hoa hồng / thi đua / mục tiêu của từng sale.
  *   Giá lẻ của từng đơn nhớ ở kv `dl_ord` {mã đơn: {ph, l (tiền hàng giá lẻ), p (% chiết khấu)}} để tính bậc theo giá lẻ.
+ * - Đợt 2 (23/11/2026): người ngoài đăng ký ở thucduonglanh.vn/dai-ly/ (build.py page_dl_join → dlApply) → kv `dl_apps` [{id, at, name, phone, shop, area, kind, plan, note, src, st}]
+ *   → báo Telegram → người phụ trách (dl_cfg.lead) gọi làm quen rồi Duyệt (dl_save kèm appId) / Từ chối (dl_app_no) ở Cài đặt → 🏪 Đại lý.
  * - Sale giới thiệu được đại lý (dl_list.by) → thưởng `bonus`% tiền nhập (đã trừ chiết khấu, không gồm ship) trong `bonusMonths` tháng từ đơn đầu.
  */
-import { all, kvJson, kvSet, normPhone, fmt, fmtDate, isVoid, DAY } from './lib.js';
+import { all, first, kvGet, kvJson, kvSet, normPhone, fmt, fmtDate, isVoid, esc, DAY } from './lib.js';
 import { staffOf, staffHit } from './partner.js';
+import { telegram } from './google.js';
 
 export const DL_SELLER = 'Kênh đại lý';
 const CFG_DEF = {
@@ -78,6 +81,31 @@ export async function dlOrderSave(x, id, phone, chk) {
   await kvSet(x.db, 'dl_ord', JSON.stringify(O));
 }
 
+async function dlApps(x) { const a = await kvJson(x.db, 'dl_apps', null); return Array.isArray(a) ? a : []; }
+export async function dlAppsNew(x) { return (await dlApps(x)).filter(r => r.st === 'new').length; } // số đăng ký chờ duyệt (Cài đặt → 🏪, Tổng quan)
+/** 📝 Đăng ký làm đại lý từ web /dai-ly/ (không cần đăng nhập). Chống spam: 5 lần / giờ / IP + ô bẫy "website". */
+export async function dlApply(x, d) {
+  if (d.website) return { ok: true };
+  const fk = 'dla_' + String(x.ip || 'x').slice(0, 60), n = Number(await kvGet(x.db, fk)) || 0;
+  if (n >= 5) return { ok: false, error: 'Bạn gửi nhiều lần quá. Thử lại sau 1 giờ, hoặc nhắn Zalo 0966 326 522 nhé.' };
+  const t = (v, m) => String(v || '').trim().slice(0, m), name = t(d.name, 80), phone = normPhone(d.phone);
+  if (name.length < 2) return { ok: false, error: 'Bạn nhập họ tên giúp nhé.' };
+  if (!/^0\d{9,10}$/.test(phone)) return { ok: false, error: 'Số điện thoại chưa đúng, bạn kiểm tra lại giúp nhé.' };
+  if (!t(d.area, 80)) return { ok: false, error: 'Bạn cho biết tỉnh / thành bạn bán hàng giúp nhé.' };
+  if (!d.agree) return { ok: false, error: 'Bạn đọc chính sách và đánh dấu ô đồng ý giúp nhé.' };
+  await kvSet(x.db, fk, n + 1, 60 * 60e3);
+  if ((await dlList(x))[phone]) return { ok: true, already: 'dl', msg: 'Số này đã là đại lý của chúng tôi. Cần nhập hàng, bạn nhắn Zalo 0966 326 522 nhé.' };
+  const A = await dlApps(x);
+  if (A.some(r => r.phone === phone && r.st === 'new')) return { ok: true, already: 'wait', msg: 'Chúng tôi đã nhận đăng ký của số này và đang xem. Người phụ trách đại lý sẽ gọi hoặc nhắn Zalo cho bạn trong 1–2 ngày làm việc.' };
+  const row = { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 5), at: Date.now(), name, phone, shop: t(d.shop, 120), area: t(d.area, 80), kind: t(Array.isArray(d.kind) ? d.kind.join(', ') : d.kind, 200), plan: t(d.plan, 60), note: t(d.note, 500), src: t(d.source, 200), st: 'new' };
+  A.unshift(row); await kvSet(x.db, 'dl_apps', JSON.stringify(A.slice(0, 300)));
+  const cfg = await dlCfg(x), c = await first(x.db, 'SELECT orders, owner FROM customers WHERE phone = ?', phone), sw = staffHit(await staffOf(x), { phone, name });
+  x.later(telegram(x.env, '🏪 <b>ĐĂNG KÝ ĐẠI LÝ</b>\n👤 ' + esc(name) + ' – <b>' + esc(phone) + '</b> · ' + esc(row.area) + (row.shop ? '\n🏬 ' + esc(row.shop) : '') + (row.kind ? '\n📣 Bán qua: ' + esc(row.kind) : '') + (row.plan ? '\n📦 Dự kiến nhập: ' + esc(row.plan) + '/tháng' : '') + (row.note ? '\n💬 ' + esc(row.note) : '') +
+    (c ? '\n🛒 Đã là khách: ' + (c.orders || 0) + ' đơn' + (c.owner ? ' · sale ' + esc(c.owner) : '') : '') + (sw ? '\n' + esc(sw) + ' (nhân sự và người nhà không làm đại lý)' : '') +
+    '\n👉 ' + (cfg.lead ? 'Chị ' + esc(cfg.lead) + ' g' : 'G') + 'ọi / Zalo làm quen rồi Duyệt ở CRM → Cài đặt → 🏪 Đại lý'));
+  return { ok: true };
+}
+
 /** Màn 🏪 Đại lý: danh sách, bậc, tiền theo tháng, thưởng sale giới thiệu. */
 async function dlView(x, u) {
   const cfg = await dlCfg(x), L = await dlList(x), os = await dlOrders(x), now = Date.now(), k = ym(now), kp = ymShift(k, -1);
@@ -95,7 +123,8 @@ async function dlView(x, u) {
       months: Object.keys(bm).sort().slice(-6).map(mk => [mk, bm[mk], pm[mk]]) };
   }).sort((a, b) => b.thisPaid - a.thisPaid || b.allPaid - a.allPaid);
   const sum = { n: list.length, thisPaid: list.reduce((s, r) => s + r.thisPaid, 0), prevPaid: os.filter(o => ym(o.t) === kp).reduce((s, o) => s + o.paid, 0), orders: os.filter(o => ym(o.t) === k).length };
-  return { ok: true, cfg, list, sum, month: k, prev: kp, bonus: { [k]: bonusOf[k] || {}, [kp]: bonusOf[kp] || {} }, company: COMPANY, canCfg: u.level >= 3 };
+  const A = await dlApps(x), apps = A.filter(r => r.st === 'new').concat(A.filter(r => r.st !== 'new').slice(0, 10));
+  return { ok: true, cfg, list, sum, apps, month: k, prev: kp, bonus: { [k]: bonusOf[k] || {}, [kp]: bonusOf[kp] || {} }, company: COMPANY, canCfg: u.level >= 3 };
 }
 
 export async function crmDaily(x, u, d, log, staffNames) {
@@ -112,8 +141,18 @@ export async function crmDaily(x, u, d, log, staffNames) {
     if (sw && !d.okStaff) return { ok: false, warn: 1, error: sw + '. Nhân sự và người nhà không làm đại lý (giống luật CTV). Vẫn thêm thì bấm lại.' };
     L[ph] = { name, area: String(d.area || '').trim().slice(0, 120), by, fix: fix >= 1 && fix <= 3 ? fix : 0, note: String(d.note || '').trim().slice(0, 300), at: old ? old.at : Date.now(), atBy: old ? old.atBy : u.name };
     if (d.oldPhone && normPhone(d.oldPhone) !== ph) delete L[normPhone(d.oldPhone)];
+    if (d.appId) L[ph].app = String(d.appId).slice(0, 20);
     await kvSet(x.db, 'dl_list', JSON.stringify(L));
-    await log(x, u, old ? 'Sửa đại lý' : 'Thêm đại lý', ph, name, L[ph].fix ? 'giữ bậc ' + L[ph].fix : 'bậc tự theo tháng trước', by ? 'sale giới thiệu: ' + by : '');
+    if (d.appId) { const A = await dlApps(x), r = A.find(z => z.id === d.appId); if (r && r.st === 'new') { Object.assign(r, { st: 'ok', doneAt: Date.now(), doneBy: u.name }); await kvSet(x.db, 'dl_apps', JSON.stringify(A)); } }
+    await log(x, u, old ? 'Sửa đại lý' : d.appId ? 'Duyệt đăng ký đại lý' : 'Thêm đại lý', ph, name, L[ph].fix ? 'giữ bậc ' + L[ph].fix : 'bậc tự theo tháng trước', by ? 'sale giới thiệu: ' + by : '');
+    return dlView(x, u);
+  }
+  if (a === 'dl_app_no') {
+    if (u.level < 2) return { ok: false, error: 'Chỉ Quản lý và Quản trị xử lý đăng ký đại lý.' };
+    const A = await dlApps(x), r = A.find(z => z.id === d.id); if (!r || r.st !== 'new') return { ok: false, error: 'Đăng ký này đã xử lý rồi.' };
+    Object.assign(r, { st: 'no', doneAt: Date.now(), doneBy: u.name, reason: String(d.reason || '').trim().slice(0, 200) });
+    await kvSet(x.db, 'dl_apps', JSON.stringify(A));
+    await log(x, u, 'Từ chối đăng ký đại lý', r.phone, r.name, r.reason, '');
     return dlView(x, u);
   }
   if (a === 'dl_del') {

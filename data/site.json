@@ -88,6 +88,15 @@
     "months": 6,
     "friend_pct": 10
   },
+  "dl_join": {
+    "enabled": true,
+    "pct1": 30,
+    "pct2": 35,
+    "pct3": 40,
+    "first": 5,
+    "min2": 15,
+    "min3": 50
+  },
   "web_offer": {
     "enabled": true,
     "percent": 15,

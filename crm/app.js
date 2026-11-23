@@ -6786,6 +6786,17 @@
     var rf = refDash(R), rfp = refDash(P);
     X.ref = dashMore('ref', '🌱 Khách giới thiệu & CTV', rf.n ? rf.n + ' đơn · ' + moneyShort(rf.rev) + ' · ' + rf.pct + '% đơn' + (rf.newPct !== null ? ' · ' + rf.newPct + '% khách mới' : '') : 'Chưa có đơn nhờ giới thiệu trong kỳ',
       rf.n || rfp.n ? refDashBlock(rf, rfp, trendEachMemo('refd', DB, refDash), sk) : '<div class="box"><p>Chưa có đơn nhờ khách cũ giới thiệu hay Cộng tác viên trong kỳ này và kỳ trước.</p><p class="small muted">Khách cũ tự lấy link giới thiệu ở thucduonglanh.vn/gioi-thieu-ban-be/. Sale nhắc khách khi gọi chăm sóc. Có đơn đầu tiên thì mục này tự hiện đủ số.</p></div>');
+    // ---- 🏪 kênh đại lý (đợt 2, 23/11/2026): đơn có người bán "Kênh đại lý" (api/src/daily.js DL_SELLER), đã nằm trong doanh số văn phòng
+    var dk = dlyDash(R), dkp = dlyDash(P), dlN = Object.keys((S.d.rules && S.d.rules.dl) || {}).length, dla = (S.d.rules && S.d.rules.dla) || 0;
+    X.dly = dashMore('dly', '🏪 Kênh đại lý', (dk.n ? moneyShort(dk.rev) + ' · ' + dk.n + ' đơn · ' + dk.shops + ' đại lý nhập' : dlN ? dlN + ' đại lý · chưa nhập hàng trong kỳ' : 'Chưa có đại lý') + (dla ? ' · 📝 ' + dla + ' đăng ký chờ duyệt' : ''),
+      (dla ? '<p class="notice info">📝 <b>' + dla + ' người đăng ký làm đại lý</b> trên web đang chờ gọi làm quen. Mở Cài đặt → 🏪 Đại lý để duyệt.</p>' : '') +
+      '<p class="small muted">Đơn lên cho số điện thoại của đại lý (CRM tự trừ chiết khấu), không gồm đơn huỷ / hoàn. Đã nằm trong doanh số văn phòng, không vào doanh số của sale nào. Đại lý tự đăng ký ở thucduonglanh.vn/dai-ly/.</p><div class="metrics">' +
+      metric('Tiền đại lý nhập', moneyShort(dk.rev), 'Tiền đại lý đã trả (đã trừ chiết khấu) · ' + (b.rev - b.vRev > 0 ? oneDec(dk.rev * 100 / (b.rev - b.vRev)) + '% doanh số văn phòng' : '') + '.', delta(dk.rev, dkp.rev)) +
+      metric('Đơn đại lý', dk.n, 'Số lần đại lý nhập hàng trong kỳ.', delta(dk.n, dkp.n)) +
+      metric('Đại lý có nhập', dk.shops + (dlN ? ' / ' + dlN : ''), 'Số đại lý có ít nhất 1 đơn trong kỳ / tổng số đại lý đang có. Đại lý lâu không nhập: gọi hỏi bán thế nào.', delta(dk.shops, dkp.shops)) +
+      metric('Chiết khấu đã cho', moneyShort(dk.off), 'Giá lẻ − tiền đại lý trả. Phần này thay cho chi phí quảng cáo + lương sale của các đơn đó.', '') +
+      '</div><div class="box"><h3>🏪 Đại lý nhập nhiều nhất</h3>' + barList(dk.top.slice(0, 8), moneyShort, 'Chưa có đơn đại lý trong kỳ.', { below: 1 }) + '</div>' +
+      (lvl() >= 2 ? '<p><button class="btn" data-dlyopen="1">🏪 Mở danh sách đại lý</button></p>' : ''));
     // ---- website. Lượt vào: ưu tiên Cloudflare Web Analytics (đếm đủ 100%, không cookie, 10/11/2026); Google Analytics chỉ đếm khách bấm Đồng ý → dùng cho hành vi (người xem, ở lại xem, phễu, nguồn UTM)
     var cf = gj && gj.cf, vis = cf ? cf.cur.visits : g ? g.cur.sessions : 0, visP = cf ? cf.prev.visits : g ? g.prev.sessions : 0;
     var conv = (cf || g) && vis ? b.web * 100 / vis : null, convP = (cf || g) && visP ? bp.web * 100 / visP : null, wh = '';
@@ -6809,7 +6820,7 @@
     // 4 nhóm thu gọn: mở nhóm → thấy các mục kèm dòng số tóm tắt → bấm mục mới ra chi tiết
     var GR = [
       ['money', '💵', 'Tiền & lãi lỗ', 'Công ty đang lãi hay lỗ, tiền trong tài khoản còn bao nhiêu, chi phí nào lớn.', ['daily', 'fin', 'pnl', 'cost', 'rpm'], dashDaily.line && DL ? dashDaily.line : ''],
-      ['sales', '📈', 'Doanh số đến từ đâu', 'Vì sao tăng / giảm, mảng nào, nguồn khách nào, sản phẩm nào đang bán tốt.', ['why', 'day', 'goal', 'src', 'biz', 'san', 'prod', 'chan'], drv.worst ? 'Cần sửa nhất: ' + drv.worst.l.replace(/^\S+\s/, '').toLowerCase() : ''],
+      ['sales', '📈', 'Doanh số đến từ đâu', 'Vì sao tăng / giảm, mảng nào, nguồn khách nào, sản phẩm nào đang bán tốt.', ['why', 'day', 'goal', 'src', 'biz', 'dly', 'san', 'prod', 'chan'], drv.worst ? 'Cần sửa nhất: ' + drv.worst.l.replace(/^\S+\s/, '').toLowerCase() : ''],
       ['staff', '👥', 'Đội ngũ', 'Ai đang bán tốt, ai cần kèm thêm, mỗi người có đáng đồng lương.', ['team', 'camp', 'nsv'], ''],
       ['grow', '📣', 'Khách mới & marketing', 'Tiền quảng cáo có đáng không, khách mới đến từ kênh nào, website.', ['mkt', 'lead', 'ref', 'web'], '']
     ];
@@ -6825,6 +6836,19 @@
   }
   /* ---------- 🌱 Tổng quan → Khách giới thiệu & CTV (28/10/2026). Đơn "nhờ giới thiệu" = đơn có người giới thiệu (refPhone: bạn của khách cũ, đơn đầu)
    * hoặc thuộc CTV (partner: mọi đơn của khách CTV trong thời hạn). Chi phí = tiền giảm cho bạn (mã giới thiệu) + voucher CAMON đã dùng + hoa hồng CTV. */
+  function dlyDash(R) {
+    var x = { n: 0, rev: 0, off: 0, shops: 0, top: [] }, by = {};
+    S.d.orders.forEach(function (o) {
+      if (o.seller !== 'Kênh đại lý' || o.time < R[0] || o.time >= R[1] || isVoid(o.status) || /hoàn/i.test(o.status || '')) return;
+      var t = o.total || 0, ph = normPhone(o.phone), m = String(o.note || '').match(/giá lẻ ([\d.]+)/);
+      x.n++; x.rev += t; if (m) x.off += Math.max(0, (Number(m[1].replace(/\./g, '')) || 0) - (t - (o.shipping || 0)));
+      var w = by[ph] || (by[ph] = { v: 0, n: 0 }); w.v += t; w.n++;
+    });
+    var D = (S.d.rules && S.d.rules.dl) || {};
+    x.top = Object.keys(by).map(function (ph) { var c = cust(ph); return { l: (D[ph] && D[ph].shop) || (c && c.name) || fPhone(ph), v: by[ph].v, sub: by[ph].n + ' đơn' + (D[ph] ? ' · ' + D[ph].name + ' −' + D[ph].pct + '%' : '') }; }).sort(function (a, b) { return b.v - a.v; });
+    x.shops = x.top.length;
+    return x;
+  }
   function refDash(R) {
     var x = { n: 0, rev: 0, all: 0, allRev: 0, fr: 0, frRev: 0, ctv: 0, ctvRev: 0, comm: 0, off: 0, cam: 0, who: {}, ctvs: {} }, nw = {}, nr = {};
     S.d.orders.forEach(function (o) {
@@ -17297,7 +17321,7 @@
   function dlyBox() {
     var D = (S.d && S.d.rules && S.d.rules.dl) || {}, n = Object.keys(D).length;
     return '<div class="box"><h3>🏪 Đại lý</h3><p class="hint" style="margin:0 0 10px">Đại lý mua hàng về tự bán, trả tiền trước, được chiết khấu theo bậc (tính theo tiền hàng giá lẻ tháng trước). Lên đơn cho số điện thoại của đại lý: CRM <b>tự trừ chiết khấu</b>, đơn tính cho <b>Kênh đại lý</b>, không vào doanh số / hoa hồng / thi đua của sale. Sale giới thiệu được đại lý nhận thưởng theo % tiền nhập.' + (function () { var k = Object.keys(D)[0], ld = k && D[k].lead; return ld ? ' <b>👩‍💼 Phụ trách đại lý: chị ' + esc(ld) + '</b> (thêm đại lý mới, chăm sóc, duyệt giảm thêm).' : ''; })() + '</p>' +
-      '<button class="btn pri" id="dlyOpen">🏪 Mở danh sách đại lý' + (n ? ' (' + n + ')' : '') + '</button></div>';
+      '<button class="btn pri" id="dlyOpen">🏪 Mở danh sách đại lý' + (n ? ' (' + n + ')' : '') + '</button>' + (S.d && S.d.rules && S.d.rules.dla ? ' <span class="dly-tag">📝 ' + S.d.rules.dla + ' đăng ký mới chờ duyệt</span>' : '') + '<p class="small muted" style="margin:8px 0 0">Trang cho người ngoài tự đăng ký: <a href="https://thucduonglanh.vn/dai-ly/" target="_blank" rel="noopener">thucduonglanh.vn/dai-ly/</a> (gửi link này cho cửa hàng muốn làm đại lý).</p></div>';
   }
   function openDlys() {
     var D = { j: null };
@@ -17310,6 +17334,8 @@
       var j = D.j, cfg = j.cfg; foot(true);
       var h = '<p class="small muted" style="margin:0 0 10px">' + tierLine(cfg) + ' · tính theo tiền hàng <b>giá lẻ</b> · sale giới thiệu thưởng <b>' + cfg.bonus + '%</b> tiền nhập trong ' + cfg.bonusMonths + ' tháng đầu.' + (cfg.lead ? ' · 👩‍💼 phụ trách: <b>chị ' + esc(cfg.lead) + '</b>' : '') + '</p>';
       h += '<div class="kpis" style="margin:0 0 12px">' + kpi('🏪 Đại lý', j.sum.n, '', '', 'đang có') + kpi('💵 Tiền nhập tháng này', moneyShort(j.sum.thisPaid), j.sum.thisPaid ? 'good' : '', '', j.sum.orders + ' đơn · đã trừ chiết khấu') + kpi('📅 Tháng trước', moneyShort(j.sum.prevPaid), '', '', 'tiền nhập') + '</div>';
+      var aNew = (j.apps || []).filter(function (a) { return a.st === 'new'; }), aOld = (j.apps || []).filter(function (a) { return a.st !== 'new'; });
+      if (aNew.length) h += '<div class="box dly-apps"><h3>📝 Đăng ký mới từ web (' + aNew.length + ')</h3><p class="hint" style="margin:0 0 8px">Người lạ tự đăng ký ở thucduonglanh.vn/dai-ly/. Gọi / Zalo làm quen, hỏi họ bán cho ai, rồi bấm <b>✅ Duyệt</b> (CRM mở sẵn form thêm đại lý) hoặc <b>✕ Không hợp</b>.</p>' + aNew.map(dlyAppCard).join('') + '</div>';
       if (!j.list.length) h += empty('Chưa có đại lý nào. Bấm <b>＋ Thêm đại lý</b> (số điện thoại + tên cửa hàng), rồi lên đơn như khách thường: CRM tự trừ chiết khấu.');
       h += j.list.map(function (e) {
         var nt = e.nextTier, T = cfg.tiers, go = '';
@@ -17330,13 +17356,24 @@
       var bh = bk(j.month, 'Tháng này') + bk(j.prev, 'Tháng trước');
       h += '<div class="box" style="margin-top:12px"><h3>🙋 Thưởng sale giới thiệu đại lý</h3>' + (bh || '<p class="small muted" style="margin:0">Chưa có. Khi thêm đại lý, chọn sale đã giới thiệu: CRM tự tính ' + cfg.bonus + '% tiền nhập trong ' + cfg.bonusMonths + ' tháng đầu.</p>') +
         '<p class="hint" style="margin:6px 0 0">Quản lý gửi số này cho kế toán cộng vào ô thưởng ở bảng lương tháng (đợt 1 chưa tự cộng).</p></div>';
+      if (aOld.length) h += '<details class="box" style="margin-top:12px"><summary><b>📝 Đăng ký đã xử lý gần đây (' + aOld.length + ')</b></summary>' + aOld.map(function (a) { return '<div class="small" style="margin:6px 0">' + (a.st === 'ok' ? '✅' : '✕') + ' <b>' + esc(a.name) + '</b> ' + esc(fPhone(a.phone)) + ' · ' + esc(a.area || '') + ' · ' + esc(a.doneBy || '') + ' ' + (a.doneAt ? fDate(a.doneAt) : '') + (a.reason ? ' · ' + esc(a.reason) : '') + '</div>'; }).join('') + '</details>';
       box().innerHTML = h;
+      $$('[data-dlyok]', m).forEach(function (b) { b.onclick = function () { var a = aNew.filter(function (z) { return z.id === b.getAttribute('data-dlyok'); })[0]; edit(null, a); }; });
+      $$('[data-dlyno]', m).forEach(function (b) { b.onclick = function () { var a = aNew.filter(function (z) { return z.id === b.getAttribute('data-dlyno'); })[0], r = prompt('Vì sao chưa hợp với ' + a.name + '? (vd chỉ muốn mua lẻ, không liên lạc được, ở xa)', ''); if (r === null) return; api('dl_app_no', { id: a.id, reason: r }).then(function (j) { toast('Đã ghi: không hợp'); done(j); }, fail); }; });
       $$('[data-dlyed]', m).forEach(function (b) { b.onclick = function () { edit(j.list.filter(function (e) { return e.ph === b.getAttribute('data-dlyed'); })[0]); }; });
       $$('[data-dlyhd]', m).forEach(function (b) { b.onclick = function () { dlyContract(j.list.filter(function (e) { return e.ph === b.getAttribute('data-dlyhd'); })[0], j); }; });
       $$('[data-dlyord]', m).forEach(function (b) { b.onclick = function () { var ph = b.getAttribute('data-dlyord'); closeModal(); openOrderForm({ phone: ph }); }; });
     }
-    function edit(e) {
-      var isNew = !e; e = e || { ph: '', name: '', area: '', by: '', fix: 0, note: '' }; foot(false);
+    function dlyAppCard(a) {
+      var c = cust(a.phone), age = Math.floor((Date.now() - a.at) / 864e5);
+      return '<div class="card"><div class="r1"><b>' + esc(a.name) + '</b><span class="small" data-copy="' + esc(a.phone) + '">' + esc(fPhone(a.phone)) + '</span><span class="small ' + (age >= 2 ? 'dly-warn' : 'muted') + '">' + (age ? age + ' ngày trước' : 'hôm nay') + '</span></div>' +
+        '<div class="small" style="margin:4px 0">' + ['📍 ' + esc(a.area), a.shop && '🏬 ' + esc(a.shop), a.kind && '📣 ' + esc(a.kind), a.plan && '📦 dự kiến ' + esc(a.plan) + '/tháng'].filter(Boolean).join(' · ') + '</div>' +
+        (c ? '<div class="small">🛒 Đã là khách: ' + esc(c.name) + (c.orders ? ' · ' + c.orders + ' đơn' : '') + (c.owner ? ' · ' + esc(c.owner) + ' phụ trách' : '') + '</div>' : '') +
+        (a.note ? '<div class="small muted">💬 ' + esc(a.note) + '</div>' : '') + (a.src ? '<div class="small muted">🔗 Đến từ: ' + esc(a.src) + '</div>' : '') +
+        '<div class="acts"><a class="btn" href="https://zalo.me/' + esc(a.phone) + '" target="_blank" rel="noopener">💬 Zalo</a><a class="btn" href="tel:' + esc(a.phone) + '">📞 Gọi</a><button class="btn pri" data-dlyok="' + esc(a.id) + '">✅ Duyệt</button><button class="btn ghost" data-dlyno="' + esc(a.id) + '">✕ Không hợp</button></div></div>';
+    }
+    function edit(e, app) {
+      var isNew = !e; e = e || (app ? { ph: app.phone, name: app.shop ? app.shop + ' – ' + app.name : app.name, area: app.area, by: '', fix: 0, note: [app.kind, app.plan && 'dự kiến ' + app.plan + '/tháng', app.note].filter(Boolean).join(' · ').slice(0, 300) } : { ph: '', name: '', area: '', by: '', fix: 0, note: '' }); foot(false);
       var T = D.j.cfg.tiers, sales = userNames(); if (e.by && sales.indexOf(e.by) < 0) sales.push(e.by);
       box().innerHTML = '<label class="f"><span>Số điện thoại đại lý *</span><input type="tel" id="dlyPh" inputmode="tel" value="' + esc(e.ph) + '"></label><p class="hint" id="dlyPhHint" style="margin:-4px 0 8px"></p>' +
         '<label class="f"><span>Tên đại lý / cửa hàng *</span><input type="text" id="dlyNm" maxlength="120" value="' + esc(e.name) + '" placeholder="vd Cửa hàng chay An Nhiên – chị Hoa"></label>' +
@@ -17344,14 +17381,14 @@
         '<label class="f"><span>Sale giới thiệu (được thưởng ' + D.j.cfg.bonus + '%)</span><select id="dlyBy"><option value="">– Không có –</option>' + sales.map(function (n) { return '<option' + (n === e.by ? ' selected' : '') + '>' + esc(n) + '</option>'; }).join('') + '</select></label>' +
         '<label class="f"><span>Bậc</span><select id="dlyFix"><option value="0"' + (!e.fix ? ' selected' : '') + '>Tự tính theo tiền hàng tháng trước (nên chọn)</option>' + T.map(function (t, i) { return '<option value="' + (i + 1) + '"' + (e.fix === i + 1 ? ' selected' : '') + '>Giữ cố định: ' + esc(t.name) + ' −' + t.pct + '%</option>'; }).join('') + '</select></label>' +
         '<label class="f"><span>Ghi chú</span><input type="text" id="dlyNo" maxlength="300" value="' + esc(e.note) + '" placeholder="vd bán ở chùa, nhóm Phật tử 200 người"></label>' +
-        '<p class="err" id="dlyErr"></p><div class="steps" style="margin-top:12px"><button class="btn pri" id="dlySave">' + (isNew ? 'Thêm đại lý' : 'Lưu') + '</button><button class="btn ghost" id="dlyBack">Quay lại</button>' + (isNew ? '' : '<button class="btn ghost" id="dlyDel">Bỏ đại lý</button>') + '</div>';
+        '<p class="err" id="dlyErr"></p><div class="steps" style="margin-top:12px"><button class="btn pri" id="dlySave">' + (app ? '✅ Duyệt và thêm đại lý' : isNew ? 'Thêm đại lý' : 'Lưu') + '</button><button class="btn ghost" id="dlyBack">Quay lại</button>' + (isNew ? '' : '<button class="btn ghost" id="dlyDel">Bỏ đại lý</button>') + '</div>';
       var ph = $('#dlyPh', m), hint = function () { var c = cust(ph.value); $('#dlyPhHint', m).innerHTML = c ? 'Đã có trong CRM: <b>' + esc(c.name) + '</b>' + (c.owner ? ' · ' + esc(c.owner) + ' phụ trách' : '') + (c.orders ? ' · ' + c.orders + ' đơn' : '') : (normPhone(ph.value).length >= 10 ? 'Số mới, chưa có trong CRM. Đơn đầu tiên sẽ tạo hồ sơ khách.' : ''); if (c && !$('#dlyNm', m).value.trim()) $('#dlyNm', m).value = c.name; if (c && !$('#dlyAr', m).value.trim()) $('#dlyAr', m).value = c.province || ''; };
       ph.addEventListener('input', hint); hint();
       $('#dlyBack', m).onclick = list;
       var save = function (okStaff) {
         var btn = $('#dlySave', m); btn.disabled = true; $('#dlyErr', m).textContent = '';
-        api('dl_save', { phone: ph.value, oldPhone: isNew ? '' : e.ph, name: $('#dlyNm', m).value, area: $('#dlyAr', m).value, by: $('#dlyBy', m).value, fix: +$('#dlyFix', m).value, note: $('#dlyNo', m).value, okStaff: okStaff ? 1 : 0, cname: (cust(ph.value) || {}).name || '' })
-          .then(function (j) { toast(isNew ? 'Đã thêm đại lý ✓ Lên đơn cho số này: CRM tự trừ chiết khấu' : 'Đã lưu ✓'); done(j); }, function (er) { btn.disabled = false; if (er.j && er.j.warn && confirm(er.message)) { save(true); return; } $('#dlyErr', m).textContent = er.message; });
+        api('dl_save', { phone: ph.value, oldPhone: isNew ? '' : e.ph, name: $('#dlyNm', m).value, area: $('#dlyAr', m).value, by: $('#dlyBy', m).value, fix: +$('#dlyFix', m).value, note: $('#dlyNo', m).value, appId: app ? app.id : '', okStaff: okStaff ? 1 : 0, cname: (cust(ph.value) || {}).name || '' })
+          .then(function (j) { toast(isNew ? (app ? 'Đã duyệt ✓ Bấm 📄 Hợp đồng để in, rồi lên đơn đầu cho số này' : 'Đã thêm đại lý ✓ Lên đơn cho số này: CRM tự trừ chiết khấu') : 'Đã lưu ✓'); done(j); }, function (er) { btn.disabled = false; if (er.j && er.j.warn && confirm(er.message)) { save(true); return; } $('#dlyErr', m).textContent = er.message; });
       };
       $('#dlySave', m).onclick = function () { save(false); };
       if ($('#dlyDel', m)) $('#dlyDel', m).onclick = function () { if (!confirm('Bỏ ' + e.name + ' khỏi danh sách đại lý? Đơn cũ vẫn giữ ở kênh đại lý; đơn mới của số này tính như khách thường.')) return; api('dl_del', { phone: e.ph }).then(function (j) { toast('Đã bỏ đại lý'); done(j); }, fail); };
@@ -20046,6 +20083,7 @@
   document.addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('[data-rgoal],[data-ambskip]'); if (!b || !S.d) return; e.preventDefault(); e.stopPropagation();
     if (b.hasAttribute('data-rgoal')) return openRefGoal();
     var sk = {}; try { sk = JSON.parse(store('crm_amb_skip') || '{}'); } catch (x) { } sk[b.getAttribute('data-ambskip')] = Date.now() + 30 * DAY; store('crm_amb_skip', JSON.stringify(sk)); render(); }, true);
+  document.addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('[data-dlyopen]'); if (!b || !S.d) return; e.preventDefault(); openDlys(); }); // 🏪 Tổng quan → mở danh sách đại lý
   document.addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('[data-relink]'); if (!b || !S.d) return; e.preventDefault(); e.stopPropagation(); openRelink(b.getAttribute('data-relink')); }, true);
   document.addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('[data-copyref]'); if (!b) return; e.preventDefault(); copy(b.getAttribute('data-copyref')).then(function () { toast('Đã copy link ✓'); }); });
   document.addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('[data-gmore]'); if (!b) return; var r = b.previousElementSibling; if (r) r.hidden = false; b.remove(); });

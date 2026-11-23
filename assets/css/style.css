@@ -2405,6 +2405,15 @@ body.ch-on .float-widget,body.ch-on .gd-btn,body.ch-on .bvb,body.ch-on .to-top{o
 .cj-agree{display:flex;gap:10px;align-items:flex-start;margin:6px 0 14px;font-size:14px;line-height:1.5;cursor:pointer}
 .cj-agree input{width:20px;height:20px;flex:none;margin-top:1px;accent-color:var(--primary)}
 .cj-agree.invalid{color:#d33}
+.dlj-tiers{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:18px 0 8px}
+.dlj-tier{display:flex;flex-direction:column;align-items:center;text-align:center;gap:2px;padding:14px 8px;border:1px solid var(--line);border-radius:var(--radius-sm);background:#fff}
+.dlj-tier:last-child{border-color:var(--primary);box-shadow:0 0 0 1px var(--primary) inset}
+.dlj-ic{font-size:26px;line-height:1}
+.dlj-pct{font-size:28px;font-weight:800;color:var(--primary);line-height:1.15}
+.dlj-tier small{color:var(--muted);font-size:13px;line-height:1.35}
+.dlj-ex{margin:0 0 18px;text-align:center}
+.dlj-page .plg-f select{display:block;width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:var(--radius-sm);font:inherit;font-size:16px;background:#fff}
+@media (max-width:520px){.dlj-tiers{gap:6px}.dlj-tier{padding:10px 4px}.dlj-pct{font-size:22px}.dlj-tier b{font-size:13px}}
 .cj-done{text-align:center;padding:8px 0}
 .cj-done .cj-ic{font-size:44px;line-height:1;margin:0 0 8px}
 .cj-done h2{margin:0 0 8px}

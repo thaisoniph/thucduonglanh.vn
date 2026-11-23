@@ -48,8 +48,8 @@ CRM tự lên / xuống bậc đầu mỗi tháng. Quản lý có thể **giữ 
 
 Người hợp: cửa hàng chay, tiệm thực dưỡng, hội Phật tử, nhóm mẹ và bé, khách cũ mua nhiều, CTV bán tốt.
 
-1. Hỏi tên cửa hàng, khu vực, họ định bán cho ai.
-2. Báo **Quản lý** để thêm đại lý vào CRM. Nhớ nói **bạn là người giới thiệu**.
+1. Gửi họ link **thucduonglanh.vn/dai-ly/**: có bảng chiết khấu, chính sách và form đăng ký 1 phút. Dặn họ ghi tên bạn ở ô "Bạn muốn nhắn gì thêm?".
+2. Báo **chị Thủy** (phụ trách đại lý). Nhớ nói **bạn là người giới thiệu** để chị chọn tên bạn khi duyệt.
 3. 💰 **Lợi ích của bạn:** thưởng **3% tiền nhập** của đại lý đó trong **3 tháng đầu**.
 
 > Nhân sự và người nhà **không làm đại lý** (giống luật CTV).
@@ -71,7 +71,19 @@ CRM **không cho lưu** khi:
 - Bạn thu thấp hơn giá đại lý. Muốn giảm thêm thì nhờ quản lý lên đơn.
 - Đơn **đầu tiên** của đại lý dưới 5 triệu giá lẻ.
 
-## Việc 3 (Quản lý): Thêm và theo dõi đại lý
+## Việc 3 (Quản lý): Duyệt người đăng ký trên web
+
+Có người đăng ký ở thucduonglanh.vn/dai-ly/ → nhóm Telegram báo **🏪 ĐĂNG KÝ ĐẠI LÝ**. Ô Cài đặt → 🏪 Đại lý hiện **📝 N đăng ký mới chờ duyệt**.
+
+1. Mở danh sách đại lý. Khung **📝 Đăng ký mới từ web** ở trên cùng.
+2. Bấm **💬 Zalo** hoặc **📞 Gọi** làm quen trong 1–2 ngày. Hỏi họ bán cho ai, bán ở đâu, nhập được bao nhiêu.
+3. Hợp → bấm **✅ Duyệt**. CRM mở sẵn form thêm đại lý (tên, khu vực, ghi chú điền sẵn). Chọn **sale giới thiệu** nếu có, rồi bấm **✅ Duyệt và thêm đại lý**.
+4. Chưa hợp (chỉ muốn mua lẻ, không liên lạc được…) → bấm **✕ Không hợp**, ghi lý do.
+![Khung Đăng ký mới từ web: Zalo, Gọi, Duyệt, Không hợp](/huong-dan/img/dl-dang-ky.webp)
+
+> Đăng ký quá 2 ngày chưa xử lý thì chữ "N ngày trước" chuyển màu cam.
+
+## Việc 4 (Quản lý): Thêm và theo dõi đại lý
 
 Vào **⚙️ Cài đặt → 🌐 Website & khuyến mãi → 🏪 Đại lý → Mở danh sách đại lý**.
 
@@ -84,3 +96,9 @@ Vào **⚙️ Cài đặt → 🌐 Website & khuyến mãi → 🏪 Đại lý �
 5. Khung **🙋 Thưởng sale giới thiệu đại lý**: tiền thưởng từng sale tháng này / tháng trước. Gửi số này cho kế toán cộng vào ô thưởng ở bảng lương.
 
 Đổi mức chiết khấu: nút **⚙️ Mức chiết khấu** (chỉ Quản trị).
+
+## Anh Sơn xem kết quả kênh đại lý
+
+**Tổng quan → 📈 Doanh số → 🏪 Kênh đại lý**: tiền đại lý nhập, số đơn, số đại lý có nhập / tổng số, chiết khấu đã cho, đại lý nhập nhiều nhất, số đăng ký chờ duyệt.
+![Tổng quan: mục Kênh đại lý](/huong-dan/img/dl-tong-quan.webp)
+

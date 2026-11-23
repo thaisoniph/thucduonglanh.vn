@@ -751,6 +751,8 @@ Code `api/src/mktg.js`. Dùng bot ✅ Việc tuần (giaoviec.js, đã có webho
 
 - 23/11: anh Sơn chọn **chị Thủy phụ trách đại lý**. Tên người phụ trách lưu ở `dl_cfg.lead` (mặc định 'Thủy', Quản trị sửa ở ⚙️ Mức chiết khấu), hiện ở Cài đặt → 🏪, hồ sơ khách đại lý và câu báo lỗi khi sale lên đơn thấp hơn giá đại lý.
 
+- **Đợt 2 (23/11):** trang **thucduonglanh.vn/dai-ly/** (build.py `page_dl_join`, chữ ở site.json `dl_join` + /admin, mức THẬT ở CRM dl_cfg) → main.js `initDlJoin` → api `dl_apply` (daily.js `dlApply`, kv `dl_apps`, chống spam 5 lần/giờ/IP + ô bẫy) → Telegram. CRM: khung 📝 Đăng ký mới trong 🏪 Đại lý (✅ Duyệt = `dl_save` kèm `appId`, ✕ Không hợp = `dl_app_no`), `rules.dla` = số chờ duyệt. Tổng quan → 📈 → 🏪 Kênh đại lý (`dlyDash`, đơn có seller "Kênh đại lý", chiết khấu tính từ chữ "giá lẻ …" trong ghi chú đơn). Chân trang web có link "Làm đại lý".
+
 ## 7. Tên miền, DNS, chuyển hướng
 
 - Nameserver: `liberty.ns.cloudflare.com`, `randy.ns.cloudflare.com`. **Mọi thay đổi DNS làm trên Cloudflare**, không làm ở Tenten.

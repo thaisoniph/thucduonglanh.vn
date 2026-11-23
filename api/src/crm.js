@@ -2,7 +2,7 @@
 import { normPhone, nrm, addrJoin, esc, fmt, startOfDay, TZ_MS, fmtDate, dateOrBlank, slugName, codePre, replaceRows, isVoid, randHex, all, first, run, insertMany, allIn, kvGet, kvSet, kvDel, kvJson, DAY, CRM_URL, ROLE_URL, refCode, crmSeen, adjOut, adjTot } from './lib.js';
 import { crmSnh } from './sinhnhat.js'; // 🎂 15/11/2026
 import { crmPartner, partnerSchema, partnerCfg, orderAttrib, refClaim, staffOf, staffHit } from './partner.js';
-import { crmDaily, dlMap, dlOrderCheck, dlOrderSave, DL_SELLER } from './daily.js'; // 🏪 kênh đại lý (23/11/2026)
+import { crmDaily, dlMap, dlOrderCheck, dlOrderSave, dlAppsNew, DL_SELLER } from './daily.js'; // 🏪 kênh đại lý (23/11/2026)
 import { chatSchema } from './chat.js';
 import { zbotSchema, crmZbot } from './zbot.js';
 import { zsaleSchema, crmZsale } from './zsale.js'; // 👀 giám sát Zalo của sale
@@ -620,7 +620,7 @@ async function loadSmall(x, u, R, mode, adV) {
     occ: saleDays(fmtDate(Date.now() - 864e5, 'yyyyMMdd'), 5), // 🎉 dịp chúc khách hôm qua → 3 ngày tới (zday.js), CRM tự lọc theo ngày
     contacts: ct.reverse().map(contactOut), targets: tg.map(t => ({ month: t.month, name: t.name, amount: t.amount || 0, selfN: t.self_n || 0, by: t.by_name || '', at: t.at })),
     cycles: cy.filter(r => r.name).map(r => [r.name, r.variant || '', Number(r.days) || 0, r.basis || '']), templates: tp.filter(r => r.text).map(r => [r.when_txt || '', r.purpose || '', r.text]),
-    rules: { backCost: Number(dash.backCost) || 0, ai: !!x.env.ANTHROPIC_API_KEY && u.role !== 'Marketing', vipOrders: R.vipOrders, vipSpent: R.vipSpent, atRisk: R.atRisk, coolDays: R.coolDays, shipDays: R.shipDays, shipFar: R.shipFar, famMin: R.famMin, poolDays: R.poolDays, poolNoCall: R.poolNoCall, poolIdle: R.poolIdle, poolMax: R.poolMax, selfOn: R.selfOn, poolOn: R.poolOn, otypes: OTYPES, commission, payplan, staffGuard, dash: u.level >= 3 || u.role === 'Marketing' || u.mkv || u.role === 'Kế toán' ? dash : null, ktCfg: await ktP, mktDoc, cost, opex, fin, ktLink: ktLink && ktLink.link ? ktLink : null, statuses: ORDER_STATUS, results: CARE_RESULTS, leadStatus: LEAD_STATUS, assignMode: mode, bot: BOT_USERNAME, ca, dl: await dlMap(x).catch(e => { console.error('dlMap', e.message); return {}; }), lines: LINES.map(l => l[0]).concat(['Khác']) }
+    rules: { backCost: Number(dash.backCost) || 0, ai: !!x.env.ANTHROPIC_API_KEY && u.role !== 'Marketing', vipOrders: R.vipOrders, vipSpent: R.vipSpent, atRisk: R.atRisk, coolDays: R.coolDays, shipDays: R.shipDays, shipFar: R.shipFar, famMin: R.famMin, poolDays: R.poolDays, poolNoCall: R.poolNoCall, poolIdle: R.poolIdle, poolMax: R.poolMax, selfOn: R.selfOn, poolOn: R.poolOn, otypes: OTYPES, commission, payplan, staffGuard, dash: u.level >= 3 || u.role === 'Marketing' || u.mkv || u.role === 'Kế toán' ? dash : null, ktCfg: await ktP, mktDoc, cost, opex, fin, ktLink: ktLink && ktLink.link ? ktLink : null, statuses: ORDER_STATUS, results: CARE_RESULTS, leadStatus: LEAD_STATUS, assignMode: mode, bot: BOT_USERNAME, ca, dl: await dlMap(x).catch(e => { console.error('dlMap', e.message); return {}; }), dla: u.level >= 2 ? await dlAppsNew(x).catch(() => 0) : 0, lines: LINES.map(l => l[0]).concat(['Khác']) }
   };
 }
 

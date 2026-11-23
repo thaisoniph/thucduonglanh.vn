@@ -640,7 +640,7 @@ def footer():
         about = about.replace('<li><a href="/gioi-thieu/">Giới Thiệu</a></li>', f'<li><a href="/gioi-thieu/">Giới Thiệu</a></li><li><a href="{BR_PATH}">Hồ sơ thương hiệu</a></li>')
     bct = f'<a href="{esc(SITE["bo_cong_thuong_url"])}" target="_blank" rel="noopener" class="bct" title="{t("Đã xác nhận với Bộ Công Thương")}"><img src="https://fileserver.online.gov.vn/uploads/Resources/iconxacnhan/DaThongBao.png" alt="{t("Đã xác nhận với Bộ Công Thương")}" style="height:44px;width:auto" loading="lazy"></a>' if SITE.get("bo_cong_thuong_url") else ""
     if IS_VI:
-        about += (f'<li><a href="{REF_PATH}">Giới thiệu bạn bè, <span style="white-space:nowrap">nhận quà</span> <small style="white-space:nowrap">(khách đã mua)</small></a></li>' if REF_PATH else "") + (f'<li><a href="{CTVJ_PATH}">Làm cộng tác viên, <span style="white-space:nowrap">nhận hoa hồng</span></a></li>' if CTVJ_PATH else "") + '<li><a href="https://congsu.thucduonglanh.vn/" target="_blank" rel="noopener">Tuyển dụng</a></li>'
+        about += (f'<li><a href="{REF_PATH}">Giới thiệu bạn bè, <span style="white-space:nowrap">nhận quà</span> <small style="white-space:nowrap">(khách đã mua)</small></a></li>' if REF_PATH else "") + (f'<li><a href="{CTVJ_PATH}">Làm cộng tác viên, <span style="white-space:nowrap">nhận hoa hồng</span></a></li>' if CTVJ_PATH else "") + (f'<li><a href="{DLJ_PATH}">Làm đại lý, <span style="white-space:nowrap">chiết khấu đến {int(num(DLJ.get("pct3")) or 0)}%</span></a></li>' if DLJ_PATH else "") + '<li><a href="https://congsu.thucduonglanh.vn/" target="_blank" rel="noopener">Tuyển dụng</a></li>'
     year = datetime.date.today().year
     return f'''
 <footer class="site-footer">
@@ -1952,6 +1952,67 @@ def page_ctv_join():
   <p>Cần hỗ trợ, bạn nhắn Zalo hoặc gọi <a href="tel:{tel(SITE["hotline"])}">{esc(SITE["hotline"])}</a>.</p></details>
 </div></section>'''
     return layout(CTVJ_PATH, f"Đăng ký Cộng tác viên – hoa hồng {rate}% | {BRAND}", f"Đăng ký làm Cộng tác viên {BRAND}: khách mới của bạn giảm {fp}% đơn đầu, bạn nhận {rate}% tiền hàng mọi đơn của họ trong {months} tháng. Không mất phí, không nhập hàng.", body, body_class="page-ctvj")
+
+
+DLJ = SITE.get("dl_join") or {}
+DLJ_PATH = "/dai-ly/" if DLJ.get("enabled") else ""
+
+
+def page_dl_join():
+    """🏪 Đăng ký làm đại lý /dai-ly/ (đợt 2, 23/11/2026): cửa hàng / người bán online tự đăng ký → báo Telegram → người phụ trách (CRM dl_cfg.lead) gọi làm quen
+    rồi Duyệt ở CRM → Cài đặt → 🏪 Đại lý. Chữ từ site.json "dl_join" (/admin); mức THẬT ở CRM (api/src/daily.js dl_cfg). main.js initDlJoin gửi api daily.js dlApply."""
+    p1, p2, p3, fst, m2, m3 = (int(num(DLJ.get(k)) or 0) for k in ("pct1", "pct2", "pct3", "first", "min2", "min3"))
+    kinds = ["Cửa hàng thực phẩm sạch / chay", "Tiệm thực dưỡng", "Spa / phòng tập / yoga", "Bán online (Facebook, Zalo, TikTok)", "Hội nhóm, cộng đồng", "Khác"]
+    chips = "".join(f'<label class="cn-chip"><input type="checkbox" name="kind" value="{esc(c)}"><span>{esc(c)}</span></label>' for c in kinds)
+    plans = ["Dưới 5 triệu", "5 – 15 triệu", "15 – 50 triệu", "Trên 50 triệu", "Chưa rõ"]
+    opts = "".join(f'<option value="{esc(o)}">{esc(o)}</option>' for o in plans)
+    ex = fst * 1000000
+    rules = [
+        f"Đại lý mua hàng về tự bán, chuyển khoản trước 100% mỗi lần nhập. Lần đầu nhập từ {fst} triệu (tính theo giá lẻ trên web).",
+        f"Chiết khấu tính theo tổng tiền hàng giá lẻ đã nhập trong tháng trước: {p1}% (Đại lý), {p2}% khi tháng trước nhập từ {m2} triệu (Đại lý Bạc), {p3}% khi nhập từ {m3} triệu 3 tháng liền (Nhà phân phối tỉnh). Bậc được xét lại đầu mỗi tháng.",
+        "Giữ giá bán lẻ không thấp hơn giá trên thucduonglanh.vn. Không bán trên Shopee, TikTok Shop, Lazada khi " + BRAND + " chưa đồng ý bằng văn bản.",
+        "Khách đang mua trực tiếp của " + BRAND + " vẫn là khách của công ty; đại lý phát triển khách mới của mình.",
+        "Hàng lỗi do nhà sản xuất được đổi ngay. Hàng chậm bán được đổi sang sản phẩm khác tối đa 10% giá trị đã nhập mỗi năm (hàng còn hạn trên 12 tháng). Không trả hàng lấy tiền.",
+        "Chỉ nói đúng công dụng ghi trên bao bì và hồ sơ công bố, không dùng các từ “chữa”, “điều trị”, “khỏi bệnh”, ghi rõ: sản phẩm không phải là thuốc, không có tác dụng thay thế thuốc chữa bệnh. Không giả làm trang chính thức của " + BRAND + ".",
+        "Chương trình chỉ một tầng: không tuyển người dưới, không đóng phí tham gia. Hai bên ký hợp đồng nguyên tắc phân phối khi bắt đầu.",
+        BRAND + " có thể tạm dừng hợp tác nếu đại lý vi phạm các điều trên, và sẽ báo trước qua Zalo khi đổi chính sách.",
+    ]
+    rules_html = "".join(f"<li>{esc(r)}</li>" for r in rules)
+    tiers = [("🏪", "Đại lý", f"Nhập lần đầu từ {fst} triệu", p1), ("🥈", "Đại lý Bạc", f"Tháng trước nhập từ {m2} triệu", p2), ("🥇", "Nhà phân phối tỉnh", f"Từ {m3} triệu / tháng, 3 tháng liền", p3)]
+    tier_html = "".join(f'<div class="dlj-tier"><span class="dlj-ic">{ic}</span><b>{esc(n)}</b><span class="dlj-pct">−{pc}%</span><small>{esc(c)}</small></div>' for ic, n, c, pc in tiers)
+    body = f'''<section class="section plg-page rf-page ctvj-page dlj-page"><div class="container plg-in">
+  <p class="join-eye">🏪 Đại lý {BRAND}</p>
+  <h1 class="plg-h"><span class="nw">Nhập hàng lành</span> <span class="nw">về bán,</span> <span class="nw">chiết khấu</span> <span class="nw">đến {p3}%</span></h1>
+  <p class="plg-lead">Bạn có cửa hàng, spa, phòng tập, hay bán online cho người quan tâm ăn uống lành mạnh? Làm đại lý {BRAND}: nhập hàng giá tốt, bán đúng giá web, phần chênh là của bạn. Nhập càng nhiều, chiết khấu càng cao.</p>
+  <div class="dlj-tiers">{tier_html}</div>
+  <p class="small muted dlj-ex">Ví dụ: lấy hàng giá lẻ {money(ex)}, bậc Đại lý −{p1}% → bạn trả <b>{money(round(ex * (100 - p1) / 100))}</b>, bán đúng giá web lãi {money(round(ex * p1 / 100))}.</p>
+  <ol class="rf-steps">
+    <li><span>1</span><b>Đăng ký</b>Điền form bên dưới, mất 1 phút.</li>
+    <li><span>2</span><b>Làm quen</b>Người phụ trách đại lý gọi hoặc nhắn Zalo trong 1–2 ngày làm việc, gửi bảng giá, tài liệu sản phẩm.</li>
+    <li><span>3</span><b>Ký và nhập hàng</b>Ký hợp đồng nguyên tắc, chuyển khoản đơn đầu, nhận hàng và ảnh, bài đăng để bán.</li>
+  </ol>
+  <div class="plg-card rf-card" id="dlJoin">
+    <form class="plg-form" data-dj-form novalidate>
+      <h2>Đăng ký làm đại lý</h2>
+      <label class="plg-f"><span>Họ và tên *</span><input name="name" maxlength="80" autocomplete="name" required placeholder="Ví dụ: Nguyễn Thu Hà"></label>
+      <label class="plg-f"><span>Số điện thoại có Zalo *</span><input name="phone" type="tel" inputmode="tel" autocomplete="tel" required placeholder="Ví dụ: 0912 345 678"></label>
+      <label class="plg-f"><span>Tỉnh / thành bạn bán hàng *</span><input name="area" maxlength="80" required placeholder="Ví dụ: Nghệ An"></label>
+      <label class="plg-f"><span>Tên cửa hàng / trang bán hàng (nếu có)</span><input name="shop" maxlength="120" placeholder="Ví dụ: Tiệm chay An Nhiên, 12 Lê Lợi"></label>
+      <fieldset class="cn-chips cj-chips"><legend>Bạn bán hàng ở đâu? <small>(chọn nhiều được)</small></legend>{chips}</fieldset>
+      <label class="plg-f"><span>Dự kiến nhập mỗi tháng (giá lẻ)</span><select name="plan"><option value="">Chọn…</option>{opts}</select></label>
+      <label class="plg-f"><span>Bạn muốn nhắn gì thêm?</span><textarea name="note" rows="2" maxlength="500" placeholder="Ví dụ: cửa hàng mình bán đồ chay 3 năm, khách chủ yếu là người lớn tuổi…"></textarea></label>
+      <input type="text" name="website" tabindex="-1" autocomplete="off" class="hp" aria-hidden="true">
+      <label class="cj-agree"><input type="checkbox" name="agree" required> <span>Tôi đã đọc <a href="#chinh-sach">chính sách đại lý</a>, đồng ý để {BRAND} dùng thông tin trên để liên hệ (xem <a href="/chinh-sach-bao-mat/">chính sách bảo mật</a>).</span></label>
+      <button class="btn btn-lg plg-submit" type="submit" data-cta="dl_apply">🏪 Gửi đăng ký</button>
+      <p class="form-msg" data-dj-msg role="status"></p>
+    </form>
+    <div class="cj-done" data-dj-done hidden></div>
+  </div>
+  {f'<p class="rf-code">Không muốn ôm hàng? Làm <a href="{CTVJ_PATH}">Cộng tác viên</a>: chỉ gửi link giới thiệu, công ty giao hàng, bạn nhận hoa hồng.</p>' if CTVJ_PATH else ""}
+  <details class="rf-rules" id="chinh-sach" open><summary>Chính sách đại lý</summary><ol>{rules_html}</ol>
+  <p>Cần hỗ trợ, bạn nhắn Zalo hoặc gọi <a href="tel:{tel(SITE["hotline"])}">{esc(SITE["hotline"])}</a>.</p></details>
+</div></section>'''
+    return layout(DLJ_PATH, f"Đăng ký đại lý – chiết khấu đến {p3}% | {BRAND}", f"Làm đại lý {BRAND}: nhập hàng chiết khấu {p1}–{p3}% theo bậc, lần đầu từ {fst} triệu, bán đúng giá web. Đăng ký 1 phút, người phụ trách gọi trong 1–2 ngày.", body, body_class="page-ctvj")
 
 
 def page_ctv():
@@ -3423,6 +3484,8 @@ def main():
             routes.append(write(REF_PATH, page_ref()))
         if CTVJ_PATH:
             routes.append(write(CTVJ_PATH, page_ctv_join()))
+        if DLJ_PATH:
+            routes.append(write(DLJ_PATH, page_dl_join()))
         write(CTV_PATH, page_ctv())  # trang CTV tự xem hoa hồng: link bí mật, không vào sitemap
         if QUIZ.get("questions"):
             routes.append(write(QUIZ_PATH, page_quiz()))
