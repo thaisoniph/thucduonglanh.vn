@@ -71,6 +71,7 @@ async function spWrite(x, u, d) {
     'Lối ra (chỉ dùng trong bình luận ghim và câu trả lời): mời ' + SPF_TO[to][2] + '.',
     hint ? 'Yêu cầu thêm của người giao việc: ' + hint : '',
     cat ? 'LOẠI BÀI: ' + cat.n.replace(/^\S+\s/, '') + ' – ' + cat.d + '.' : '',
+    prod && f === 'TOFU' ? 'NHU CẦU CỦA BÀI: bài nhận biết dẫn dắt tới đúng nhu cầu / nỗi lo mà sản phẩm "' + prods[prod].name + '" đáp ứng (đọc TÀI LIỆU để biết), nhưng TRONG BÀI KHÔNG nhắc tên sản phẩm, không bán; người đọc thấy chuyện của mình trong bài.' :
     prod ? 'SẢN PHẨM CỦA BÀI: ' + prods[prod].name + ' (chỉ dùng thông tin của sản phẩm này trong TÀI LIỆU, đúng hồ sơ công bố).' : '',
     f === 'BOFU' ? (offers.length ? 'ƯU ĐÃI ĐANG CHẠY (chỉ nói đúng như sau, không thêm):\n' + offers.map(o => '- ' + [o.title, o.prod ? 'sản phẩm: ' + o.prod : '', o.text, o.until ? 'hạn đến ' + o.until : ''].filter(Boolean).join(' · ')).join('\n') : 'Hiện không có ưu đãi riêng: KHÔNG bịa khuyến mãi, chỉ được nhắc freeship đơn từ 300k và được kiểm hàng trước khi nhận.') : '',
     '', insBlock(p, f), '',
@@ -84,7 +85,7 @@ async function spWrite(x, u, d) {
     '# Luật riêng của bài Facebook cá nhân',
     '- Xưng "mình", gọi người đọc "mọi người" / "các bạn" / "anh chị" hợp với nhóm khách. Kể từ góc nhìn của chính người đăng (một ngày làm việc, điều mình để ý, điều mình từng nghĩ sai). KHÔNG bịa lời khách, tên khách, câu chuyện khách cụ thể, số liệu, kết quả dùng sản phẩm.',
     '- 120–300 chữ, đoạn 1–3 câu. Câu cuối là 1 câu hỏi mở, dễ trả lời, để bạn bè bình luận (kể chuyện của họ, chọn A hay B).',
-    '- TRONG BÀI: KHÔNG link, KHÔNG số điện thoại, KHÔNG giá, KHÔNG hashtag, KHÔNG "inbox / ib / nhắn mình". ' + (f === 'BOFU' ? 'Bài chốt đơn: nói thẳng về "' + (prod ? prods[prod].name : 'sản phẩm') + '" (ai hợp, dùng lúc nào, cách dùng trong ngày), ưu đãi thật nếu có, câu cuối mời bình luận "quan tâm" / hỏi để mình gửi thông tin; vẫn KHÔNG link, KHÔNG số điện thoại trong bài, được nói giá nếu TÀI LIỆU có giá đúng; không nói chữa / điều trị.' : prod ? 'Bài tạo niềm tin có sản phẩm: được nhắc tên "' + prods[prod].name + '" 1–2 lần, lồng trong chuyện kể (lúc dùng, cách pha, vì sao chọn), đúng TÀI LIỆU, không giá, không "mua ngay", không nói chữa / điều trị.' : f === 'TOFU' ? 'Bài nhận biết: KHÔNG nhắc tên sản phẩm, chỉ có thể nhắc mình đang làm ở Thực Dưỡng Lành nếu thật tự nhiên.' : 'Bài tạo niềm tin: được nhắc 1 lần chuyện nghề (nguồn gốc, cách làm, vì sao chọn nguyên liệu) theo đúng TÀI LIỆU, không bán, không giá.'),
+    '- TRONG BÀI: KHÔNG link, KHÔNG số điện thoại, KHÔNG giá, KHÔNG hashtag, KHÔNG "inbox / ib / nhắn mình". ' + (f === 'TOFU' ? 'Bài nhận biết: KHÔNG nhắc tên sản phẩm, chỉ có thể nhắc mình đang làm ở Thực Dưỡng Lành nếu thật tự nhiên.' : f === 'BOFU' ? 'Bài chốt đơn: nói thẳng về "' + (prod ? prods[prod].name : 'sản phẩm') + '" (ai hợp, dùng lúc nào, cách dùng trong ngày), ưu đãi thật nếu có, câu cuối mời bình luận "quan tâm" / hỏi để mình gửi thông tin; vẫn KHÔNG link, KHÔNG số điện thoại trong bài, được nói giá nếu TÀI LIỆU có giá đúng; không nói chữa / điều trị.' : prod ? 'Bài tạo niềm tin có sản phẩm: được nhắc tên "' + prods[prod].name + '" 1–2 lần, lồng trong chuyện kể (lúc dùng, cách pha, vì sao chọn), đúng TÀI LIỆU, không giá, không "mua ngay", không nói chữa / điều trị.' : f === 'TOFU' ? 'Bài nhận biết: KHÔNG nhắc tên sản phẩm, chỉ có thể nhắc mình đang làm ở Thực Dưỡng Lành nếu thật tự nhiên.' : 'Bài tạo niềm tin: được nhắc 1 lần chuyện nghề (nguồn gốc, cách làm, vì sao chọn nguyên liệu) theo đúng TÀI LIỆU, không bán, không giá.'),
     '- BÌNH LUẬN GHIM: 1–2 câu, KHÔNG có link (Facebook không cho ghim bình luận có link), nối tiếp câu chuyện trong bài rồi mời ' + SPF_TO[to][2] + ', nói rõ điều kiện thật (miễn phí, để lại tên và số Zalo nếu trang yêu cầu).',
     '- TRẢ LỜI CÓ LINK: 1 câu ngắn trả lời ngay dưới bình luận ghim, kết thúc bằng đúng chữ [LINK] (CRM tự thay bằng link riêng của từng nhân viên).',
     '# Bản cho kênh khác (cùng ý, viết lại cho hợp kênh, KHÔNG chép nguyên)',
@@ -110,7 +111,7 @@ async function spWrite(x, u, d) {
   let reply = clean(grab('TRẢ LỜI CÓ LINK', 'BÀI HỘI NHÓM')); if (!/\[LINK\]/.test(reply)) reply = (reply || 'Link đây nhé') + ' [LINK]';
   const grp = clean(grab('BÀI HỘI NHÓM', 'NHẬT KÝ ZALO')).replace(/\[LINK\]/g, '').trim(), withL = s => s && !/\[LINK\]/.test(s) ? s + ' [LINK]' : s;
   const znk = withL(clean(grab('NHẬT KÝ ZALO', 'TIN ZALO'))), zmsg = withL(clean(grab('TIN ZALO', 'GỢI Ý ẢNH'))), imgh = clean(grab('GỢI Ý ẢNH', 'ẢNH SỐ') || grab('GỢI Ý ẢNH', '')).split('\n')[0];
-  const img = libGet(lib, bodyAll) || (prod && prods[prod].img) || ''; // 🖼 ảnh thật trong kho web; bài sản phẩm không có ảnh khớp → ảnh sản phẩm
+  const img = libGet(lib, bodyAll) || (prod && f !== 'TOFU' && prods[prod].img) || ''; // bài nhận biết không dùng ảnh sản phẩm (lộ bán hàng) // 🖼 ảnh thật trong kho web; bài sản phẩm không có ảnh khớp → ảnh sản phẩm
   if (text.length < 120 || !cmt) return { ok: false, error: 'AI chưa viết đủ bài + bình luận ghim, bấm viết lại nhé.' };
   const ins = insParse(head, p.bank, p.g); if (p.angle) ins.a = p.angle; if (p.big) ins.b = p.big.t;
   const r = await run(x.db, 'INSERT INTO sp_posts (at, by_name, f, ins, text, cmt, reply, to_k, status, grp, znk, zmsg, imgh, img, cat, prod, path) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', Date.now(), u.name, f, JSON.stringify(ins), text.slice(0, 5000), cmt.slice(0, 600), reply.slice(0, 400), to, 'draft', grp.slice(0, 4000), znk.slice(0, 1500), zmsg.slice(0, 1200), imgh.slice(0, 300), img.slice(0, 300), cat ? cat.k : f, prod,
@@ -287,10 +288,10 @@ export async function spFillTick(x) {
   await kvSet(x.db, 'spf_q_run', String(Date.now()));
   await schema(x.db);
   const by = (await kvGet(x.db, 'spf_q_by')) || 'AI';
-  for (let i = 0; i < 2; i++) {
+  for (let i = 0; i < 3; i++) { // 3 bài / lượt 10 phút
     const cur = await kvJson(x.db, 'spf_q', []); if (!Array.isArray(cur) || !cur.length) break;
     const it = cur[0]; let ok = false;
-    try { const r = await spWrite(x, { name: 'AI · ' + by }, { c: it.c, prod: it.prod, to: it.c === 'BOFU' ? 'web' : it.c === 'MOFU' ? 'qua' : 'nhom' }); ok = r.ok; if (!ok) console.error('spFill', r.error); } catch (e) { console.error('spFill', e.message); }
+    try { const r = await spWrite(x, { name: 'AI · ' + by }, { c: it.c, prod: it.prod, g: it.g || '', hint: it.h || '', to: it.c === 'BOFU' ? 'web' : it.c === 'MOFU' ? 'qua' : 'nhom' }); ok = r.ok; if (!ok) console.error('spFill', r.error); } catch (e) { console.error('spFill', e.message); }
     const nx = await kvJson(x.db, 'spf_q', []); if (!Array.isArray(nx)) break;
     if (ok || (it.tries || 0) >= 1) nx.shift(); else nx[0] = Object.assign({}, it, { tries: (it.tries || 0) + 1 }); // lỗi 2 lần thì bỏ bài đó
     await kvSet(x.db, 'spf_q', JSON.stringify(nx));
