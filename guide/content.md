@@ -99,7 +99,7 @@ AI viết, **sale đăng trên Facebook cá nhân**. Sale thấy bài dạng **k
 
 [[steps:ct-fb]]
 
-Sale thấy tối đa **10 bài mới nhất** (bước đầu cho chị em dễ làm quen; quen rồi thì nâng ở ô **👀 Sale thấy tối đa … bài**). Mỗi tuần thêm vài bài mới. Thẻ bài có 🔥 = số bạn đã đăng. Bài cũ thì bấm **⏸ Ẩn**.
+Sale mở kho thấy sẵn **10 bài gợi ý** (bước đầu cho chị em dễ làm quen; quen rồi thì nâng ở ô **👀 Sale thấy tối đa … bài**), và **lọc được trên cả kho** theo tầng phễu (có ⭐ gợi ý tầng nên đăng), nhóm khách, sản phẩm. Bài chưa có ảnh vẫn tới sale, kèm gợi ý tự chụp ảnh thật hoặc chọn ảnh trong kho, nên ghi **📸 Gợi ý ảnh** rõ khi sửa bài. Mỗi tuần thêm vài bài mới. Thẻ bài có 🔥 = số bạn đã đăng. Bài cũ thì bấm **⏸ Ẩn**.
 
 ## Việc 5: Tạo ảnh bằng AI
 

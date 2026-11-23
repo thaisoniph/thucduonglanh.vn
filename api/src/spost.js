@@ -120,6 +120,13 @@ async function spWrite(x, u, d) {
 
 /** 🗂 1 lần (23/11/2026): bài cũ chuyển từ nhóm Zalo chưa có ảnh → lấy lại ảnh của bài Zalo gốc; loại bài = tầng phễu cũ. Bài khác chưa có ảnh: sale không thấy tới khi Marketing 🖼 gắn ảnh. */
 async function spBackfill(x) {
+  if (!(await kvGet(x.db, 'spf_bf2'))) { // 23/11 (2): bài cũ từ nhóm Zalo lấy nhóm khách + tầng phễu của bài gốc → sale lọc được theo nhóm khách
+    for (const r of await all(x.db, "SELECT id, src_ref FROM sp_posts WHERE src = 'zalo' AND src_ref LIKE 'zalo:%' AND (ins = '' OR ins = '{}')")) {
+      const z = await first(x.db, 'SELECT ins, funnel FROM zb_posts WHERE id = ?', r.src_ref.slice(5)).catch(() => null);
+      if (z && z.ins && z.ins !== '{}') await run(x.db, "UPDATE sp_posts SET ins = ?, cat = CASE WHEN ? IN ('TOFU', 'MOFU', 'BOFU') THEN ? ELSE cat END WHERE id = ?", String(z.ins).slice(0, 2000), z.funnel || '', z.funnel || '', r.id);
+    }
+    await kvSet(x.db, 'spf_bf2', String(Date.now()));
+  }
   if (await kvGet(x.db, 'spf_bf1')) return;
   for (const r of await all(x.db, "SELECT id, src_ref FROM sp_posts WHERE img = '' AND src = 'zalo' AND src_ref LIKE 'zalo:%'")) {
     const z = await first(x.db, 'SELECT img FROM zb_posts WHERE id = ?', r.src_ref.slice(5)).catch(() => null);
@@ -144,9 +151,9 @@ export async function spRepurposeTick(x) {
   const w = web.find(p => !done.has('web:' + p.day));
   if (w) src = { kind: 'web', ref: 'web:' + w.day, title: w.title, path: '/goc-song-lanh/' + w.slug + '/', img: ((String(w.md).match(/^image:\s*(\S+)/m) || [])[1] || '').replace(/^["']|["']$/g, ''), body: String(w.md).replace(/^---[\s\S]*?---/, '').slice(0, 7000) };
   else if (!(await first(x.db, "SELECT 1 FROM sp_posts WHERE src = 'zalo' AND at >= ?", now - (now + 7 * 3600e3) % DAY))) {
-    const zs = await all(x.db, "SELECT id, topic, text, img, prod FROM zb_posts WHERE status = 'sent' AND sent_at > ? AND length(text) >= 300 ORDER BY sent_at DESC LIMIT 5", now - 2 * DAY).catch(() => []);
+    const zs = await all(x.db, "SELECT id, topic, text, img, prod, ins, funnel FROM zb_posts WHERE status = 'sent' AND sent_at > ? AND length(text) >= 300 ORDER BY sent_at DESC LIMIT 5", now - 2 * DAY).catch(() => []);
     const z = zs.find(p => !done.has('zalo:' + p.id));
-    if (z) src = { kind: 'zalo', ref: 'zalo:' + z.id, title: z.topic || 'Bài nhóm Zalo', path: SPF_TO.nhom[0], img: z.img || '', prod: z.prod || '', body: String(z.text).slice(0, 5000) };
+    if (z) src = { kind: 'zalo', ref: 'zalo:' + z.id, title: z.topic || 'Bài nhóm Zalo', path: SPF_TO.nhom[0], img: z.img || '', prod: z.prod || '', ins: z.ins || '', fun: z.funnel || '', body: String(z.text).slice(0, 5000) };
   }
   if (!src) return;
   await run(x.db, "INSERT INTO sp_posts (at, by_name, f, ins, text, cmt, reply, to_k, status, src, src_ref, path, title) VALUES (?, 'AI', 'TOFU', '{}', '', '', '', ?, 'off', ?, ?, ?, ?)", now, src.kind === 'web' ? 'web' : 'nhom', src.kind, src.ref, src.path, cut(src.title, 200)); // giữ chỗ: lỗi AI không viết lại liên tục
@@ -184,8 +191,8 @@ export async function spRepurposeTick(x) {
     let zmsg = clean(grab('TIN ZALO', 'GỢI Ý ẢNH')); if (zmsg && !/\[LINK\]/.test(zmsg)) zmsg += ' [LINK]';
     const imgh = clean(grab('GỢI Ý ẢNH', 'ẢNH SỐ') || grab('GỢI Ý ẢNH', '')).split('\n')[0];
     if (text.length < 100 || !cmt) return;
-    const prods = src.prod ? prodMap(await kb()) : {}, img = src.img || libGet(lib, raw) || (prods[src.prod] && prods[src.prod].img) || '', okNow = !!img; // 🗂 23/11/2026: chưa có ảnh → để nháp, Marketing thêm ảnh rồi mới tới sale
-    await run(x.db, "UPDATE sp_posts SET text = ?, cmt = ?, reply = ?, zmsg = ?, grp = ?, znk = ?, imgh = ?, img = ?, cat = ?, prod = ?, status = ?, ok_by = ?, ok_at = ? WHERE id = ?", text.slice(0, 5000), cmt.slice(0, 600), reply.slice(0, 400), zmsg.slice(0, 1200), grp.slice(0, 4000), znk.slice(0, 1500), imgh.slice(0, 300), String(img).slice(0, 300), 'TOFU', String(src.prod || '').slice(0, 40), okNow ? 'ok' : 'draft', okNow ? 'Tự động (bài gốc đã duyệt)' : '', okNow ? now : null, row.id);
+    const prods = src.prod ? prodMap(await kb()) : {}, img = src.img || libGet(lib, raw) || (prods[src.prod] && prods[src.prod].img) || '', okNow = true; // bài gốc đã duyệt → cho sale dùng ngay; chưa có ảnh thì sale được gợi ý tự chụp
+    await run(x.db, "UPDATE sp_posts SET text = ?, cmt = ?, reply = ?, zmsg = ?, grp = ?, znk = ?, imgh = ?, img = ?, cat = ?, prod = ?, status = ?, ok_by = ?, ok_at = ?, ins = ? WHERE id = ?", text.slice(0, 5000), cmt.slice(0, 600), reply.slice(0, 400), zmsg.slice(0, 1200), grp.slice(0, 4000), znk.slice(0, 1500), imgh.slice(0, 300), String(img).slice(0, 300), ['TOFU', 'MOFU', 'BOFU'].includes(src.fun) ? src.fun : 'TOFU', String(src.prod || '').slice(0, 40), okNow ? 'ok' : 'draft', okNow ? 'Tự động (bài gốc đã duyệt)' : '', okNow ? now : null, src.ins && src.ins !== '{}' ? String(src.ins).slice(0, 2000) : '{}', row.id);
     if (!okNow) return;
     const us = await all(x.db, "SELECT name, tg FROM users WHERE active = 1 AND coalesce(tg, '') != '' AND role NOT IN ('Kho', 'Kế toán', 'Marketing')");
     const msg = '📣 <b>Có bài mới để chia sẻ</b> (' + (src.kind === 'web' ? '📰 từ bài web' : '💬 từ nhóm Zalo') + '): ' + cut(src.title, 120).replace(/[<>&]/g, '') + '\nĐã có sẵn ảnh + bài đăng Facebook cá nhân, hội nhóm, Zalo, link riêng của bạn tự gắn.\n👉 CRM → Hôm nay → 📣 Mở kho bài';
@@ -198,7 +205,7 @@ export async function crmSpf(x, u, d, crmLog) {
   const a = d.action, now = Date.now(), id = Number(d.id) || 0;
   if (a === 'spf_list') { // sale: bài đã duyệt CÓ ẢNH (23/11/2026); người quản lý (d.all): mọi bài
     const show = Number(await kvGet(x.db, 'spf_show')) || 10; // 👀 sale thấy tối đa N bài mới nhất (anh Sơn 23/11: bắt đầu 10 cho chị em dễ làm quen, quen rồi nâng dần)
-    const all_ = !!d.all && canEdit(u), rows = await all(x.db, all_ ? "SELECT * FROM sp_posts WHERE text != '' ORDER BY id DESC LIMIT 120" : "SELECT * FROM sp_posts WHERE status = 'ok' AND img != '' ORDER BY id DESC LIMIT ?", ...(all_ ? [] : [show]));
+    const all_ = !!d.all && canEdit(u), rows = await all(x.db, all_ ? "SELECT * FROM sp_posts WHERE text != '' ORDER BY id DESC LIMIT 120" : "SELECT * FROM sp_posts WHERE status = 'ok' ORDER BY id DESC LIMIT 80"); // 23/11 (2): sale lọc trên CẢ kho; mặc định CRM chỉ hiện `show` bài. Bài chưa có ảnh vẫn tới sale, kèm gợi ý tự chụp ảnh thật
     const lib = await imgLib(), th = {}; for (const i of lib) if (i.url && i.thumb) th[i.url] = i.thumb; // ảnh nhỏ cho lưới
     const who = {}, mine = {}; // 🔥 số bạn đã đăng mỗi bài · ✓ bài mình đã đăng
     for (const r of await all(x.db, "SELECT result, COUNT(DISTINCT by_name) n FROM logs WHERE what = 'Đăng bài FB' AND time > ? GROUP BY result", now - 120 * DAY)) who[r.result] = r.n;
@@ -237,7 +244,7 @@ export async function crmSpf(x, u, d, crmLog) {
   }
   if (!canEdit(u)) return { ok: false, error: 'Chỉ Marketing, Quản lý, Quản trị duyệt / sửa được bài.' };
   if (a === 'spf_okall') { // ✅ cho sale dùng mọi bài nháp đã có ảnh
-    const r = await run(x.db, "UPDATE sp_posts SET status = 'ok', ok_by = ?, ok_at = ? WHERE status = 'draft' AND img != '' AND text != ''", u.name, now);
+    const r = await run(x.db, "UPDATE sp_posts SET status = 'ok', ok_by = ?, ok_at = ? WHERE status = 'draft' AND text != ''", u.name, now);
     const n = (r && r.meta && r.meta.changes) || 0; if (n) await crmLog(x, u, 'Bài Facebook cá nhân', '-', '', 'Cho sale dùng ' + n + ' bài', '');
     return { ok: true, n };
   }
@@ -256,7 +263,7 @@ export async function crmSpf(x, u, d, crmLog) {
       else if (img && !/^https:\/\/(api\.)?thucduonglanh\.vn\//.test(img) && !img.startsWith('/')) return { ok: false, error: 'Ảnh không hợp lệ.' };
     }
     const cat = d.cat != null ? (SPF_CAT0.some(c => c.k === d.cat) ? d.cat : '') : row.cat || '', prod = d.prod != null ? cut(d.prod, 40) : row.prod || '';
-    if (st === 'ok' && !img) { const pi = prod && prodMap(await kb())[prod]; if (pi && pi.img) img = pi.img; else return { ok: false, error: 'Bài chưa có ảnh: bấm 🖼 Đổi ảnh để chọn 1 ảnh rồi mới cho sale dùng.' }; }
+    if (st === 'ok' && !img && prod) { const pi = prodMap(await kb())[prod]; if (pi && pi.img) img = pi.img; } // chưa có ảnh vẫn cho dùng: sale được gợi ý tự chụp ảnh thật
     await run(x.db, 'UPDATE sp_posts SET grp = ?, znk = ?, zmsg = ?, imgh = ?, img = ?, cat = ?, f = ?, prod = ? WHERE id = ?', grp, znk, zmsg, imgh, img, cat, cat || row.f, prod, id);
     await run(x.db, 'UPDATE sp_posts SET text = ?, cmt = ?, reply = ?, to_k = ?, status = ?, ok_by = ?, ok_at = ? WHERE id = ?', text, cmt, reply, to, st,
       st === 'ok' && row.status !== 'ok' ? u.name : row.ok_by, st === 'ok' && row.status !== 'ok' ? now : row.ok_at, id);

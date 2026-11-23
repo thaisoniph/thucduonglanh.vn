@@ -193,11 +193,11 @@ ct-fb:
       text: "Mở <b>🗂 Viết sẵn kho bài</b>, giữ tỉ lệ 3 tầng phễu (60 / 20 / 20), gõ số bài (bắt đầu <b>10</b>), bấm <b>✨ Viết sẵn</b>. Trợ lý viết dần khoảng 2 bài / 10 phút, <b>mỗi bài tự chọn 1 ảnh thật</b>, xong có tin Telegram."
     - title: Kho bài đăng cho sale
       els:
-        - ["card", "📝 Bài nháp đã có ảnh", "Bấm từng bài để đọc / sửa", ""]
+        - ["card", "📝 Bài nháp", "Bấm từng bài để đọc / sửa", ""]
         - ["btn2", "🖼 Đổi ảnh", "✏️ Sửa chữ", ""]
         - ["btn", "✅ Cho sale dùng", "g"]
       hi: 3
-      text: "Bấm từng bài để đọc. Ảnh chưa hợp thì <b>🖼 Đổi ảnh</b> (kho ảnh web hoặc tải từ máy). Ưng rồi bấm <b>✅ Cho sale dùng</b>, hoặc <b>✅ Cho sale dùng tất cả</b> ở trên cùng. <b>Bài không có ảnh thì sale không thấy.</b>"
+      text: "Bấm từng bài để đọc. Ảnh chưa hợp thì <b>🖼 Đổi ảnh</b> (kho ảnh web hoặc tải từ máy). Ưng rồi bấm <b>✅ Cho sale dùng</b>, hoặc <b>✅ Cho sale dùng tất cả</b> ở trên cùng. Bài chưa có ảnh vẫn dùng được: sale được gợi ý tự chụp ảnh thật."
 ct-anh:
   title: Viết câu lệnh tạo ảnh bằng AI
   steps:

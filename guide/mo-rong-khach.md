@@ -109,7 +109,15 @@ Bấm **＋ Thêm khách được giới thiệu**. Nguồn **🎁 Khách giới
 
 💰 **Lợi ích:** bạn bè, người trong nhóm thấy bài và hỏi bạn. Khách tự tìm đến, đặt qua link riêng của bạn trong 30 ngày thì **đơn tính cho bạn**.
 
-Bấm **📣 Mở kho bài**. Kho có sẵn khoảng 10 bài, **bài nào cũng có ảnh**, link riêng của bạn đã gắn sẵn. Bài bạn chưa đăng nằm ở trên, bài đã đăng có dấu ✓.
+Bấm **📣 Mở kho bài**. Kho hiện sẵn **10 bài gợi ý**, link riêng của bạn đã gắn sẵn. Bài bạn chưa đăng nằm ở trên, bài đã đăng có dấu ✓.
+
+**🔎 Muốn tìm bài theo ý mình** (bộ lọc ở trên cùng, tìm trên cả kho):
+
+![Bộ lọc: tầng phễu, gợi ý hôm nay, nhóm khách, sản phẩm](/huong-dan/img/mr-loc.webp)
+
+1. **Tầng phễu**: 🔵 Nhận biết (chuyện đời thường, không bán) · ⚪ Tạo niềm tin (chuyện nghề, sản phẩm kể khéo) · 🟠 Chốt đơn (giới thiệu sản phẩm, ưu đãi).
+2. **⭐ Gợi ý hôm nay**: CRM xem bạn đã đăng bao nhiêu bài mỗi tầng, gợi ý tầng nên đăng tiếp để giữ khoảng 6 bài nhận biết / 2 tạo niềm tin / 2 chốt đơn. Bấm **Xem bài tầng này ›**.
+3. Chọn **👥 nhóm khách** (mẹ bỉm, dân văn phòng…) và **🛍 sản phẩm** hợp với bạn bè của bạn. **Chỉ bài mình chưa đăng** để khỏi đăng trùng.
 
 ![Kho bài: lướt xem, bấm vào bài bạn thích](/huong-dan/img/mr-khobai.webp)
 
@@ -118,8 +126,17 @@ Bấm **📣 Mở kho bài**. Kho có sẵn khoảng 10 bài, **bài nào cũng 
 ![Mở 1 bài: Copy bài, Lưu ảnh, chọn nơi đăng](/huong-dan/img/mr-bai.webp)
 
 1. **📋 Copy bài**: chữ của bài vào máy, sẵn để dán.
-2. **⬇️ Lưu ảnh**: trên điện thoại chọn **Lưu hình ảnh**, ảnh vào thư viện ảnh.
+2. **⬇️ Lưu ảnh**: trên điện thoại chọn **Lưu hình ảnh**, ảnh vào thư viện ảnh. Bài chưa có ảnh thì không có nút này, xem phần 📸 bên dưới.
 3. **Đăng ở đâu?** Chọn **📘 Cá nhân**, **👥 Hội nhóm** hoặc **💬 Zalo**, rồi làm **lần lượt từng bước** hiện ra bên dưới. Bước xong có dấu ✓.
+
+**📸 Ảnh riêng của bạn: không trùng với bạn khác**
+
+![Gợi ý tự chụp ảnh hoặc chọn ảnh khác](/huong-dan/img/mr-anh.webp)
+
+Nhiều bạn cùng đăng 1 bài với 1 ảnh thì bạn bè chung dễ thấy trùng. Ô vàng hiện khi **bài chưa có ảnh** hoặc **đã có bạn khác đăng bài này**:
+
+- Tốt nhất: **tự chụp 1 ảnh thật** bằng điện thoại, đúng chuyện trong bài (có gợi ý chụp gì). Không chụp mặt khách, không banner.
+- Hoặc bấm **🖼 Chọn ảnh khác trong kho**: kho ảnh thật của Thực Dưỡng Lành, bấm 1 ảnh hợp với bài là ảnh lưu về máy.
 
 **📘 Facebook cá nhân** (đăng lúc 9h, 12h hoặc 19–22h)
 
