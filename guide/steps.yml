@@ -170,32 +170,34 @@ ct-video:
       hi: 4
       text: "Kịch bản hiện ở <b>📂 Kịch bản đã viết</b>. Đọc lại, rồi bấm <b>📋 Copy kịch bản</b> để gửi người quay qua Zalo."
 ct-fb:
-  title: Viết bài Facebook cá nhân cho sale
+  title: Kho bài đăng cho sale
   steps:
     - title: Insight & nội dung
       els:
         - ["chips", ["📊 Tổng quan", "✍️ Tạo nội dung", "🧪 Chấm"], 1]
         - ["card", "🎬 Kịch bản video", "TikTok, Reels, Shorts", ""]
         - ["card", "📸 Câu lệnh tạo ảnh", "AI viết câu lệnh cho ChatGPT", ""]
-        - ["card", "📣 Bài Facebook cho sale", "Bài đời thường + bình luận ghim", "g"]
-        - ["btn", "📣 Mở", ""]
+        - ["card", "📣 Kho bài đăng cho sale", "Bài có ảnh theo 3 tầng phễu", "g"]
+        - ["btn", "📣 Mở kho bài", ""]
       hi: 4
-      text: "Thẻ <b>✍️ Tạo nội dung</b> → hàng ô đầu thẻ → ô <b>📣 Bài Facebook cho sale</b> → bấm <b>📣 Mở</b>."
-    - title: Bài Facebook cá nhân
+      text: "Thẻ <b>✍️ Tạo nội dung</b> → ô <b>📣 Kho bài đăng cho sale</b> → bấm <b>📣 Mở kho bài</b>."
+    - title: Kho bài đăng cho sale
       els:
-        - ["in", "Nhóm khách", "Để trợ lý tự chọn"]
-        - ["in", "Loại bài", "🔵 Nhận biết (không nhắc SP)"]
-        - ["in", "Bình luận ghim mời khách", "Vào nhóm Zalo"]
-        - ["btn", "✨ Viết 1 bài", "g"]
+        - ["h", "🗂 Viết sẵn kho bài theo tỉ lệ"]
+        - ["in", "🔵 Nhận biết", "60 %"]
+        - ["in", "⚪ Tạo niềm tin", "20 %"]
+        - ["in", "🟠 Chốt đơn", "20 %"]
+        - ["in", "Số bài", "10"]
+        - ["btn", "✨ Viết sẵn", "g"]
+      hi: 5
+      text: "Mở <b>🗂 Viết sẵn kho bài</b>, giữ tỉ lệ 3 tầng phễu (60 / 20 / 20), gõ số bài (bắt đầu <b>10</b>), bấm <b>✨ Viết sẵn</b>. Trợ lý viết dần khoảng 2 bài / 10 phút, <b>mỗi bài tự chọn 1 ảnh thật</b>, xong có tin Telegram."
+    - title: Kho bài đăng cho sale
+      els:
+        - ["card", "📝 Bài nháp đã có ảnh", "Bấm từng bài để đọc / sửa", ""]
+        - ["btn2", "🖼 Đổi ảnh", "✏️ Sửa chữ", ""]
+        - ["btn", "✅ Cho sale dùng", "g"]
       hi: 3
-      text: "Chọn nhóm khách, loại bài, và <b>bình luận ghim mời khách đi đâu</b> (nhóm Zalo, quà tặng, trang chủ). Bấm <b>✨ Viết 1 bài</b>, chờ khoảng 1 phút."
-    - title: Bài Facebook cá nhân
-      els:
-        - ["card", "Bài đăng (không link)", "Kể chuyện đời thường", ""]
-        - ["card", "Bình luận ghim + câu trả lời [LINK]", "[LINK] tự thành link riêng từng sale", ""]
-        - ["btn2", "✏️ Sửa", "✅ Cho sale dùng", "g"]
-      hi: 2
-      text: "Đọc lại. Cần thì bấm <b>✏️ Sửa</b>. Ưng rồi bấm <b>✅ Cho sale dùng</b>. Sale thấy bài ở <b>Cài đặt → 📣 Bài đăng Facebook cá nhân</b>."
+      text: "Bấm từng bài để đọc. Ảnh chưa hợp thì <b>🖼 Đổi ảnh</b> (kho ảnh web hoặc tải từ máy). Ưng rồi bấm <b>✅ Cho sale dùng</b>, hoặc <b>✅ Cho sale dùng tất cả</b> ở trên cùng. <b>Bài không có ảnh thì sale không thấy.</b>"
 ct-anh:
   title: Viết câu lệnh tạo ảnh bằng AI
   steps:

@@ -109,18 +109,25 @@ Bấm **＋ Thêm khách được giới thiệu**. Nguồn **🎁 Khách giới
 
 💰 **Lợi ích:** bạn bè, người trong nhóm thấy bài và hỏi bạn. Khách tự tìm đến, đặt qua link riêng của bạn trong 30 ngày thì **đơn tính cho bạn**.
 
-Mỗi bài đã **viết sẵn cho 3 nơi**, kể chuyện như người thật, link riêng của bạn đã gắn sẵn. Bài mới tự có mỗi ngày (chuyển từ bài web và bài nhóm Zalo đã duyệt), Telegram báo bạn khi có. Bấm **Xem bài & cách đăng**, chọn 1 nơi, làm **lần lượt từng bước**. Bước xong có dấu ✓.
+Bấm **📣 Mở kho bài**. Kho có sẵn khoảng 10 bài, **bài nào cũng có ảnh**, link riêng của bạn đã gắn sẵn. Bài bạn chưa đăng nằm ở trên, bài đã đăng có dấu ✓.
+
+![Kho bài: lướt xem, bấm vào bài bạn thích](/huong-dan/img/mr-khobai.webp)
+
+1. Lướt xem ảnh và mấy dòng đầu, **bấm vào bài bạn thích**. Dòng 🔥 cho biết mấy bạn đã đăng bài đó.
+
+![Mở 1 bài: Copy bài, Lưu ảnh, chọn nơi đăng](/huong-dan/img/mr-bai.webp)
+
+1. **📋 Copy bài**: chữ của bài vào máy, sẵn để dán.
+2. **⬇️ Lưu ảnh**: trên điện thoại chọn **Lưu hình ảnh**, ảnh vào thư viện ảnh.
+3. **Đăng ở đâu?** Chọn **📘 Cá nhân**, **👥 Hội nhóm** hoặc **💬 Zalo**, rồi làm **lần lượt từng bước** hiện ra bên dưới. Bước xong có dấu ✓.
 
 **📘 Facebook cá nhân** (đăng lúc 9h, 12h hoặc 19–22h)
 
-![Đăng bài Facebook cá nhân từng bước](/huong-dan/img/mr-fb.webp)
-
-1. **📋 Copy bài & mở Facebook**: bài đã copy, Facebook tự mở, dán vào ô đăng bài. **Không dán link vào bài**.
-2. **📸 Thêm 1 ảnh thật** bạn tự chụp đúng chuyện trong bài (có gợi ý chụp gì). Không dùng banner, ảnh sản phẩm trơn. Bài từ web thì có nút **⬇️ Tải ảnh bài web**.
-3. **⏰ Chờ 2–3 tiếng**, trả lời từng bình luận của bạn bè.
-4. **📋 Copy bình luận**, dán làm bình luận dưới bài (không có link).
-5. **📋 Copy câu có link**, dán làm **trả lời ngay dưới** bình luận bước 4.
-6. **📌 Ghim**: trên điện thoại, giữ tay vào bình luận bước 4 → **Ghim**. Facebook không cho ghim bình luận có link nên link nằm ở câu trả lời.
+1. **📋 Copy bài & mở Facebook**, dán vào ô đăng bài, chọn ảnh vừa lưu. Sửa vài chữ cho đúng chuyện của bạn. **Không dán link vào bài**.
+2. **⏰ Chờ 2–3 tiếng**, trả lời từng bình luận của bạn bè.
+3. **📋 Copy bình luận**, dán làm bình luận dưới bài (không có link).
+4. **📋 Copy câu có link**, dán làm **trả lời ngay dưới** bình luận bước 3.
+5. **📌 Ghim**: trên điện thoại, giữ tay vào bình luận bước 3 → **Ghim**. Facebook không cho ghim bình luận có link nên link nằm ở câu trả lời.
 
 **👥 Hội nhóm Facebook** (nhóm mẹ bỉm, ăn chay, hưu trí, khu phố… bạn đang tham gia)
 
@@ -134,7 +141,7 @@ Một bài dùng được cho nhiều nhóm, mỗi nhóm cách nhau vài ngày.
 
 **💬 Zalo cá nhân**
 
-1. **📋 Copy nhật ký & mở Zalo**: vào **Nhật ký**, dán (đã có link của bạn), thêm ảnh thật.
+1. **📋 Copy nhật ký & mở Zalo**: vào **Nhật ký**, dán (đã có link của bạn), chọn ảnh vừa lưu.
 2. Hoặc **💬 Copy tin gửi khách**, nhắn riêng cho khách cũ, người quen (sửa "anh/chị" cho đúng).
 
 Hôm nay trang cá nhân, mai hội nhóm, ngày kia Zalo. Bước 1 ở nơi nào xong là việc 5 tự có dấu ✓.

@@ -95,11 +95,11 @@ Hướng dẫn có hình: trang **[Chấm bài](/huong-dan/cham-bai/)**.
 
 ## Việc 4: Bài Facebook cá nhân cho sale
 
-AI viết, **sale đăng trên Facebook cá nhân**. Bài **không có link** (Facebook cho nhiều người thấy hơn). Link nằm ở câu trả lời trong bình luận, tự đổi thành link riêng của từng sale.
+AI viết, **sale đăng trên Facebook cá nhân**. Sale thấy bài dạng **kho có ảnh** (ảnh + mấy dòng đầu), chọn bài thích rồi **📋 Copy bài + ⬇️ Lưu ảnh**. Bài **không có link** (Facebook cho nhiều người thấy hơn). Link nằm ở câu trả lời trong bình luận, tự đổi thành link riêng của từng sale.
 
 [[steps:ct-fb]]
 
-**Nên giữ 5–10 bài** đang dùng, mỗi tuần thay bài mới. Thẻ bài có số 📋 = số lần sale đã copy. Bài cũ thì bấm **⏸ Ẩn**.
+Sale thấy tối đa **10 bài mới nhất** (bước đầu cho chị em dễ làm quen; quen rồi thì nâng ở ô **👀 Sale thấy tối đa … bài**). Mỗi tuần thêm vài bài mới. Thẻ bài có 🔥 = số bạn đã đăng. Bài cũ thì bấm **⏸ Ẩn**.
 
 ## Việc 5: Tạo ảnh bằng AI
 

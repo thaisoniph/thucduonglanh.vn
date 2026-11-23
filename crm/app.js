@@ -4284,7 +4284,7 @@
       { v: ef.old, n: 1, icon: '😴', t: 'Gọi lại 1 khách từng nói “Không mua”', how: 'Mở lời bằng lý do mới: sản phẩm mới, ưu đãi tháng này, hỏi thăm sức khoẻ.', g: 'Khách đã biết sản phẩm, chỉ là lúc trước chưa đúng lúc: dễ chốt hơn một số lạ.', b: idle.length ? '<button class="btn pri" data-gopen="idle">Gọi lại</button>' : none('chưa có khách tới lượt') }
     ];
     if (isPoolStaff() && poolOn()) T.push({ v: ef.pool, n: 1, icon: '🧺', t: 'Nhận 1 số ở Kho chung', how: 'Đọc ghi chú người trước, bấm ✋ Nhận rồi gọi bằng cách khác. <a href="/huong-dan/kho-chung/" target="_blank" rel="noopener">📖 Luật Kho chung</a> · <button type="button" class="kc-lnk" data-fbpool>💡 Góp ý luật</button>', g: 'Có thêm khách ngay hôm nay, không phải chờ số quảng cáo. Ai chốt người đó được doanh số.', b: pool ? '<button class="btn pri" data-gopen="pool">Nhận số</button>' : none('kho đang trống') });
-    T.push({ v: ef.fb, n: 1, icon: '📣', t: 'Đăng 1 bài lên Facebook cá nhân hoặc hội nhóm', how: 'Bài viết sẵn: Copy bài → đăng, rồi bình luận câu có link riêng của bạn.', g: 'Bạn bè, người trong nhóm thấy và hỏi bạn: khách tự tìm đến, đặt qua link riêng trong 30 ngày thì đơn tính cho bạn.', b: '<button class="btn pri" data-spf="sale">Xem bài & cách đăng</button>' });
+    T.push({ v: ef.fb, n: 1, icon: '📣', t: 'Đăng 1 bài lên Facebook cá nhân hoặc hội nhóm', how: 'Kho bài có sẵn ảnh: chọn 1 bài bạn thích → Copy bài + Lưu ảnh → đăng, rồi bình luận câu có link riêng của bạn.', g: 'Bạn bè, người trong nhóm thấy và hỏi bạn: khách tự tìm đến, đặt qua link riêng trong 30 ngày thì đơn tính cho bạn.', b: '<button class="btn pri" data-spf="sale">📣 Mở kho bài</button>' });
     var done = growDone(ef);
     var row = function (x, i) { var ok = x.v >= x.n; return '<div class="gr-row' + (ok ? ' ok' : '') + '"><span class="gr-n">' + (ok ? '✓' : i + 1) + '</span><span class="gr-b"><b>' + x.icon + ' ' + x.t + '</b><small>' + x.how + '</small><small class="gr-g">💰 ' + x.g + '</small></span><span class="gr-p">' + (ok ? 'Xong' : Math.min(x.v, x.n) + '/' + x.n) + '</span><span class="gr-a">' + (ok ? '' : x.b) + '</span></div>'; };
     return '<section class="section grow-box" data-grp="grow"><div class="section-h"><h2>🌱 Mở rộng khách: 5 việc mỗi ngày</h2><a class="gr-guide" href="/huong-dan/mo-rong-khach/" target="_blank" rel="noopener">📖 Hướng dẫn có hình</a></div>' +
@@ -9800,7 +9800,7 @@
       h += inTabi('Tự tạo thêm nội dung khi cần: kịch bản video, câu lệnh ảnh, bài Facebook cho sale, ưu đãi. Bài web, Zalo, Fanpage thì trợ lý <b>đã tự viết theo lịch</b>, không cần làm ở đây.', ['Chọn việc cần làm ngay bên dưới', 'Chọn nhóm khách (các ô khác để AI tự chọn cũng được)', 'Bấm nút viết, đọc lại rồi <b>📋 Copy</b> đem dùng']);
       h += '<div class="inx-cards inx-pick"><div class="box"><b>🎬 Kịch bản video</b><p class="small muted">TikTok, Reels, Shorts: câu mở đầu, từng cảnh, lời đọc, caption.</p><button class="btn sm pri" data-in="vfocus">🎬 Viết kịch bản</button></div>' +
         '<div class="box"><b>📸 Câu lệnh tạo ảnh</b><p class="small muted">3 câu lệnh dán vào ChatGPT hoặc Gemini, giữ nguyên bao bì thật.</p><button class="btn sm" data-in="img">📸 Viết câu lệnh</button></div>' +
-        (ed ? '<div class="box"><b>📣 Bài Facebook cho sale</b><p class="small muted">Bài kể chuyện đời thường + bình luận ghim có link riêng từng sale.</p><button class="btn sm" data-spf="admin">📣 Mở</button></div>' +
+        (ed ? '<div class="box"><b>📣 Kho bài đăng cho sale</b><p class="small muted">Bài có ảnh theo 3 tầng phễu + bình luận ghim có link riêng từng sale. ✨ Viết sẵn kho, duyệt, đổi ảnh.</p><button class="btn sm" data-spf="admin">📣 Mở kho bài</button></div>' +
           '<div class="box"><b>🎁 Viết offer</b><p class="small muted">Ưu đãi "khó từ chối" cho 1 sản phẩm + 1 nỗi lòng khách, lưu nháp để duyệt giá.</p><button class="btn sm" data-in="offer">🎁 Viết offer</button></div>' : '') + '</div>';
       h += '<div class="box inx-vd" id="inVd"><div class="zb-ph"><b>🎬 Viết kịch bản video ngắn</b></div>' +
         '<p class="small muted" style="margin-top:0">Video dọc cho TikTok, Reels, Shorts. AI viết sẵn câu mở đầu, từng cảnh quay, lời đọc và caption.</p>' +
@@ -10433,68 +10433,175 @@
   }
   function spfZnk(p) { return String(p.znk || (p.text + '\n👉 [LINK]')).replace(/\[LINK\]/g, spfLink(p)); }
   function spfZmsg(p) { return String(p.zmsg || '').replace(/\[Tên\]/g, 'anh/chị').replace(/\[LINK\]/g, spfLink(p)); }
-  function spfCard(p, admin) {
-    var st = { draft: '📝 Nháp, sale chưa thấy', ok: '✅ Sale đang dùng', off: '⏸ Đã ẩn' }[p.status] || '';
-    var head = '<div class="zb-ph"><b>' + (p.src === 'web' ? '📰 Từ bài web: ' + esc(p.title) : p.src === 'zalo' ? '💬 Từ bài nhóm Zalo' + (p.title ? ': ' + esc(p.title) : '') : (p.f === 'MOFU' ? '⚪ Tạo niềm tin' : '🔵 Nhận biết') + (p.gn ? ' · ' + esc(p.gn) : '')) + '</b>' + (admin || p.copies ? '<span class="zb-due">' + [admin ? st : '', p.copies ? '📋 ' + p.copies + ' lần copy' : ''].filter(Boolean).join(' · ') + '</span>' : '') + '</div>';
-    var txt = function (lab, t) { return '<p class="small spf-lab">' + lab + '</p><div class="spf-txt">' + esc(t) + '</div>'; };
-    var cp = function (k, lab, pri) { return '<button class="btn sm' + (pri ? ' pri' : '') + '" data-spf="cp|' + p.id + '|' + k + '">📋 ' + lab + '</button>'; };
-    if (admin) return '<div class="box spf-card" data-spfid="' + p.id + '">' + head + (p.ins ? inTag(p.ins) : '') +
-      txt('📘 Bài Facebook cá nhân (không link):', p.text) + txt('Bình luận ghim (không link):', p.cmt) + txt('Trả lời có link ' + (SPF.to[p.to] || '') + ':', p.reply) +
-      '<details class="small"><summary>📸 Gợi ý ảnh · 👥 Bài hội nhóm · 💬 Nhật ký Zalo · Tin Zalo gửi khách</summary>' + txt('📸 Gợi ý ảnh thật:', p.imgh || (p.img ? 'Ảnh bài web: ' + p.img : '(chưa có)')) + txt('👥 Bài hội nhóm:', p.grp || '(chưa có: sale dùng bài Facebook cá nhân)') + txt('💬 Nhật ký Zalo:', p.znk || '(chưa có: sale dùng bài + link)') + txt('💬 Tin Zalo gửi khách:', p.zmsg || '(chưa có)') + '</details>' +
-      '<div class="lq-btns"><button class="btn sm" data-spf="edit|' + p.id + '">✏️ Sửa</button>' + (p.status !== 'ok' ? '<button class="btn sm pri" data-spf="st|' + p.id + '|ok">✅ Cho sale dùng</button>' : '<button class="btn sm ghost" data-spf="st|' + p.id + '|off">⏸ Ẩn</button>') + '<button class="btn sm ghost" data-spf="del|' + p.id + '">🗑 Xoá</button></div></div>';
-    // 13/11/2026 anh Sơn: từng nơi đăng là các BƯỚC có số, nút làm ngay (copy + mở Facebook / Zalo), làm xong có ✓ (khoá content: bài không link → chờ tương tác → bình luận → trả lời có link → ghim; hội nhóm dùng ảnh QR thay link, tặng tài liệu)
-    var done = spfDone(p.id), pv = function (t) { return t ? '<details class="spf-pv"><summary>' + esc(String(t).slice(0, 90)) + (String(t).length > 90 ? '… <b>xem đủ</b>' : '') + '</summary><div class="spf-txt">' + esc(t) + '</div></details>' : ''; };
+  /* 🗂 KHO BÀI ĐĂNG (23/11/2026, chị Thủy góp ý: "chị em sale cần thấy hình ảnh và nội dung luôn để lựa chọn, nhìn vào đây sẽ rối").
+   * Lưới thẻ: ảnh + 5 dòng đầu bài + nhãn loại bài / nhóm khách / sản phẩm, lọc ở trên. Bấm 1 bài → xem đủ, 2 nút chính 📋 Copy bài + ⬇️ Lưu ảnh,
+   * rồi chọn nơi đăng (📘 cá nhân · 👥 hội nhóm · 💬 Zalo), chỉ hiện bước của nơi đó. Bài phải có ảnh mới tới sale (máy chủ chặn).
+   * Quản lý / Marketing: cùng lưới + lọc trạng thái, ✨ viết sẵn N bài theo tỉ lệ 4 loại (spf_fill), ✅ cho sale dùng tất cả nháp có ảnh, 🖼 đổi ảnh. */
+  function spfAbs(u) { u = String(u || ''); return !u ? '' : /^https?:/.test(u) ? u : 'https://thucduonglanh.vn' + u; }
+  function spfCatOf(k) { return (SPF.cats || []).filter(function (c) { return c.k === k; })[0] || null; }
+  function spfProdN(k) { var p = (SPF.prods || []).filter(function (x) { return x.k === k; })[0]; return p ? p.n : ''; }
+  function spfUsed(p) { return !!(p.mine || Object.keys(spfDone(p.id)).length); }
+  function spfTags(p) {
+    var c = spfCatOf(p.cat), t = [];
+    if (c) t.push('<span class="spkb-tag">' + esc(c.n) + '</span>');
+    if (p.gn) t.push('<span class="spkb-tag g">👥 ' + esc(p.gn) + '</span>');
+    if (p.prod && spfProdN(p.prod)) t.push('<span class="spkb-tag p">' + esc(spfProdN(p.prod)) + '</span>');
+    return t.length ? '<span class="spkb-tags">' + t.join('') + '</span>' : '';
+  }
+  var SPF_ST = { draft: '📝 Nháp', ok: '✅ Sale đang dùng', off: '⏸ Đã ẩn' };
+  function spfTile(p, admin) {
+    var src = p.th || spfAbs(p.img), used = !admin && spfUsed(p);
+    return '<button class="spkb-card' + (used ? ' done' : '') + '" data-spf="view|' + p.id + '">' +
+      '<span class="spkb-img">' + (src ? '<img src="' + esc(src) + '" alt="" loading="lazy">' : '<span class="spkb-noimg">🖼 Chưa có ảnh</span>') +
+        (admin ? '<span class="spkb-st ' + esc(p.status) + '">' + (SPF_ST[p.status] || '') + '</span>' : used ? '<span class="spkb-st ok">✓ Bạn đã đăng</span>' : '') + '</span>' +
+      '<span class="spkb-body">' + spfTags(p) + '<span class="spkb-txt">' + esc(p.text) + '</span>' +
+      '<span class="spkb-foot"><span>' + (p.who ? '🔥 ' + p.who + ' bạn đã đăng' : '🌱 Chưa ai đăng') + '</span><b>Xem & đăng ›</b></span></span></button>';
+  }
+  function spfFilt(P, admin) {
+    var f = SPF.f;
+    return P.filter(function (p) { return (!f.c || p.cat === f.c) && (!f.g || p.gn === f.g) && (!f.p || p.prod === f.p) && (admin || !f.n || !spfUsed(p)) && (!admin || !f.s || p.status === f.s); });
+  }
+  function spfBar(P, admin) {
+    var f = SPF.f, chip = function (k, v, lab, n) { return '<button class="spkb-chip' + ((f[k] || '') === v ? ' on' : '') + '" data-spf="f|0|' + k + '|' + v + '">' + lab + (n != null ? ' <small>' + n + '</small>' : '') + '</button>'; };
+    var cnt = function (k, v) { return P.filter(function (p) { return p[k] === v; }).length; };
+    var gs = {}, ps = {}; P.forEach(function (p) { if (p.gn) gs[p.gn] = 1; if (p.prod) ps[p.prod] = 1; });
+    var sel = function (k, lab, keys, nm) { return keys.length ? '<select class="spkb-sel" data-spff="' + k + '"><option value="">' + lab + '</option>' + keys.map(function (v) { return '<option value="' + esc(v) + '"' + (f[k] === v ? ' selected' : '') + '>' + esc(nm(v)) + '</option>'; }).join('') + '</select>' : ''; };
+    return '<div class="spkb-bar">' +
+      (admin ? '<div class="spkb-chips">' + chip('s', '', 'Mọi trạng thái') + chip('s', 'draft', '📝 Nháp', cnt('status', 'draft')) + chip('s', 'ok', '✅ Sale đang dùng', cnt('status', 'ok')) + chip('s', 'off', '⏸ Ẩn', cnt('status', 'off')) + '</div>' : '') +
+      '<div class="spkb-chips">' + chip('c', '', 'Tất cả', P.length) + (SPF.cats || []).map(function (c) { return chip('c', c.k, esc(c.n), cnt('cat', c.k)); }).join('') + '</div>' +
+      '<div class="spkb-chips">' + sel('g', '👥 Mọi nhóm khách', Object.keys(gs), function (v) { return v; }) + sel('p', '🛍 Mọi sản phẩm', Object.keys(ps), function (v) { return spfProdN(v) || v; }) +
+        (admin ? '' : '<button class="spkb-chip' + (f.n ? ' on' : '') + '" data-spf="f|0|n|' + (f.n ? '' : '1') + '">' + (f.n ? '✓ ' : '') + 'Chỉ bài mình chưa đăng</button>') + '</div></div>';
+  }
+  /** Màn 1 bài: ảnh lớn + toàn văn + Copy bài / Lưu ảnh + chọn nơi đăng → các bước của nơi đó */
+  function spfDetail(p, admin) {
+    var ch = SPF.ch || 'fb', done = spfDone(p.id), img = spfAbs(p.img);
+    var pv = function (t) { return t ? '<details class="spf-pv"><summary>' + esc(String(t).slice(0, 90)) + (String(t).length > 90 ? '… <b>xem đủ</b>' : '') + '</summary><div class="spf-txt">' + esc(t) + '</div></details>' : ''; };
     var step = function (k, n, t, sub, btn, prev) { return '<div class="spf-step' + (done[k] ? ' ok' : '') + '" data-spfk="' + k + '"><span class="spf-n">' + (done[k] ? '✓' : n) + '</span><div class="spf-sb"><b>' + t + '</b>' + (sub ? '<small>' + sub + '</small>' : '') + pv(prev) + (btn ? '<div class="spf-btn">' + btn + '</div>' : '') + '</div></div>'; };
     var go = function (k, lab, url) { return '<button class="btn pri" data-spf="go|' + p.id + '|' + k + '|' + url + '">📋 ' + lab + '</button>'; };
-    var imgB = p.img ? '<a class="btn" href="' + esc(/^https?:/.test(p.img) ? p.img : 'https://thucduonglanh.vn' + p.img) + '" target="_blank" rel="noopener" download>⬇️ Tải ảnh bài web</a>' : '';
-    var imgS = (p.imgh ? 'Gợi ý: ' + esc(p.imgh) : 'Ảnh thật bạn tự chụp đúng chuyện trong bài (mâm cơm, ly trà, góc bếp…).') + ' Không dùng banner, ảnh sản phẩm trơn.';
-    return '<div class="box spf-card" data-spfid="' + p.id + '">' + head +
-      '<details class="spf-ch" open><summary>📘 Facebook cá nhân <small>đăng lúc 9h, 12h hoặc 19–22h</small></summary>' +
-        step('fb1', 1, 'Copy bài và mở Facebook', 'Dán vào ô đăng bài, <b>sửa vài chi tiết cho đúng chuyện của bạn</b> (con trai hay con gái, quê ở đâu…). <b>Không dán link vào bài</b>: bài có link ít người thấy.', go('text', 'Copy bài & mở Facebook', 'fb'), p.text) +
-        step('fb2', 2, '📸 Thêm 1 ảnh thật', imgS, imgB) +
-        step('fb3', 3, '⏰ Chờ 2–3 tiếng, trả lời từng bình luận', 'Bài có vài chục bình luận rồi mới làm bước 4. Trả lời bạn bè giúp bài lan rộng hơn.', '<button class="btn" data-spf="mark|' + p.id + '|fb3">✓ Đã chờ, làm tiếp</button>') +
-        step('fb4', 4, 'Viết bình luận dưới bài (không có link)', '', '<button class="btn pri" data-spf="cp|' + p.id + '|cmt">📋 Copy bình luận</button>', p.cmt) +
-        step('fb5', 5, 'Trả lời ngay dưới bình luận bước 4 bằng câu có link', 'Link riêng của bạn đã gắn sẵn.', '<button class="btn pri" data-spf="cp|' + p.id + '|reply">📋 Copy câu có link</button>', spfReply(p)) +
-        step('fb6', 6, '📌 Ghim bình luận bước 4', 'Trên điện thoại: giữ tay vào bình luận bước 4 → <b>Ghim</b>. Facebook không cho ghim bình luận có link nên link nằm ở câu trả lời.', '<button class="btn" data-spf="mark|' + p.id + '|fb6">✓ Đã ghim</button>') + '</details>' +
-      '<details class="spf-ch"><summary>👥 Hội nhóm Facebook <small>mẹ bỉm, ăn chay, hưu trí, khu phố…</small></summary>' +
-        step('g1', 1, 'Copy bài hội nhóm và mở Facebook', 'Bài chia sẻ, không bán hàng. Đọc nội quy nhóm trước, làm bạn với admin.', go('grp', 'Copy bài & mở hội nhóm', 'grp'), spfGrp(p)) +
+    var cp = function (k, lab, cls) { return '<button class="btn ' + (cls || 'pri') + '" data-spf="cp|' + p.id + '|' + k + '">' + lab + '</button>'; };
+    var tab = function (k, lab) { return '<button class="spkb-chip big' + (ch === k ? ' on' : '') + '" data-spf="ch|' + p.id + '|' + k + '">' + lab + '</button>'; };
+    var imgTip = img ? 'chọn ảnh vừa lưu' : 'thêm 1 ảnh thật bạn tự chụp' + (p.imgh ? ' (gợi ý: ' + esc(p.imgh) + ')' : '');
+    var steps = ch === 'grp' ?
+        step('g1', 1, 'Copy bài hội nhóm và mở Facebook', 'Bài hội nhóm viết riêng: chia sẻ, không bán hàng. Đọc nội quy nhóm trước, làm bạn với admin.', go('grp', 'Copy bài & mở hội nhóm', 'grp'), spfGrp(p)) +
         step('g2', 2, '📸 Đăng kèm ảnh mã QR nhận quà', 'Hội nhóm hay xoá bài có link, ảnh mã QR thì được. Mã QR là <b>link riêng của bạn</b> tới trang nhận cẩm nang miễn phí.', '<button class="btn pri" data-spf="qr|' + p.id + '">🖼️ ' + (window.matchMedia && matchMedia('(pointer:coarse)').matches ? 'Lưu ảnh mã QR' : 'Tải ảnh mã QR') + '</button>') +
-        step('g3', 3, 'Bình luận mời nhận quà (không có link)', 'Một bài dùng được cho nhiều nhóm, mỗi nhóm cách nhau vài ngày.', '<button class="btn pri" data-spf="cp|' + p.id + '|gcmt">📋 Copy bình luận</button>', spfGcmt(p)) + '</details>' +
-      '<details class="spf-ch"><summary>💬 Zalo cá nhân</summary>' +
-        step('z1', 1, 'Đăng Nhật ký Zalo (đã có link của bạn)', 'Mở Zalo → <b>Nhật ký</b> → dán, thêm ảnh thật như bước 2 Facebook.', go('znk', 'Copy nhật ký & mở Zalo', 'zalo'), spfZnk(p)) +
-        (p.zmsg ? step('z2', 2, 'Nhắn riêng cho khách cũ, người quen', 'Sửa “anh/chị” cho đúng người nhận.', '<button class="btn zalo" data-spf="cp|' + p.id + '|zmsg">💬 Copy tin gửi khách</button>', spfZmsg(p)) : '') + '</details></div>';
+        step('g3', 3, 'Bình luận mời nhận quà (không có link)', 'Một bài dùng được cho nhiều nhóm, mỗi nhóm cách nhau vài ngày.', cp('gcmt', '📋 Copy bình luận'), spfGcmt(p))
+      : ch === 'zalo' ?
+        step('z1', 1, 'Đăng Nhật ký Zalo (đã có link của bạn)', 'Mở Zalo → <b>Nhật ký</b> → dán chữ, ' + imgTip + '.', go('znk', 'Copy nhật ký & mở Zalo', 'zalo'), spfZnk(p)) +
+        (p.zmsg ? step('z2', 2, 'Nhắn riêng cho khách cũ, người quen', 'Sửa “anh/chị” cho đúng người nhận.', cp('zmsg', '💬 Copy tin gửi khách', 'zalo'), spfZmsg(p)) : '')
+      : step('fb1', 1, 'Mở Facebook, dán bài và ' + imgTip, 'Sửa vài chi tiết cho đúng chuyện của bạn. <b>Không dán link vào bài</b>: bài có link ít người thấy. Nên đăng lúc 9h, 12h hoặc 19–22h.', go('text', 'Copy bài & mở Facebook', 'fb')) +
+        step('fb3', 2, '⏰ Chờ 2–3 tiếng, trả lời từng bình luận', 'Trả lời bạn bè giúp bài lan rộng hơn.', '<button class="btn" data-spf="mark|' + p.id + '|fb3">✓ Đã chờ, làm tiếp</button>') +
+        step('fb4', 3, 'Viết bình luận dưới bài (không có link)', '', cp('cmt', '📋 Copy bình luận'), p.cmt) +
+        step('fb5', 4, 'Trả lời ngay dưới bình luận bước 3 bằng câu có link', 'Link riêng của bạn đã gắn sẵn: khách đặt trong 30 ngày thì đơn tính cho bạn.', cp('reply', '📋 Copy câu có link'), spfReply(p)) +
+        step('fb6', 5, '📌 Ghim bình luận bước 3', 'Trên điện thoại: giữ tay vào bình luận → <b>Ghim</b>. Facebook không cho ghim bình luận có link nên link nằm ở câu trả lời.', '<button class="btn" data-spf="mark|' + p.id + '|fb6">✓ Đã ghim</button>');
+    var txt = function (lab, t) { return '<p class="small spf-lab">' + lab + '</p><div class="spf-txt">' + esc(t) + '</div>'; };
+    var adm = admin ? '<div class="box spkb-adm"><div class="spkb-chips">' + '<span class="spkb-st ' + esc(p.status) + '">' + (SPF_ST[p.status] || '') + '</span>' + (p.src ? '<span class="small muted">' + (p.src === 'web' ? '📰 Chuyển từ bài web' : '💬 Chuyển từ bài nhóm Zalo') + (p.title ? ': ' + esc(p.title) : '') + '</span>' : '') + (p.copies ? '<span class="small muted">📋 ' + p.copies + ' lần copy</span>' : '') + '</div>' +
+        '<div class="row2c"><label class="f"><span>Loại bài</span><select data-spfset="cat|' + p.id + '"><option value="">(Chưa xếp)</option>' + (SPF.cats || []).map(function (c) { return '<option value="' + c.k + '"' + (p.cat === c.k ? ' selected' : '') + '>' + esc(c.n) + '</option>'; }).join('') + '</select></label>' +
+        '<label class="f"><span>Sản phẩm</span><select data-spfset="prod|' + p.id + '"><option value="">(Không có)</option>' + (SPF.prods || []).map(function (x) { return '<option value="' + esc(x.k) + '"' + (p.prod === x.k ? ' selected' : '') + '>' + esc(x.n) + '</option>'; }).join('') + '</select></label></div>' +
+        '<div class="lq-btns"><button class="btn" data-spf="pick|' + p.id + '">🖼 Đổi ảnh</button><button class="btn" data-spf="edit|' + p.id + '">✏️ Sửa chữ</button>' + (p.status !== 'ok' ? '<button class="btn pri" data-spf="st|' + p.id + '|ok">✅ Cho sale dùng</button>' : '<button class="btn ghost" data-spf="st|' + p.id + '|off">⏸ Ẩn</button>') + '<button class="btn ghost" data-spf="del|' + p.id + '">🗑 Xoá</button></div>' +
+        '<details class="small"><summary>Xem bình luận ghim, bài hội nhóm, Zalo</summary>' + txt('Bình luận ghim (không link):', p.cmt) + txt('Trả lời có link ' + (SPF.to[p.to] || '') + ':', p.reply) + txt('👥 Bài hội nhóm:', p.grp || '(chưa có: sale dùng bài Facebook cá nhân)') + txt('💬 Nhật ký Zalo:', p.znk || '(chưa có)') + txt('💬 Tin Zalo gửi khách:', p.zmsg || '(chưa có)') + '</details></div>' : '';
+    return '<div class="spkb-det spf-card" data-spfid="' + p.id + '"><button class="btn sm ghost" data-spf="back|0">‹ Quay lại kho bài</button>' +
+      (img ? '<img class="spkb-big" src="' + esc(img) + '" alt="">' : '<p class="spkb-noimg big">🖼 Bài chưa có ảnh' + (admin ? ': bấm 🖼 Đổi ảnh bên dưới' : '') + '</p>') + spfTags(p) + adm +
+      '<div class="spf-txt spkb-full">' + esc(p.text) + '</div>' +
+      (admin ? '' : '<div class="spkb-main">' + cp('text', '📋 Copy bài') + (img ? '<button class="btn pri" data-spf="img|' + p.id + '">⬇️ Lưu ảnh</button>' : '') + '</div>' +
+        '<p class="spkb-q">Đăng ở đâu?</p><div class="spkb-tabs">' + tab('fb', '📘 Cá nhân') + tab('grp', '👥 Hội nhóm') + tab('zalo', '💬 Zalo') + '</div><div class="spkb-steps">' + steps + '</div>') + '</div>';
   }
-
-  var SPF_STEPS = '<ol class="small spf-steps"><li>Copy <b>bài</b>, đăng lên Facebook cá nhân như bài bình thường (sửa vài chữ cho giống giọng mình càng tốt). <b>Không dán link vào bài</b>: bài có link ít người thấy.</li><li><b>Chờ bài có tương tác</b> (vài chục bình luận, hoặc 2–3 tiếng). Trả lời từng bình luận của bạn bè.</li><li>Viết <b>bình luận ghim</b> (không có link) dưới bài.</li><li><b>Trả lời ngay dưới bình luận đó</b> bằng câu có link riêng của bạn.</li><li>Trên <b>điện thoại</b>, giữ tay vào bình luận ở bước 3 → <b>Ghim</b>. Facebook không cho ghim bình luận có link, nên link phải nằm ở câu trả lời.</li></ol><p class="small muted">Khách bấm link rồi đặt trên web trong 30 ngày: đơn tính cho bạn. Mỗi ngày 1 bài: hôm nay trang cá nhân, mai hội nhóm, trang cá nhân 2–3 bài / tuần là đủ.</p>';
+  /** ⬇️ Lưu ảnh: điện thoại mở bảng chia sẻ (Lưu hình ảnh), máy tính tải file. Ảnh lấy sẵn khi mở bài để bảng chia sẻ mở ngay khi bấm. */
+  function spfImgPrefetch(p) {
+    SPF.blob = SPF.blob || {}; if (!p.img || SPF.blob[p.id]) return;
+    fetch(spfAbs(p.img)).then(function (r) { return r.ok ? r.blob() : null; }).then(function (b) { if (b) SPF.blob[p.id] = b; }, function () { });
+  }
+  function spfImgSave(p) {
+    var u = spfAbs(p.img), fin = function (b) {
+      var name = 'anh-bai-' + p.id + '.' + ((b.type.split('/')[1] || 'jpg').replace('jpeg', 'jpg')), f;
+      try { f = new File([b], name, { type: b.type }); } catch (e) { f = null; }
+      if (f && window.matchMedia && matchMedia('(pointer:coarse)').matches && navigator.canShare && navigator.canShare({ files: [f] })) return navigator.share({ files: [f] }).then(function () { toast('Xong ✓ Ảnh đã ở trong máy, đăng bài thì chọn ảnh này'); }, function () { });
+      var a = document.createElement('a'), ou = URL.createObjectURL(b); a.href = ou; a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(ou); }, 5000); toast('Đã lưu ảnh về máy ✓');
+    };
+    spfMark(p.id, 'img');
+    if (SPF.blob && SPF.blob[p.id]) return fin(SPF.blob[p.id]);
+    toast('⏳ Đang lấy ảnh…');
+    fetch(u).then(function (r) { if (!r.ok) throw new Error(); return r.blob(); }).then(fin).catch(function () { window.open(u, '_blank', 'noopener'); toast('Ảnh đã mở ở tab mới: giữ tay vào ảnh → Lưu ảnh'); });
+  }
+  /** 🖼 Đổi ảnh (quản lý): kho ảnh thật trên web / tải từ máy */
+  function spfImgPick(p) {
+    var box = $('#spkPick'); if (!box) return;
+    box.innerHTML = '<p class="small muted">⏳ Đang tải kho ảnh…</p>'; box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    var put = function (img, msg) { toast('⏳ Đang lưu ảnh…'); return api('spf_save', { id: p.id, img: img }).then(function (r) { spfPut(r.post); SPF.draw(); toast(msg); }, function (e) { toast(e.message, true); }); };
+    api('spf_imgs', {}).then(function (r) {
+      box.innerHTML = '<div class="box"><p class="small"><b>🖼 Chọn ảnh cho bài</b> · bấm 1 ảnh để chọn</p><div class="lq-btns" style="margin-bottom:8px"><label class="btn pri">📷 Tải ảnh từ máy<input type="file" id="spkFile" accept="image/*" hidden></label><button class="btn ghost" data-spf="pickx|0">Đóng</button></div>' +
+        '<div class="zb-lib">' + r.list.map(function (i) { return '<button class="zb-libi' + (i.url === p.img ? ' on' : '') + '" data-spkimg="' + esc(i.url) + '" title="' + esc(i.alt) + '"><img src="' + esc(i.thumb || i.url) + '" alt="' + esc(i.alt) + '" loading="lazy"><span>' + esc(i.alt) + '</span></button>'; }).join('') + '</div></div>';
+      box.onclick = function (e) { var b = e.target.closest('[data-spkimg]'); if (b) put(b.getAttribute('data-spkimg'), 'Đã đổi ảnh ✓'); };
+      $('#spkFile', box).onchange = function () { var f = this.files && this.files[0]; if (!f) return; shrinkImage(f).then(function (src) { return put(src, 'Đã tải ảnh lên ✓'); }, function () { toast('Không đọc được ảnh này, chọn ảnh khác nhé.', true); }); };
+    }, function (e) { box.innerHTML = ''; toast(e.message, true); });
+  }
+  function spfAdminTop() {
+    var cats = SPF.cats || [], gs = ((IN.d && IN.d.bank) || []).filter(function (g) { return g.on; }), tot = cats.reduce(function (s, c) { return s + (Number(c.p) || 0); }, 0);
+    var drafts = (SPF.posts || []).filter(function (p) { return p.status === 'draft' && p.img; }).length;
+    return aiLearnLine(SPF.learnEd, 'bài') +
+      (drafts ? '<div class="box spkb-ok"><b>📝 ' + drafts + ' bài nháp đã có ảnh</b><p class="small muted" style="margin:4px 0 8px">Bấm từng bài để đọc / sửa, hoặc cho sale dùng tất cả một lần.</p><button class="btn pri" data-spf="okall|0">✅ Cho sale dùng tất cả ' + drafts + ' bài</button></div>' : '') +
+      '<details class="box"' + (SPF.q || !(SPF.posts || []).length ? ' open' : '') + '><summary><b>🗂 Viết sẵn kho bài theo tỉ lệ</b>' + (SPF.q ? ' <span class="zb-due">⏳ còn ' + SPF.q + ' bài đang viết</span>' : '') + '</summary>' +
+        '<p class="small muted">Trợ lý viết dần khoảng 2 bài / 10 phút, mỗi bài tự chọn 1 ảnh thật trong kho ảnh web (bài có sản phẩm mà thiếu ảnh hợp thì dùng ảnh sản phẩm). Bài vào 📝 Nháp, có tin Telegram khi xong. Tỉ lệ theo 3 tầng phễu (khoá Content: 60 / 20 / 20), sửa tên và % nếu cần:</p>' +
+        '<div class="spkb-mix">' + cats.map(function (c) { return '<div class="spkb-mixr"><input type="text" data-spfm="n" data-k="' + c.k + '" value="' + esc(c.n) + '" maxlength="40"><input type="number" data-spfm="p" data-k="' + c.k + '" value="' + (Number(c.p) || 0) + '" min="0" max="100"><span>%</span></div><p class="small muted spkb-mixd">' + esc(c.d) + '</p>'; }).join('') + '</div>' +
+        '<label class="small spkb-show">👀 Sale thấy tối đa <input type="number" id="spfShow" value="' + (SPF.show || 10) + '" min="3" max="80" style="width:60px"> bài mới nhất <small class="muted">(bắt đầu 10 bài cho dễ làm quen, quen rồi nâng dần)</small></label>' + '<p class="small" id="spkTot">Tổng: <b>' + tot + '%</b>' + (tot !== 100 ? ' (nên là 100%)' : '') + '</p>' +
+        (SPF.q ? '<div class="lq-btns"><button class="btn" data-spf="mixsave|0">💾 Lưu cài đặt</button><button class="btn ghost" data-spf="fill|0|0">⏹ Dừng viết</button></div>' :
+          '<div class="lq-btns"><label class="small">Số bài <input type="number" id="spfN" value="10" min="1" max="40" style="width:64px"></label><button class="btn pri" data-spf="fill|0|go">✨ Viết sẵn</button><button class="btn" data-spf="mixsave|0">💾 Chỉ lưu cài đặt</button></div>') + '</details>' +
+      (SPF.write ? '<details class="box"><summary><b>✨ Viết 1 bài theo ý mình</b> <small class="muted">khoảng 1 phút</small></summary><div class="row2c"><label class="f"><span>Tầng phễu</span><select id="spfF">' + cats.map(function (c) { return '<option value="' + c.k + '">' + esc(c.n) + '</option>'; }).join('') + '</select></label>' +
+        '<label class="f"><span>Sản phẩm <small class="muted">không bắt buộc</small></span><select id="spfP"><option value="">Không gắn (🟠 thì trợ lý tự chọn)</option>' + (SPF.prods || []).map(function (x) { return '<option value="' + esc(x.k) + '">' + esc(x.n) + '</option>'; }).join('') + '</select></label></div>' +
+        '<div class="row2c"><label class="f"><span>Nhóm khách</span><select id="spfG"><option value="">Trợ lý tự chọn</option>' + gs.map(function (g) { return '<option value="' + esc(g.id) + '">' + esc(g.name) + '</option>'; }).join('') + '</select></label>' +
+        '<label class="f"><span>Bình luận ghim mời khách</span><select id="spfTo">' + Object.keys(SPF.to).map(function (k) { return '<option value="' + k + '">' + esc(SPF.to[k]) + '</option>'; }).join('') + '</select></label></div>' +
+        '<label class="f"><span>Yêu cầu thêm <small class="muted">không bắt buộc</small></span><input type="text" id="spfH" placeholder="Vd: kể chuyện mùa lạnh, nhắc ngày 20/11"></label><div class="lq-btns"><button class="btn pri" data-spf="write">✨ Viết 1 bài</button></div></details>' : '');
+  }
   function spfOpen(admin) {
-    var m = modal(admin ? '📣 Bài đăng sẵn cho sale (Facebook, hội nhóm, Zalo)' : '📣 Bài đăng sẵn: Facebook, hội nhóm, Zalo', '<div id="spfBody"><p class="muted">⏳ Đang tải…</p></div>', '<button class="btn" data-close>Đóng</button>');
+    SPF.f = SPF.f || {}; SPF.view = 0; SPF.ch = 'fb';
+    var m = modal(admin ? '📣 Kho bài đăng cho sale' : '📣 Kho bài đăng: Facebook, hội nhóm, Zalo', '<div id="spfBody"><p class="muted">⏳ Đang tải…</p></div>', '<button class="btn" data-close>Đóng</button>');
     var draw = function () {
       var P = SPF.posts || [], b = $('#spfBody', m); if (!b) return;
-      var gs = ((IN.d && IN.d.bank) || []).filter(function (g) { return g.on; });
-      b.innerHTML = (admin ? aiLearnLine(SPF.learnEd, 'bài') : '<div class="box spf-guide"><b>📣 Mỗi ngày 1 bài, mất 5 phút</b><p class="small" style="margin:6px 0 0">Chọn <b>1 bài</b>, mở <b>1 nơi</b> (📘 trang cá nhân · 👥 hội nhóm · 💬 Zalo), làm lần lượt từng bước, bước xong có dấu ✓. <b>Link riêng của bạn đã gắn sẵn</b>: khách đặt hàng trong 30 ngày thì đơn tính cho bạn. Hôm nay trang cá nhân, mai hội nhóm, ngày kia Zalo.</p></div>') + (admin ? (SPF.write ? '<div class="box"><p class="small"><b>✨ Viết bài mới</b> (khoảng 1 phút). Trợ lý chọn nhóm khách, tension, góc kể như các kênh khác.</p><div class="row2c"><label class="f"><span>Nhóm khách</span><select id="spfG"><option value="">Trợ lý tự chọn</option>' + gs.map(function (g) { return '<option value="' + esc(g.id) + '">' + esc(g.name) + '</option>'; }).join('') + '</select></label><label class="f"><span>Loại bài</span><select id="spfF"><option value="TOFU">🔵 Nhận biết (không nhắc sản phẩm)</option><option value="MOFU">⚪ Tạo niềm tin (nhắc chuyện nghề)</option></select></label></div><label class="f"><span>Bình luận ghim mời khách</span><select id="spfTo">' + Object.keys(SPF.to).map(function (k) { return '<option value="' + k + '">' + esc(SPF.to[k]) + '</option>'; }).join('') + '</select></label><label class="f"><span>Yêu cầu thêm <small class="muted">không bắt buộc</small></span><input type="text" id="spfH" placeholder="Vd: kể chuyện mùa lạnh, nhắc ngày 20/11"></label><div class="lq-btns"><button class="btn pri" data-spf="write">✨ Viết 1 bài</button></div></div>' : '') : '') + // 13/11/2026: hướng dẫn cho sale đã đưa lên khung 📣 đầu cửa sổ
-        (P.length ? P.map(function (p) { return spfCard(p, admin); }).join('') : '<p class="muted small">' + (admin ? 'Chưa có bài nào. Bấm ✨ Viết 1 bài. Bài web và bài nhóm Zalo đã đăng cũng tự chuyển thành bài cho sale (tự duyệt, tối đa 1 bài nhóm Zalo / ngày).' : 'Chưa có bài nào được duyệt. Nhờ Marketing / Quản lý viết thêm ở tab 🎯 Insight & nội dung.') + '</p>') +
-        (admin ? '<details class="small"><summary>Sale sẽ thấy hướng dẫn đăng như sau</summary>' + SPF_STEPS + '</details>' : '');
+      var cur = SPF.view && P.filter(function (p) { return p.id === SPF.view; })[0];
+      if (cur) { b.innerHTML = spfDetail(cur, admin) + (admin ? '<div id="spkPick"></div>' : ''); if (!admin) spfImgPrefetch(cur); var sb = b.closest('.sheet-b'); if (sb && !SPF.keepY) sb.scrollTop = 0; return; }
+      var L = spfFilt(P, admin); if (!admin) L = L.filter(function (p) { return !spfUsed(p); }).concat(L.filter(spfUsed)); // bài chưa đăng lên đầu
+      var bar = admin || P.length > 10 ? spfBar(P, admin) : ''; // 23/11/2026 anh Sơn: bước đầu kho nhỏ (10 bài) cho chị em dễ làm quen → chưa cần bộ lọc
+      b.innerHTML = (admin ? spfAdminTop() : '<div class="box spf-guide"><b>📣 Mỗi ngày 1 bài, mất 5 phút</b><p class="small" style="margin:6px 0 0">Lướt xem, <b>chọn 1 bài có ảnh bạn thích</b> → <b>📋 Copy bài</b> + <b>⬇️ Lưu ảnh</b> → đăng. Link riêng của bạn đã gắn sẵn: khách đặt trong 30 ngày thì đơn tính cho bạn.</p></div>') +
+        (P.length ? bar + (L.length ? '<div class="spkb-grid">' + L.map(function (p) { return spfTile(p, admin); }).join('') + '</div>' : '<p class="muted small">Không có bài nào khớp bộ lọc. Bấm “Tất cả” để xem lại.</p>') :
+          '<p class="muted small">' + (admin ? 'Chưa có bài nào. Bấm ✨ Viết sẵn ở trên để trợ lý viết kho bài đầu tiên.' : 'Kho chưa có bài nào được duyệt. Nhờ Marketing / Quản lý thêm bài ở tab 🎯 Insight & nội dung.') + '</p>');
+      if (SPF.y != null) { var sb2 = b.closest('.sheet-b'); if (sb2) sb2.scrollTop = SPF.y; SPF.y = null; }
     };
     SPF.draw = draw; SPF.admin = admin; if (!admin) spfQrLib();
-    api('spf_list', { all: admin ? 1 : 0 }).then(function (r) { SPF.posts = r.posts; SPF.to = r.to; SPF.write = r.write; SPF.learnEd = r.learnEd; draw(); }, function (e) { var b = $('#spfBody', m); if (b) b.innerHTML = '<p class="muted">⚠️ ' + esc(e.message) + '</p>'; });
+    m.addEventListener('change', function (e) {
+      var s = e.target.closest('[data-spff]'); if (s) { SPF.f[s.getAttribute('data-spff')] = s.value; return draw(); }
+      var t = e.target.closest('[data-spfset]'); if (t) { var v = t.getAttribute('data-spfset').split('|'), q = { id: Number(v[1]) }; q[v[0]] = t.value; api('spf_save', q).then(function (r) { spfPut(r.post); toast('Đã lưu ✓'); }, function (er) { toast(er.message, true); }); }
+    });
+    m.addEventListener('input', function (e) { if (!e.target.closest('[data-spfm="p"]')) return; var t = 0; $$('[data-spfm="p"]', m).forEach(function (i) { t += Number(i.value) || 0; }); var el = $('#spkTot', m); if (el) el.innerHTML = 'Tổng: <b>' + t + '%</b>' + (t !== 100 ? ' (nên là 100%)' : ''); });
+    api('spf_list', { all: admin ? 1 : 0 }).then(function (r) { SPF.posts = r.posts; SPF.to = r.to; SPF.write = r.write; SPF.learnEd = r.learnEd; SPF.cats = r.cats || []; SPF.prods = r.prods || []; SPF.q = r.q || 0; SPF.show = r.show || 10; draw(); }, function (e) { var b = $('#spfBody', m); if (b) b.innerHTML = '<p class="muted">⚠️ ' + esc(e.message) + '</p>'; });
   }
+  function spfMixVals() { var o = {}; $$('[data-spfm]').forEach(function (i) { var k = i.getAttribute('data-k'); o[k] = o[k] || { k: k }; o[k][i.getAttribute('data-spfm')] = i.value; }); return Object.keys(o).map(function (k) { return o[k]; }); }
   function spfEdit(p) {
     var m = modal('✏️ Sửa bài Facebook cá nhân', '<label class="f"><span>Bước 1 · Bài đăng (không link)</span><textarea id="spfEt" rows="10">' + esc(p.text) + '</textarea></label><label class="f"><span>Bước 3 · Bình luận ghim (không link)</span><textarea id="spfEc" rows="2">' + esc(p.cmt) + '</textarea></label><label class="f"><span>Bước 4 · Trả lời có link <small class="muted">giữ chữ [LINK], CRM tự thay bằng link riêng của từng sale</small></span><textarea id="spfEr" rows="2">' + esc(p.reply) + '</textarea></label><label class="f"><span>📸 Gợi ý ảnh thật nên chụp</span><input type="text" id="spfEi" value="' + esc(p.imgh || '') + '"></label><label class="f"><span>👥 Bài hội nhóm (không link)</span><textarea id="spfEg" rows="6">' + esc(p.grp || '') + '</textarea></label><label class="f"><span>💬 Nhật ký Zalo <small class="muted">giữ chữ [LINK]</small></span><textarea id="spfEz" rows="4">' + esc(p.znk || '') + '</textarea></label><label class="f"><span>💬 Tin Zalo gửi khách <small class="muted">[Tên], [LINK]</small></span><textarea id="spfEm" rows="3">' + esc(p.zmsg || '') + '</textarea></label><label class="f"><span>Link dẫn tới</span><select id="spfEo">' + Object.keys(SPF.to).map(function (k) { return '<option value="' + k + '"' + (k === p.to ? ' selected' : '') + '>' + esc(SPF.to[k]) + '</option>'; }).join('') + '</select></label>',
       '<button class="btn" data-close>Huỷ</button><button class="btn pri" id="spfEs">Lưu</button>');
-    $('#spfEs', m).onclick = function () { this.disabled = true; api('spf_save', { id: p.id, text: $('#spfEt', m).value, cmt: $('#spfEc', m).value, reply: $('#spfEr', m).value, grp: $('#spfEg', m).value, imgh: $('#spfEi', m).value, znk: $('#spfEz', m).value, zmsg: $('#spfEm', m).value, to: $('#spfEo', m).value }).then(function (r) { closeModal(); spfPut(r.post); toast('Đã lưu ✓'); spfOpen(true); }, function (e) { toast(e.message, true); }); };
+    $('#spfEs', m).onclick = function () { this.disabled = true; api('spf_save', { id: p.id, text: $('#spfEt', m).value, cmt: $('#spfEc', m).value, reply: $('#spfEr', m).value, grp: $('#spfEg', m).value, imgh: $('#spfEi', m).value, znk: $('#spfEz', m).value, zmsg: $('#spfEm', m).value, to: $('#spfEo', m).value }).then(function (r) { closeModal(); spfPut(r.post); toast('Đã lưu ✓'); var vid = p.id, keep = SPF.posts; spfOpen(true); SPF.view = vid; }, function (e) { toast(e.message, true); }); };
   }
   function spfPut(np) { SPF.posts = (SPF.posts || []).map(function (q) { return q.id === np.id ? np : q; }); }
   document.addEventListener('click', function (e) {
     var t = e.target.closest('[data-spf]'); if (!t) return;
     var v = t.getAttribute('data-spf').split('|'), a = v[0], id = Number(v[1]), p = (SPF.posts || []).filter(function (q) { return q.id === id; })[0];
     if (a === 'admin' || a === 'sale') return spfOpen(a === 'admin');
+    if (a === 'view') { SPF.yb = (t.closest('.sheet-b') || {}).scrollTop || 0; SPF.view = id; SPF.ch = 'fb'; return SPF.draw(); }
+    if (a === 'back') { SPF.view = 0; SPF.y = SPF.yb || 0; return SPF.draw(); }
+    if (a === 'ch') { SPF.ch = v[2]; SPF.keepY = 1; SPF.draw(); SPF.keepY = 0; return; }
+    if (a === 'f') { SPF.f[v[2]] = v[3] || ''; return SPF.draw(); }
+    if (a === 'img' && p) return spfImgSave(p);
+    if (a === 'pick' && p) return spfImgPick(p);
+    if (a === 'pickx') { var pb = $('#spkPick'); if (pb) pb.innerHTML = ''; return; }
+    if (a === 'okall') { if (!confirm('Cho sale dùng tất cả bài nháp đã có ảnh?')) return; t.disabled = true; return api('spf_okall', {}).then(function (r) { toast('Sale đã thấy ' + r.n + ' bài ✓'); spfOpen(true); }, function (er) { t.disabled = false; toast(er.message, true); }); }
+    if (a === 'mixsave') { t.disabled = true; return api('spf_mix', { cats: spfMixVals(), show: Number(($('#spfShow') || {}).value) || 10 }).then(function (r) { SPF.cats = r.cats; SPF.show = r.show || SPF.show; SPF.draw(); toast('Đã lưu ✓'); }, function (er) { t.disabled = false; toast(er.message, true); }); }
+    if (a === 'fill') { var nn = v[2] === 'go' ? Number(($('#spfN') || {}).value) || 0 : 0; if (nn && !confirm('Nhờ trợ lý viết sẵn ' + nn + ' bài? Mất khoảng ' + Math.ceil(nn / 2) * 10 + ' phút, chi phí AI khoảng ' + money(nn * 9000) + '.')) return; t.disabled = true;
+      return api('spf_fill', { n: nn, cats: spfMixVals(), show: Number(($('#spfShow') || {}).value) || 10 }).then(function (r) { SPF.q = r.q; SPF.draw(); toast(r.q ? '✨ Đã xếp ' + r.q + ' bài, trợ lý bắt đầu viết trong ít phút. Có tin Telegram khi xong.' : 'Đã dừng viết'); }, function (er) { t.disabled = false; toast(er.message, true); }); }
     if (a === 'go' && p) { var kk = v[2], url = v[3] === 'fb' ? 'https://www.facebook.com/' : v[3] === 'grp' ? 'https://www.facebook.com/groups/feed/' : 'https://chat.zalo.me/'; var tx = kk === 'grp' ? spfGrp(p) : kk === 'znk' ? spfZnk(p) : p.text;
       copy(tx).then(function () { toast('📋 Đã copy, dán vào ô đăng bài nhé'); }); window.open(url, '_blank', 'noopener'); spfMark(id, SPF_KEY[kk]);
       api('spf_used', { id: id }).catch(function () { }); addLog({ loc: 1, time: Date.now(), by: S.user.name, what: 'Đăng bài FB', ref: '-', result: String(id) }); return; }
     if (a === 'qr' && p) { var mkQr = function () { dyShare(spfQr(), 'Ma-QR-qua-tang-' + slugName(S.user.name) + '.png'); spfMark(id, 'g2'); }; if (window.qrcode) mkQr(); else spfQrLib(mkQr); return; }
     if (a === 'mark' && p) { spfMark(id, v[2]); return; }
     if (a === 'cp' && p) { var txt = v[2] === 'text' ? p.text : v[2] === 'cmt' ? p.cmt : v[2] === 'zmsg' ? spfZmsg(p) : v[2] === 'grp' ? spfGrp(p) : v[2] === 'gcmt' ? spfGcmt(p) : v[2] === 'znk' ? spfZnk(p) : spfReply(p); copy(txt).then(function () { toast('📋 Đã copy ' + ({ text: 'bài', cmt: 'bình luận', reply: 'câu có link', grp: 'bài hội nhóm', gcmt: 'bình luận có link', znk: 'nhật ký Zalo', zmsg: 'tin Zalo, dán gửi khách (sửa “anh/chị” cho đúng)' }[v[2]] || 'xong')); }); if (/^(text|grp|znk)$/.test(v[2])) { api('spf_used', { id: id }).catch(function () { }); addLog({ loc: 1, time: Date.now(), by: S.user.name, what: 'Đăng bài FB', ref: '-', result: String(id) }); } spfMark(id, SPF_KEY[v[2]]); return; }
-    if (a === 'write') { t.disabled = true; t.textContent = '⏳ AI đang viết (khoảng 1 phút)…'; return api('spf_write', { g: $('#spfG').value, f: $('#spfF').value, to: $('#spfTo').value, hint: $('#spfH').value.trim() }).then(function (r) { SPF.posts = [r.post].concat(SPF.posts || []); SPF.draw(); toast('Đã viết xong ✓ Đọc lại, sửa nếu cần rồi bấm ✅ Cho sale dùng.'); }, function (er) { t.disabled = false; t.textContent = '✨ Viết 1 bài'; toast(er.message, true); }); }
+    if (a === 'write') { t.disabled = true; t.textContent = '⏳ AI đang viết (khoảng 1 phút)…'; return api('spf_write', { g: $('#spfG').value, c: $('#spfF').value, prod: $('#spfP').value, to: $('#spfTo').value, hint: $('#spfH').value.trim() }).then(function (r) { SPF.posts = [r.post].concat(SPF.posts || []); SPF.view = r.post.id; SPF.draw(); toast('Đã viết xong ✓ Đọc lại, sửa nếu cần rồi bấm ✅ Cho sale dùng.'); }, function (er) { t.disabled = false; t.textContent = '✨ Viết 1 bài'; toast(er.message, true); }); }
     if (!p) return;
     if (a === 'edit') { closeModal(); return spfEdit(p); }
     if (a === 'st') { t.disabled = true; return api('spf_save', { id: id, status: v[2] }).then(function (r) { spfPut(r.post); SPF.draw(); toast(v[2] === 'ok' ? 'Sale đã thấy bài này ✓' : 'Đã ẩn bài'); }, function (er) { t.disabled = false; toast(er.message, true); }); }
