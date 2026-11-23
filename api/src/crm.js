@@ -2,6 +2,7 @@
 import { normPhone, nrm, addrJoin, esc, fmt, startOfDay, TZ_MS, fmtDate, dateOrBlank, slugName, codePre, replaceRows, isVoid, randHex, all, first, run, insertMany, allIn, kvGet, kvSet, kvDel, kvJson, DAY, CRM_URL, ROLE_URL, refCode, crmSeen, adjOut, adjTot } from './lib.js';
 import { crmSnh } from './sinhnhat.js'; // 🎂 15/11/2026
 import { crmPartner, partnerSchema, partnerCfg, orderAttrib, refClaim, staffOf, staffHit } from './partner.js';
+import { crmDaily, dlMap, dlOrderCheck, dlOrderSave, DL_SELLER } from './daily.js'; // 🏪 kênh đại lý (23/11/2026)
 import { chatSchema } from './chat.js';
 import { zbotSchema, crmZbot } from './zbot.js';
 import { zsaleSchema, crmZsale } from './zsale.js'; // 👀 giám sát Zalo của sale
@@ -619,7 +620,7 @@ async function loadSmall(x, u, R, mode, adV) {
     occ: saleDays(fmtDate(Date.now() - 864e5, 'yyyyMMdd'), 5), // 🎉 dịp chúc khách hôm qua → 3 ngày tới (zday.js), CRM tự lọc theo ngày
     contacts: ct.reverse().map(contactOut), targets: tg.map(t => ({ month: t.month, name: t.name, amount: t.amount || 0, selfN: t.self_n || 0, by: t.by_name || '', at: t.at })),
     cycles: cy.filter(r => r.name).map(r => [r.name, r.variant || '', Number(r.days) || 0, r.basis || '']), templates: tp.filter(r => r.text).map(r => [r.when_txt || '', r.purpose || '', r.text]),
-    rules: { backCost: Number(dash.backCost) || 0, ai: !!x.env.ANTHROPIC_API_KEY && u.role !== 'Marketing', vipOrders: R.vipOrders, vipSpent: R.vipSpent, atRisk: R.atRisk, coolDays: R.coolDays, shipDays: R.shipDays, shipFar: R.shipFar, famMin: R.famMin, poolDays: R.poolDays, poolNoCall: R.poolNoCall, poolIdle: R.poolIdle, poolMax: R.poolMax, selfOn: R.selfOn, poolOn: R.poolOn, otypes: OTYPES, commission, payplan, staffGuard, dash: u.level >= 3 || u.role === 'Marketing' || u.mkv || u.role === 'Kế toán' ? dash : null, ktCfg: await ktP, mktDoc, cost, opex, fin, ktLink: ktLink && ktLink.link ? ktLink : null, statuses: ORDER_STATUS, results: CARE_RESULTS, leadStatus: LEAD_STATUS, assignMode: mode, bot: BOT_USERNAME, ca, lines: LINES.map(l => l[0]).concat(['Khác']) }
+    rules: { backCost: Number(dash.backCost) || 0, ai: !!x.env.ANTHROPIC_API_KEY && u.role !== 'Marketing', vipOrders: R.vipOrders, vipSpent: R.vipSpent, atRisk: R.atRisk, coolDays: R.coolDays, shipDays: R.shipDays, shipFar: R.shipFar, famMin: R.famMin, poolDays: R.poolDays, poolNoCall: R.poolNoCall, poolIdle: R.poolIdle, poolMax: R.poolMax, selfOn: R.selfOn, poolOn: R.poolOn, otypes: OTYPES, commission, payplan, staffGuard, dash: u.level >= 3 || u.role === 'Marketing' || u.mkv || u.role === 'Kế toán' ? dash : null, ktCfg: await ktP, mktDoc, cost, opex, fin, ktLink: ktLink && ktLink.link ? ktLink : null, statuses: ORDER_STATUS, results: CARE_RESULTS, leadStatus: LEAD_STATUS, assignMode: mode, bot: BOT_USERNAME, ca, dl: await dlMap(x).catch(e => { console.error('dlMap', e.message); return {}; }), lines: LINES.map(l => l[0]).concat(['Khác']) }
   };
 }
 
@@ -1296,7 +1297,7 @@ async function crmSession(x, token) {
  * Quản trị bấm 👁 Xem như cạnh tên 1 nhân sự → mở tab riêng đúng giao diện người đó (đúng vai trò, đúng dữ liệu người đó thấy) mà không cần xin mã email.
  * Phiên xem thử: 8 tiếng, ghi ở sessions.ua = "👁 <tên Quản trị>", CHỈ XEM: mọi thao tác lưu / gửi bị chặn ở crmApi (vaOk), để không ghi nhầm dưới tên nhân sự. */
 const VA_UA = /^👁\s*/, VA_HOURS = 8;
-const VA_READ = { ads_duty_get: 1, load: 1, zs_mine: 1, race: 1, sales_all: 1, cust_orders: 1, check_phone: 1, wb_order: 1, mktv: 1, mkt: 1, san: 1, ga: 1, camp_view: 1, aiteam: 1, guide_me: 1, guide_ask_list: 1, vh_today: 1, vh_admin: 1, tb_list: 1, bt_feed: 1, gv_list: 1, pm_view: 1, merge_suggest: 1, dups: 1, kho_load: 1, kho_find: 1, kt_kho: 1, kt_bl: 1, kt_shp: 1, kt_chi: 1, kt_fetch: 1, offers: 1, link_list: 1, fb_list: 1, fb_img: 1, ai_usage: 1, mcp_list: 1, sess_list: 1, voucher_list: 1, partner_list: 1, partner_orders: 1, ref_tiers: 1, ref_find: 1, spf_list: 1, spf_imgs: 1, san_list: 1, san_people: 1, mkt_list: 1, mkt_kpi: 1, snh: 1, ht: 1, hr: 1, kt_luong: 1, kt_kpi: 1, kt_ncc: 1, own: 1, sale_kpi: 1 };
+const VA_READ = { ads_duty_get: 1, load: 1, zs_mine: 1, race: 1, sales_all: 1, cust_orders: 1, check_phone: 1, wb_order: 1, mktv: 1, mkt: 1, san: 1, ga: 1, camp_view: 1, aiteam: 1, guide_me: 1, guide_ask_list: 1, vh_today: 1, vh_admin: 1, tb_list: 1, bt_feed: 1, gv_list: 1, pm_view: 1, merge_suggest: 1, dups: 1, kho_load: 1, kho_find: 1, kt_kho: 1, kt_bl: 1, kt_shp: 1, kt_chi: 1, kt_fetch: 1, offers: 1, link_list: 1, fb_list: 1, fb_img: 1, ai_usage: 1, mcp_list: 1, sess_list: 1, voucher_list: 1, partner_list: 1, partner_orders: 1, dl_list: 1, ref_tiers: 1, ref_find: 1, spf_list: 1, spf_imgs: 1, san_list: 1, san_people: 1, mkt_list: 1, mkt_kpi: 1, snh: 1, ht: 1, hr: 1, kt_luong: 1, kt_kpi: 1, kt_ncc: 1, own: 1, sale_kpi: 1 };
 const VA_OP = { list: 1, me: 1, st_list: 1, cv: 1, ct_doc: 1, st_doc_get: 1, proof_get: 1 }; // hr / ht / kt_luong / snh… dùng chung 1 lệnh: chỉ cho các "op" đọc
 const VA_KEYS = { type: 1, action: 1, token: 1, part: 1, since: 1, lr: 1, adV: 1, o: 1, l: 1, from: 1, to: 1, pf: 1, pt: 1, sfb: 1, fresh: 1, month: 1, q: 1, phone: 1, id: 1, all: 1, op: 1, act: 1, combos: 1, email: 1 };
 function vaOk(a, d) {
@@ -1818,6 +1819,8 @@ async function crmOrderCreate(x, u, d) {
   items = items.concat(cleanItems(d.gifts).map(g => Object.assign(g, { gift: true, price: 0, subtotal: 0 })));
   const now = Date.now(), cl = closeTime(d.closedAt, u, now); if (cl.error) return { ok: false, error: cl.error };
   const t = cl.t; // 🕐 giờ chốt
+  const dlx = await dlOrderCheck(x, u, phone, cleanItems(d.items), sub, ship); if (dlx && dlx.error) return { ok: false, error: dlx.error }; // 🏪 khách là đại lý: kiểm giá chiết khấu theo giá niêm yết gốc (items đã chia lại theo tổng tiền), đơn tính cho kênh đại lý
+  if (dlx) c.note = dlx.note + (c.note ? ' · ' + c.note : '');
   if (!d.force) { // bấm Lưu 2 lần (lần đầu mạng chập chờn, đơn đã lưu nhưng máy không nhận được trả lời) → không tạo đơn trùng
     const dup = await first(x.db, "SELECT id, time FROM orders WHERE phone = ? AND total = ? AND coalesce(entered_at, time) > ? AND status NOT IN ('Huỷ', 'Hoàn', 'Đang chuyển hoàn') ORDER BY time DESC LIMIT 1", phone, sub + ship, now - 60 * 60e3);
     if (dup) return { ok: false, dupOf: dup.id, error: 'Khách này vừa có đơn ' + dup.id + ' cùng số tiền ' + fmt(sub + ship) + ' lúc ' + fmtDate(Number(dup.time), 'HH:mm') + '. Có thể lần trước đã lưu rồi.' };
@@ -1831,13 +1834,14 @@ async function crmOrderCreate(x, u, d) {
   }
   if (!id) id = await nextCode(x, u, now, vtp);
   const sug = await otypeSuggest(x, phone, t); // gợi ý tính TRƯỚC khi lưu (lưu xong khách đã thành "đã mua"); theo giờ chốt
-  let otype = OTYPES.indexOf(d.otype) >= 0 ? d.otype : sug.t, oflag = u.level >= 2 ? '' : otypeFlag(otype, sug);
-  const cg = await closeGuard(x, u, phone, t, now, otype, sug); if (cg) { otype = cg.otype; oflag = cg.oflag; }
+  let otype = OTYPES.indexOf(d.otype) >= 0 ? d.otype : sug.t, oflag = u.level >= 2 || dlx ? '' : otypeFlag(otype, sug);
+  const cg = dlx ? null : await closeGuard(x, u, phone, t, now, otype, sug); if (cg) { otype = cg.otype; oflag = cg.oflag; }
   const src = ld && ld.channel ? 'Tiềm năng – ' + ld.channel : 'Nhập tay – ' + (d.source || 'Khác');
   await saveOrder(x, { id, customer: { name: String(c.name).trim(), phone: raw, email: c.email || '', province: c.province || '', district: c.ward || '', address: c.address || '', note: c.note || '' },
     items, subtotal: sub, shipping: ship, total: sub + ship, payment: d.payment === 'bank' ? 'bank' : 'cod', source: src, first_source: src, marketing_consent: !!d.consent },
-    { by: u.name, status: ORDER_STATUS.indexOf(d.status) >= 0 ? d.status : 'Đã xác nhận', ca: otypeCa(otype), otype, oflag, time: t });
-  await run(x.db, "UPDATE customers SET owner = ? WHERE phone = ? AND (owner = '' OR owner IS NULL)", u.name, phone);
+    { by: dlx ? DL_SELLER : u.name, status: ORDER_STATUS.indexOf(d.status) >= 0 ? d.status : 'Đã xác nhận', ca: otypeCa(otype), otype, oflag, time: t }); // đơn đại lý: người bán = Kênh đại lý → không vào doanh số / hoa hồng sale
+  if (dlx) await dlOrderSave(x, id, phone, dlx);
+  await run(x.db, "UPDATE customers SET owner = ? WHERE phone = ? AND (owner = '' OR owner IS NULL OR owner = ?)", u.name, phone, DL_SELLER); // khách đại lý mới: người lên đơn chăm, không để "Kênh đại lý" giữ khách
   const ao = String(c.addrOld || '').trim().slice(0, 300); // địa chỉ cũ (Misa) – lưu vào đơn + hồ sơ khách để lần sau tự điền
   if (d.carrier) await run(x.db, 'UPDATE orders SET carrier = ? WHERE id = ? AND phone = ?', String(d.carrier).slice(0, 40), id, phone); // đơn vị vận chuyển chọn lúc lên đơn
   if (ao) { await run(x.db, 'UPDATE orders SET addr_old = ? WHERE id = ? AND phone = ?', ao, id, phone); await run(x.db, 'UPDATE customers SET addr_old = ? WHERE phone = ?', ao, phone); }
@@ -1852,7 +1856,7 @@ async function crmOrderCreate(x, u, d) {
   // 🎁 khách hỏi do khách khác giới thiệu → đơn đầu tiên ghi người giới thiệu: tab Hôm nay nhắc "Cảm ơn khách giới thiệu" (api/src/partner.js)
   const rl = ld && ld.ref_phone ? ld : await first(x.db, "SELECT ref_phone FROM leads WHERE phone = ? AND coalesce(ref_phone, '') != '' ORDER BY rid DESC LIMIT 1", phone);
   if (rl && rl.ref_phone) { try { await run(x.db, "UPDATE orders SET ref_phone = ? WHERE id = ? AND coalesce(ref_phone, '') = '' AND NOT EXISTS (SELECT 1 FROM orders o2 WHERE o2.phone = ? AND coalesce(o2.ref_phone, '') != '')", rl.ref_phone, id, phone); } catch (e) { } }
-  return { ok: true, id, otype, oflag, time: t };
+  return { ok: true, id, otype, oflag, time: t, dl: dlx ? dlx.tierName + ' −' + dlx.pct + '%' : '' };
 }
 
 /* ================================================================ khách: chăm sóc, sửa thông tin */
@@ -2833,6 +2837,7 @@ export async function crmApi(x, d, sync, mgr) {
   if (/^ins_/.test(a)) return crmIns(x, u, d, crmLog); // 🎯 Insight & nội dung: ngân hàng insight chung + 🎬 kịch bản video (insight.js)
   if (/^link_/.test(a)) return crmLinks(x, u, d, crmLog); // 📍 Link & mã QR (Marketing, Quản lý, Quản trị)
   if (/^voucher_/.test(a)) return crmVoucher(x, u, d, crmLog); // 🎟 Mã ưu đãi (Quản lý trở lên)
+  if (/^dl_/.test(a)) return crmDaily(x, u, d, crmLog, (await crmUsers(x)).map(z => z.name)); // 🏪 đại lý: danh sách, bậc, mức chiết khấu (daily.js)
   if (/^ref_/.test(a) || /^partner_/.test(a)) { // 🎁 mã giới thiệu / quà cảm ơn / mốc thưởng (sale làm cho khách mình) · 🤝 CTV (Quản lý trở lên)
     if (a === 'ref_code' || a === 'ref_tier_done') { const g = await guardPhone(x, u, d.phone); if (g) return { ok: false, error: g }; }
     if (a === 'ref_gift' || a === 'ref_told') { const o = await first(x.db, 'SELECT ref_phone FROM orders WHERE id = ? ORDER BY rid LIMIT 1', String(d.id || '')); const g = o && o.ref_phone ? await guardPhone(x, u, o.ref_phone) : ''; if (g) return { ok: false, error: g }; }

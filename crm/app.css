@@ -4084,3 +4084,7 @@ table.cmp-sum.ev3 td small { white-space: nowrap; }
 .spkb-myn { display: flex; gap: 12px; flex-wrap: wrap; font-size: 13.5px; }
 .spkb-mytip { color: #5c4a14; background: var(--gold-light); border-radius: 8px; padding: 5px 8px; margin: 4px 0 6px !important; }
 .spkb-tabs.spkb-top { grid-template-columns: 1fr 1fr; }
+/* 🏪 đại lý (23/11/2026) */
+.dly-tag{display:inline-block;font-size:12px;font-weight:600;color:#1f6b3a;background:#e6f4ea;border-radius:999px;padding:2px 8px;white-space:nowrap}
+.dly-warn{color:#b3261e;background:#fdecea;border-radius:8px;padding:6px 8px;margin:6px 0 0}
+.dly-note{margin:0 0 12px}

@@ -739,6 +739,16 @@ Code `api/src/mktg.js`. Dùng bot ✅ Việc tuần (giaoviec.js, đã có webho
 - `mkSnapBuild` (cron.js, phút 20–29 mỗi giờ 7h–22h) → kv `mk_snap`: 14 ngày (chi Facebook, chi mọi kênh, tin nhắn / lead Meta, SĐT thật từ `ads_rows`, giá 1 SĐT thật, giá 1 tin), chiến dịch 7 ngày (`mkCampReal`), lệnh chờ 0h, mức tốt (`dash_cfg.kpi`). Không tên / SĐT khách. Lúc trả lời KHÔNG đọc D1 (chỉ kv).
 - Thử 18/11: `test-so.mjs` (node:sqlite, Telegram + AI giả) 9/9 đúng; `scripts/test-giaoviec.mjs` 81 đúng / 0 sai.
 
+## 6k. 🏪 Kênh đại lý – đợt 1 (23/11/2026, api `2026-11-23g`, anh Sơn duyệt 3 bậc 30 / 35 / 40%)
+
+- **Máy chủ `api/src/daily.js`** (không đổi bảng, không đổi `SCHEMA_V`): kv `dl_list` {sđt: {name, area, by (sale giới thiệu), fix (0 = bậc tự tính, 1–3 = giữ cố định), note, at}}, kv `dl_cfg` {tiers[3]{name, pct, min}, first (đơn đầu tối thiểu, giá lẻ), top3 (số tháng liền đủ mức bậc 3), bonus (% thưởng sale), bonusMonths}, kv `dl_ord` {mã đơn: {ph, l = tiền hàng giá lẻ, p = %}}. Mặc định: 30% (đơn đầu ≥ 5tr) · 35% (tháng trước ≥ 15tr) · 40% (≥ 50tr, 3 tháng liền), thưởng sale 3% tiền nhập 3 tháng đầu.
+- **Bậc** = `tierOf`: theo tiền hàng **giá lẻ** các tháng trước (đã trừ huỷ / hoàn), không theo tiền trả.
+- **Đơn đại lý**: `crmOrderCreate` gọi `dlOrderCheck` (giá niêm yết gốc `cleanItems(d.items)`, vì `applyTotal` đã chia lại giá theo tổng tiền). Số điện thoại có trong `dl_list` → `seller = DL_SELLER` ("Kênh đại lý") nên đơn tự đứng ngoài doanh số / hoa hồng / thi đua / mục tiêu từng sale; không cờ loại đơn, không `closeGuard`; ghi chú "🏪 Đơn đại lý …". Nhân viên (level 1) bị chặn khi thu thấp hơn giá đại lý hoặc đơn đầu dưới mức; Quản lý trở lên được. `customers.owner` = người lên đơn (không để "Kênh đại lý" giữ khách). Đơn vẫn ghi vào file lên đơn của sale; đồng bộ file không đổi `seller` đã có.
+- **Lệnh**: `dl_list` (Quản lý +, có trong `VA_READ`), `dl_save` / `dl_del` (Quản lý +, chặn số của nhân sự qua `staffHit`, bấm lại để vẫn thêm), `dl_cfg` (Quản trị). `load` trả `rules.dl` = `dlMap` (bậc + % từng đại lý) cho mọi nhân sự.
+- **CRM**: Cài đặt → 🌐 Website & khuyến mãi → 🏪 Đại lý (`dlyBox`, `openDlys`): thẻ từng đại lý (bậc, tiền nhập tháng này / trước, nhắc giữ bậc hoặc còn bao nhiêu để lên bậc, ⚠️ 30 ngày chưa nhập), 🙋 thưởng sale giới thiệu tháng này / trước, ⚙️ mức chiết khấu, 📄 hợp đồng nguyên tắc phân phối (`dlyContract`, in từ trình duyệt, sửa chữ được, bản mẫu). Form lên đơn: `dlyOf(sđt)` → khung `#noDly`, ô tiền tự điền giá lẻ − %, ẩn loại đơn, chọn sẵn chuyển khoản. Hồ sơ khách có khung 🏪.
+- **Chưa làm (đợt 2–3)**: trang /dai-ly/ đăng ký, mục 🏪 ở Tổng quan, tự cộng thưởng sale vào bảng lương, đại lý tự đặt hàng. Chưa kiểm tra kỹ đơn đại lý rơi vào mảng nào ở các biểu đồ theo mảng của Tổng quan (nhiều khả năng cùng mảng đơn nhập tay của văn phòng). Đơn của số đại lý nhập từ file Google Sheet của sale (không qua form CRM) vẫn tính cho sale đó.
+- Hướng dẫn nhân sự: `guide/dai-ly.md`.
+
 ## 7. Tên miền, DNS, chuyển hướng
 
 - Nameserver: `liberty.ns.cloudflare.com`, `randy.ns.cloudflare.com`. **Mọi thay đổi DNS làm trên Cloudflare**, không làm ở Tenten.
