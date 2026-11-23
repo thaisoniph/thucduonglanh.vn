@@ -111,7 +111,8 @@ async function spWrite(x, u, d) {
   const img = libGet(lib, bodyAll) || (prod && prods[prod].img) || ''; // 🖼 ảnh thật trong kho web; bài sản phẩm không có ảnh khớp → ảnh sản phẩm
   if (text.length < 120 || !cmt) return { ok: false, error: 'AI chưa viết đủ bài + bình luận ghim, bấm viết lại nhé.' };
   const ins = insParse(head, p.bank, p.g); if (p.angle) ins.a = p.angle; if (p.big) ins.b = p.big.t;
-  const r = await run(x.db, 'INSERT INTO sp_posts (at, by_name, f, ins, text, cmt, reply, to_k, status, grp, znk, zmsg, imgh, img, cat, prod) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', Date.now(), u.name, f, JSON.stringify(ins), text.slice(0, 5000), cmt.slice(0, 600), reply.slice(0, 400), to, 'draft', grp.slice(0, 4000), znk.slice(0, 1500), zmsg.slice(0, 1200), imgh.slice(0, 300), img.slice(0, 300), cat ? cat.k : f, prod);
+  const r = await run(x.db, 'INSERT INTO sp_posts (at, by_name, f, ins, text, cmt, reply, to_k, status, grp, znk, zmsg, imgh, img, cat, prod, path) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', Date.now(), u.name, f, JSON.stringify(ins), text.slice(0, 5000), cmt.slice(0, 600), reply.slice(0, 400), to, 'draft', grp.slice(0, 4000), znk.slice(0, 1500), zmsg.slice(0, 1200), imgh.slice(0, 300), img.slice(0, 300), cat ? cat.k : f, prod,
+    f === 'BOFU' && prod && to === 'web' ? String(prods[prod].url || '').replace(/^https?:\/\/[^/]+/, '') : ''); // 🟠 bài chốt đơn: link thẳng tới trang sản phẩm thay vì trang chủ
   const id = r && r.meta && r.meta.last_row_id;
   await insLog(x, 'fbcn', { g: ins.g, gn: ins.gn, f, t: ins.t, ref: 'sp' + id, a: ins.a, b: ins.b });
   return { ok: true, post: shape(await first(x.db, 'SELECT * FROM sp_posts WHERE id = ?', id), true) };
