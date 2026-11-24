@@ -26,7 +26,7 @@ export const HINT = { insight: 'tim-insights-ta-3c', big: 'vinalink-3c-content, 
 export function guessSlot(name, desc) {
   const n = nrm(name || '').replace(/[-_]+/g, ' '), t = n + ' ' + nrm(desc || '');
   const R = [['insight', /insight|tension|chan dung|ta 3c/], ['offer', /offer|hormozi|value stack|grand slam/], ['video', /video|kich ban|tiktok|reels|quay/],
-    ['score', /cham|danh gia bai|kiem duyet|he thong content/], ['big', /big idea|ke ?hoach ?content|kehoachcontent|lich noi dung|3c content/], ['write', /viet bai|ban hang|copywriting|caption|quang cao|bai dang/]];
+    ['score', /cham|danh gia bai|kiem duyet|kiem tra content|he thong content/], ['big', /big idea|ke ?hoach ?content|kehoachcontent|lich noi dung|3c content/], ['write', /viet bai|ban hang|copywriting|caption|quang cao|bai dang/]];
   for (const [k, re] of R) if (re.test(n)) return k; // tên skill rõ nhất
   for (const [k, re] of R) if (re.test(t)) return k;
   return '';
