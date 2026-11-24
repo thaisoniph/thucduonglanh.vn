@@ -9,6 +9,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import { aiFetch } from './airelay.js';
 import { run, all, first, kvGet, kvSet, kvJson, fmtDate, DAY } from './lib.js';
 import { vqPick, vqBlock } from './voc.js';
+import { skillOf, methodBlock, skUse } from './inskill.js';
 import { kb, TRUTH_RULES } from './chat.js';
 import { insBank, tenOf, FUN, FORMULA, LAW, VIET, insRisk, insStyle, funOf } from './insight.js';
 
@@ -76,6 +77,7 @@ async function scoreWrite(x, u, d) {
   const bank = await insBank(x), on = bank.filter(g => g.on && g.tensions.length), want = on.find(g => g.id === d.g);
   const f = funOf(d.f), know = await kb();
   let vq = []; try { vq = await vqPick(x, { n: 12 }); } catch (e) { } // 🗣 kho lời khách (voc.js)
+  let ssk = null; try { ssk = await skillOf(x, 'score'); await skUse(x, 'score', ssk); } catch (e) { } // 🧩 skill ô 🧪 Chấm bài (24/11/2026)
   // bài đã có kết quả thật gần nhất → AI chấm sát dần với khách thật (vòng học)
   const past = await all(x.db, "SELECT id, ch, kind, title, score, f, gn, r_spend, r_leads, r_eng, r_orders, r_rev, r_note FROM cs_scores WHERE r_at > 0 ORDER BY r_at DESC LIMIT 8");
   const bankTxt = on.map(g => '- [' + g.id + '] ' + g.name + (g.who ? ' (' + g.who + ')' : '') + ': ' + g.tensions.slice(0, 5).map(t => tenOf(t).t).join(' | ')).join('\n');
@@ -97,6 +99,7 @@ async function scoreWrite(x, u, d) {
     '',
     '# LUẬT TẦNG PHỄU', Object.values(FUN).map(v => v.name + ': ' + v.rule).join('\n'),
     'Công thức hợp từng tầng: ' + Object.entries(FORMULA).map(([k, v]) => k + ': ' + v).join(' · '),
+    ssk ? '\n# ' + methodBlock(ssk, '', 20000) + '\nDùng tiêu chí, cách nhìn của skill trên khi viết VÌ SAO / SỬA THẾ NÀO và bản viết lại; thang 9 tiêu chí /100 và ĐẦU RA JSON bên dưới giữ nguyên.' : '',
     '', '# LUẬT', LAW, VIET,
     past.length ? '\n# BÀI ĐÃ CHẤM CÓ KẾT QUẢ THẬT (để chỉnh cách chấm cho sát khách thật: bài điểm cao mà kết quả kém thì xem mình đang chấm sai ở đâu)\n' + past.map(r => '- [' + (CH[r.ch] || r.ch) + ', ' + (r.f || '?') + '] "' + r.title + '": AI chấm ' + r.score + ' → thật: ' + resLine(r)).join('\n') : '',
     '',

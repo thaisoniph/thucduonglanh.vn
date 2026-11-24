@@ -14,7 +14,7 @@ import { run, all, first, kvGet, kvJson, kvSet, kvDel, nrm, fmtDate, DAY } from 
 import { kb, safe, TRUTH_RULES } from './chat.js';
 import { prodMap } from './zbot.js';
 import { ltvOf, commValOf } from './mktv.js';
-import { crmInSkill, skillsInfo, offerDrafts, skillOf, methodBlock } from './inskill.js';
+import { crmInSkill, skillsInfo, offerDrafts, skillOf, methodBlock, skUse, USED as SK_USED, HINT as SK_HINT } from './inskill.js';
 import { lrnPosts, lrnBlock } from './learn.js';
 import { eventsAhead } from './zday.js';
 import { crmScore } from './score.js';
@@ -244,7 +244,7 @@ async function logGet(x) { const l = await kvJson(x.db, 'ins_log', []); return A
 export async function insLog(x, ch, rec) {
   try {
     const now = Date.now(), l = (await logGet(x)).filter(r => now - r.at < 90 * DAY && !(rec.ref && r.ch === ch && r.ref === rec.ref)); // viết lại cùng bài → thay dòng cũ
-    l.push({ at: now, ch, g: rec.g || '', gn: cut(rec.gn, 80), f: funOf(rec.f), t: cut(rec.t, 300), ref: cut(rec.ref, 60), sp: rec.sp ? spCode(rec.sp) : '', a: cut(rec.a, 200), b: cut(rec.b, 300) });
+    l.push({ at: now, ch, g: rec.g || '', gn: cut(rec.gn, 80), f: funOf(rec.f), t: cut(rec.t, 300), ref: cut(rec.ref, 60), sp: rec.sp ? spCode(rec.sp) : '', a: cut(rec.a, 200), b: cut(rec.b, 300), k: await (async () => { try { const w = await skillOf(x, 'write'); return w ? w.at : 0; } catch (e) { return 0; } })() }); // k = bản skill ✍️ Viết bài đã dùng (0 = cách mặc định) → so trước / sau
     await kvSet(x.db, 'ins_log', JSON.stringify(l.slice(-600)));
   } catch (e) { console.error('insLog', e.message); }
 }
@@ -272,7 +272,8 @@ export async function insPick(x, ch, want, opt) {
   // 📅 dịp sắp tới (8 ngày; bài nhóm Zalo đã có lịch ngày lễ riêng trong zday.js) + 🔥 chuyện đang nóng Marketing ghi (kv ins_trend, hết hạn 2 ngày)
   let ev = [], trend = null; try { ev = ch === 'zalo' ? [] : eventsAhead(fmtDate(now, 'yyyyMMdd'), 8); trend = await kvJson(x.db, 'ins_trend', null); } catch (e) { }
   let voc = []; try { voc = await vqPick(x, { prod, n: 8 }); } catch (e) { } // 🗣 câu khách thật (voc.js)
-  return { bank, g, recent, prod, big, angle, recentA, learn, ev, trend, voc };
+  let wsk = null; try { wsk = opt && opt.noSkill ? null : await skillOf(x, 'write'); if (wsk) await skUse(x, 'write', wsk); } catch (e) { } // 🧩 skill ô ✍️ Viết bài (24/11/2026)
+  return { bank, g, recent, prod, big, angle, recentA, learn, ev, trend, voc, wsk };
 }
 
 /** 🎭 Kho góc kể chuyện (narrative angle, khoá content K131 Buổi 2, 5, 6): cùng 1 sự thật, kể từ cửa khác nhau thành bài khác hẳn. Mỗi bài 1 góc chính (+ 1 kỹ thuật phụ). */
@@ -356,7 +357,8 @@ export function insBlock(p, f, opt) {
     f !== 'TOFU' ? '🏛 THÁP NIỀM TIN (khoá Marketing Plan K218), áp dụng cho bài tạo niềm tin và bài bán: mỗi câu khen sản phẩm phải đi kèm 1 bằng chứng có thật trong TÀI LIỆU, ưu tiên theo thứ tự: pháp lý (số bản tự công bố, chứng nhận nhà máy) → khoa học (phiếu kiểm nghiệm, thành phần có định lượng) → nguồn gốc (vùng nguyên liệu, chỉ dẫn địa lý, nhà máy) → xã hội (số khách, cộng đồng có thật; không bịa) → trải nghiệm / cam kết (dùng thử, đổi trả đúng chính sách) → thương hiệu. Câu khen không có bằng chứng thì bỏ.' + (g && g.proof ? '\nNhóm khách này tin nhất: ' + g.proof + ' → đặt bằng chứng tầng họ tin lên trước (vẫn chỉ dùng bằng chứng có thật trong TÀI LIỆU, thiếu thì dùng tầng kế tiếp, không bịa).' : '') : '',
     F ? 'TẦNG PHỄU: ' + F.name + '. ' + F.rule + '\nCông thức viết hợp tầng này (chọn 1): ' + FORMULA[f] + '.' : 'TẦNG PHỄU: tự chọn 1 tầng hợp với tension và chủ đề:\n' + Object.entries(FUN).map(([k, v]) => '- ' + v.name + ': ' + v.rule + ' Công thức hợp: ' + FORMULA[k] + '.').join('\n'),
     'Đạo đức: nội dung phải GỠ tension, không khoét sâu nỗi sợ bệnh tật, mặc cảm cơ thể, áp lực gia đình để ép mua; không bịa lời khách, số liệu, khuyến mãi; không đóng vai khách tự hỏi tự trả lời.',
-    LAW
+    LAW,
+    p && p.wsk && !opt.light ? '\n' + methodBlock(p.wsk, '', 20000) + '\nSkill trên là CÁCH VIẾT anh Sơn chọn (công thức, giọng, cấu trúc bài): áp dụng cho bài này. Quy trình 4Is, tầng phễu, luật quảng cáo thực phẩm, đạo đức và ĐỊNH DẠNG ĐẦU RA mà trợ lý được giao vẫn bắt buộc; chỗ nào skill khác các luật đó thì theo luật.' : ''
   ].filter(Boolean).join('\n');
 }
 /** Luật quảng cáo thực phẩm (Playbook trà DILVANG + kế hoạch content khoá K133, Nghị định 15/2018): chỉ công dụng đúng hồ sơ công bố */
@@ -498,6 +500,7 @@ async function vdWrite(x, u, d) {
   await schema(x.db);
   const sec = [15, 30, 45, 60, 90, 180, 300].includes(Number(d.sec)) ? Number(d.sec) : 60, long = sec > 90, kind = KIND[d.kind] ? d.kind : 'noi', f = funOf(d.f), hint = cut(d.hint, 1000), genre = GENRE[d.genre] ? d.genre : '';
   const know = await kb(), prods = prodMap(know), pc = prods[cut(d.prod, 80)] ? cut(d.prod, 80) : '', p = await insPick(x, 'video', cut(d.g, 80), { prod: pc }), vsk = await skillOf(x, 'video');
+  await skUse(x, 'video', vsk);
   if (!p.g && !live(p.bank).length) return { ok: false, error: 'Ngân hàng insight chưa có nhóm khách nào đang bật.' };
   const scenes = sec <= 15 ? '3–5' : sec <= 30 ? '5–8' : sec <= 60 ? '8–14' : sec <= 90 ? '12–20' : sec <= 180 ? '18–28' : '26–40';
   const T = { 15: [2, 6, 12], 30: [3, 9, 25], 45: [3, 12, 38], 60: [3, 15, 50], 90: [4, 22, 76], 180: [10, 85, 160], 300: [15, 140, 270] }[sec]; // mốc AIDA theo bảng GCAO (90 giây giữ tỉ lệ)
@@ -607,13 +610,14 @@ async function bigWrite(x, d) {
   if (!x.env.ANTHROPIC_API_KEY) return { ok: false, error: 'Máy chủ chưa có khoá AI.' };
   const g = { name: cut(d.name, 80), who: cut(d.who, 800), want: cut(d.want, 800), block: cut(d.block, 800), note: cut(d.note, 1500), tensions: (Array.isArray(d.tensions) ? d.tensions : []).map(t => tenOf(cut(t, 300)).t).filter(Boolean).slice(0, 20) };
   if (!g.name || !g.tensions.length) return { ok: false, error: 'Ghi tên nhóm và ít nhất 1 tension trước nhé.' };
-  const know = await kb(), old = cut(d.cur, 3000);
+  const know = await kb(), old = cut(d.cur, 3000), bsk = await skillOf(x, 'big'); await skUse(x, 'big', bsk);
   const ask = ['Đề xuất 3 BIG IDEA cho nhóm khách dưới đây của Thực Dưỡng Lành (thực phẩm dinh dưỡng từ hạt, trà thảo mộc, đồ chay; bán qua website, nhóm Zalo, Fanpage).',
     'Big idea = 1 ý lớn chạy 2–4 tuần, giúp mọi kênh nói NHẤT QUÁN với nhóm khách này, là lời giải làm dịu 1 tension sâu (muốn… nhưng…) của họ; xuất phát từ tension của con người, KHÔNG xuất phát từ sản phẩm, sản phẩm chỉ là cầu nối. Big idea là 1 câu ngắn, có hình ảnh, nghe là nhớ, người trong nhóm muốn chia sẻ vì nó nói hộ họ (vd kiểu "Bà vẫn đúng, mẹ vẫn được nghỉ", "Uống lành mà vẫn hợp hội").',
     'Mỗi big idea ra đúng 10 GÓC KỂ, mỗi góc là 1 bài / 1 video cụ thể: ghi tên góc (lấy từ kho góc kể) + 1 câu nội dung cụ thể của bài đó. Ít nhất 7/10 góc không nhắc sản phẩm (bài nhận biết, chỉ nói điều nhóm khách quan tâm); tối đa 3 góc dùng sản phẩm làm cầu nối (bài cân nhắc / mua hàng).',
     'KHO GÓC KỂ:\n' + ANGLES.map(a => '- ' + a).join('\n'),
     '', 'NHÓM KHÁCH: ' + g.name + (g.who ? ' – ' + g.who : ''), g.want ? 'Họ mong: ' + g.want : '', g.block ? 'Rào cản: ' + g.block : '', 'Tension đã biết:\n' + g.tensions.map(t => '- ' + t).join('\n'), g.note ? 'Ghi chú: ' + g.note : '',
     old ? 'BIG IDEA ĐÃ CÓ (đừng lặp, nghĩ hướng khác):\n' + old : '',
+    bsk ? '\n' + methodBlock(bsk, '', 30000) + '\nDùng skill trên để tìm big idea và góc kể; vẫn ra đúng 3 big idea × 10 góc theo ĐỊNH DẠNG ĐẦU RA bên dưới.' : '',
     '', LAW, 'Không doạ bệnh, không hứa công dụng, không khoét sâu mặc cảm. ' + VIET,
     '', 'ĐỊNH DẠNG ĐẦU RA: đúng 3 khối, cách nhau 1 dòng trống, không lời dẫn, không đánh số big idea, không in đậm:',
     '<big idea, 1 câu>\n- <Tên góc>: <nội dung bài cụ thể, 1 câu>\n- … (đủ 10 dòng)'].filter(Boolean).join('\n');
@@ -730,7 +734,7 @@ export async function crmIns(x, u, d, crmLog) {
       trend = await kvJson(x.db, 'ins_trend', null);
     const fpNf = await kvJson(x.db, 'fp_nf_err', null), kwb = await kwBank(x);
     let st = null; try { st = await stInfo(x); } catch (e) { } // 📗 Sổ tay doanh nghiệp (sotay.js)
-    return { ok: true, now, st, bank, kw: kwb, custom, upd, learn, evs, trend, fpNf, sp: SP, skills: await skillsInfo(x), drafts: await offerDrafts(x), log: log.slice(-300), scripts, prods, aiOn: !!x.env.ANTHROPIC_API_KEY, fun: Object.fromEntries(Object.entries(FUN).map(([k, v]) => [k, v.name])) };
+    return { ok: true, now, st, bank, kw: kwb, custom, upd, learn, evs, trend, fpNf, sp: SP, skills: await skillsInfo(x), skUsed: SK_USED, skHint: SK_HINT, drafts: await offerDrafts(x), log: log.slice(-300), scripts, prods, aiOn: !!x.env.ANTHROPIC_API_KEY, fun: Object.fromEntries(Object.entries(FUN).map(([k, v]) => [k, v.name])) };
   }
   if (a === 'ins_save') {
     if (u.level < 2 && u.role !== 'Marketing') return { ok: false, error: 'Chỉ Marketing, Quản lý, Quản trị sửa được ngân hàng insight.' };
@@ -754,7 +758,7 @@ export async function crmIns(x, u, d, crmLog) {
   if (/^ins_yt/.test(a)) return crmYt(x, u, d, crmLog); // ▶️ báo cáo tuần YouTube (yt.js)
   if (/^ins_vq/.test(a)) return crmVoc(x, u, d, crmLog); // 🗣 kho lời khách (voc.js)
   if (/^ins_s(view|core|res|del|tt)$/.test(a)) return crmScore(x, u, d, crmLog); // 🧪 chấm bài trước khi đăng (score.js)
-  if (['ins_skill', 'ins_skilldel', 'ins_odel', 'ins_find', 'ins_offer'].includes(a)) return crmInSkill(x, u, d, crmLog); // 🧩 skill trong CRM (inskill.js)
+  if (['ins_skill', 'ins_skilldel', 'ins_skillview', 'ins_odel', 'ins_find', 'ins_offer'].includes(a)) return crmInSkill(x, u, d, crmLog); // 🧩 skill trong CRM (inskill.js)
   if (a === 'ins_merge') { // 📚 gộp bản mặc định mới vào ngân hàng đã sửa riêng (không xoá gì của anh chị đã sửa)
     if (u.level < 2 && u.role !== 'Marketing') return { ok: false, error: 'Chỉ Marketing, Quản lý, Quản trị sửa được ngân hàng insight.' };
     const m = mergeDefault(await insBank(x));

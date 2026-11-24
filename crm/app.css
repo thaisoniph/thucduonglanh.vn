@@ -2022,7 +2022,9 @@ table.dy-tbl tbody tr:nth-child(even):not(.tot) td.dy-sum { background: var(--pr
 .inx-impg .zb-ck small { display: block; }
 .inx-impg select { width: 100%; }
 .inx-skrow { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 4px 8px; padding: 6px 0; border-top: 1px solid var(--line); }
-.inx-skb { display: flex; gap: 6px; }
+.inx-skb { display: flex; flex-wrap: wrap; gap: 6px; }
+.inx-skn { flex: 1 1 260px; min-width: 0; }
+.inx-skv { white-space: pre-wrap; word-break: break-word; max-height: 60vh; overflow: auto; font-size: 13px; background: var(--bg2, #f6f6f3); padding: 10px; border-radius: 8px; }
 .inx-of summary { cursor: pointer; line-height: 1.5; }
 .inx-dk { color: var(--primary); font-weight: 600; }
 /* 📋 Kế hoạch chủ đề nhóm Zalo + ⏰ giờ đăng riêng từng bài (10/11/2026, viewZbot → zpHtml) */

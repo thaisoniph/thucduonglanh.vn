@@ -9905,7 +9905,7 @@
       h += inTabi('Tài liệu gốc trợ lý tra trước khi trả lời khách và viết bài: thông tin công ty, từ khoá bài web, cách viết theo khoá học. <b>Ít khi phải sửa.</b>', ['Công ty đổi chính sách, có câu hỏi mới: sửa <b>📗 Sổ tay</b>', 'Chưa có từ khoá bài web: bấm <b>🔑 Từ khoá</b> để AI lập 1 lần', '<b>📘 Phương pháp</b>: để nguyên']);
       h += inAcc('sot', '📗 Sổ tay doanh nghiệp', stInfoLine(st), sotHtml(), true) +
         inAcc('kw', '🔑 Từ khoá cho bài web', kwL.length ? kwL.length + ' từ khoá' : 'chưa có từ khoá', inKwHtml(j, ed), false) +
-        inAcc('pp', '📘 Phương pháp trợ lý đang dùng', 'mặc định theo khoá học', inSkillsHtml(j, ed), false);
+        inAcc('pp', '🧩 Skill khoá học', (function () { var n = Object.keys(IN_SLOT).filter(function (k) { return (j.skills || {})[k]; }).length; return n ? n + '/' + Object.keys(IN_SLOT).length + ' ô chạy theo skill' : 'chưa tải skill, đang dùng cách mặc định'; })(), inSkillsHtml(j, ed), false);
     } else {
       h += inTabi('Biết 30 ngày qua trợ lý đã viết bao nhiêu bài, cho nhóm khách nào, để không bỏ sót nhóm khách nào.', ['Mỗi tuần mở xem 1 lần', 'Nhóm nào chưa có bài: bấm tên nhóm để viết video']) + inStatsHtml(j) + inLearnHtml(j.learn, j.fpNf);
     }
@@ -10739,15 +10739,22 @@
     };
   }
   /* 🧩 Công cụ từ khoá học (api/src/inskill.js): 🔍 Tìm insight, 🎁 Viết offer, 📤 tải skill lên thay phương pháp mặc định */
-  var IN_SLOT = { insight: '🔍 Tìm insight', offer: '🎁 Viết offer', video: '🎬 Kịch bản video' };
+  var IN_SLOT = { insight: '🔍 Tìm insight', big: '🌟 Big idea & kế hoạch', write: '✍️ Viết bài', offer: '🎁 Offer & quảng cáo', video: '🎬 Kịch bản video', score: '🧪 Chấm bài' }; // 24/11/2026: 6 ô theo 6 bước hệ thống content
   /** 📘 Phương pháp đang dùng (tab ⚙️ Cài đặt): tải skill thay phương pháp mặc định */
+  /** 🧩 Skill khoá học (24/11/2026): 6 ô theo 6 bước của hệ thống content; ô có skill thì trợ lý của bước đó làm theo skill, ô trống thì dùng cách mặc định */
   function inSkillsHtml(j, ed) {
-    var sk = j.skills || {};
-    return '<div class="box inx-tools"><div class="zb-ph"><b>📘 Phương pháp trợ lý đang dùng</b></div><p class="small muted" style="margin-top:0">Mặc định trợ lý dùng phương pháp tóm từ khoá học. Có file skill mới (.skill, .zip hoặc SKILL.md) thì tải lên để thay.</p>' +
-      Object.keys(IN_SLOT).map(function (k) {
+    var sk = j.skills || {}, U = j.skUsed || {}, H = j.skHint || {}, ks = Object.keys(IN_SLOT), nOn = ks.filter(function (k) { return sk[k]; }).length;
+    return '<div class="box inx-tools"><div class="zb-ph"><b>🧩 Skill khoá học</b> <span class="small muted">' + nOn + '/' + ks.length + ' ô đã có skill</span></div>' +
+      '<p class="small muted" style="margin-top:0">Mỗi ô là 1 bước của hệ thống content. Ô đã tải skill thì trợ lý của bước đó <b>làm theo skill</b>. Ô trống thì trợ lý dùng cách mặc định tóm từ khoá học, vẫn chạy bình thường. File nhận: <b>.skill</b>, <b>.zip</b> hoặc <b>SKILL.md</b>.</p>' +
+      (ed ? '<p><button class="btn sm pri" data-in="skauto|">📦 Tải nhanh: chọn file, CRM tự xếp vào đúng ô</button></p>' : '') +
+      ks.map(function (k) {
         var v = sk[k];
-        return '<div class="inx-skrow"><span class="small"><b>' + IN_SLOT[k] + ':</b> ' + (v ? '🧩 skill <b>' + esc(v.name) + '</b> <span class="muted">(' + (v.files || []).length + ' tệp, tải ' + fDateTime(v.at) + ' · ' + esc(v.by || '') + ')</span>' : '<span class="muted">mặc định</span>') + '</span>' +
-          (ed ? '<span class="inx-skb"><button class="btn sm" data-in="sk|' + k + '">📤 ' + (v ? 'Tải bản mới' : 'Tải skill lên') + '</button>' + (v ? '<button class="btn sm ghost" data-in="skdel|' + k + '">🗑</button>' : '') + '</span>' : '') + '</div>';
+        return '<div class="inx-skrow"><div class="inx-skn"><b>' + IN_SLOT[k] + '</b>' +
+          '<div class="small muted">Dùng ở: ' + esc(U[k] || '') + '</div>' +
+          (v ? '<div class="small">🧩 <b>' + esc(v.name) + '</b> <span class="muted">· tải ' + fDateTime(v.at) + ' · ' + esc(v.by || '') + ' · đã dùng ' + (v.n || 0) + ' lần</span></div>'
+            : '<div class="small muted">Chưa có skill → cách mặc định' + (H[k] ? '. Nên tải: <b>' + esc(H[k]) + '</b>' : '') + '</div>') + '</div>' +
+          '<span class="inx-skb">' + (v ? '<button class="btn sm ghost" data-in="skview|' + k + '">👁 Xem</button>' : '') +
+          (ed ? '<button class="btn sm" data-in="sk|' + k + '">📤 ' + (v ? 'Tải bản mới' : 'Tải skill lên') + '</button>' + (v ? '<button class="btn sm ghost" data-in="skdel|' + k + '" title="Bỏ skill, quay về cách mặc định">🗑 Gỡ</button>' : '') : '') + '</span></div>';
       }).join('') + '<input type="file" id="inSkF" accept=".skill,.zip,.md,.txt" hidden></div>';
   }
   /** 🎁 Offer nháp (tab ✍️ Tạo nội dung) */
@@ -10908,9 +10915,11 @@
     if (a === 'trend' || a === 'trendx') { var tv = a === 'trend' ? ($('#inTrT') || {}).value || '' : ''; if (a === 'trend' && !tv.trim()) return toast('Ghi chuyện trước nhé.', true); t.disabled = true; return api('ins_trend', { t: tv.trim(), st: Number(($('#inTrSt') || {}).value) || 2, goal: ($('#inTrGo') || {}).value || '' }).then(function (r) { IN.d.trend = r.trend; toast(r.trend ? 'Đã lưu, các trợ lý dùng trong ' + (r.trend.st === 3 ? '1 ngày' : '3 ngày') + ' ✓' : 'Đã xoá'); render(); }, function (er) { t.disabled = false; toast(er.message, true); }); }
     if (a === 'find') return inFindForm();
     if (a === 'offer') return inOfferForm();
-    if (a === 'sk') { var fi = $('#inSkF'); fi.value = ''; fi.onchange = function () {
+    if (a === 'skview') { t.disabled = true; return api('ins_skillview', { slot: v[1] }).then(function (r) { t.disabled = false;
+      modal('🧩 ' + esc(IN_SLOT[v[1]] || '') + ': ' + esc(r.name), (r.desc ? '<p class="small muted">' + esc(r.desc) + '</p>' : '') + '<p class="small muted">' + (r.files || []).length + ' tệp: ' + esc((r.files || []).join(', ')) + '</p><pre class="inx-skv">' + esc(r.text) + '</pre>'); }, function (er) { t.disabled = false; toast(er.message, true); }); }
+    if (a === 'sk' || a === 'skauto') { var fi = $('#inSkF'); fi.value = ''; fi.onchange = function () {
       var f = fi.files && fi.files[0]; if (!f) return; if (f.size > 3e6) return toast('File quá lớn (tối đa 3 MB).', true);
-      var rd = new FileReader(); rd.onload = function () { t.disabled = true; toast('⏳ Đang tải skill lên…'); api('ins_skill', { slot: v[1], file: rd.result, fname: f.name }).then(function (r) { IN.d.skills = r.skills; toast('Đã tải skill ' + (r.skills[v[1]] || {}).name + ' ✓'); render(); }, function (er) { t.disabled = false; toast(er.message, true); }); };
+      var rd = new FileReader(); rd.onload = function () { t.disabled = true; toast('⏳ Đang tải skill lên…'); api('ins_skill', { slot: v[1] || 'auto', file: rd.result, fname: f.name }).then(function (r) { IN.d.skills = r.skills; toast('Đã tải skill ' + (r.skills[r.slot] || {}).name + ' vào ô ' + (IN_SLOT[r.slot] || '') + ' ✓'); render(); }, function (er) { t.disabled = false; toast(er.message, true); }); };
       rd.readAsDataURL(f); }; return fi.click(); }
     if (a === 'skdel') { if (!confirm('Bỏ skill này, quay về phương pháp mặc định?')) return; t.disabled = true; return api('ins_skilldel', { slot: v[1] }).then(function (r) { IN.d.skills = r.skills; toast('Đã bỏ skill'); render(); }, function (er) { t.disabled = false; toast(er.message, true); }); }
     var od = (IN.d.drafts || []).filter(function (o) { return o.id === i; })[0];

@@ -221,7 +221,22 @@ Thẻ **👥 Nhóm khách** → bấm tên nhóm → **✏️ Sửa**. Ngoài **
 
 ### Tải skill khoá học lên
 
-Thẻ **📗 Tài liệu nền** → **📘 Phương pháp đang dùng** → **📤 Tải skill lên** ở dòng cần đổi (🔍 Tìm insight, 🎁 Viết offer, 🎬 Kịch bản video) → chọn file **.skill**, **.zip** hoặc **SKILL.md**. Tải bản mới là thay bản cũ; bấm 🗑 để quay về mặc định.
+Có 6 ô, mỗi ô là 1 bước của hệ thống content. Ô đã tải skill thì trợ lý của bước đó **làm theo skill**. Ô trống thì trợ lý dùng cách mặc định, vẫn chạy bình thường.
+
+| Ô | Nên tải skill | Trợ lý làm theo |
+|---|---|---|
+| 🔍 Tìm insight | tim-insights-ta-3c | nút 🔍 Tìm insight |
+| 🌟 Big idea & kế hoạch | vinalink-3c-content hoặc kehoachcontent | nút ✨ AI gợi ý big idea |
+| ✍️ Viết bài | viet-bai-ban-hang | mọi trợ lý viết: bài web, nhóm Zalo, Fanpage, bài FB cá nhân, kho bài |
+| 🎁 Offer & quảng cáo | viet-offer-hormozi | nút 🎁 Viết offer |
+| 🎬 Kịch bản video | sieu-tro-ly-video | nút 🎬 Viết kịch bản |
+| 🧪 Chấm bài | he-thong-content-ai | nút 🧪 Chấm bài |
+
+1. Thẻ **📗 Tài liệu nền** → mở **🧩 Skill khoá học**.
+2. Bấm **📦 Tải nhanh** → chọn file **.skill**, **.zip** hoặc **SKILL.md**. CRM đọc tên skill rồi tự xếp vào đúng ô. Muốn tự chọn ô thì bấm **📤 Tải skill lên** ở dòng ô đó.
+3. Mỗi dòng ghi **đã dùng bao nhiêu lần**. Bấm **👁 Xem** để đọc lại nội dung skill.
+
+Tải bản mới là thay bản cũ. Bấm **🗑 Gỡ** để ô quay về cách mặc định. Luật quảng cáo thực phẩm và quy trình 4Is vẫn luôn bắt buộc, kể cả khi skill nói khác.
 
 ### Tạo khoá YouTube
 

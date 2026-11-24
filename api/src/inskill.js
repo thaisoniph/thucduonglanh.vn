@@ -16,7 +16,25 @@ import { insBank, importGroups, insFind, SP, spCode, spName, tenOf, LAW, insRisk
 import { vqPick, SLOT as VQ_SLOT } from './voc.js';
 
 const WRITER = 'claude-opus-5-5';
-export const SLOTS = { insight: '🔍 Tìm insight', offer: '🎁 Viết offer', video: '🎬 Kịch bản video' };
+/** 24/11/2026 (anh Sơn: "khu vực tải các skill của khoá content lên để hệ thống chạy theo skill"): 6 ô theo 6 bước của hệ thống content */
+export const SLOTS = { insight: '🔍 Tìm insight', big: '🌟 Big idea & kế hoạch', write: '✍️ Viết bài', offer: '🎁 Offer & quảng cáo', video: '🎬 Kịch bản video', score: '🧪 Chấm bài' };
+/** Trợ lý nào làm theo skill của ô đó (hiện ở CRM) */
+export const USED = { insight: 'nút 🔍 Tìm insight', big: 'nút ✨ AI gợi ý big idea', write: 'mọi trợ lý viết: bài web, nhóm Zalo, Fanpage, bài FB cá nhân của sale, kho bài', offer: 'nút 🎁 Viết offer', video: 'nút 🎬 Viết kịch bản video', score: 'nút 🧪 Chấm bài' };
+/** Skill nên tải cho từng ô (gợi ý trên CRM) */
+export const HINT = { insight: 'tim-insights-ta-3c', big: 'vinalink-3c-content, kehoachcontent', write: 'viet-bai-ban-hang', offer: 'viet-offer-hormozi', video: 'sieu-tro-ly-video', score: 'he-thong-content-ai' };
+/** Đoán ô từ tên + mô tả skill (📦 Tải nhanh). Không chắc → '' (CRM bảo chọn ô) */
+export function guessSlot(name, desc) {
+  const n = nrm(name || ''), t = n + ' ' + nrm(desc || '');
+  const R = [['insight', /insight|tension|chan dung|ta-3c|ta 3c/], ['offer', /offer|hormozi|value stack|grand slam/], ['video', /video|kich ban|tiktok|reels|quay/],
+    ['score', /cham|danh gia bai|kiem duyet|he-thong-content/], ['big', /big idea|ke ?hoach ?content|kehoachcontent|lich noi dung|3c-content|3c content/], ['write', /viet bai|ban hang|copywriting|caption|quang cao|bai dang/]];
+  for (const [k, re] of R) if (re.test(n)) return k; // tên skill rõ nhất
+  for (const [k, re] of R) if (re.test(t)) return k;
+  return '';
+}
+/** Đếm số lần trợ lý dùng bản skill đang có của 1 ô (kv ins_sku_<ô> = { at: bản, n }) */
+export async function skUse(x, slot, sk) {
+  if (!sk) return; try { const k = 'ins_sku_' + slot, c = await kvJson(x.db, k, null) || {}; await kvSet(x.db, k, JSON.stringify({ at: sk.at, n: (c.at === sk.at ? Number(c.n) || 0 : 0) + 1, last: Date.now() })); } catch (e) { }
+}
 const cut = (s, n) => String(s == null ? '' : s).trim().slice(0, n);
 const PHONE_RE = /(?:\+?84|0)(?:[\s.-]?\d){8,10}/g;
 let client = null;
@@ -48,7 +66,7 @@ export async function unzipText(bytes) {
   return out;
 }
 async function skillSave(x, u, d) {
-  const slot = SLOTS[d.slot] ? d.slot : ''; if (!slot) return { ok: false, error: 'Chọn ô skill.' };
+  let slot = SLOTS[d.slot] ? d.slot : d.slot === 'auto' ? 'auto' : ''; if (!slot) return { ok: false, error: 'Chọn ô skill.' };
   const b64 = String(d.file || '').replace(/^data:[^,]*,/, ''), fname = cut(d.fname, 120);
   if (!b64) return { ok: false, error: 'Chưa chọn file skill.' };
   if (b64.length > 4e6) return { ok: false, error: 'File quá lớn (tối đa khoảng 3 MB).' };
@@ -62,18 +80,20 @@ async function skillSave(x, u, d) {
   let text = main.text;
   for (const f of files.filter(v => v !== main).sort((a, b) => a.name.localeCompare(b.name))) { if (text.length > 60000) break; text += '\n\n# Tệp đính kèm trong skill: ' + f.name + '\n' + f.text; }
   const fm = (main.text.match(/^\uFEFF?---\s*\n([\s\S]*?)\n---/) || [])[1] || '', field = k => ((fm.match(new RegExp('^' + k + ':\\s*(.+)$', 'm')) || [])[1] || '').replace(/^["']|["']$/g, '').trim();
+  if (slot === 'auto') { slot = guessSlot(field('name') || fname, field('description')); if (!slot) return { ok: false, error: 'Chưa đoán được skill này hợp ô nào. Anh chị bấm 📤 ở đúng ô nhé.' }; }
   const info = { name: cut(field('name') || fname.replace(/\.(skill|zip|md|txt)$/i, '') || 'skill', 80), desc: cut(field('description'), 300), text: text.slice(0, 60000),
     files: files.map(f => f.name).slice(0, 30), size: Math.min(text.length, 60000), at: Date.now(), by: u.name };
   await kvSet(x.db, 'ins_skill_' + slot, JSON.stringify(info));
-  return { ok: true, info };
+  return { ok: true, info, slot };
 }
 export async function skillOf(x, slot) { const s = await kvJson(x.db, 'ins_skill_' + slot, null); return s && s.text ? s : null; }
 export async function skillsInfo(x) {
-  const o = {}; for (const k of Object.keys(SLOTS)) { const s = await skillOf(x, k); o[k] = s ? { name: s.name, desc: s.desc, files: s.files, size: s.size, at: s.at, by: s.by } : null; }
+  const o = {}; for (const k of Object.keys(SLOTS)) { const s = await skillOf(x, k); o[k] = s ? { name: s.name, desc: s.desc, files: s.files, size: s.size, at: s.at, by: s.by, n: await (async () => { const c = await kvJson(x.db, 'ins_sku_' + k, null); return c && c.at === s.at ? Number(c.n) || 0 : 0; })() } : null; }
   return o;
 }
 /** Khối phương pháp gửi AI: skill anh tải lên (nếu có) hoặc phương pháp mặc định */
-export function methodBlock(skill, builtin) {
+export function methodBlock(skill, builtin, max) {
+  if (skill && max && skill.text.length > max) skill = Object.assign({}, skill, { text: skill.text.slice(0, max) + '\n…(skill dài, phần sau bị lược để giữ chi phí)' });
   return skill ? 'PHƯƠNG PHÁP – làm theo skill "' + skill.name + '" anh Sơn tải lên (các bước phân tích, tiêu chí, công thức trong skill). BỎ QUA mọi phần hỏi lại người dùng, chờ trả lời, tạo / xuất file, chạy lệnh, chèn thương hiệu cuối báo cáo: mọi đầu vào đã có ở trên, kết quả trả đúng ĐỊNH DẠNG ĐẦU RA ở cuối. Nội dung skill:\n<skill>\n' + skill.text + '\n</skill>'
     : builtin;
 }
@@ -113,6 +133,7 @@ async function insFind_(x, u, d) {
   if (!x.env.ANTHROPIC_API_KEY) return { ok: false, error: 'Máy chủ chưa có khoá AI.' };
   const bank = await insBank(x), prod = spCode(d.prod || ''), g = d.g ? insFind(bank, d.g) : null, goal = GOAL[d.goal] ? d.goal : 'ca2';
   const [know, sk, V] = await Promise.all([kb(), skillOf(x, 'insight'), d.voc === false ? Promise.resolve([]) : voc(x, 60, prod)]);
+  await skUse(x, 'insight', sk);
   const ask = [
     'Tìm insight / tension sắc nhất để làm content cho Thực Dưỡng Lành (bán online toàn quốc qua website, Zalo, Fanpage, sàn).',
     'Sản phẩm: ' + (prod ? spName(prod) + ' (thông tin, giá trong TÀI LIỆU)' : 'các sản phẩm trong TÀI LIỆU (tension nào chỉ đúng 1 sản phẩm thì gắn mã sản phẩm đó)'),
@@ -159,6 +180,7 @@ async function insOffer(x, u, d) {
   const bank = await insBank(x), g = d.g ? insFind(bank, d.g) : null, kind = KIND[d.kind] ? d.kind : 'chinh', tn = cut(d.t, 300);
   const pool = g ? g.tensions.map(tenOf).filter(t => !t.sp.length || t.sp.includes(prod)) : [];
   const [know, sk] = await Promise.all([kb(), skillOf(x, 'offer')]);
+  await skUse(x, 'offer', sk);
   const ask = [
     'Viết 1 OFFER cho sản phẩm ' + spName(prod) + ' của Thực Dưỡng Lành (thông tin, giá, quy cách CHỈ lấy từ TÀI LIỆU).',
     'Loại offer: ' + KIND[kind] + '.',
@@ -194,8 +216,10 @@ export async function crmInSkill(x, u, d, crmLog) {
   const a = d.action, now = Date.now();
   if (a === 'ins_skill') {
     const r = await skillSave(x, u, d);
-    if (r.ok) await crmLog(x, u, 'Insight & nội dung', '-', '', 'Tải skill lên: ' + SLOTS[d.slot], r.info.name + ' (' + r.info.files.length + ' tệp)');
-    return r.ok ? { ok: true, skills: await skillsInfo(x) } : r;
+    if (r.ok) await crmLog(x, u, 'Insight & nội dung', '-', '', 'Tải skill lên: ' + SLOTS[r.slot], r.info.name + ' (' + r.info.files.length + ' tệp)');
+    return r.ok ? { ok: true, slot: r.slot, skills: await skillsInfo(x) } : r;
+  }
+  if (a === 'ins_skillview') { const s = SLOTS[d.slot] ? await skillOf(x, d.slot) : null; return s ? { ok: true, name: s.name, desc: s.desc, files: s.files, text: s.text } : { ok: false, error: 'Ô này chưa có skill.' };
   }
   if (a === 'ins_skilldel') { if (!SLOTS[d.slot]) return { ok: false, error: 'Chọn ô skill.' }; await kvDel(x.db, 'ins_skill_' + d.slot); await crmLog(x, u, 'Insight & nội dung', '-', '', 'Bỏ skill: ' + SLOTS[d.slot], ''); return { ok: true, skills: await skillsInfo(x) }; }
   if (a === 'ins_odel') { await ofSchema(x.db); await run(x.db, 'DELETE FROM of_drafts WHERE id = ?', Number(d.id) || 0); return { ok: true }; }
