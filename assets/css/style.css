@@ -2488,3 +2488,4 @@ body.ch-on .float-widget,body.ch-on .gd-btn,body.ch-on .bvb,body.ch-on .to-top{o
 @media (max-width:560px){.dlo-it{grid-template-columns:48px 1fr;}.dlo-it img,.dlo-noimg{width:48px;height:48px}.dlo-q{grid-column:1/-1;justify-content:flex-end}.dlo-2{grid-template-columns:1fr}}
 .plg-h .nw{white-space:nowrap}
 .dlo-page .cj-done h2{font-size:1.35rem}
+.dlo-own{color:#9a5b00;font-weight:600}

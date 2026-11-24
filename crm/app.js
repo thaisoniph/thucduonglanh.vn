@@ -2554,7 +2554,7 @@
       '<div class="acts p-acts2"><button class="btn" data-relink="' + c.phone + '" title="Link web có sẵn giỏ hàng như đơn trước, gửi khách tự đặt">🔗 Link đặt lại</button><button class="btn" data-refcode="' + c.phone + '" title="Có sẵn tin nhắn kèm mã giới thiệu riêng của khách và kịch bản gọi: bạn bè khách đặt lần đầu được giảm giá, khách được tặng quà">🌱 Mời giới thiệu bạn bè</button></div></div>' +
       (c.flag ? '<div class="notice" style="background:var(--red-light);color:var(--red)">⚠️ Khách có nhãn <b>' + esc(c.flag) + '</b>. Nên yêu cầu chuyển khoản trước khi gửi hàng.</div>' : '') +
       (live ? '<div class="notice click" data-poid="' + esc(live.id) + '">' + (trkWarn(live) ? '⚠️' : '🚚') + ' Khách đang có đơn <b>' + fDate(live.time).slice(0, 5) + '</b> (' + esc(live.status) + (live.trk ? ': ' + esc(live.trk) : '') + ') chưa giao xong. Hỏi thăm đơn này trước, chưa nên chào thêm. <u>Xem đơn</u></div>' : '') +
-      stopNotice(c) + ownBox(c) + (dlyOf(c.phone) ? '<div class="notice info">🏪 <b>' + esc(dlyOf(c.phone).name) + '</b>' + (dlyOf(c.phone).shop ? ' · ' + esc(dlyOf(c.phone).shop) : '') + ': lên đơn CRM tự trừ <b>' + dlyOf(c.phone).pct + '%</b>, đơn tính cho Kênh đại lý (không vào doanh số sale).' + (dlyOf(c.phone).lead ? ' Phụ trách đại lý: chị ' + esc(dlyOf(c.phone).lead) + '.' : '') + (lvl() >= 2 ? ' Xem bậc, tiền nhập ở Cài đặt → 🏪 Đại lý.' : '') + '</div>' : '') +
+      stopNotice(c) + ownBox(c) + (dlyOf(c.phone) ? '<div class="notice info">🏪 <b>' + esc(dlyOf(c.phone).name) + '</b>' + (dlyOf(c.phone).shop ? ' · ' + esc(dlyOf(c.phone).shop) : '') + ': lên đơn CRM tự trừ <b>' + dlyOf(c.phone).pct + '%</b> (sản phẩm giá vốn cao trừ ít hơn), đơn tính cho Kênh đại lý (không vào doanh số sale).' + (dlyOf(c.phone).lead ? ' Phụ trách đại lý: chị ' + esc(dlyOf(c.phone).lead) + '.' : '') + (lvl() >= 2 ? ' Xem bậc, tiền nhập ở Cài đặt → 🏪 Đại lý.' : '') + '</div>' : '') +
       (coldOf(c) && !isStopped(c) ? '<div class="notice" style="background:#eef2f7;color:#334">❄️ <b>Khách lạnh</b> (' + esc(coldOf(c)) + '): không đưa vào danh sách gọi hằng ngày. ' + (coldOf(c) === 'Không dùng nữa' ? 'Sau 6 tháng tự quay lại để chào lại 1 lần; khách đặt đơn mới là hết lạnh.' : 'Nếu bán lại, nên nhờ khách chuyển khoản trước.') + '</div>' : '') +
       '<div class="p-now"><div class="p-h">📌 Lần trước nói chuyện</div>' + (c.task ? '<div>' + TASKS[c.task.type].icon + ' Hôm nay: <b>' + TASKS[c.task.type].title + '</b> · ' + taskLine(c) + '</div>' : '') +
       (c.callback && dayStart(c.callback) > today() ? '<div>📅 Đã hẹn gọi lại: <b>' + fDate(c.callback).slice(0, 5) + '</b> (' + daysAgo(c.callback) + ')</div>' : '') +
@@ -3926,12 +3926,14 @@
     $('#noOtEdit', m).onclick = otOpen;
     /** 🏪 khung báo khách là đại lý (23/11/2026): bậc, % chiết khấu, giá lẻ → giá đại lý, mức nhập lần đầu */
     var dlyBank = false;
+    var dlyLow = [];
     function dlySync(dly, base, want, paid) {
       var bx = $('#noDly', m); if (!bx) return; bx.hidden = !dly; if (!dly) { bx.innerHTML = ''; dlyBank = false; return; }
       if (!dlyBank) { dlyBank = true; var bk = $('input[name=payment][value=bank]', form); if (bk && !bk.checked) { bk.checked = true; sumSync(); } } // đại lý trả trước: chọn sẵn chuyển khoản
       var low = base && paid < want - 1000, firstLow = dly.firstMin && base && base < dly.firstMin;
       bx.innerHTML = '<div class="notice info dly-note"><b>🏪 Khách là ' + esc(dly.name) + (dly.shop ? ' · ' + esc(dly.shop) : '') + ': chiết khấu ' + dly.pct + '%</b>' +
-        '<div class="small" style="margin-top:4px">' + (base ? 'Giá lẻ ' + money(base) + ' − ' + dly.pct + '% = <b>' + money(want) + '</b> (CRM đã tự điền ô Số tiền thu khách).' : 'Chọn sản phẩm, CRM tự trừ ' + dly.pct + '%.') +
+        '<div class="small" style="margin-top:4px">' + (base ? 'Giá lẻ ' + money(base) + ' − chiết khấu = <b>' + money(want) + '</b> (CRM đã tự điền ô Số tiền thu khách).' : 'Chọn sản phẩm, CRM tự trừ ' + dly.pct + '%.') +
+          (dlyLow.length ? ' 💰 Sản phẩm giá vốn cao trừ ít hơn: ' + dlyLow.map(esc).join(', ') + '.' : '') +
         ' Đơn này tính cho <b>Kênh đại lý</b>, không vào doanh số và hoa hồng của bạn. Đại lý trả tiền trước (chuyển khoản).</div>' +
         (firstLow ? '<div class="small dly-warn">⚠️ Đại lý nhập lần đầu tối thiểu ' + money(dly.firstMin) + ' giá lẻ' + (mgr ? ' (bạn là quản lý nên vẫn lưu được).' : '. Thêm hàng, hoặc nhờ quản lý lên đơn.') + '</div>' : '') +
         (low ? '<div class="small dly-warn">⚠️ Bạn đang thu thấp hơn giá đại lý ' + money(want - paid) + (mgr ? '.' : '. Chỉ quản lý được giảm thêm.') + '</div>' : '') + '</div>';
@@ -3977,7 +3979,8 @@
     form.addEventListener('change', sumSync); form.addEventListener('input', sumSync);
     function calc() {
       var ls = read(items), gs = read(gifts), base = ls.reduce(function (s, i) { return s + i.qty * i.price; }, 0), ship = Math.max(0, +F.shipping.value || 0);
-      var dly = eo ? null : dlyOf(F.phone.value), dlyWant = dly && base ? Math.round(base * (1 - dly.pct / 100)) : 0; // 🏪 đại lý: tự trừ chiết khấu theo bậc
+      var dly = eo ? null : dlyOf(F.phone.value), dlyWant = dly && base ? Math.round(ls.reduce(function (s, i) { return s + i.qty * i.price * (1 - dlyItemPct(dly, i) / 100); }, 0)) : 0; // 🏪 đại lý: tự trừ chiết khấu theo bậc, sản phẩm giá vốn cao trừ ít hơn
+      dlyLow = dly ? ls.filter(function (i) { return i.price && dlyItemPct(dly, i) < dly.pct; }).map(function (i) { return shortLabel(i.name + (i.variant ? ' – ' + i.variant : '')) + ' −' + dlyItemPct(dly, i) + '%'; }) : [];
       if (!totalEdited && base) F.total.value = (dly ? dlyWant : base) + ship;
       var tot = moneyIn(F.total.value);
       dlySync(dly, base, dlyWant, tot - ship);
@@ -4260,6 +4263,11 @@
   }
   function poolOn() { return !!(S.d && S.d.rules && S.d.rules.poolOn); } // 11/11/2026: Kho chung (mục 🧺 của sale, nhãn ⏳, tự về kho) ẩn tới khi Quản trị bật (sau họp sale)
   function selfOn() { return !!(S.d && S.d.rules && S.d.rules.selfOn); }
+  /** 💰 % chiết khấu 1 dòng hàng của đại lý = min(% bậc, trần theo giá vốn) – cùng công thức api/src/daily.js dlPctOf (rules.dlCaps, 24/11/2026). */
+  function dlyItemPct(dly, i) {
+    var C = (S.d && S.d.rules && S.d.rules.dlCaps) || {}, k = costKey(i.name + ' ' + (i.variant || '')), c = C[k.f + '|' + k.w]; if (c == null) c = C[k.f];
+    return c == null ? dly.pct : Math.min(dly.pct, c);
+  }
   function dlyOf(ph) { var D = S.d && S.d.rules && S.d.rules.dl; return D ? D[normPhone(ph)] || null : null; } // 🏪 khách là đại lý → {tier, name, pct, firstMin, shop, lead} (api/src/daily.js dlMap) // 10/11/2026: mục Tự tạo khách ẩn tới khi Quản trị bật (sau họp sale)
   function selfLine(name, month, t) {
     if (!t || !t.selfN || !selfOn()) return '';
@@ -17407,6 +17415,16 @@
       if ($('#dlyRk', m)) $('#dlyRk', m).onclick = function () { if (confirm('Tạo link đặt hàng mới cho ' + e.name + '? Link cũ sẽ không mở được nữa, nhớ gửi link mới cho đại lý.')) dlyLinkSend(e, true); };
       if ($('#dlyDel', m)) $('#dlyDel', m).onclick = function () { if (!confirm('Bỏ ' + e.name + ' khỏi danh sách đại lý? Đơn cũ vẫn giữ ở kênh đại lý; đơn mới của số này tính như khách thường.')) return; api('dl_del', { phone: e.ph }).then(function (j) { toast('Đã bỏ đại lý'); done(j); }, fail); };
     }
+    /** 💰 Bảng chiết khấu từng sản phẩm theo giá vốn (chỉ Quản trị: máy chủ chỉ gửi giá vốn cho Quản trị). */
+    function dlyCapTable(caps, c) {
+      if (!caps) return '';
+      var top = c.tiers[2].pct;
+      return '<details class="box" style="margin:0 0 12px"' + (caps.some(function (i) { return i.cap == null || i.cap < top; }) ? ' open' : '') + '><summary><b>💰 Chiết khấu từng sản phẩm theo giá vốn</b></summary>' +
+        '<p class="hint" style="margin:6px 0">Trần = 100% − giá vốn / giá lẻ − lãi gộp giữ lại. Mỗi sản phẩm trừ mức thấp hơn giữa bậc của đại lý và trần này. Giá vốn sửa ở 💼 Kế toán → ⚙️ → 💰 Giá vốn.</p>' +
+        '<div class="bcdt-wrap"><table class="bcdt dly-caps"><tr><th>Sản phẩm</th><th>Giá vốn</th><th>Trần</th></tr>' + caps.map(function (i) {
+          return '<tr><td>' + esc(shortLabel(i.name + ' – ' + i.variant)) + '<br><small class="muted">giá lẻ ' + moneyShort(i.price) + '</small></td><td>' + (i.cost ? moneyShort(i.cost) + ' <small>(' + Math.round(i.cost * 100 / i.price) + '%)</small>' : '<span class="dly-warn">chưa có</span>') + '</td><td><b>' + (i.cap == null ? 'theo bậc' : i.cap >= top ? 'đủ ' + top + '%' : '<span class="dly-warn">' + i.cap + '%</span>') + '</b></td></tr>';
+        }).join('') + '</table></div><p class="small muted" style="margin:6px 0 0">Đổi ô lãi gộp ở trên rồi bấm Lưu mức để tính lại.</p></details>';
+    }
     function cfgEdit() {
       var c = D.j.cfg; foot(false);
       box().innerHTML = '<p class="hint" style="margin:0 0 10px">Mức nhập tính theo tiền hàng <b>giá lẻ</b> trong tháng trước. Đổi mức: áp dụng cho đơn lên từ bây giờ, đơn cũ giữ nguyên giá.</p>' +
@@ -17414,13 +17432,14 @@
         '<div class="row2c"><label class="f"><span>Nhập lần đầu tối thiểu (giá lẻ)</span><input type="text" inputmode="numeric" id="dlyFirst" value="' + c.first + '"></label><label class="f"><span>Số tháng liền đủ mức để lên bậc 3</span><input type="number" min="1" max="12" id="dlyTop3" value="' + c.top3 + '"></label></div>' +
         '<div class="row2c"><label class="f"><span>Thưởng sale giới thiệu (% tiền nhập)</span><input type="text" inputmode="decimal" id="dlyBonus" value="' + c.bonus + '"></label><label class="f"><span>Trong bao nhiêu tháng đầu</span><input type="number" min="0" max="24" id="dlyBm" value="' + c.bonusMonths + '"></label></div>' +
         '<label class="f"><span>🛒 Mỗi đơn đại lý tự đặt trên web tối thiểu (giá lẻ)</span><input type="text" inputmode="numeric" id="dlySelf" value="' + (c.selfMin || 0) + '"></label>' +
+        '<label class="f"><span>💰 Công ty giữ lãi gộp tối thiểu (% giá lẻ) ở mọi sản phẩm</span><input type="text" inputmode="decimal" id="dlyKeep" value="' + (c.keep == null ? 25 : c.keep) + '"></label>' + dlyCapTable(D.j.caps, c) +
         '<label class="f"><span>👩‍💼 Người phụ trách đại lý (tên gọi, hiện cho sale khi cần nhờ)</span><input type="text" id="dlyLead" maxlength="40" value="' + esc(c.lead || '') + '"></label>' +
         '<p class="err" id="dlyErr"></p><div class="steps" style="margin-top:12px"><button class="btn pri" id="dlyCSave">Lưu mức</button><button class="btn ghost" id="dlyBack">Quay lại</button></div>';
       $('#dlyBack', m).onclick = list;
       var nv = function (s) { return Number(String(s).replace(/[^\d.,]/g, '').replace(',', '.')) || 0; };
       $('#dlyCSave', m).onclick = function () {
         var tiers = [0, 1, 2].map(function (i) { return { name: $('[data-dn="' + i + '"]', m).value, pct: nv($('[data-dp="' + i + '"]', m).value), min: moneyIn($('[data-dm="' + i + '"]', m).value) || 0 }; });
-        api('dl_cfg', { tiers: tiers, first: moneyIn($('#dlyFirst', m).value) || 0, top3: +$('#dlyTop3', m).value, bonus: nv($('#dlyBonus', m).value), bonusMonths: +$('#dlyBm', m).value, lead: $('#dlyLead', m).value, selfMin: moneyIn($('#dlySelf', m).value) || 0 }).then(function (j) { toast('Đã lưu mức chiết khấu ✓'); done(j); }, function (e) { $('#dlyErr', m).textContent = e.message; });
+        api('dl_cfg', { tiers: tiers, first: moneyIn($('#dlyFirst', m).value) || 0, top3: +$('#dlyTop3', m).value, bonus: nv($('#dlyBonus', m).value), bonusMonths: +$('#dlyBm', m).value, lead: $('#dlyLead', m).value, selfMin: moneyIn($('#dlySelf', m).value) || 0, keep: $('#dlyKeep', m).value }).then(function (j) { toast('Đã lưu mức chiết khấu ✓'); done(j); }, function (e) { $('#dlyErr', m).textContent = e.message; });
       };
     }
     $('#dlyNew').onclick = function () { edit(null); };
@@ -17442,6 +17461,7 @@
       L('Hai bên thoả thuận ký hợp đồng nguyên tắc với các điều khoản sau:') +
       '<h2>Điều 1. Hình thức hợp tác</h2>' + L('Bên B mua sản phẩm của Bên A (thương hiệu Thực Dưỡng Lành – VitaGreen) để tự bán lại cho người tiêu dùng (mua đứt, bán đoạn). Mỗi lần đặt hàng là một đơn hàng theo hợp đồng này. Bên B hưởng chênh lệch giữa giá mua và giá bán; Bên B không nhận hoa hồng từ việc giới thiệu người khác tham gia.') +
       '<h2>Điều 2. Giá và chiết khấu</h2>' + L('Giá mua = giá bán lẻ niêm yết trên thucduonglanh.vn tại thời điểm đặt hàng trừ chiết khấu theo bậc:') + tiers +
+      L('Một số sản phẩm có giá vốn cao được áp mức chiết khấu riêng thấp hơn bậc (ghi rõ trong bảng giá đại lý tại thời điểm đặt hàng).') +
       L('Bậc của mỗi tháng tính theo tổng tiền hàng (giá bán lẻ) Bên B đã nhập trong tháng trước, đã trừ đơn huỷ / hoàn. Bậc hiện tại của Bên B: <b>' + esc(e.tierName) + ' – chiết khấu ' + e.pct + '%</b>.') +
       '<h2>Điều 3. Đặt hàng, thanh toán, giao hàng</h2>' + L('Bên B đặt hàng qua điện thoại / Zalo của Bên A. Bên B thanh toán 100% bằng chuyển khoản trước khi Bên A gửi hàng. Phí vận chuyển theo thoả thuận từng đơn.') +
       '<h2>Điều 4. Giữ giá bán lẻ</h2>' + L('Bên B không bán thấp hơn giá bán lẻ niêm yết trên thucduonglanh.vn. Vi phạm lần 1: Bên A nhắc bằng văn bản / tin nhắn; vi phạm lần 2: Bên A hạ Bên B xuống bậc thấp hơn hoặc ngừng hợp tác.') +

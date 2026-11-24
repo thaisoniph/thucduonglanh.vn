@@ -4088,3 +4088,6 @@ table.cmp-sum.ev3 td small { white-space: nowrap; }
 .dly-tag{display:inline-block;font-size:12px;font-weight:600;color:#1f6b3a;background:#e6f4ea;border-radius:999px;padding:2px 8px;white-space:nowrap}
 .dly-warn{color:#b3261e;background:#fdecea;border-radius:8px;padding:6px 8px;margin:6px 0 0}
 .dly-note{margin:0 0 12px}
+/* 💰 bảng chiết khấu từng sản phẩm theo giá vốn (Cài đặt → 🏪 Đại lý → ⚙️) */
+table.dly-caps { width: 100%; white-space: normal; }
+table.dly-caps td:first-child { position: static; }

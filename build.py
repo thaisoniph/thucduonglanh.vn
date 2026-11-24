@@ -1970,6 +1970,7 @@ def page_dl_join():
     rules = [
         f"Đại lý mua hàng về tự bán, chuyển khoản trước 100% mỗi lần nhập. Lần đầu nhập từ {fst} triệu (tính theo giá lẻ trên web).",
         f"Chiết khấu tính theo tổng tiền hàng giá lẻ đã nhập trong tháng trước: {p1}% (Đại lý), {p2}% khi tháng trước nhập từ {m2} triệu (Đại lý Bạc), {p3}% khi nhập từ {m3} triệu 3 tháng liền (Nhà phân phối tỉnh). Bậc được xét lại đầu mỗi tháng.",
+        "Một số sản phẩm có giá vốn cao (ví dụ xì dầu) có mức chiết khấu riêng thấp hơn bậc, ghi rõ trong bảng giá đại lý.",
         "Giữ giá bán lẻ không thấp hơn giá trên thucduonglanh.vn. Không bán trên Shopee, TikTok Shop, Lazada khi " + BRAND + " chưa đồng ý bằng văn bản.",
         "Khách đang mua trực tiếp của " + BRAND + " vẫn là khách của công ty; đại lý phát triển khách mới của mình.",
         "Hàng lỗi do nhà sản xuất được đổi ngay. Hàng chậm bán được đổi sang sản phẩm khác tối đa 10% giá trị đã nhập mỗi năm (hàng còn hạn trên 12 tháng). Không trả hàng lấy tiền.",

@@ -1428,12 +1428,13 @@
       var prog = j.fixed ? 'Bậc này được giữ cố định cho bạn.' : j.nextTier > j.tier ? '🎉 Tháng sau bạn lên <b>' + esc(j.nextName) + ' −' + j.nextPct + '%</b>.' : j.nextTier < j.tier ? '⚠️ Nhập thêm <b>' + money(Math.max(0, j.tiers[j.tier - 1].min - j.thisList)) + '</b> (giá lẻ) trong tháng này để tháng sau giữ <b>' + esc(j.tierName) + ' −' + j.pct + '%</b>.' : j.tier < 2 && j.toT2 > 0 ? 'Nhập thêm <b>' + money(j.toT2) + '</b> (giá lẻ) trong tháng này để tháng sau lên <b>' + esc(j.tiers[1].name) + ' −' + j.tiers[1].pct + '%</b>.' : '';
       var rows = j.items.map(function (i) {
         return '<div class="dlo-it" data-id="' + esc(i.id) + '">' + (i.img ? '<img src="' + esc(i.img) + '" alt="" width="56" height="56" loading="lazy">' : '<span class="dlo-noimg"></span>') +
-          '<div class="dlo-nm"><b>' + esc(i.name) + '</b><small>' + esc(i.variant) + '</small><span class="dlo-pr"><s>' + money(i.price) + '</s> <b>' + money(i.dl) + '</b></span></div>' +
+          '<div class="dlo-nm"><b>' + esc(i.name) + '</b><small>' + esc(i.variant) + '</small><span class="dlo-pr"><s>' + money(i.price) + '</s> <b>' + money(i.dl) + '</b>' + (i.pct < j.pct ? ' <small class="dlo-own">−' + i.pct + '% riêng</small>' : '') + '</span></div>' +
           '<div class="dlo-q"><button type="button" class="btn ghost" data-m aria-label="Bớt 1">−</button><input type="number" inputmode="numeric" min="0" max="2000" value="0" aria-label="Số lượng ' + esc(i.name + ' ' + i.variant) + '"><button type="button" class="btn ghost" data-p aria-label="Thêm 1">+</button></div></div>';
       }).join('');
       var a = j.addr || {}, st = { 'Mới': '🕐 Chờ xác nhận', 'Đã xác nhận': '✅ Đã xác nhận', 'Đang giao': '🚚 Đang giao', 'Đã giao': '📦 Đã giao', 'Huỷ': '✖ Huỷ' };
       out.innerHTML = '<div class="dlo-tier"><span class="dlo-tic">' + (tic[j.tier - 1] || '🏪') + '</span><div><small>Bậc của bạn tháng này</small><b>' + esc(j.tierName) + ' · −' + j.pct + '%</b>' +
           '<p>Tháng này đã nhập <b>' + money(j.thisList) + '</b> (giá lẻ)' + (j.prevList ? ' · tháng trước ' + money(j.prevList) : '') + '. ' + prog + '</p></div></div>' +
+        (j.items.some(function (i) { return i.pct < j.pct; }) ? '<p class="small muted">Sản phẩm ghi <b>“riêng”</b> có giá vốn cao nên chiết khấu thấp hơn bậc.</p>' : '') +
         '<p class="dlo-min">' + (j.firstMin ? '🚀 Lần nhập đầu tối thiểu <b>' + money(j.firstMin) + '</b> (giá lẻ).' : '📦 Mỗi đơn từ <b>' + money(j.selfMin) + '</b> (giá lẻ).') + ' Miễn phí ship, chuyển khoản trước.</p>' +
         '<p class="rf-eye">1. Chọn số lượng</p><div class="dlo-list">' + rows + '</div>' +
         '<form class="plg-form dlo-form" data-dlo-form novalidate><p class="rf-eye">2. Nhận hàng ở đâu?</p>' +
@@ -1455,7 +1456,7 @@
         var ls = pick(), list = 0, pay = 0, n = 0;
         ls.forEach(function (i) { var p = byId[i.id]; list += p.price * i.qty; pay += p.dl * i.qty; n += i.qty; });
         $$('.dlo-it', out).forEach(function (r) { r.classList.toggle('on', (parseInt($('input', r).value, 10) || 0) > 0); });
-        sum.innerHTML = n ? '<div><span>Giá lẻ (' + n + ' sản phẩm)</span><b>' + money(list) + '</b></div><div><span>Chiết khấu −' + j.pct + '%</span><b>−' + money(list - pay) + '</b></div><div class="dlo-tot"><span>Bạn chuyển khoản</span><b>' + money(pay) + '</b></div>' +
+        sum.innerHTML = n ? '<div><span>Giá lẻ (' + n + ' sản phẩm)</span><b>' + money(list) + '</b></div><div><span>Chiết khấu' + (list && Math.round((list - pay) * 100 / list) !== j.pct ? '' : ' −' + j.pct + '%') + '</span><b>−' + money(list - pay) + '</b></div><div class="dlo-tot"><span>Bạn chuyển khoản</span><b>' + money(pay) + '</b></div>' +
           (list < need ? '<p class="dlo-warn">Còn thiếu <b>' + money(need - list) + '</b> (giá lẻ) để đủ mức ' + (j.firstMin ? 'nhập lần đầu' : 'tối thiểu mỗi đơn') + '.</p>' : '<p class="dlo-ok">Bán đúng giá web, bạn lãi khoảng <b>' + money(list - pay) + '</b>.</p>') : '<p class="muted">Chọn số lượng ở trên, tiền tự tính ở đây.</p>';
         return { ls: ls, list: list, pay: pay };
       };

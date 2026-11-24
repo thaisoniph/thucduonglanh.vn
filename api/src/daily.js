@@ -11,16 +11,20 @@
  * - Đợt 3 (23/11/2026): đại lý tự đặt hàng bằng link riêng thucduonglanh.vn/dai-ly/dat-hang/#<key> (dl_list[sđt].key, CRM nút 🔗 → dl_key).
  *   Giá lẻ đọc từ /dl-gia.json (build.py dl_prices: chỉ hộp / chai lẻ, không combo) → máy chủ tự tính, trang web không gửi giá.
  *   dlMe (xem bậc, giá, đơn cũ) · dlOrderWeb (tạo đơn: người bán Kênh đại lý, trạng thái Mới, chuyển khoản trước) → báo Telegram nhóm + người phụ trách.
+ * - Chiết khấu riêng từng sản phẩm theo giá vốn (24/11/2026): trần % = 100 − giá vốn / giá lẻ − dl_cfg.keep (lãi gộp tối thiểu % giá lẻ, mặc định 25).
+ *   Giá vốn từ kv cost_cfg (💰 Giá vốn, Quản trị / Kế toán nhập). % từng sản phẩm = min(% bậc, trần). Chưa có giá vốn → theo bậc.
+ *   dlCaps → {'loại|trọng lượng': %, 'loại': % thấp nhất của loại} gửi CRM (rules.dlCaps, không gửi giá vốn) để form lên đơn tính giống máy chủ.
  * - Sale giới thiệu được đại lý (dl_list.by) → thưởng `bonus`% tiền nhập (đã trừ chiết khấu, không gồm ship) trong `bonusMonths` tháng từ đơn đầu.
  */
-import { all, first, kvGet, kvJson, kvSet, normPhone, fmt, fmtDate, isVoid, esc, DAY } from './lib.js';
+import { all, first, kvGet, kvJson, kvSet, normPhone, fmt, fmtDate, isVoid, esc, DAY, nrm } from './lib.js';
 import { staffOf, staffHit } from './partner.js';
 import { telegram } from './google.js';
 
 export const DL_SELLER = 'Kênh đại lý';
 const CFG_DEF = {
   tiers: [{ name: 'Đại lý', pct: 30, min: 5000000 }, { name: 'Đại lý Bạc', pct: 35, min: 15000000 }, { name: 'Nhà phân phối tỉnh', pct: 40, min: 50000000 }],
-  first: 5000000, top3: 3, bonus: 3, bonusMonths: 3, lead: 'Thủy', selfMin: 1000000 // selfMin: mỗi đơn đại lý tự đặt trên web tối thiểu (giá lẻ)
+  first: 5000000, top3: 3, bonus: 3, bonusMonths: 3, lead: 'Thủy', selfMin: 1000000, // selfMin: mỗi đơn đại lý tự đặt trên web tối thiểu (giá lẻ)
+  keep: 25 // keep: công ty giữ lãi gộp tối thiểu bao nhiêu % giá lẻ ở mọi sản phẩm (giới hạn chiết khấu theo giá vốn)
 };
 const COMPANY = { name: 'CÔNG TY TNHH TẬP ĐOÀN VITAGREEN NUTRITION', mst: '0111053409', addr: 'HA10-SP8A-15, Đường Hải Âu 8A, KĐT Vinhomes Ocean Park, Gia Lâm, TP. Hà Nội', hotline: '0966 326 522', rep: 'Nguyễn Văn Hiếu', repTitle: 'Giám đốc' };
 
@@ -56,6 +60,48 @@ function tierOf(cfg, e, byMonth, k) {
   return 1;
 }
 
+/* ---- 💰 chiết khấu riêng từng sản phẩm theo giá vốn (24/11/2026) */
+// Loại sản phẩm: cùng COST_FAM (crm/app.js costKey) và FAM (kho.js khoKey). Thêm dòng sản phẩm mới thì thêm cả 3 nơi.
+const DL_FAM = [[/(forganic|foganic).*thay the|thay the.*(forganic|foganic)/, 'fbt'], [/forganic|foganic/, 'fdd'], [/progomax|fucoidan pro\b/, 'pgm'], [/curcumin|cucumin/, 'cur'], [/fucoidan|gafo/, 'gafo'], [/bua an|\bdd\b|dinh duong vitagreen/, 'bua'], [/dilvang|che vang|dinh lang/, 'dil'], [/xi dau/, 'xd'], [/mam xoi/, 'mx'], [/dau xanh|rau ma/, 'dx'], [/ruoc|rong bien/, 'ruoc']];
+export function dlKey(t) {
+  const n = nrm(t); let f = null; DL_FAM.some(r => { if (r[0].test(n)) { f = r[1]; return true; } return false; });
+  let w = n.match(/(\d+)\s*(g|ml)\b/), m = 1; const a = n.match(/mua (\d+) tang (\d+)/), c = n.match(/combo (\d+)/), g = !/hop/.test(n) && n.match(/(\d+)\s*goi\s*[*x×]?\s*(25)\s*g/);
+  if (a) m = +a[1] + +a[2]; else if (c) m = +c[1]; if (g) { m *= +g[1]; w = [0, g[2]]; }
+  return { f, w: w ? +w[1] : 0, m };
+}
+/** Giá vốn 1 đơn vị (đúng cỡ → cỡ gần nhất lệch ≤ 30% → loại chỉ có 1 dòng thì lấy dòng đó). 0 = chưa có. */
+function unitCost(M, k) {
+  const F = k.f && M[k.f]; if (!F) return 0;
+  const ws = Object.keys(F).map(Number); if (F[k.w]) return F[k.w];
+  let b = 0, d = 1e9; ws.forEach(x => { const e = Math.abs(x - k.w); if (x && k.w && e < d) { d = e; b = x; } });
+  if (b && d <= 0.3 * b) return F[b];
+  return ws.length === 1 ? F[ws[0]] : 0;
+}
+async function costMap(x) {
+  const C = await kvJson(x.db, 'cost_cfg', null), M = {}; if (!C || !Array.isArray(C.items)) return M;
+  C.items.forEach(r => { const k = dlKey(r[0]); if (k.f) (M[k.f] = M[k.f] || {})[k.w] = Math.round(Number(r[1]) * (1 + (Number(C.oh) || 0) / 100)); });
+  return M;
+}
+/** Bảng sản phẩm lẻ (dl-gia.json) kèm giá vốn và trần % chiết khấu. full = trả cả giá vốn (chỉ màn Quản trị). */
+async function dlCapList(x, cfg, items) {
+  const M = await costMap(x);
+  return (items || await dlPrices(x)).map(i => {
+    const k = dlKey(i.name + ' ' + i.variant), cost = unitCost(M, k) * k.m;
+    const cap = cost && i.price ? Math.max(0, Math.min(100, Math.floor(100 - cost * 100 / i.price - cfg.keep))) : null;
+    return Object.assign({}, i, { f: k.f, w: k.w, cost, cap });
+  });
+}
+/** {'f|w': trần %, 'f': trần thấp nhất của loại} cho CRM + máy chủ. */
+export async function dlCaps(x, cfg) {
+  const out = {}; (await dlCapList(x, cfg || await dlCfg(x))).forEach(i => { if (i.cap == null || !i.f) return; out[i.f + '|' + i.w] = Math.min(i.cap, out[i.f + '|' + i.w] ?? 100); out[i.f] = Math.min(i.cap, out[i.f] ?? 100); });
+  return out;
+}
+/** % chiết khấu của 1 dòng hàng: min(% bậc, trần của sản phẩm). */
+export function dlPctOf(caps, tierPct, name) {
+  const k = dlKey(name), c = caps[k.f + '|' + k.w] ?? caps[k.f];
+  return c == null ? tierPct : Math.min(tierPct, c);
+}
+
 /** Bản gọn cho mọi nhân sự (gửi kèm lệnh load): form lên đơn tự nhận ra đại lý và trừ chiết khấu. */
 export async function dlMap(x) {
   const L = await dlList(x), keys = Object.keys(L); if (!keys.length) return {};
@@ -71,12 +117,12 @@ export async function dlMap(x) {
 /** Gọi trong lúc tạo đơn: khách là đại lý → kiểm tra giá, trả % chiết khấu. null = không phải đại lý. */
 export async function dlOrderCheck(x, u, phone, items, sub, ship) {
   const L = await dlList(x); if (!L[phone]) return null;
-  const m = (await dlMap(x))[phone], list = items.filter(i => !i.gift).reduce((s, i) => s + (Number(i.price) || 0) * (Number(i.qty) || 0), 0);
+  const m = (await dlMap(x))[phone], caps = await dlCaps(x), real = items.filter(i => !i.gift), list = real.reduce((s, i) => s + (Number(i.price) || 0) * (Number(i.qty) || 0), 0);
   if (!list) return { error: 'Đơn đại lý cần sản phẩm có giá niêm yết (chọn sản phẩm trong danh sách gợi ý) để CRM trừ chiết khấu.' };
-  const want = Math.round(list * (1 - m.pct / 100));
-  if (u.level < 2 && sub < want - 1000) return { error: 'Tiền hàng ' + fmt(sub) + ' thấp hơn giá đại lý ' + m.name + ' (giá lẻ ' + fmt(list) + ' − ' + m.pct + '% = ' + fmt(want) + '). Muốn giảm thêm thì nhờ ' + (m.lead ? 'chị ' + m.lead + ' (phụ trách đại lý)' : 'quản lý') + ' lên đơn.' };
+  const want = Math.round(real.reduce((s, i) => s + (Number(i.price) || 0) * (Number(i.qty) || 0) * (1 - dlPctOf(caps, m.pct, i.name + ' ' + (i.variant || '')) / 100), 0)), eff = Math.round((list - want) * 1000 / list) / 10;
+  if (u.level < 2 && sub < want - 1000) return { error: 'Tiền hàng ' + fmt(sub) + ' thấp hơn giá đại lý ' + m.name + ' (giá lẻ ' + fmt(list) + ', chiết khấu ' + (eff === m.pct ? m.pct + '%' : 'theo từng sản phẩm, bình quân ' + String(eff).replace('.', ',') + '%') + ' = ' + fmt(want) + '). Muốn giảm thêm thì nhờ ' + (m.lead ? 'chị ' + m.lead + ' (phụ trách đại lý)' : 'quản lý') + ' lên đơn.' };
   if (u.level < 2 && m.firstMin && list < m.firstMin) return { error: 'Đại lý nhập lần đầu tối thiểu ' + fmt(m.firstMin) + ' (tính theo giá lẻ). Đơn này giá lẻ ' + fmt(list) + '. Thêm hàng, hoặc nhờ ' + (m.lead ? 'chị ' + m.lead + ' (phụ trách đại lý)' : 'quản lý') + ' lên đơn.' };
-  return { list, pct: m.pct, tierName: m.name, want, note: '🏪 Đơn đại lý ' + m.name + ' −' + m.pct + '% (giá lẻ ' + fmt(list) + ') · ' + u.name + ' lên đơn' };
+  return { list, pct: eff, tierName: m.name, want, note: '🏪 Đơn đại lý ' + m.name + ' −' + (eff === m.pct ? m.pct + '%' : String(eff).replace('.', ',') + '% (riêng từng sản phẩm theo giá vốn)') + ' (giá lẻ ' + fmt(list) + ') · ' + u.name + ' lên đơn' };
 }
 /** Ghi giá lẻ của đơn đại lý vừa tạo. */
 export async function dlOrderSave(x, id, phone, chk) {
@@ -139,7 +185,7 @@ const dlUnit = (price, pct) => Math.round(price * (1 - pct / 100) / 100) * 100; 
 /** Trang /dai-ly/dat-hang/: chào, bậc, bảng giá đại lý, địa chỉ nhận lần trước, đơn gần đây. */
 export async function dlMe(x, d) {
   const b = await dlByKey(x, d.key); if (b.err) return { ok: false, bad: !!b.bad, error: b.err };
-  const { ph, e } = b, st = await dlState(x, ph, e), items = await dlPrices(x);
+  const { ph, e } = b, st = await dlState(x, ph, e), caps = await dlCaps(x, st.cfg), items = await dlPrices(x);
   const last = await first(x.db, 'SELECT name, province, ward, address FROM orders WHERE phone = ? ORDER BY time DESC LIMIT 1', ph);
   const c = await first(x.db, 'SELECT name, province, address FROM customers WHERE phone = ?', ph);
   const rec = await all(x.db, 'SELECT id, time, total, status, payment, paid FROM orders WHERE phone = ? AND seller = ? ORDER BY time DESC LIMIT 12', ph, DL_SELLER);
@@ -148,7 +194,7 @@ export async function dlMe(x, d) {
     ok: true, shop: e.name || '', name: (c && c.name) || (last && last.name) || e.name || '', phone: ph, lead: st.cfg.lead || '',
     tier: st.tier, tierName: st.T.name, pct: st.T.pct, nextTier: st.next, nextName: st.cfg.tiers[st.next - 1].name, nextPct: st.cfg.tiers[st.next - 1].pct, fixed: Number(e.fix) || 0,
     thisList: st.thisList, prevList: st.prevList, firstMin: st.firstMin, selfMin: st.cfg.selfMin, tiers: st.cfg.tiers, top3: st.cfg.top3, toT2: Math.max(0, T2.min - st.thisList),
-    items: items.map(i => ({ id: i.id, name: i.name, variant: i.variant, img: i.img || '', price: i.price, dl: dlUnit(i.price, st.T.pct) })),
+    items: items.map(i => { const p = dlPctOf(caps, st.T.pct, i.name + ' ' + i.variant); return { id: i.id, name: i.name, variant: i.variant, img: i.img || '', price: i.price, pct: p, dl: dlUnit(i.price, p) }; }),
     addr: last ? { name: last.name, province: last.province || '', ward: last.ward || '', address: last.address || '' } : c ? { name: c.name, province: c.province || '', ward: '', address: c.address || '' } : null,
     orders: rec.map(o => ({ id: o.id, time: Number(o.time) || 0, total: Number(o.total) || 0, status: o.status || '', paid: o.paid || '' }))
   };
@@ -157,7 +203,7 @@ export async function dlMe(x, d) {
 export async function dlOrderWeb(x, d, h) {
   if (d.website) return { ok: true };
   const b = await dlByKey(x, d.key); if (b.err) return { ok: false, bad: !!b.bad, error: b.err };
-  const { ph, e } = b, st = await dlState(x, ph, e), P = {}, now = Date.now();
+  const { ph, e } = b, st = await dlState(x, ph, e), caps = await dlCaps(x, st.cfg), P = {}, now = Date.now();
   (await dlPrices(x)).forEach(i => { P[i.id] = i; });
   const want = (Array.isArray(d.items) ? d.items : []).slice(0, 40).map(i => ({ p: P[String(i.id || '')], qty: Math.round(Number(i.qty) || 0), id: i.id })).filter(i => i.qty > 0);
   if (!want.length) return { ok: false, error: 'Bạn chọn số lượng ít nhất 1 sản phẩm nhé.' };
@@ -166,28 +212,28 @@ export async function dlOrderWeb(x, d, h) {
   const t = (v, m) => String(v || '').trim().replace(/\s+/g, ' ').slice(0, m), name = t(d.name, 80) || e.name, province = t(d.province, 60), ward = t(d.ward, 80), address = t(d.address, 200), note = t(d.note, 300);
   if (!province || address.length < 4) return { ok: false, error: 'Bạn ghi địa chỉ nhận hàng (số nhà, đường) và tỉnh / thành giúp nhé.' };
   const pct = st.T.pct, list = want.reduce((s, i) => s + i.p.price * i.qty, 0);
-  const items = want.map(i => { const u1 = dlUnit(i.p.price, pct); return { name: i.p.name, variant: i.p.variant || '', qty: i.qty, price: u1, subtotal: u1 * i.qty }; });
-  const paid = items.reduce((s, i) => s + i.subtotal, 0);
+  const items = want.map(i => { const u1 = dlUnit(i.p.price, dlPctOf(caps, pct, i.p.name + ' ' + (i.p.variant || ''))); return { name: i.p.name, variant: i.p.variant || '', qty: i.qty, price: u1, subtotal: u1 * i.qty }; });
+  const paid = items.reduce((s, i) => s + i.subtotal, 0), eff = Math.round((list - paid) * 1000 / list) / 10, effT = eff === pct ? pct + '%' : String(eff).replace('.', ',') + '% (riêng từng sản phẩm theo giá vốn)';
   if (st.firstMin && list < st.firstMin) return { ok: false, error: 'Lần nhập đầu tiên tối thiểu ' + fmt(st.firstMin) + ' (tính theo giá lẻ). Đơn này giá lẻ ' + fmt(list) + ', bạn thêm ' + fmt(st.firstMin - list) + ' nữa nhé.' };
   if (list < st.cfg.selfMin) return { ok: false, error: 'Mỗi đơn nhập tối thiểu ' + fmt(st.cfg.selfMin) + ' (tính theo giá lẻ) để được miễn phí ship. Đơn này giá lẻ ' + fmt(list) + '.' };
   const recent = await all(x.db, 'SELECT id, total, time FROM orders WHERE phone = ? AND seller = ? AND coalesce(entered_at, time) > ? ORDER BY time DESC', ph, DL_SELLER, now - DAY);
   const dup = recent.find(o => Number(o.total) === paid && Number(o.time) > now - 30 * 60e3);
-  if (dup) return { ok: true, dup: true, id: dup.id, total: paid, list, pct, off: list - paid };
+  if (dup) return { ok: true, dup: true, id: dup.id, total: paid, list, pct: eff, off: list - paid };
   if (recent.length >= 5) return { ok: false, error: 'Hôm nay bạn đã gửi 5 đơn rồi. Cần đặt thêm, bạn nhắn Zalo 0966 326 522 nhé.' };
   let id = ''; for (let n = 0; n < 6 && !id; n++) { const c = 'DL' + fmtDate(now, 'yyMMdd') + Math.floor(1000 + Math.random() * 9000); if (!(await first(x.db, 'SELECT rid FROM orders WHERE id = ?', c))) id = c; }
   if (!id) return { ok: false, error: 'Máy chủ đang bận, bạn bấm gửi lại giúp nhé.' };
-  const tag = '🏪 Đại lý tự đặt trên web · Đơn đại lý ' + st.T.name + ' −' + pct + '% (giá lẻ ' + fmt(list) + ')';
+  const tag = '🏪 Đại lý tự đặt trên web · Đơn đại lý ' + st.T.name + ' −' + effT + ' (giá lẻ ' + fmt(list) + ')';
   await h.saveOrder(x, { id, customer: { name, phone: ph, province, district: ward, address, note: tag + (note ? ' · 💬 ' + note : '') }, items, subtotal: paid, shipping: 0, total: paid, payment: 'bank', source: 'Đại lý tự đặt (web)', first_source: 'Đại lý tự đặt (web)' },
     { by: DL_SELLER, status: 'Mới' });
-  await dlOrderSave(x, id, ph, { list, pct });
+  await dlOrderSave(x, id, ph, { list, pct: eff });
   const keeper = e.by || (h.staff.indexOf(st.cfg.lead) >= 0 ? st.cfg.lead : ''); // khách đại lý chưa có người chăm → sale giới thiệu, không thì người phụ trách đại lý
   if (keeper) await x.db.prepare("UPDATE customers SET owner = ? WHERE phone = ? AND (owner = '' OR owner IS NULL OR owner = ?)").bind(keeper, ph, DL_SELLER).run();
-  const msg = '🏪 <b>ĐẠI LÝ TỰ ĐẶT HÀNG</b> – ' + esc(id) + '\n🏬 ' + esc(e.name || name) + ' – <b>' + esc(ph) + '</b> · ' + esc(st.T.name) + ' −' + pct + '%\n' +
+  const msg = '🏪 <b>ĐẠI LÝ TỰ ĐẶT HÀNG</b> – ' + esc(id) + '\n🏬 ' + esc(e.name || name) + ' – <b>' + esc(ph) + '</b> · ' + esc(st.T.name) + ' −' + esc(effT) + '\n' +
     items.map(i => '• ' + esc(i.name + (i.variant ? ' ' + i.variant : '')) + ' x' + i.qty).join('\n') +
     '\n💰 Giá lẻ ' + fmt(list) + ' → đại lý trả <b>' + fmt(paid) + '</b> (chuyển khoản trước, miễn ship)\n📍 ' + esc([address, ward, province].filter(Boolean).join(', ')) + (note ? '\n💬 ' + esc(note) : '') +
     '\n👉 ' + (st.cfg.lead ? 'Chị ' + esc(st.cfg.lead) + ' g' : 'G') + 'ọi xác nhận, kiểm tiền vào rồi đổi đơn sang Đã xác nhận để kho soạn hàng';
   x.later((async () => { await telegram(x.env, msg); if (st.cfg.lead && h.staff.indexOf(st.cfg.lead) >= 0) await h.telegramUser(x, st.cfg.lead, msg); })().catch(er => console.error('dl tg', er.message)));
-  return { ok: true, id, total: paid, list, pct, off: list - paid };
+  return { ok: true, id, total: paid, list, pct: eff, off: list - paid };
 }
 
 /** 🙋 Thưởng sale giới thiệu: bonus% tiền đại lý trả (không ship) các đơn trong bonusMonths tháng từ đơn đầu, gộp theo tháng của đơn. */
@@ -221,7 +267,8 @@ async function dlView(x, u) {
   }).sort((a, b) => b.thisPaid - a.thisPaid || b.allPaid - a.allPaid);
   const sum = { n: list.length, thisPaid: list.reduce((s, r) => s + r.thisPaid, 0), prevPaid: os.filter(o => ym(o.t) === kp).reduce((s, o) => s + o.paid, 0), orders: os.filter(o => ym(o.t) === k).length };
   const A = await dlApps(x), apps = A.filter(r => r.st === 'new').concat(A.filter(r => r.st !== 'new').slice(0, 10));
-  return { ok: true, cfg, list, sum, apps, month: k, prev: kp, bonus: { [k]: bonusOf[k] || {}, [kp]: bonusOf[kp] || {} }, company: COMPANY, canCfg: u.level >= 3 };
+  const caps = u.level >= 3 ? (await dlCapList(x, cfg)).map(i => ({ name: i.name, variant: i.variant, price: i.price, cost: i.cost, cap: i.cap })) : null; // 💰 chỉ Quản trị thấy giá vốn
+  return { ok: true, cfg, list, sum, apps, caps, month: k, prev: kp, bonus: { [k]: bonusOf[k] || {}, [kp]: bonusOf[kp] || {} }, company: COMPANY, canCfg: u.level >= 3 };
 }
 
 export async function crmDaily(x, u, d, log, staffNames) {
@@ -276,8 +323,10 @@ export async function crmDaily(x, u, d, log, staffNames) {
     const firstMin = Math.round(Number(d.first) || 0), bonus = Number(d.bonus), bonusMonths = Math.round(Number(d.bonusMonths)), top3 = Math.round(Number(d.top3));
     if (!(firstMin >= 0) || !(bonus >= 0 && bonus <= 10) || !(bonusMonths >= 0 && bonusMonths <= 24) || !(top3 >= 1 && top3 <= 12)) return { ok: false, error: 'Kiểm tra lại: thưởng sale 0–10%, 0–24 tháng; số tháng liền để lên bậc 3 từ 1–12.' };
     const old = await dlCfg(x), lead = d.lead == null ? old.lead : String(d.lead).trim().slice(0, 40), selfMin = d.selfMin == null ? old.selfMin : Math.max(0, Math.round(Number(d.selfMin) || 0));
-    await kvSet(x.db, 'dl_cfg', JSON.stringify({ tiers, first: firstMin, bonus, bonusMonths, top3, lead, selfMin }));
-    await log(x, u, 'Cài đặt đại lý', '', '', tiers.map(r => r.name + ' ' + r.pct + '% từ ' + fmt(r.min)).join(' · '), 'phụ trách ' + (lead || '—') + ' · đơn đầu ' + fmt(firstMin) + ' · tự đặt từ ' + fmt(selfMin) + ' · thưởng sale ' + bonus + '% ' + bonusMonths + ' tháng');
+    const keep = d.keep == null || d.keep === '' ? old.keep : Number(String(d.keep).replace(',', '.'));
+    if (!(keep >= 0 && keep <= 80)) return { ok: false, error: 'Lãi gộp tối thiểu giữ lại 0–80% giá lẻ.' };
+    await kvSet(x.db, 'dl_cfg', JSON.stringify({ tiers, first: firstMin, bonus, bonusMonths, top3, lead, selfMin, keep }));
+    await log(x, u, 'Cài đặt đại lý', '', '', tiers.map(r => r.name + ' ' + r.pct + '% từ ' + fmt(r.min)).join(' · '), 'phụ trách ' + (lead || '—') + ' · đơn đầu ' + fmt(firstMin) + ' · tự đặt từ ' + fmt(selfMin) + ' · giữ lãi gộp ≥ ' + keep + '% giá lẻ' + ' · thưởng sale ' + bonus + '% ' + bonusMonths + ' tháng');
     return dlView(x, u);
   }
   return { ok: false, error: 'Không rõ thao tác: ' + a };

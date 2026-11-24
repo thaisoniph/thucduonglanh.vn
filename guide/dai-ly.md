@@ -35,6 +35,8 @@ Ví dụ: đại lý lấy hàng giá lẻ 5.000.000đ, bậc Đại lý 30% →
 
 CRM tự lên / xuống bậc đầu mỗi tháng. Quản lý có thể **giữ cố định** 1 bậc cho đại lý đặc biệt.
 
+> 💰 **Sản phẩm giá vốn cao trừ ít hơn.** Công ty luôn giữ lại ít nhất 25% giá lẻ làm lãi ở mọi sản phẩm. Vì vậy có sản phẩm không được trừ đủ % của bậc. Mức riêng từng sản phẩm Quản trị xem ở ⚙️ Mức chiết khấu. CRM và trang đặt hàng của đại lý **tự tính**, form lên đơn ghi rõ sản phẩm nào trừ ít hơn. Bạn không cần nhớ.
+
 ## 6 luật đại lý phải giữ
 
 1. **Không bán thấp hơn giá trên web.** Lần 1 nhắc, lần 2 hạ bậc.
