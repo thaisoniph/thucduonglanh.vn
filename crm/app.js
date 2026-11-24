@@ -10772,7 +10772,7 @@
       '<label class="f"><span>Mô tả nhóm khách mới <small class="muted">nếu không chọn nhóm có sẵn</small></span><input id="inFdT" placeholder="Vd: nhân viên văn phòng nữ 30–40, hay đặt đồ ăn trưa"></label>' +
       '<label class="f"><span>Mục tiêu</span><select id="inFdO"><option value="ban">Bán hàng (ra đơn)</option><option value="viral">Content viral (tiếp cận, chia sẻ)</option><option value="ca2" selected>Cả hai</option></select></label>' +
       '<label class="f"><span>Ghi chú <small class="muted">không bắt buộc: dịp, khu vực, giá, điều đã thấy</small></span><textarea id="inFdN" rows="2"></textarea></label>' +
-      '<label class="switch"><input type="checkbox" id="inFdV" checked> Đọc câu khách thật 60 ngày qua (đã che số điện thoại)</label>',
+      '<label class="switch"><input type="checkbox" id="inFdV" checked> Đọc lời khách thật: 🗣 Kho lời khách + câu mới 60 ngày (đã che số điện thoại)</label>',
       '<button class="btn" data-close>Huỷ</button><button class="btn pri" id="inFdGo">🔍 Tìm insight</button>');
     $('#inFdGo', m).onclick = function () {
       var b = this; b.disabled = true; b.textContent = '⏳ AI đang tìm (khoảng 1–2 phút)…';

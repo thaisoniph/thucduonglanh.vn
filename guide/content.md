@@ -140,7 +140,7 @@ Ví dụ với mẹ sau sinh: *"Bà vẫn đúng, mẹ vẫn được nghỉ"*.
 
 ## Việc 8: Tìm nỗi lòng mới
 
-Khi có sản phẩm mới, tệp khách mới, hoặc bài đang kém, cho AI tìm thêm nỗi lòng. AI đọc cả **câu khách thật 60 ngày qua** và chấm điểm từng dòng.
+Khi có sản phẩm mới, tệp khách mới, hoặc bài đang kém, cho AI tìm thêm nỗi lòng. AI đọc cả **🗣 Kho lời khách** và **câu khách mới 60 ngày qua** và chấm điểm từng dòng.
 
 [[steps:ct-insight]]
 
