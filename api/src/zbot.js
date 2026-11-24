@@ -86,7 +86,7 @@ const TRACK_FROM = Date.UTC(2026, 9, 31, 4, 14);
 const FUNNEL = { TOFU: '🔵 Nhận biết – tương tác', MOFU: '⚪ Cân nhắc – tạo niềm tin', BOFU: '🟠 Chuyển đổi – bán hàng' };
 
 let client = null;
-function ai(env) { if (!client) client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY, maxRetries: 2, timeout: 60e3, fetch: aiFetch(env), defaultHeaders: { 'x-tdl-muc': 'zalo' } }); return client; } // qua trạm Bắc Mỹ (airelay.js)
+function ai(env) { if (!client) client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY, maxRetries: 3, timeout: 60e3, fetch: aiFetch(env), defaultHeaders: { 'x-tdl-muc': 'zalo' } }); return client; } // qua trạm Bắc Mỹ (airelay.js)
 const textOf = res => res.content.filter(b => b.type === 'text').map(b => b.text).join('\n').trim();
 
 export async function zbotSchema(db) {
@@ -492,7 +492,14 @@ async function zDm(x, d) {
         { type: 'text', text: 'Bây giờ là ' + w.label + '. Chuyên viên ' + (w.on ? 'đang trực.' : 'ngoài giờ (trực Thứ 2 – Thứ 7, 8h–17h): gọi lại từ 8h sáng hôm sau.') + ' Tên Zalo của khách: ' + String(d.name || '').slice(0, 60) + '.' + (u && u.what ? ' Khách đã nhận trên web: ' + u.what + '.' : '') + (gotPhone ? '\n(Khách vừa gửi số điện thoại, hệ thống đã chuyển cho chuyên viên. Hãy cảm ơn và báo chuyên viên sẽ liên hệ.)' : '') }],
       messages: hist.map(m => ({ role: m.r === 'u' ? 'user' : 'assistant', content: m.t })) });
     reply = res.stop_reason === 'refusal' ? 'Dạ câu này em xin phép chưa trả lời được ạ, để chuyên viên bên em nhắn lại cho mình nha. [[zalo]]' : textOf(res);
-  } catch (e) { console.error('zDm ai', e && e.message); return { ok: true, reply: 'Dạ em đang hơi chậm một chút, anh/chị nhắn lại giúp em sau ít phút nha 🙏' }; }
+  } catch (e) {
+    // AI lỗi: không để khách chờ vô vọng → ghi nhật ký + báo Telegram để chuyên viên trả lời tay, khách nhận câu tự nhiên (không nhắc "chậm")
+    const em = String(e && (e.message || e.status) || e).slice(0, 200);
+    console.error('zDm ai', em);
+    await zlog(x, 'dm_err', { uid, name: d.name, text, reply: 'AI lỗi: ' + em }).catch(() => { });
+    x.later(handoff(x, { where: 'tin nhắn riêng (AI lỗi: ' + em + ')', name: d.name, uid, text, reply: '(AI lỗi, chưa trả lời được – mời chuyên viên trả lời tay)' }));
+    return { ok: true, reply: w.on ? 'Dạ em đã nhận tin của mình rồi ạ, em báo chuyên viên bên em nhắn lại ngay nha 🙏' : 'Dạ em đã nhận tin của mình rồi ạ, chuyên viên bên em sẽ nhắn lại từ 8h sáng mai nha 🙏' };
+  }
   const z = zText(await gate(x, 'zdm', safe(reply).replace(/\*\*/g, ''), know, { q: text, ref: uid }), prodMap(know)); // 🛡 gate.js
   if (!z.text) return { ok: true };
   msgs.push({ r: 'a', t: z.text, at: Date.now() });
