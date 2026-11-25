@@ -761,8 +761,7 @@ def layout(path, title, desc, body, og=None, jsonld=None, body_class="", noindex
 <meta name="theme-color" content="#24805B">
 <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/brand/icon-32.png">
 <link rel="apple-touch-icon" href="/assets/img/brand/icon-180.png">
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;1,500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/fonts/fonts.css?v={VERSION}">
 <link rel="stylesheet" href="/assets/css/style.css?v={VERSION}">
 {ld}
 </head>
@@ -2467,7 +2466,7 @@ def page_quiz_group():
     return f'''<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex">
 <title>Chơi nhóm – {esc(data["title"])} | {BRAND}</title>
 <link rel="icon" href="/favicon.ico">
-<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700&family=Playfair+Display:wght@600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/fonts/fonts.css?v={VERSION}">
 <link rel="stylesheet" href="/assets/css/style.css?v={VERSION}">
 </head><body class="gm-body">
 <main class="gm" id="gm">
@@ -3640,7 +3639,8 @@ def main():
     (DIST / "chat-kb.txt").write_text(chat_kb(), "utf-8")  # kiến thức cho trợ lý chat (api/src/chat.js)
     # 📗 Sổ tay (15/11/2026 chuyển sang CRM, bản chính trong D1 – api/src/sotay.js): vars = số điền ô {hotline}, {shipping_fee}… từ Cài đặt website; seed = bản cũ data/so-tay.json để máy chủ chép sang lần đầu; items giữ cho máy chủ bản cũ
     _vars = {k: sotay_fill("{" + k + "}") for k in ("hotline", "company", "email", "address", "domain", "brand", "tax_code", "tax_date", "opening_hours", "slogan", "shipping_fee", "free_ship_threshold")}
-    (DIST / "so-tay.json").write_text(json.dumps({"remind_days": SOTAY.get("remind_days") or 90, "vars": _vars, "seed": SOTAY.get("items") or [], "items": sotay_items()}, ensure_ascii=False), "utf-8")
+    # 25/11/2026 (rà soát bảo mật): file này ai cũng tải được → chỉ còn số điền ô (thông tin công khai). Nội dung Sổ tay (câu trả lời đã duyệt, điều không được nói…) đã nằm trong D1 (kv so_tay, 25 mục) từ 15/11, không xuất ra web nữa.
+    (DIST / "so-tay.json").write_text(json.dumps({"remind_days": SOTAY.get("remind_days") or 90, "vars": _vars}, ensure_ascii=False), "utf-8")
     (DIST / "bot-proofs.json").write_text(json.dumps(bot_proofs(), ensure_ascii=False), "utf-8")  # ảnh giấy tờ cho trợ lý Fanpage (api/src/fb.js)
     (DIST / "ngay-doi.json").write_text(json.dumps(dd_api(), ensure_ascii=False), "utf-8")  # 🎉 Ngày Đôi: máy chủ đọc để miễn ship + thêm quà vào đơn (api/src/ngaydoi.js)
     (DIST / "dl-gia.json").write_text(json.dumps(dl_prices(), ensure_ascii=False), "utf-8")  # 🛒 giá lẻ cho đại lý tự đặt hàng (api/src/daily.js dlPrices)
@@ -3657,6 +3657,7 @@ def main():
         "/assets/css/*\n  Cache-Control: public, max-age=31536000, immutable\n"
         "/assets/js/*\n  Cache-Control: public, max-age=31536000, immutable\n"
         "/assets/img/*\n  Cache-Control: public, max-age=604800\n"
+        "/assets/fonts/*\n  Cache-Control: public, max-age=2592000\n"  # font tự lưu (25/11/2026, thay Google Fonts)
         "/assets/video/*\n  Cache-Control: public, max-age=604800\n", "utf-8")
     print(f"Đã tạo {len(routes)} trang công khai + 6 trang chức năng vào {DIST}")
     build_crm()

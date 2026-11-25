@@ -12,6 +12,7 @@ on:
       - 'api/src/apply-quiz.js'
       - 'data/site.json'
       - 'assets/img/brand/**'
+      - 'assets/fonts/**'
       - 'requirements.txt'
       - '.github/workflows/deploy-congsu.yml'
   workflow_dispatch:

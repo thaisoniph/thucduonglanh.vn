@@ -12,7 +12,7 @@ from reportlab.platypus import HRFlowable, Paragraph, SimpleDocTemplate, Spacer
 
 
 ROOT = Path(__file__).resolve().parents[1]
-OUT = ROOT / "output" / "pdf" / "bo-cong-thuong"
+OUT = ROOT / "output" / "pdf" / "bo-cong-thuong"  # không đưa lên GitHub (.gitignore); bản dùng lưu ở Drive 08_Website, CRM & Tự động hoá/Chính sách website (hồ sơ Bộ Công Thương)
 FONT = "/System/Library/Fonts/Supplemental/Arial.ttf"
 FONT_BOLD = "/System/Library/Fonts/Supplemental/Arial Bold.ttf"
 

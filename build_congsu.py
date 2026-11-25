@@ -64,8 +64,7 @@ def head(title, desc, path, extra=""):
 <meta property="og:url" content="{BASE}{path}"><meta property="og:image" content="{BASE}/img/og.jpg"><meta property="og:locale" content="vi_VN">
 <meta name="theme-color" content="#0C5233">
 <link rel="icon" href="/icon-32.png" sizes="32x32"><link rel="apple-touch-icon" href="/icon-180.png">
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=Playfair+Display:ital,wght@1,500;1,600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/fonts/fonts.css?v=__V__">
 <link rel="stylesheet" href="/style.css?v=__V__">
 <script>document.documentElement.classList.add('js')</script>
 {extra}</head>
@@ -648,6 +647,8 @@ def build_congsu():
     if OUT.exists():
         shutil.rmtree(OUT)
     shutil.copytree(SRC / "img", OUT / "img")
+    shutil.copytree(ROOT / "assets/fonts", OUT / "fonts")  # 25/11/2026: font tự lưu (dùng chung với website), không tải Google Fonts trước khi khách đồng ý
+    (OUT / "fonts/fonts.css").write_text((OUT / "fonts/fonts.css").read_text("utf-8").replace("/assets/fonts/", "/fonts/"), "utf-8")
     css = (SRC / "style.css").read_text("utf-8")
     css = re.sub(r"/\*[\s\S]*?\*/", "", css)
     css = re.sub(r"\s+", " ", css)
@@ -691,7 +692,7 @@ def build_congsu():
     (OUT / "_headers").write_text(
         "/*\n  X-Content-Type-Options: nosniff\n  X-Frame-Options: SAMEORIGIN\n  Referrer-Policy: strict-origin-when-cross-origin\n"
         "  Content-Security-Policy: default-src 'self'; connect-src 'self' https://api.thucduonglanh.vn; img-src 'self' data: https://i.ytimg.com; "
-        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; script-src 'self' 'unsafe-inline'; "
+        "style-src 'self' 'unsafe-inline'; font-src 'self'; script-src 'self' 'unsafe-inline'; "
         "frame-src https://www.youtube-nocookie.com; base-uri 'none'; form-action 'none'\n"
         "/style.css\n  Cache-Control: public, max-age=31536000, immutable\n/app.js\n  Cache-Control: public, max-age=31536000, immutable\n"
         "/img/*\n  Cache-Control: public, max-age=604800\n", "utf-8")

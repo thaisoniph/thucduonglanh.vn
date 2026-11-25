@@ -21,3 +21,5 @@ zalo-bot/qr.png
 zalo-bot/tmp/
 zalo-bot/node_modules/
 zalo-bot/*.log
+# PDF chính sách (scripts/create_bct_policy_pdfs.py) – bản lưu ở Drive 08_Website, CRM & Tự động hoá/Chính sách website (hồ sơ Bộ Công Thương)
+output/pdf/
