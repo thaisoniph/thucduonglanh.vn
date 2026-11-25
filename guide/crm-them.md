@@ -180,6 +180,7 @@ Voucher dùng cho đơn từ 300.000đ, hạn 90 ngày. Nói với khách cho d�
    - **📋 Báo khách mã**: copy tin có sẵn mã, gửi qua Zalo. Gửi xong mục đó tự ẩn.
    - **🏅 Gửi quà**: khách đủ mốc 3, 5 hoặc 10 bạn (thẻ ghi rõ quà gì). Hỏi khách gửi quà kèm đơn sau hay gửi riêng. Gửi xong bấm **✅ Đã gửi quà**.
    - **🌟 Mời làm CTV**: khách đủ 5 người. Gửi tin mời, báo quản lý để thêm khách làm CTV.
+   - Tự tặng thêm voucher cảm ơn bằng tay: sale tặng tối đa bằng mức voucher cảm ơn quản lý đã cài (hiện 50.000đ), đơn huỷ / hoàn thì không tặng được. Muốn tặng nhiều hơn thì nhờ quản lý (từ 25/11/2026).
 
 ### 👵 Khách lớn tuổi, ngại thao tác: cách dễ nhất
 
@@ -342,6 +343,8 @@ Cả hai đều không tính vào doanh số.
 - **📦 Dòng chữ xanh**: đơn Viettel Post đang ở đâu. Chuyển **khung đỏ ⚠️** khi giao không được.
 
 **Các nút khi mở đơn:** **📋 Copy thông tin giao hàng** (để dán vào app vận chuyển), **✏️ Sửa đơn** (đổi sản phẩm, địa chỉ, phí ship), **Ghi chú đơn**.
+
+> 🔒 **Từ 25/11/2026:** đơn **đã giao**, **đã huỷ / hoàn**, hoặc đơn của **tháng trước** thì sale không bấm **✏️ Sửa đơn** được nữa (lương tháng đó có thể đã chốt). Cần sửa thì nhờ quản lý. Khách xin giảm tiền thu hộ, ký nhận 1 phần, đổi hàng: vẫn ghi ở khung **✏️ Hạ COD / Ký 1 phần / Đổi hàng** trong đơn. Đơn kho đã bấm **Hoàn** thì chỉ quản lý đổi lại trạng thái.
 
 **Tìm đơn cũ:** bấm thẻ **📋 Tất cả đơn**. Chọn thời gian: *Hôm nay, Tuần này, Tháng này…*
 

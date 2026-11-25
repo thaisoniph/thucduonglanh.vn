@@ -1,5 +1,5 @@
 // CRM: đăng nhập, dữ liệu, đơn hàng, khách, tiềm năng, cài đặt. Chuyển từ Apps Script sang, giữ nguyên cách làm việc & dữ liệu trả về cho giao diện.
-import { normPhone, nrm, addrJoin, esc, fmt, startOfDay, TZ_MS, fmtDate, dateOrBlank, slugName, codePre, replaceRows, isVoid, randHex, all, first, run, insertMany, allIn, kvGet, kvSet, kvDel, kvJson, DAY, CRM_URL, ROLE_URL, refCode, crmSeen, adjOut, adjTot } from './lib.js';
+import { normPhone, nrm, addrJoin, esc, fmt, startOfDay, TZ_MS, fmtDate, dateOrBlank, slugName, codePre, replaceRows, isVoid, randHex, all, first, run, insertMany, allIn, kvGet, kvSet, kvDel, kvIncr, kvJson, DAY, CRM_URL, ROLE_URL, refCode, crmSeen, adjOut, adjTot } from './lib.js';
 import { crmSnh } from './sinhnhat.js'; // 🎂 15/11/2026
 import { crmPartner, partnerSchema, partnerCfg, orderAttrib, refClaim, staffOf, staffHit } from './partner.js';
 import { crmDaily, dlMap, dlCaps, dlOrderCheck, dlOrderSave, dlAppsNew, DL_SELLER } from './daily.js'; // 🏪 kênh đại lý (23/11/2026)
@@ -1255,7 +1255,7 @@ export async function crmLogin(x, d) {
   if (n >= 5) return { ok: false, error: 'Bạn đã xin mã quá nhiều lần. Vui lòng đợi 15 phút rồi thử lại.' };
   await kvSet(x.db, rk, String(n + 1), 900e3);
   const b = new Uint32Array(1); crypto.getRandomValues(b); const code = String(b[0] % 900000 + 100000);
-  await kvSet(x.db, 'otp_' + email, JSON.stringify({ c: code, t: 0 }), 600e3);
+  await kvSet(x.db, 'otp_' + email, JSON.stringify({ c: code, t: 0 }), 600e3); await kvDel(x.db, 'otpn_' + email); // mã mới = đếm lại lần thử
   x.later(sendMail(x.env, { to: email, name: 'CRM Thực Dưỡng Lành', subject: code + ' là mã đăng nhập CRM Thực Dưỡng Lành',
     body: 'Mã đăng nhập của bạn: ' + code + '\n\nMã dùng được trong 10 phút. Không đưa mã này cho người khác.\nNếu bạn không yêu cầu đăng nhập, hãy bỏ qua email này.\n\n' + ROLE_URL(lu.role) }).catch(e => console.error('mail', e.message))); // địa chỉ đúng vai trò (quantri. / mkt. / kho. / ketoan. / crm.) // gửi nền: trả lời ngay, email tới sau vài giây
   return { ok: true };
@@ -1263,13 +1263,13 @@ export async function crmLogin(x, d) {
 export async function crmVerify(x, d) {
   const email = String(d.email || '').trim().toLowerCase(), code = String(d.code || '').replace(/\D/g, ''), key = 'otp_' + email;
   const raw = await kvGet(x.db, key); if (!raw) return { ok: false, error: 'Mã đã hết hạn. Bấm "Gửi lại mã".' };
-  const o = JSON.parse(raw);
+  const o = JSON.parse(raw), tries = await kvIncr(x.db, 'otpn_' + email, 600e3); // 25/11/2026: đếm lần thử bằng 1 câu lệnh cộng TRƯỚC khi so mã – trước đây đọc rồi mới ghi, gửi 1.000 lần cùng lúc đều thấy "sai 0 lần"
+  if (tries > 5) { await kvDel(x.db, key); return { ok: false, error: 'Nhập sai quá 5 lần. Bấm "Gửi lại mã" để lấy mã mới.' }; }
   if (o.c !== code) {
-    o.t++;
-    if (o.t >= 5) { await kvDel(x.db, key); return { ok: false, error: 'Nhập sai quá 5 lần. Bấm "Gửi lại mã" để lấy mã mới.' }; }
-    await run(x.db, 'UPDATE kv SET v = ? WHERE k = ?', JSON.stringify(o), key);
+    if (tries >= 5) { await kvDel(x.db, key); return { ok: false, error: 'Nhập sai quá 5 lần. Bấm "Gửi lại mã" để lấy mã mới.' }; }
     return { ok: false, error: 'Mã chưa đúng, bạn kiểm tra lại email nhé.' };
   }
+  await kvDel(x.db, 'otpn_' + email);
   await kvDel(x.db, key);
   const u = await crmUser(x, email); if (!u) return { ok: false, error: 'Tài khoản đã bị khoá.' };
   await run(x.db, 'DELETE FROM sessions WHERE exp < ?', Date.now());
@@ -1399,7 +1399,7 @@ export { ORDER_COLS };
 export async function saveOrder(x, data, opt) {
   const c = Object.assign({}, data.customer || {}), now = Date.now(), manual = !!opt.by, raw = normPhone(c.phone), phone = await mainPhone(x, raw);
   if (raw !== phone) c.note = (c.note ? c.note + ' · ' : '') + 'SĐT khách ghi: ' + raw; // số phụ của khách đã gộp → đơn vào hồ sơ số chính, giữ số khách ghi để giao hàng
-  if (!manual && data.id && await first(x.db, 'SELECT rid FROM orders WHERE id = ?', String(data.id))) return { dup: true }; // web gửi lại khi mạng chập chờn
+  if (!manual && data.id && await first(x.db, 'SELECT rid FROM orders WHERE id = ? AND phone = ?', String(data.id), phone)) return { dup: true }; // web gửi lại khi mạng chập chờn
   canonItems(data.items, await kvJson(x.db, 'prod_canon', {}));
   const items = itemsText(data.items || []), pay = data.payment === 'bank' ? 'Chuyển khoản' : 'COD', realItems = (data.items || []).filter(i => !i.gift);
   if (!opt.otype) { try { opt.otype = (await otypeSuggest(x, phone, now)).t; } catch (e) { console.error('otype', e.message); } } // đơn web: loại đơn theo gợi ý (tính trước khi lưu)
@@ -1471,6 +1471,8 @@ async function orderFind(x, d) {
   return o;
 }
 /** Nhân viên được xử lý đơn mình bán hoặc đơn của khách mình phụ trách. */
+/** 0h ngày 1 tháng này (giờ VN). */
+function monthStartVN(t) { const d = new Date(t + TZ_MS); return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1) - TZ_MS; }
 async function orderGuard(x, u, o) { if (u.level >= 2 || o.seller === u.name) return ''; return guardPhone(x, u, o.phone); }
 async function crmOrderStatus(x, u, d, sys) { // sys: lệnh nội bộ đã tự kiểm quyền (kho nhận hàng hoàn)
   const o = await orderFind(x, d); if (!o) return { ok: false, error: 'Không tìm thấy đơn ' + d.id };
@@ -1478,6 +1480,7 @@ async function crmOrderStatus(x, u, d, sys) { // sys: lệnh nội bộ đã t�
   const old = String(o.status || ''), set = {}; let status = d.status;
   if (d.seller !== undefined && u.level < 2) return { ok: false, error: 'Chỉ quản lý đổi được nhân viên bán.' };
   if (status && status !== old && ORDER_STATUS.indexOf(status) < 0) return { ok: false, error: 'Trạng thái không hợp lệ' };
+  if (!sys && u.level < 2 && status && status !== old && old === 'Hoàn') return { ok: false, error: 'Đơn kho đã nhận hàng hoàn. Cần đổi trạng thái, nhờ quản lý đổi giúp.' }; // 25/11/2026: trước đây sale đổi Hoàn → Đã giao được, đơn lại tính doanh số + hoa hồng
   if (d.note !== undefined) set.note = String(d.note);
   if (d.paid !== undefined) { set.paid = d.paid ? 'Có – ' + u.name + ' ' + fmtDate(Date.now(), 'dd/MM HH:mm') : ''; await crmLog(x, u, 'Đơn hàng', d.id, o.name, d.paid ? 'Đã nhận tiền chuyển khoản' : 'Bỏ đánh dấu đã nhận tiền', ''); }
   if (d.seller !== undefined) { set.seller = String(d.seller); await crmLog(x, u, 'Đơn hàng', d.id, o.name, 'Nhân viên bán: ' + (o.seller || '–') + ' → ' + (d.seller || '–'), ''); }
@@ -1555,6 +1558,8 @@ async function crmOrderEdit(x, u, d) {
   if (!String(c.name || '').trim()) return { ok: false, error: 'Thiếu tên khách.' };
   if (!items.length) return { ok: false, error: 'Đơn phải có ít nhất 1 sản phẩm.' };
   const gErr = (await orderGuard(x, u, o)) || (o.phone !== phone ? await guardPhone(x, u, phone) : ''); if (gErr) return { ok: false, error: gErr };
+  // 25/11/2026 (rà soát bảo mật): sale không sửa đơn đã giao / đã hoàn, hay đơn từ tháng trước (lương tháng đó có thể đã chốt) – nhờ quản lý
+  if (u.level < 2 && (o.status === 'Đã giao' || isVoid(o.status) || Number(o.time) < monthStartVN(Date.now()))) return { ok: false, error: 'Đơn đã giao, đã huỷ / hoàn hoặc của tháng trước thì sale không sửa được, nhờ quản lý sửa giúp. Hạ COD / Ký 1 phần / Đổi hàng vẫn ghi ở khung ✏️ trong đơn.' };
   const ship = Math.max(0, Math.round(Number(d.shipping) || 0)), sub = applyTotal(items, d.total, ship);
   items = items.concat(cleanItems(d.gifts).map(g => Object.assign(g, { gift: true, price: 0, subtotal: 0 })));
   canonItems(items, await kvJson(x.db, 'prod_canon', {}));

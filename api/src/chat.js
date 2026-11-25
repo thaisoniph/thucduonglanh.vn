@@ -9,7 +9,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { aiFetch } from './airelay.js';
 import { edAdd, edBlock, edCount } from './edlearn.js';
-import { esc, run, first, kvGet, kvSet, normPhone, fmtDate, md5hex, CRM_URL, TZ_MS, DAY } from './lib.js';
+import { esc, run, first, kvGet, kvSet, kvIncr, normPhone, fmtDate, md5hex, CRM_URL, TZ_MS, DAY } from './lib.js';
 import { addLead, telegramUser } from './crm.js';
 import { botRef } from './partner.js';
 import { telegram } from './google.js';
@@ -101,17 +101,18 @@ const CLAIM_RE = /(giúp|có thể|có tác dụng|công dụng)\s+(chữa|đi�
 export const safe = s => String(s || '').replace(CLAIM_RE, (m, a, b, off, all) => /không|chẳng|chưa/i.test(all.slice(Math.max(0, off - 24), off)) ? m : a ? a + ' hỗ trợ' : 'hỗ trợ');
 export const PHONE_RE = /(?:\+?84|0)(?:[\s.-]?\d){9}\b/;
 export const REF_TXT = /gi[ớo]i thi[ệe]u|gioi thieu/i; // tin có chữ "giới thiệu" + số điện thoại = số người giới thiệu, không phải số của khách
-const kvNum = async (db, k) => Number(await kvGet(db, k) || 0);
 
 export async function chat(x, d) {
   if (!x.env.ANTHROPIC_API_KEY) return { ok: false, off: true };
   const sid = String(d.sid || '').replace(/[^a-z0-9]/gi, '').slice(0, 32), text = String(d.text || '').replace(/\s+/g, ' ').trim().slice(0, MSG_LEN);
   if (sid.length < 10 || !text) return { ok: false, error: 'Thiếu câu hỏi' };
   const now = Date.now(), day = fmtDate(now, 'yyMMdd'), ipk = 'chat_ip_' + md5hex('tdl-chat|' + x.ip).slice(0, 12) + '_' + day, dk = 'chat_n_' + day;
-  const [nIp, nDay] = await Promise.all([kvNum(x.db, ipk), kvNum(x.db, dk)]);
   const row = await first(x.db, 'SELECT * FROM chats WHERE sid = ?', sid);
   let msgs = []; try { msgs = JSON.parse(row && row.msgs || '[]'); } catch (e) { }
-  if (nIp >= IP_MAX || nDay >= DAY_MAX || msgs.filter(m => m.r === 'u').length >= SID_MAX) return { ok: true, reply: LIMIT_MSG, limit: true };
+  if (msgs.filter(m => m.r === 'u').length >= SID_MAX) return { ok: true, reply: LIMIT_MSG, limit: true };
+  // 25/11/2026: giữ suất TRƯỚC khi gọi AI (cộng 1 câu lệnh) – trước đây gọi AI xong mới đếm, gửi dồn dập cùng lúc thì không câu nào bị chặn → tốn tiền Anthropic
+  const [nIp, nDay] = await Promise.all([kvIncr(x.db, ipk, 2 * DAY), kvIncr(x.db, dk, 3 * DAY)]);
+  if (nIp > IP_MAX || nDay > DAY_MAX) return { ok: true, reply: LIMIT_MSG, limit: true };
   msgs.push({ r: 'u', t: text, at: now });
 
   // khách tự gõ số điện thoại → ghi khách hỏi luôn (khách chủ động gửi)
@@ -151,7 +152,6 @@ export async function chat(x, d) {
   await run(x.db, `INSERT INTO chats (sid, start, last, n, page, src, msgs, miss, prods) VALUES (?, ?, ?, 1, ?, ?, ?, ?, ?)
     ON CONFLICT(sid) DO UPDATE SET last = excluded.last, n = chats.n + 1, msgs = excluded.msgs, miss = chats.miss + excluded.miss, prods = excluded.prods`,
     sid, now, now, String(d.page || '').slice(0, 300), String(d.source || '').slice(0, 200), keep, miss, prods);
-  await Promise.all([kvSet(x.db, ipk, String(nIp + 1), 2 * DAY), kvSet(x.db, dk, String(nDay + 1), 3 * DAY)]);
   if (Math.random() < 0.02) x.later(run(x.db, "DELETE FROM chats WHERE last < ? AND lead = ''", now - 90 * DAY)); // dọn chat cũ chưa để lại số
   if (gotPhone) x.later(chatLeadSave(x, { sid, name: '', phone: gotPhone, source: d.source, typed: true }));
   return { ok: true, reply, lead: !!gotPhone };

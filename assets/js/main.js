@@ -758,7 +758,7 @@
     var body = JSON.stringify(payload);
     return fetch(CFG.endpoint, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: body })
       .then(function (r) { return r.json().catch(function () { return { ok: true }; }); })
-      .then(function (j) { if (j && j.voucher_error) { var ev = new Error(j.voucher_error); ev.voucher = true; throw ev; } if (j && j.ok === false) throw new Error(j.error || 'failed'); return { sent: true, total: j && j.total, dd: j && j.dd }; })
+      .then(function (j) { if (j && j.voucher_error) { var ev = new Error(j.voucher_error); ev.voucher = true; throw ev; } if (j && j.ok === false) throw new Error(j.error || 'failed'); return { sent: true, id: j && j.id, total: j && j.total, dd: j && j.dd, qt: j && j.qt }; })
       .catch(function (e) {
         if (e && e.voucher) throw e; // mã ưu đãi không hợp lệ: báo khách, không gửi lại
         return fetch(CFG.endpoint, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: body })
@@ -1119,7 +1119,7 @@
     var src = sourceLabel();
     var order = { type: 'order', id: id, created: d.toISOString(), customer: data.customer, payment: data.payment, items: clean, subtotal: sub, shipping: t.fee, total: t.total, voucher: t.on ? VC.code : '', discount: t.off, page: location.href, marketing_consent: !!data.marketing, source: src.last, first_source: src.first, post: (function () { var p = load('tdl_post', null); return p && Date.now() - p.t < 7 * 864e5 ? p.s : ''; })(), ref: refCode(), bv: (function () { var b = load('tdl_bv', null); return b && b.r === refCode() && Date.now() - b.t < 30 * 864e5 ? b.b : ''; })(), ref_at: refCode() ? (load('tdl_ref', null) || {}).t || 0 : 0 }; // ref_at: lúc khách bấm link (CTV không được tính khách đã là khách hỏi của sale trước lúc này)
     var label = btn.innerHTML; btn.disabled = true; btn.textContent = T('Đang gửi đơn hàng…');
-    send(order).then(function (r) { order.sent = r.sent; if (r.total) order.total = r.total; if (r.dd) order.dd = r.dd; if (r.qt) order.qt = r.qt; if (LANG !== 'vi') order.view = items.map(function (i) { return { name: i.name, variant: i.variant }; }); save('tdl_last_order', order); if (order.voucher) vcClear(); if (onSent) onSent(); location.href = U('/dat-hang-thanh-cong/') + '?id=' + id; })
+    send(order).then(function (r) { order.sent = r.sent; if (r.id) order.id = r.id; if (r.total) order.total = r.total; if (r.dd) order.dd = r.dd; if (r.qt) order.qt = r.qt; if (LANG !== 'vi') order.view = items.map(function (i) { return { name: i.name, variant: i.variant }; }); save('tdl_last_order', order); if (order.voucher) vcClear(); if (onSent) onSent(); location.href = U('/dat-hang-thanh-cong/') + '?id=' + id; })
       .catch(function (e) {
         btn.disabled = false; btn.innerHTML = label; msg.className = 'form-msg err';
         if (e && e.voucher) { track('voucher_fail', { coupon: order.voucher, reason: e.message, at: 'dat_hang' }); vcClear(); vcUi.open = true; vcUi.draft = order.voucher; vcUi.msg = e.message; vcUi.err = true; vcRedraw(); msg.textContent = '🎟 ' + e.message + T(' Đã bỏ mã, bạn xem lại tổng tiền rồi bấm Đặt hàng lại nhé.'); return; }

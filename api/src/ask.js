@@ -102,16 +102,22 @@ async function columns(x) {
   colMem = { t: Date.now(), c };
   return c;
 }
+/** 25/11/2026 (rà soát bảo mật): che ngay trong SQL. Trước đây chỉ che ở kết quả bằng regex → AI viết substr(phone, 2) hay replace(name, '⟦', '') là lấy được số / tên đầy đủ.
+ *  Tên: chỉ còn chữ cuối (tên gọi). Số điện thoại: 3 số đầu + **** + 3 số cuối (2 bảng ghép theo số vẫn khớp). */
+const PHONE_COL = /(^|_)phone$|^ref$/;
+const lastWord = c => `replace(trim(${c}), rtrim(trim(${c}), replace(trim(${c}), ' ', '')), '')`;
 function maskSel(t, cols) {
   const nm = NAME_C[t] || [], dr = DROP_C[t] || [], cut = CUT_C[t] || {};
-  return cols.map(c => nm.includes(c) ? `CASE WHEN coalesce(${c}, '') = '' THEN '' ELSE '${MK1}' || ${c} || '${MK2}' END AS ${c}` : dr.includes(c) ? `'' AS ${c}` : cut[c] ? `substr(${c}, 1, ${cut[c]}) AS ${c}` : c).join(', ');
+  return cols.map(c => nm.includes(c) ? `CASE WHEN coalesce(${c}, '') = '' THEN '' ELSE '${MK1}' || ${lastWord(c)} || '${MK2}' END AS ${c}`
+    : PHONE_COL.test(c) ? `CASE WHEN length(${c}) >= 9 THEN substr(${c}, 1, 3) || '****' || substr(${c}, -3) ELSE ${c} END AS ${c}`
+    : dr.includes(c) ? `'' AS ${c}` : cut[c] ? `substr(${c}, 1, ${cut[c]}) AS ${c}` : c).join(', ');
 }
 /** Bảng đã che, cùng tên bảng thật (CTE che bảng thật trong câu của AI). Bình thường đọc "main.<bảng>"; D1 không cho thì dùng view ask_v_<bảng> (viaView). */
 let viaView = false;
 function maskCte(t, cols) { return viaView ? `${t} AS (SELECT * FROM ask_v_${t})` : `${t} AS (SELECT ${maskSel(t, cols)} FROM main.${t})`; }
 async function ensureViews(x, ctx) { // tạo 1 lần, tạo lại khi bảng có cột mới
   for (const t of ctx.tabs) {
-    const sig = ctx.cols[t].join(','), k = 'askv_' + t; if ((await kvGet(x.db, k)) === sig) continue;
+    const sig = ctx.cols[t].join(','), k = 'askv2_' + t; // askv2: 25/11/2026 đổi cách che → tạo lại view if ((await kvGet(x.db, k)) === sig) continue;
     await x.db.batch([x.db.prepare(`DROP VIEW IF EXISTS ask_v_${t}`), x.db.prepare(`CREATE VIEW ask_v_${t} AS SELECT ${maskSel(t, ctx.cols[t])} FROM ${t}`)]);
     await kvSet(x.db, k, sig);
   }
@@ -134,7 +140,7 @@ function cleanCell(v) {
 }
 
 /* ---------- công cụ 1: tra_cuu (SELECT chỉ đọc) */
-function checkSql(sql, tabs) {
+function checkSql(sql, tabs, allT) {
   let s = String(sql || '').trim().replace(/;\s*$/, '');
   if (!s) return { err: 'Thiếu câu SQL.' };
   if (s.length > 6000) return { err: 'Câu SQL quá dài.' };
@@ -142,12 +148,18 @@ function checkSql(sql, tabs) {
   if (!/^\s*(select|with)\b/.test(bare)) return { err: 'Chỉ được dùng câu SELECT hoặc WITH … SELECT.' };
   if (bare.includes(';')) return { err: 'Mỗi lần chỉ 1 câu lệnh, không dùng dấu chấm phẩy.' };
   if (/\b(main|temp)\s*\./.test(bare) || /\b(pragma\w*|attach|detach|sqlite_\w+|load_extension)\b/.test(bare)) return { err: 'Câu lệnh có phần không được phép (main., pragma, sqlite_…).' };
-  const bad = ALL_T.filter(t => !tabs.includes(t) && new RegExp('\\b' + t + '\\b').test(bare));
+  const bad = (allT || ALL_T).filter(t => !tabs.includes(t) && new RegExp('\\b' + t + '\\b').test(bare)); // allT = mọi bảng + view thật trong D1 (25/11/2026: trước đây chỉ chặn bảng có tên trong ALL_T, bảng thêm sau như lương, tin Zalo đọc được)
   if (bad.length) return { err: 'Không được đọc bảng: ' + bad.join(', ') + '. Bảng được dùng: ' + tabs.join(', ') + '.' };
   return { sql: s };
 }
+let dbT = null, dbTAt = 0; // tên mọi bảng + view trong D1, đọc lại 10 phút / lần (bảng mới tạo sau vẫn bị chặn)
+async function dbTables(x) {
+  if (!dbT || Date.now() - dbTAt > 600e3) dbTAt = Date.now(), dbT = (await all(x.db, "SELECT name FROM sqlite_master WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%' AND name NOT LIKE '_cf_%'")).map(r => r.name.toLowerCase()).concat(ALL_T);
+  return dbT;
+}
 async function toolSql(x, inp, ctx) {
-  const ck = checkSql(inp.sql, ctx.tabs);
+  let allT = null; try { allT = await dbTables(x); } catch (e) { console.error('ask tables', e.message); }
+  const ck = checkSql(inp.sql, ctx.tabs, allT);
   if (ck.err) return { error: ck.err };
   const exec = () => x.db.prepare('WITH ' + ctx.tabs.map(t => maskCte(t, ctx.cols[t])).join(',\n') + '\nSELECT * FROM (\n' + ck.sql + '\n) LIMIT ' + (ROW_MAX + 1)).raw({ columnNames: true });
   const sqlErr = e => ({ error: 'Lỗi SQL: ' + String(e && e.message || e).replace(/^D1_ERROR:\s*/, '').slice(0, 300) });

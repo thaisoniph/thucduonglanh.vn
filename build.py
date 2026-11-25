@@ -2038,6 +2038,12 @@ def dl_prices():
     return {"items": out}
 
 
+def web_prices():
+    """💰 Bảng giá web /web-gia.json (25/11/2026, rà soát bảo mật): máy chủ api/src/webgia.js tính lại tiền đơn web theo bảng này, không tin giá trình duyệt gửi.
+    Cùng số với window.TDL_PRODUCTS (price, variants[].price) → khách thấy giá nào, máy chủ tính đúng giá đó."""
+    return {"ship": SITE.get("shipping_fee", 0), "items": {p["slug"]: {"p": p.get("price"), "v": {v["name"]: v["price"] for v in p.get("variants", []) if v.get("name") and v.get("price") is not None}} for p in PRODUCTS_ALL}}
+
+
 def page_dl_order():
     """🛒 Đại lý tự đặt hàng /dai-ly/dat-hang/#<link riêng> (đợt 3): link do người phụ trách gửi qua Zalo (CRM → Cài đặt → 🏪 Đại lý → 🔗 Link đặt hàng).
     main.js initDlOrder gọi api daily.js dlMe / dlOrderWeb. noindex, không vào sitemap."""
@@ -3633,6 +3639,7 @@ def main():
     (DIST / "bot-proofs.json").write_text(json.dumps(bot_proofs(), ensure_ascii=False), "utf-8")  # ảnh giấy tờ cho trợ lý Fanpage (api/src/fb.js)
     (DIST / "ngay-doi.json").write_text(json.dumps(dd_api(), ensure_ascii=False), "utf-8")  # 🎉 Ngày Đôi: máy chủ đọc để miễn ship + thêm quà vào đơn (api/src/ngaydoi.js)
     (DIST / "dl-gia.json").write_text(json.dumps(dl_prices(), ensure_ascii=False), "utf-8")  # 🛒 giá lẻ cho đại lý tự đặt hàng (api/src/daily.js dlPrices)
+    (DIST / "web-gia.json").write_text(json.dumps(web_prices(), ensure_ascii=False), "utf-8")  # 💰 giá web để máy chủ tính lại tiền đơn (api/src/webgia.js)
     (DIST / "anh-zalo.json").write_text(json.dumps(zalo_imgs(), ensure_ascii=False), "utf-8")  # kho ảnh thật cho bài đăng nhóm Zalo (api/src/zbot.js)
     if SITE.get("indexnow_key"):  # file xác minh IndexNow (Bing, Yandex…): workflow deploy.yml báo các trang mới sửa sau mỗi lần đăng
         (DIST / f'{SITE["indexnow_key"]}.txt').write_text(SITE["indexnow_key"], "utf-8")

@@ -4,7 +4,7 @@
 // - /gh/api/v3/*, /gh/api/graphql : cổng trung gian tới api.github.com. Đổi mã phiên của nhân sự thành mã GitHub của công ty
 //   (kv gh_cms_token, Quản trị dán ở CRM → Cài đặt), chỉ cho đọc/ghi repo website, ghi tên người sửa vào commit + Nhật ký CRM.
 // Chỉ nhận mã phiên đăng nhập bằng email (từ 14/10/2026 bỏ cách cũ đăng nhập bằng mã GitHub cá nhân).
-import { kvGet, kvSet, kvDel, randHex, DAY } from './lib.js';
+import { kvGet, kvSet, kvDel, kvIncr, randHex, DAY } from './lib.js';
 import { sendMail } from './google.js';
 import { crmUsers, crmLog, SUPER_ADMIN } from './crm.js';
 
@@ -57,7 +57,7 @@ async function cmsLogin(x, d) {
   if (n >= 5) return { ok: false, error: 'Bạn đã xin mã quá nhiều lần. Vui lòng đợi 15 phút rồi thử lại.' };
   await kvSet(x.db, rk, String(n + 1), 900e3);
   const b = new Uint32Array(1); crypto.getRandomValues(b); const code = String(b[0] % 900000 + 100000);
-  await kvSet(x.db, 'cotp_' + email, JSON.stringify({ c: code, t: 0 }), 600e3);
+  await kvSet(x.db, 'cotp_' + email, JSON.stringify({ c: code, t: 0 }), 600e3); await kvDel(x.db, 'cotpn_' + email); // mã mới = đếm lại lần thử
   x.later(sendMail(x.env, { to: email, name: 'Website Thực Dưỡng Lành', subject: code + ' là mã đăng nhập trang quản trị website Thực Dưỡng Lành',
     body: 'Mã đăng nhập trang quản trị website của bạn: ' + code + '\n\nMã dùng được trong 10 phút. Không đưa mã này cho người khác.\nNếu bạn không yêu cầu đăng nhập, hãy bỏ qua email này.\n\n' + ADMIN_URL }).catch(e => console.error('mail', e.message)));
   return { ok: true };
@@ -65,13 +65,13 @@ async function cmsLogin(x, d) {
 async function cmsVerify(x, d) {
   const email = String(d.email || '').trim().toLowerCase(), code = String(d.code || '').replace(/\D/g, ''), key = 'cotp_' + email;
   const raw = await kvGet(x.db, key); if (!raw) return { ok: false, error: 'Mã đã hết hạn. Bấm "Gửi lại mã".' };
-  const o = JSON.parse(raw);
+  const o = JSON.parse(raw), tries = await kvIncr(x.db, 'cotpn_' + email, 600e3); // 25/11/2026: đếm lần thử trước khi so mã (giống crmVerify)
+  if (tries > 5) { await kvDel(x.db, key); return { ok: false, error: 'Nhập sai quá 5 lần. Bấm "Gửi lại mã" để lấy mã mới.' }; }
   if (o.c !== code) {
-    o.t++;
-    if (o.t >= 5) { await kvDel(x.db, key); return { ok: false, error: 'Nhập sai quá 5 lần. Bấm "Gửi lại mã" để lấy mã mới.' }; }
-    await kvSet(x.db, key, JSON.stringify(o), 600e3);
+    if (tries >= 5) { await kvDel(x.db, key); return { ok: false, error: 'Nhập sai quá 5 lần. Bấm "Gửi lại mã" để lấy mã mới.' }; }
     return { ok: false, error: 'Mã chưa đúng, bạn kiểm tra lại email nhé.' };
   }
+  await kvDel(x.db, 'cotpn_' + email);
   await kvDel(x.db, key);
   const u = await webUser(x, email); if (!u) return { ok: false, error: 'Tài khoản đã bị khoá hoặc tắt quyền sửa website.' };
   if (!await cmsToken(x)) return { ok: false, error: NO_TOKEN };

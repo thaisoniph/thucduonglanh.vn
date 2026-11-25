@@ -8,7 +8,7 @@ export const MKT_URL = 'https://mkt.thucduonglanh.vn'; // cùng trang CRM, mở 
 export const ROLE_URL = role => role === 'Quản trị' ? 'https://quantri.thucduonglanh.vn' : role === 'Marketing' ? MKT_URL : role === 'Kho' ? 'https://kho.thucduonglanh.vn' : role === 'Kế toán' ? 'https://ketoan.thucduonglanh.vn' : role === 'Quản lý' ? 'https://kinhdoanh.thucduonglanh.vn' : CRM_URL;
 
 export function normPhone(p) { p = String(p == null ? '' : p).replace(/\D/g, ''); if (p.indexOf('84') === 0 && p.length >= 11) p = '0' + p.slice(2); return p; }
-export function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+export function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); } // 25/11/2026: thêm " ' – chữ đặt trong value="…" không thoát ra chèn mã được (mcp.js trang đăng nhập)
 export function fmt(n) { return Math.round(Number(n) || 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' ₫'; }
 export function startOfDay(t) { t = typeof t === 'number' ? t : new Date(t).getTime(); return Math.floor((t + TZ_MS) / DAY) * DAY - TZ_MS; }
 /** Định dạng ngày giờ theo giờ Việt Nam: yyyy, yy, MM, dd, HH, mm, ss. */
@@ -114,6 +114,11 @@ export async function kvGet(db, k) {
   return r.v;
 }
 export async function kvSet(db, k, v, ttlMs) { await run(db, 'INSERT INTO kv (k, v, exp) VALUES (?, ?, ?) ON CONFLICT(k) DO UPDATE SET v = excluded.v, exp = excluded.exp', k, String(v), ttlMs ? Date.now() + ttlMs : null); }
+/** Cộng 1 nguyên tử (25/11/2026): đọc rồi ghi ở 2 bước thì gửi dồn dập cùng lúc đều thấy số cũ (lách giới hạn). Hết hạn thì đếm lại từ 1. Trả số sau khi cộng. */
+export async function kvIncr(db, k, ttlMs) {
+  const now = Date.now(), r = await first(db, "INSERT INTO kv (k, v, exp) VALUES (?, '1', ?) ON CONFLICT(k) DO UPDATE SET v = CASE WHEN kv.exp IS NOT NULL AND kv.exp < ? THEN '1' ELSE CAST(CAST(kv.v AS INTEGER) + 1 AS TEXT) END, exp = CASE WHEN kv.exp IS NOT NULL AND kv.exp < ? THEN excluded.exp ELSE kv.exp END RETURNING v", k, now + ttlMs, now, now);
+  return Number(r && r.v) || 1;
+}
 export async function kvDel(db, k) { await run(db, 'DELETE FROM kv WHERE k = ?', k); }
 export async function kvJson(db, k, dflt) { const v = await kvGet(db, k); if (v == null) return dflt; try { return JSON.parse(v); } catch (e) { return dflt; } }
 /** ✏️ Điều chỉnh tiền đơn (11/11/2026): sale ghi Hạ COD / Ký 1 phần / Đổi hàng → total = tiền thực thu, adj_from = tiền ban đầu. */

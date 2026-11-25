@@ -10,7 +10,7 @@
 //   giới thiệu vào ô mã ưu đãi cũng được (voucher.js). Đơn của bạn đã giao + 7 ngày → refAuto tự phát voucher CAMON = rwPct % tiền hàng của bạn
 //   (gắn SĐT người giới thiệu, hạn 90 ngày), sale chỉ việc báo khách. Đủ tierN bạn mua → tặng tierGift (1 hộp Trà DILVANG), đủ ctvN → mời làm CTV.
 //   Chống gian lận: không tính đơn trùng SĐT / trùng địa chỉ người giới thiệu, đơn huỷ / hoàn.
-import { all, first, run, kvGet, kvSet, normPhone, fmt, nrm, isVoid, refCode, randHex, esc, crmSeen } from './lib.js';
+import { all, first, run, kvGet, kvSet, kvIncr, normPhone, fmt, fmtDate, nrm, isVoid, refCode, randHex, esc, crmSeen } from './lib.js';
 import { vcNorm, vcLabel, makeRefCode } from './voucher.js';
 import { telegram } from './google.js';
 
@@ -127,14 +127,19 @@ async function refCodeFor(x, u, d) {
 }
 /** Sale tặng quà / voucher cảm ơn khách đã giới thiệu (theo đơn của người được giới thiệu). */
 async function refGift(x, u, d, log) {
-  const o = await first(x.db, 'SELECT id, phone, name, ref_phone, ref_gift, total FROM orders WHERE id = ? ORDER BY rid LIMIT 1', String(d.id));
+  const o = await first(x.db, 'SELECT id, phone, name, ref_phone, ref_gift, total, status FROM orders WHERE id = ? ORDER BY rid LIMIT 1', String(d.id));
   if (!o || !o.ref_phone) return { ok: false, error: 'Đơn này không có khách giới thiệu.' };
+  if (isVoid(o.status)) return { ok: false, error: 'Đơn này đã huỷ / hoàn nên không tặng quà cảm ơn.' }; // 25/11/2026
   if (o.ref_gift) return { ok: false, error: 'Đã tặng rồi: ' + o.ref_gift };
   const rc = await first(x.db, 'SELECT name FROM customers WHERE phone = ?', o.ref_phone), day = new Date(Date.now() + 7 * 3600e3).toISOString().slice(0, 10).split('-').reverse().join('/');
   let txt = '', code = '', label = '';
   if (d.kind === 'voucher') {
     const kind = d.vkind === 'percent' ? 'percent' : 'amount', value = Math.max(0, Number(d.value) || 0);
     if (kind === 'percent' ? !(value > 0 && value <= 50) : !(value >= 10000)) return { ok: false, error: kind === 'percent' ? 'Phần trăm giảm từ 1 đến 50.' : 'Số tiền giảm từ 10.000đ.' };
+    if (u.level < 2) { // 25/11/2026 (rà soát bảo mật): trước đây sale tạo được voucher bao nhiêu tiền cũng được (5 triệu = cả đơn miễn phí) → sale chỉ tới mức anh cài ở Cài đặt → Khách giới thiệu
+      const cfg = await partnerCfg(x), capA = Math.max(50000, Number(cfg.rwAmt) || 0, ...stepsOf(cfg.rwSteps).map(t => Number(t[1]) || 0)), capP = Math.max(10, Number(cfg.rwPct) || 0);
+      if (kind === 'percent' ? value > capP : value > capA) return { ok: false, error: 'Sale tặng tối đa ' + (kind === 'percent' ? capP + '%' : fmt(capA)) + '. Muốn tặng nhiều hơn, nhờ quản lý tặng giúp.' };
+    }
     const exp = new Date(Date.now() + 90 * DAY + 7 * 3600e3).toISOString().slice(0, 10);
     code = 'CAMON' + o.ref_phone.slice(-4); let i = 1; while (await first(x.db, 'SELECT code FROM vouchers WHERE code = ?', code)) code = 'CAMON' + o.ref_phone.slice(-4) + (++i);
     await run(x.db, "INSERT INTO vouchers (code, kind, value, max_off, min_sub, exp, max_uses, once, phone, note, active, created, by_name) VALUES (?, ?, ?, 0, 0, ?, 1, 1, ?, ?, 1, ?, ?)",
@@ -284,13 +289,16 @@ export async function botRef(x, texts, phone) {
   return out;
 }
 /** CRM: tìm người giới thiệu trong cả công ty (sale chỉ có sẵn khách của mình trên máy) – theo tên không dấu hoặc số; trả tên, khu vực, người phụ trách. */
-async function refFind(x, d) {
+async function refFind(x, u, d) {
   const q = nrm(d.q).trim(), qd = String(d.q || '').replace(/\D/g, ''); if (q.length < 2 && qd.length < 4) return { ok: true, list: [] };
+  // 25/11/2026 (rà soát bảo mật): sale gõ lần lượt 4 số bất kỳ là lấy được tên + số mọi khách công ty → sale chỉ được 40 lần tìm / ngày, mỗi lần tối đa 3 khách của người khác
+  const lim = u.level < 2; if (lim && await kvIncr(x.db, 'reff_' + u.name + '_' + fmtDate(Date.now(), 'yyMMdd'), DAY) > 40) return { ok: false, error: 'Hôm nay bạn đã tìm người giới thiệu 40 lần. Cần tìm thêm, nhờ quản lý tìm giúp nhé.' };
   const words = q.split(/\s+/).filter(Boolean), last = words[words.length - 1] || '';
   const rows = qd.length >= 4 ? await all(x.db, "SELECT phone, name, ward, province, owner, orders FROM customers WHERE orders > 0 AND phone LIKE ? LIMIT 20", '%' + qd.slice(-9) + '%')
     : await all(x.db, "SELECT phone, name, ward, province, owner, orders FROM customers WHERE orders > 0 AND (name LIKE ? OR name LIKE ?) LIMIT 400", '%' + d.q.trim().split(/\s+/).pop() + '%', '%' + last + '%');
   let hit = rows.filter(r => qd.length >= 4 || words.every(w => nrm(r.name).indexOf(w) >= 0));
   if (!hit.length && qd.length < 4) hit = (await all(x.db, 'SELECT phone, name, ward, province, owner, orders FROM customers WHERE orders > 0')).filter(r => words.every(w => nrm(r.name).indexOf(w) >= 0)); // gõ không dấu ("hanh" → Hạnh): LIKE không bỏ dấu được nên lọc trên máy chủ
+  if (lim) { let n = 0; hit = hit.filter(r => r.owner === u.name || ++n <= 3); }
   const list = hit.slice(0, 8).map(r => ({ phone: r.phone, name: r.name || '', area: [r.ward, r.province].filter(Boolean).join(', '), owner: r.owner || '', orders: r.orders }));
   return { ok: true, list };
 }
@@ -526,7 +534,7 @@ export async function crmPartner(x, u, d, log, staffNames) {
   if (a === 'ref_told') { await run(x.db, 'UPDATE orders SET ref_told = 1 WHERE id = ?', String(d.id || '')); const o = await first(x.db, 'SELECT ref_phone, ref_gift, name FROM orders WHERE id = ?', String(d.id || '')); if (o) await log(x, u, 'Báo voucher cảm ơn', o.ref_phone, '', o.ref_gift, 'Giới thiệu ' + (o.name || '')); return { ok: true }; }
   if (a === 'ref_tiers') return tierList(x, u);
   if (a === 'ref_bonus') return bonusList(x, u);
-  if (a === 'ref_find') return refFind(x, d);
+  if (a === 'ref_find') return refFind(x, u, d);
   if (a === 'ref_goal') { // thưởng sale + mục tiêu nhóm: chỉ Quản lý trở lên
     if (u.level < 2) return { ok: false, error: 'Chỉ Quản lý và Quản trị đổi mục này.' };
     const c = await partnerCfg(x), raw = await rawPartnerCfg(x), saleSteps = c.saleOff ? stepsOf(raw.saleSteps || DEF_STEPS) : Array.isArray(d.saleSteps) ? stepsOf(d.saleSteps).slice(0, 4) : stepsOf(c.saleSteps), goalN = Math.round(Number(d.goalN)), goalGift = String(d.goalGift || '').trim().slice(0, 80);
