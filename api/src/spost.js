@@ -33,7 +33,8 @@ export const SPF_CAT0 = [
 async function spCats(x) { let m = {}; try { m = JSON.parse(await kvGet(x.db, 'spf_mix') || '{}') || {}; } catch (e) { } return SPF_CAT0.map(c => Object.assign({}, c, m[c.k] && m[c.k].n ? { n: String(m[c.k].n).slice(0, 40) } : {}, m[c.k] && m[c.k].p != null ? { p: Math.max(0, Math.min(100, Number(m[c.k].p) || 0)) } : {})); }
 /** Ảnh thật trong kho web (anh-zalo.json) cho AI chọn: danh sách đánh số + đọc số AI trả về */
 const libAsk = lib => lib.length ? 'KHO ẢNH THẬT (số. mô tả) – chọn 1 ảnh khớp rõ nhất với chuyện trong bài; không ảnh nào khớp thì ghi "không":\n' + lib.slice(0, 120).map((i, n) => (n + 1) + '. ' + String(i.alt || '').slice(0, 120)).join('\n') : '';
-const libGet = (lib, raw) => { const m = String(raw || '').match(/ẢNH SỐ\**\s*:\**\s*(\d+)/i); const i = m ? lib[Number(m[1]) - 1] : null; return i ? String(i.url || '') : ''; };
+/** AI ghi "ẢNH SỐ: 12" hoặc "12, 40" (kèm số dự phòng) → ảnh đầu tiên có trong kho và không nằm trong `skip` (số ảnh vừa dùng gần đây) */
+const libGet = (lib, raw, skip) => { const m = String(raw || '').match(/ẢNH SỐ\**\s*:\**\s*([\d ,;]+)/i), n = m ? m[1].split(/\D+/).map(Number).find(k => lib[k - 1] && !(skip && skip.has(k))) : 0; return n ? String(lib[n - 1].url || '') : ''; };
 const cut = (s, n) => String(s == null ? '' : s).trim().slice(0, n);
 let client = null, schemaOk = false;
 function ai(env) { if (!client) client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY, maxRetries: 1, timeout: 120e3, fetch: aiFetch(env), defaultHeaders: { 'x-tdl-muc': 'fb-ca-nhan' } }); return client; }
@@ -62,7 +63,10 @@ async function spWrite(x, u, d) {
   const f = cat ? cat.k : ['MOFU', 'BOFU'].includes(funOf(d.f)) ? funOf(d.f) : 'TOFU';
   const know = await kb(), prods = prodMap(know), pk = Object.keys(prods), libAll = await imgLib();
   const usedImg = new Set((await all(x.db, "SELECT img FROM sp_posts WHERE img != '' ORDER BY id DESC LIMIT 25")).map(r => String(r.img).replace(/^https?:\/\/[^/]+/, '')));
-  const libFresh = libAll.filter(i => !usedImg.has(String(i.url || '').replace(/^https?:\/\/[^/]+/, ''))), lib = libFresh.length >= 15 ? libFresh : libAll; // 🖼 tránh ảnh 25 bài gần nhất đã dùng → ảnh không lặp giữa các bài
+  // 🖼 tránh ảnh 25 bài gần nhất đã dùng → ảnh không lặp giữa các bài (còn < 15 ảnh mới thì cho dùng lại).
+  // 💸 25/11/2026: danh sách ảnh giờ luôn đủ + đánh số cố định, nằm trong phần system được lưu đệm; mỗi bài chỉ gửi các SỐ cần tránh (`skip`), máy chủ cũng tự bỏ số đó (trước: mỗi bài gửi lại cả danh sách đã lọc, không lưu đệm được)
+  const pathOf = i => String(i.url || '').replace(/^https?:\/\/[^/]+/, ''), lib = libAll.slice(0, 120);
+  const skip = new Set(libAll.filter(i => !usedImg.has(pathOf(i))).length >= 15 ? lib.map((i, n) => usedImg.has(pathOf(i)) ? n + 1 : 0).filter(Boolean) : []);
   const prod = prods[d.prod] ? d.prod : f === 'BOFU' && pk.length ? pk[Math.floor(Math.random() * pk.length)] : ''; // bài 🟠 chưa chọn sản phẩm → chọn ngẫu nhiên
   const offers = f === 'BOFU' ? await offersLive(x).catch(() => []) : [];
   const p = await insPick(x, 'fbcn', cut(d.g, 80), prod ? { prod } : undefined);
@@ -95,12 +99,14 @@ async function spWrite(x, u, d) {
     '- NHẬT KÝ ZALO: đăng nhật ký Zalo cá nhân (bạn bè Zalo là khách cũ, người quen). 60–120 chữ, ấm, gần gũi, được nhắc nhẹ mình làm ở Thực Dưỡng Lành, kết thúc bằng lời mời ngắn rồi đúng chữ [LINK].',
     '- TIN ZALO: tin nhắn riêng gửi khách cũ / người quen, 2–4 câu, gọi người nhận là [Tên], hỏi thăm 1 câu rồi chia sẻ ý chính, kết thúc đúng chữ [LINK].',
     '',
-    'Trả về ĐÚNG định dạng (không lời dẫn):', INS_HEAD, '---', 'BÀI:', '<nội dung bài>', 'BÌNH LUẬN GHIM:', '<1–2 câu>', 'TRẢ LỜI CÓ LINK:', '<1 câu> [LINK]', 'BÀI HỘI NHÓM:', '<nội dung>', 'NHẬT KÝ ZALO:', '<nội dung> [LINK]', 'TIN ZALO:', '<2–4 câu> [LINK]', 'GỢI Ý ẢNH:', '<1 câu: ảnh THẬT người đăng tự chụp bằng điện thoại đúng khoảnh khắc trong bài (vd ly trà trên bàn làm việc, mâm cơm tối, góc bếp buổi sáng); không chụp mặt khách, không ảnh sản phẩm trơn, không banner, không chữ trên ảnh>', lib.length ? 'ẢNH SỐ:' : '', lib.length ? '<số của 1 ảnh trong KHO ẢNH THẬT khớp nhất, hoặc "không">' : '', '', libAsk(lib)
+    'Trả về ĐÚNG định dạng (không lời dẫn):', INS_HEAD, '---', 'BÀI:', '<nội dung bài>', 'BÌNH LUẬN GHIM:', '<1–2 câu>', 'TRẢ LỜI CÓ LINK:', '<1 câu> [LINK]', 'BÀI HỘI NHÓM:', '<nội dung>', 'NHẬT KÝ ZALO:', '<nội dung> [LINK]', 'TIN ZALO:', '<2–4 câu> [LINK]', 'GỢI Ý ẢNH:', '<1 câu: ảnh THẬT người đăng tự chụp bằng điện thoại đúng khoảnh khắc trong bài (vd ly trà trên bàn làm việc, mâm cơm tối, góc bếp buổi sáng); không chụp mặt khách, không ảnh sản phẩm trơn, không banner, không chữ trên ảnh>', lib.length ? 'ẢNH SỐ:' : '', lib.length ? '<số của ảnh trong KHO ẢNH THẬT (ở phần hệ thống) khớp nhất' + (skip.size ? ', KHÔNG lấy các số vừa dùng cho bài khác: ' + [...skip].join(', ') : '') + '; được ghi thêm 1–2 số dự phòng, cách nhau dấu phẩy; không ảnh nào khớp thì ghi "không">' : ''
   ].join('\n');
+  const sys = [{ type: 'text', text: 'Bạn là người viết nội dung mạng xã hội cho nhân viên Thực Dưỡng Lành (VitaGreen Nutrition): thực phẩm dinh dưỡng từ hạt, trà thảo mộc, đồ chay. Tiếng Việt đời thường, ấm, thật, đúng luật quảng cáo thực phẩm Việt Nam.\n' + TRUTH_RULES },
+    { type: 'text', text: 'TÀI LIỆU (thông tin chính thức của Thực Dưỡng Lành):\n\n' + know }];
+  if (lib.length) sys.push({ type: 'text', text: libAsk(lib) });
+  sys.at(-1).cache_control = d.fill ? { type: 'ephemeral', ttl: '1h' } : { type: 'ephemeral' }; // 💸 mốc lưu đệm ở khối cuối (tài liệu + kho ảnh). Viết sẵn kho bài chạy 3 bài / 10 phút: lưu đệm 5 phút hết hạn giữa 2 lượt → giữ 1 giờ (ghi 1 lần, các bài sau chỉ đọc)
   const req = { model: WRITER, max_tokens: 9000, output_config: { effort: 'medium' }, // 13/11/2026: 5000 bị cụt phần Zalo + gợi ý ảnh ở bài dài · 25/11: effort từng nằm lọt trong chú thích này nên AI nghĩ ở mức cao nhất
-    system: [{ type: 'text', text: 'Bạn là người viết nội dung mạng xã hội cho nhân viên Thực Dưỡng Lành (VitaGreen Nutrition): thực phẩm dinh dưỡng từ hạt, trà thảo mộc, đồ chay. Tiếng Việt đời thường, ấm, thật, đúng luật quảng cáo thực phẩm Việt Nam.\n' + TRUTH_RULES },
-      { type: 'text', text: 'TÀI LIỆU (thông tin chính thức của Thực Dưỡng Lành):\n\n' + know, cache_control: d.fill ? { type: 'ephemeral', ttl: '1h' } : { type: 'ephemeral' } }], // 💸 viết sẵn kho bài chạy 3 bài / 10 phút: lưu đệm 5 phút hết hạn giữa 2 lượt → giữ 1 giờ (ghi 1 lần, các bài sau chỉ đọc)
-    messages: [{ role: 'user', content: ask }] };
+    system: sys, messages: [{ role: 'user', content: ask }] };
   let res;
   try { res = await ai(x.env).beta.messages.create(Object.assign({ betas: ['server-side-fallback-2026-07-01'], fallbacks: 'default' }, req)); }
   catch (e) { if (!(e instanceof Anthropic.BadRequestError)) throw e; res = await ai(x.env).messages.create(req); }
@@ -113,7 +119,7 @@ async function spWrite(x, u, d) {
   let reply = clean(grab('TRẢ LỜI CÓ LINK', 'BÀI HỘI NHÓM')); if (!/\[LINK\]/.test(reply)) reply = (reply || 'Link đây nhé') + ' [LINK]';
   const grp = clean(grab('BÀI HỘI NHÓM', 'NHẬT KÝ ZALO')).replace(/\[LINK\]/g, '').trim(), withL = s => s && !/\[LINK\]/.test(s) ? s + ' [LINK]' : s;
   const znk = withL(clean(grab('NHẬT KÝ ZALO', 'TIN ZALO'))), zmsg = withL(clean(grab('TIN ZALO', 'GỢI Ý ẢNH'))), imgh = clean(grab('GỢI Ý ẢNH', 'ẢNH SỐ') || grab('GỢI Ý ẢNH', '')).split('\n')[0];
-  const img = libGet(lib, bodyAll) || (prod && f !== 'TOFU' && prods[prod].img) || ''; // bài nhận biết không dùng ảnh sản phẩm (lộ bán hàng) // 🖼 ảnh thật trong kho web; bài sản phẩm không có ảnh khớp → ảnh sản phẩm
+  const img = libGet(lib, bodyAll, skip) ||(prod && f !== 'TOFU' && prods[prod].img) || ''; // bài nhận biết không dùng ảnh sản phẩm (lộ bán hàng) // 🖼 ảnh thật trong kho web; bài sản phẩm không có ảnh khớp → ảnh sản phẩm
   if (text.length < 120 || !cmt) return { ok: false, error: 'AI chưa viết đủ bài + bình luận ghim, bấm viết lại nhé.' };
   const ins = insParse(head, p.bank, p.g); if (p.angle) ins.a = p.angle; if (p.big) ins.b = p.big.t;
   const r = await run(x.db, 'INSERT INTO sp_posts (at, by_name, f, ins, text, cmt, reply, to_k, status, grp, znk, zmsg, imgh, img, cat, prod, path) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', Date.now(), u.name, f, JSON.stringify(ins), text.slice(0, 5000), cmt.slice(0, 600), reply.slice(0, 400), to, 'draft', grp.slice(0, 4000), znk.slice(0, 1500), zmsg.slice(0, 1200), imgh.slice(0, 300), img.slice(0, 300), cat ? cat.k : f, prod,
