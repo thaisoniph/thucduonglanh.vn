@@ -237,9 +237,10 @@ export async function dlOrderWeb(x, d, h) {
 }
 
 /** 🙋 Thưởng sale giới thiệu: bonus% tiền đại lý trả (không ship) các đơn trong bonusMonths tháng từ đơn đầu, gộp theo tháng của đơn. */
+// 25/11/2026 (rà soát bảo mật): đơn 'Mới' = đại lý chưa chuyển tiền (chưa xác nhận) → chưa tính thưởng giới thiệu
 function bonusAdd(out, cfg, e, mine) {
   const first0 = mine.length ? mine[0].t : 0; if (!e.by || !first0) return;
-  mine.forEach(o => { if (o.t < first0 + cfg.bonusMonths * 30.5 * DAY) { const mk = ym(o.t), m = out[mk] = out[mk] || {}; m[e.by] = (m[e.by] || 0) + Math.round(o.paid * cfg.bonus / 100); } });
+  mine.forEach(o => { if (o.t < first0 + cfg.bonusMonths * 30.5 * DAY && o.status !== 'Mới') { const mk = ym(o.t), m = out[mk] = out[mk] || {}; m[e.by] = (m[e.by] || 0) + Math.round(o.paid * cfg.bonus / 100); } });
 }
 /** Bảng lương (luong.js): thưởng giới thiệu đại lý của tháng `month` ('yyyy-MM') → {tên nhân sự: tiền}. Đơn huỷ / hoàn không tính. */
 export async function dlBonusMonth(x, month) {

@@ -117,7 +117,7 @@ let viaView = false;
 function maskCte(t, cols) { return viaView ? `${t} AS (SELECT * FROM ask_v_${t})` : `${t} AS (SELECT ${maskSel(t, cols)} FROM main.${t})`; }
 async function ensureViews(x, ctx) { // tạo 1 lần, tạo lại khi bảng có cột mới
   for (const t of ctx.tabs) {
-    const sig = ctx.cols[t].join(','), k = 'askv2_' + t; // askv2: 25/11/2026 đổi cách che → tạo lại view if ((await kvGet(x.db, k)) === sig) continue;
+    const sig = ctx.cols[t].join(','), k = 'askv2_' + t; if ((await kvGet(x.db, k)) === sig) continue; // askv2: 25/11/2026 đổi cách che → tạo lại view
     await x.db.batch([x.db.prepare(`DROP VIEW IF EXISTS ask_v_${t}`), x.db.prepare(`CREATE VIEW ask_v_${t} AS SELECT ${maskSel(t, ctx.cols[t])} FROM ${t}`)]);
     await kvSet(x.db, k, sig);
   }

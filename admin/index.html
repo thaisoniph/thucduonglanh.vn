@@ -12,10 +12,12 @@
     // Mở từ CRM (nút 🖊 Mở trang quản trị web, 11/11/2026): link có #sso=<mã dùng 1 lần, 2 phút> → đổi lấy phiên đăng nhập (api/src/cms.js cmsSso)
     // rồi lưu vào chỗ Sveltia tự đọc (localStorage "sveltia-cms.user") trước khi tải Sveltia → vào thẳng, không phải xin mã email.
     (function () {
-      var SRC = 'https://unpkg.com/@sveltia/cms@0/dist/sveltia-cms.js', m = /[#&]sso=([a-f0-9]{48})/.exec(location.hash);
-      if (!m) { document.write('<script src="' + SRC + '"><\/script>'); return; }
+      // 25/11/2026 (rà soát bảo mật): khoá đúng bản 0.272.0 + mã kiểm tra (integrity). Trước đây luôn lấy bản mới nhất "@0" không kiểm tra – bản bị cài mã độc sẽ đọc được phiên đăng nhập có quyền đăng web.
+      // Nâng bản: đổi số bản + tính lại mã: curl -sL <SRC> | openssl dgst -sha384 -binary | openssl base64 -A
+      var SRC = 'https://unpkg.com/@sveltia/cms@0.272.0/dist/sveltia-cms.js', SRI = 'sha384-znPe/7IsycrTpfyaKEhSPHNMvhkRFxaYJOpTt3L5KhK7CovMdYndiJqS2ajy8KWp', m = /[#&]sso=([a-f0-9]{48})/.exec(location.hash);
+      if (!m) { document.write('<script src="' + SRC + '" integrity="' + SRI + '" crossorigin="anonymous"><\/script>'); return; }
       history.replaceState(null, '', location.pathname + location.search);
-      function load() { var s = document.createElement('script'); s.src = SRC; document.body.appendChild(s); }
+      function load() { var s = document.createElement('script'); s.src = SRC; s.integrity = SRI; s.crossOrigin = 'anonymous'; document.body.appendChild(s); }
       fetch('https://api.thucduonglanh.vn/cms/sso', { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ code: m[1] }) })
         .then(function (r) { return r.json(); })
         .then(function (j) {

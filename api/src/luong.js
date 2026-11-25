@@ -9,7 +9,7 @@
 //   {tháng: {tên trong file: {u: tên CRM, g: nhóm, cong, std, dt, cb, kpi, hh, pc, tn, bhc, bhn, ung}}} – tn = tổng thu nhập chưa BH, bhc = phụ cấp BH trả tiền mặt (+), bhn = trích BH người lao động (−).
 //   Dùng cho 💎 Giá trị nhân sự (chi phí thật từng người). kv luong_link = {link, map: {tên file: [tên CRM, nhóm]}} để đọc lại tháng sau.
 // - Cộng trừ ra thực lĩnh ở CRM (lgCalc trong crm/app.js), máy chủ chỉ lưu. Không lưu số tài khoản ngân hàng.
-import { all, run, kvJson, kvSet } from './lib.js';
+import { all, run, kvJson, kvSet, kvDel } from './lib.js';
 import { telegramTo } from './google.js';
 import { dlBonusMonth } from './daily.js'; // 🏪 thưởng sale giới thiệu đại lý (23/11/2026): tự cộng vào bảng lương
 
@@ -77,17 +77,21 @@ export async function crmLuong(x, u, d, log, users) {
   const list = async m => {
     const cfg = Object.assign({}, LG_CFG, await kvJson(x.db, 'luong_cfg', null) || {});
     const crm = (users || []).filter(z => z.active).map(z => ({ name: z.name, full: z.full || '', role: z.role, joined: z.joined || '' }));
-    const mm = m || month, r0 = await getRow(mm);
+    const mm = m || month, r0 = await getRow(mm), snap = r0 && r0.st === 'duyet' ? await kvJson(x.db, 'luong_snap_' + mm, null) : null; // 25/11/2026: tháng đã duyệt dùng mức lương + quy định lúc duyệt (sửa mức lương sau không làm đổi tháng đã duyệt)
     // 🏪 thưởng giới thiệu đại lý: tính lại mỗi lần mở; bảng đã duyệt thì dùng số đã chốt lúc duyệt (kv luong_dlb_<tháng>)
     const dlb = r0 && r0.st === 'duyet' ? await kvJson(x.db, 'luong_dlb_' + mm, null) || {} : await dlBonusMonth(x, mm).catch(e => { console.error('dlBonus', e.message); return {}; });
-    return { ok: true, cfg, staff: await staffOf(), crm, dlb, real: await kvJson(x.db, 'luong_real', null) || {}, realLink: await kvJson(x.db, 'luong_link', null) || {}, row: await getRow(m || month) || { month: m || month, inp: {}, auto: {}, st: '' }, can: { mgr, ceo: u.level >= 3 && !kt, kt } };
+    return { ok: true, cfg: snap && snap.cfg ? snap.cfg : cfg, staff: snap && snap.staff ? snap.staff : await staffOf(), snap: !!snap, crm, dlb, real: await kvJson(x.db, 'luong_real', null) || {}, realLink: await kvJson(x.db, 'luong_link', null) || {}, row: await getRow(m || month) || { month: m || month, inp: {}, auto: {}, st: '' }, can: { mgr, ceo: u.level >= 3 && !kt, kt } };
   };
   if (op === 'list') return list();
   const row = MON.test(month) ? await getRow(month) : null, locked = row && row.st === 'duyet';
   const ensure = async () => { if (!row) await run(x.db, 'INSERT OR IGNORE INTO luong_th (month) VALUES (?)', month); };
   if (op === 'staff') {
-    const s = cleanStaff(d.list); await kvSet(x.db, 'luong_staff', JSON.stringify(s));
-    await log(x, u, 'Kế toán', '-', '', 'Sửa mức lương nhân sự (' + s.length + ' người)', '');
+    if (locked && await kvJson(x.db, 'luong_snap_' + month, null)) return { ok: false, error: 'Tháng này đã duyệt nên đang hiện mức lương lúc duyệt. Chọn tháng chưa duyệt (vd tháng này) rồi sửa mức lương.' }; // tránh lưu đè mức lương cũ lên mức hiện tại
+    const s = cleanStaff(d.list), old = {}; (await staffOf()).forEach(p => { old[p.name] = p; }); await kvSet(x.db, 'luong_staff', JSON.stringify(s));
+    // 25/11/2026 (rà soát bảo mật): ghi rõ ai đổi lương ai, từ bao nhiêu → bao nhiêu (trước đây chỉ ghi "N người")
+    const F = { base: 'lương', bh: 'đóng BH', cc: 'chuyên cần', other: 'khác' }, diff = s.map(p => { const o = old[p.name]; if (!o) return p.name + ' (mới) lương ' + p.base; const ch = Object.keys(F).filter(k => (o[k] || 0) !== (p[k] || 0)).map(k => F[k] + ' ' + (o[k] || 0) + '→' + (p[k] || 0)); if ((o.pa || []).join() !== (p.pa || []).join()) ch.push('phụ cấp ' + (o.pa || []).join('/') + '→' + p.pa.join('/')); return ch.length ? p.name + ': ' + ch.join(', ') : ''; }).filter(Boolean);
+    Object.keys(old).filter(n => !s.some(p => p.name === n)).forEach(n => diff.push(n + ' (bỏ khỏi bảng)'));
+    await log(x, u, 'Kế toán', '-', '', 'Sửa mức lương nhân sự (' + s.length + ' người)', diff.join(' · ').slice(0, 900));
     return list(MON.test(month) ? month : '');
   }
   if (op === 'real') {
@@ -128,6 +132,8 @@ export async function crmLuong(x, u, d, log, users) {
     else return { ok: false, error: 'Không rõ trạng thái.' };
     await ensure(); await run(x.db, 'UPDATE luong_th SET st = ?, st_by = ?, st_at = ? WHERE month = ?', st, u.name, now, month);
     if (st === 'duyet') await kvSet(x.db, 'luong_dlb_' + month, JSON.stringify(await dlBonusMonth(x, month).catch(() => ({})))); // chốt thưởng đại lý lúc duyệt
+    if (st === 'duyet') await kvSet(x.db, 'luong_snap_' + month, JSON.stringify({ staff: await staffOf(), cfg: Object.assign({}, LG_CFG, await kvJson(x.db, 'luong_cfg', null) || {}) })); // 25/11/2026: chốt mức lương + quy định lúc duyệt
+    if (st === '') await kvDel(x.db, 'luong_snap_' + month); // mở lại: tính theo mức lương hiện tại
     const ml = 'tháng ' + (+month.slice(5)) + '/' + month.slice(0, 4), sum = d.sum ? ' (' + txt(d.sum, 80) + ')' : '';
     await log(x, u, 'Kế toán', '-', '', (st === 'trinh' ? 'Trình' : st === 'duyet' ? 'Duyệt' : 'Mở lại') + ' bảng lương ' + ml + sum, '');
     const to = (users || []).filter(z => z.active && z.tg && z.name !== u.name && (st === 'trinh' ? z.role === 'Quản trị' || z.role === 'Quản lý' : z.role === 'Kế toán'));

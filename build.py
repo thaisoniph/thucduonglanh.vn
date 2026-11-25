@@ -378,6 +378,11 @@ for f in sorted((CONTENT / "posts").glob("*.md")):
     d = meta.get("date") or datetime.date.today()
     d = d.date() if isinstance(d, datetime.datetime) else d
     d = d.isoformat() if isinstance(d, datetime.date) else str(d)[:10]
+    try:  # 25/11/2026: ngày ghi sai (2026-11-5, chữ) trước đây làm dừng cả lần build → không bài nào lên được. Sửa được thì sửa (thêm số 0), không được thì lấy hôm nay + báo
+        d = datetime.date(*map(int, re.match(r"^(\d{4})-(\d{1,2})-(\d{1,2})", d).groups())).isoformat()
+    except Exception:
+        print(f"⚠️ Bài {f.name}: ngày '{d}' không đúng dạng năm-tháng-ngày, tạm lấy hôm nay")
+        d = datetime.date.today().isoformat()
     _posts.append({"slug": f.stem, "title": meta.get("title", f.stem), "date": d, "category": meta.get("category", ""), "modified": max(d, src_date(f, tr_path(f)) or d),
                    "image": meta.get("image") or "/assets/img/brand/og-image.jpg", "excerpt": meta.get("excerpt", ""), "content": md(body),
                    "experience": str(meta.get("experience") or "").strip(), "experience_by": str(meta.get("experience_by") or "").strip()})  # 🌿 Trải nghiệm thật (E-E-A-T, 14/11/2026)
@@ -3951,8 +3956,9 @@ def build_crm():
     except Exception:
         js_min = js_raw
     (out / "app.js").write_text(js_min, "utf-8")
-    if (src / "qrcode.js").exists():  # thư viện vẽ mã QR (qrcode-generator, MIT) cho tab 📍 Link & QR, chỉ tải khi mở tab
-        q = (src / "qrcode.js").read_text("utf-8")
+    qsrc = ROOT / "assets/js/qrcode.js"  # 25/11/2026: dùng chung file của website (trước đây crm/qrcode.js là bản sao y hệt)
+    if qsrc.exists():  # thư viện vẽ mã QR (qrcode-generator, MIT) cho tab 📍 Link & QR, chỉ tải khi mở tab
+        q = qsrc.read_text("utf-8")
         try:
             import rjsmin
             q = rjsmin.jsmin(q, keep_bang_comments=True)

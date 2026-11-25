@@ -447,7 +447,7 @@
     }
   }
   function logout(expired) {
-    if (VA_TK) { if (!expired) api('logout').catch(function () { }); try { sessionStorage.clear(); } catch (e) { } $('#app').innerHTML = '<div class="login"><div class="login-box"><h1>👁 Đã thoát chế độ xem</h1><p class="sub">' + (expired ? 'Phiên xem thử đã hết (8 tiếng). ' : '') + 'Anh đóng tab này là xong. Tài khoản của anh ở tab kia không bị ảnh hưởng.</p><button class="btn pri block" onclick="window.close()">Đóng tab</button></div></div>'; try { window.close(); } catch (e) { } return; }
+    if (VA_TK) { if (!expired) api('logout').catch(function () { }); try { sessionStorage.clear(); } catch (e) { } $('#app').innerHTML = '<div class="login"><div class="login-box"><h1>👁 Đã thoát chế độ xem</h1><p class="sub">' + (expired ? 'Phiên xem thử đã hết (8 tiếng). ' : '') + 'Anh đóng tab này là xong. Tài khoản của anh ở tab kia không bị ảnh hưởng.</p><button class="btn pri block" id="vaCloseTab">Đóng tab</button></div></div>'; var vcb = document.getElementById('vaCloseTab'); if (vcb) vcb.onclick = function () { window.close(); }; try { window.close(); } catch (e) { } return; }
     if (!expired && S.token) api('logout').catch(function () { });
     S.token = null; S.user = null; S.d = null; store('crm_token', null); closeModal(true);
     idb('del', 'data'); S.outbox = []; saveOutbox(); // xoá dữ liệu khách lưu trên máy này
@@ -7308,9 +7308,11 @@
       '<p>Tính đến hết ngày ' + knDd(to) + ', Bên A còn phải trả Bên B: <b>' + money(L.close) + '</b>' + (L.close < 0 ? ' (Bên A đã trả thừa ' + money(-L.close) + ')' : '') + '.</p>' +
       (df ? '<p>Số Bên B báo: <b>' + money(their) + '</b>, chênh lệch <b>' + money(Math.abs(df)) + '</b>. Hai bên cùng kiểm tra lại các dòng trên trước khi ký.</p>' : '') +
       '<p>Biên bản lập thành 02 bản, mỗi bên giữ 01 bản có giá trị như nhau. Sau 05 ngày kể từ ngày nhận mà Bên B không có ý kiến thì coi như đã xác nhận số liệu trên.</p>' +
-      '<div class="sig"><div><b>ĐẠI DIỆN BÊN A</b><br><i>(Ký, ghi rõ họ tên)</i></div><div><b>ĐẠI DIỆN BÊN B</b><br><i>(Ký, ghi rõ họ tên)</i></div></div><p style="text-align:center"><button onclick="print()">🖨 In</button></p></body></html>');
-    w.document.close(); setTimeout(function () { try { w.print(); } catch (e) {} }, 400);
+      '<div class="sig"><div><b>ĐẠI DIỆN BÊN A</b><br><i>(Ký, ghi rõ họ tên)</i></div><div><b>ĐẠI DIỆN BÊN B</b><br><i>(Ký, ghi rõ họ tên)</i></div></div><p style="text-align:center"><button data-print>🖨 In</button></p></body></html>');
+    w.document.close(); prtBtn(w); setTimeout(function () { try { w.print(); } catch (e) {} }, 400);
   }
+  /** 25/11/2026: cửa sổ in mở bằng window.open('') kế thừa lớp bảo vệ CSP của CRM → onclick="print()" bị chặn. Gắn sự kiện bằng JS. */
+  function prtBtn(w) { try { Array.prototype.forEach.call(w.document.querySelectorAll('[data-print]'), function (b) { b.onclick = function () { w.print(); }; }); } catch (e) { } }
   function knLedgerTsv(L) {
     return [['Ngày', 'Nội dung', 'Mua hàng', 'Đã trả', 'Còn nợ'].join('\t'), ['', 'Số dư đầu kỳ', '', '', L.open].join('\t')].concat(L.rows.map(function (r) { return [knDd(r.day), String(r.t).replace(/\t/g, ' '), r.buy || '', r.pay || '', r.bal].join('\t'); }), [['', 'Cộng / cuối kỳ', L.buy, L.pay, L.close].join('\t')]).join('\n');
   }
@@ -17461,7 +17463,7 @@
     var C = j.company, cfg = j.cfg, d = vnDate(Date.now()), dot = '……………………………………', L = function (t) { return '<p>' + t + '</p>'; };
     var tiers = '<table><tr><th>Bậc</th><th>Điều kiện (tiền hàng tính theo giá bán lẻ niêm yết)</th><th>Chiết khấu</th></tr>' + cfg.tiers.map(function (t, i) { return '<tr><td>' + esc(t.name) + '</td><td>' + (i ? 'Tổng tiền hàng tháng trước từ ' + money(t.min) + (i === 2 && cfg.top3 > 1 ? ', ' + cfg.top3 + ' tháng liền' : '') : 'Đơn nhập lần đầu từ ' + money(cfg.first)) + '</td><td>' + t.pct + '%</td></tr>'; }).join('') + '</table>';
     w.document.write('<!doctype html><html lang="vi"><head><meta charset="utf-8"><title>Hợp đồng phân phối – ' + esc(e.name) + '</title><style>body{font:15px/1.55 "Times New Roman",serif;max-width:800px;margin:24px auto;padding:0 18px;color:#000}h1{text-align:center;font-size:19px;margin:18px 0 2px}h2{font-size:15px;margin:14px 0 4px}p{margin:4px 0;text-align:justify}p.c{text-align:center;margin:0}table{width:100%;border-collapse:collapse;margin:8px 0}td,th{border:1px solid #000;padding:4px 6px;vertical-align:top}.sig{display:flex;justify-content:space-around;text-align:center;margin-top:28px}.sig div{width:42%;min-height:130px}.note{background:#fff6d6;border:1px dashed #b88a00;padding:8px 10px;font:13px/1.4 sans-serif;margin-bottom:14px}@media print{.note,button{display:none}}</style></head><body>' +
-      '<div class="note">📄 Bản mẫu do CRM tạo. Nên nhờ kế toán / luật sư xem lại trước khi ký. Sửa chữ trực tiếp được (bấm vào chữ để sửa), rồi bấm <button onclick="print()">🖨 In</button></div><div contenteditable="true">' +
+      '<div class="note">📄 Bản mẫu do CRM tạo. Nên nhờ kế toán / luật sư xem lại trước khi ký. Sửa chữ trực tiếp được (bấm vào chữ để sửa), rồi bấm <button data-print>🖨 In</button></div><div contenteditable="true">' +
       '<p class="c"><b>CỘNG HOÀ XÃ HỘI CHỦ NGHĨA VIỆT NAM</b></p><p class="c"><b>Độc lập – Tự do – Hạnh phúc</b></p><p class="c">———————</p>' +
       '<h1>HỢP ĐỒNG NGUYÊN TẮC PHÂN PHỐI SẢN PHẨM</h1><p class="c">Số: ……/' + d.y + '/HĐPP-VTG</p><br>' +
       L('Hôm nay, ngày ' + pad(d.d) + ' tháng ' + pad(d.m) + ' năm ' + d.y + ', chúng tôi gồm:') +
@@ -17481,7 +17483,7 @@
       '<h2>Điều 8. Thời hạn và chấm dứt</h2>' + L('Hợp đồng có hiệu lực 12 tháng kể từ ngày ký, tự gia hạn nếu không bên nào báo chấm dứt. Mỗi bên được chấm dứt hợp đồng khi báo trước 30 ngày; các đơn đã thanh toán vẫn được giao đủ.') +
       '<h2>Điều 9. Điều khoản chung</h2>' + L('Tranh chấp được hai bên thương lượng; không thương lượng được thì đưa ra Toà án có thẩm quyền nơi Bên A đặt trụ sở. Hợp đồng lập thành 02 bản, mỗi bên giữ 01 bản có giá trị như nhau.') +
       '<div class="sig"><div><b>ĐẠI DIỆN BÊN A</b><br><i>(Ký, ghi rõ họ tên, đóng dấu)</i><br><br><br><br><br>' + esc(C.rep) + '</div><div><b>ĐẠI DIỆN BÊN B</b><br><i>(Ký, ghi rõ họ tên)</i></div></div></div></body></html>');
-    w.document.close();
+    w.document.close(); prtBtn(w);
   }
   function ptBox() {
     return '<div class="box"><h3>🤝 Cộng tác viên & khách giới thiệu</h3><p class="hint" style="margin:0 0 10px">CTV / đối tác có link và mã giảm giá riêng. Khách <b>mới</b> đặt qua link / mã của CTV thì mọi đơn của khách đó trong thời hạn (mặc định 6 tháng, kể cả đơn sale lên lại) được tính hoa hồng (mặc định 10% tiền hàng). Chỉ trả <b>1 tầng</b> (không trả theo người CTV rủ thêm: nhiều tầng là bán hàng đa cấp, phải có giấy phép). Hoa hồng đủ điều kiện khi đơn <b>đã giao + qua 7 ngày</b>; trả từ 2 triệu / lần thì trừ 10% thuế TNCN.</p>' +

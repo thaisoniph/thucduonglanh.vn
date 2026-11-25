@@ -158,6 +158,7 @@ export async function scheduled(x, cron) {
   if (!await kvGet(x.db, 'migrated')) return;
   const now = Date.now(), vn = new Date(now + 7 * 3600e3);
   try { await mkSchTick(x, { mktFbEdit, crmLog, crmUsers, telegramUser }); } catch (e) { console.error('mkSchTick', e.message); } // 🕛 áp thay đổi quảng cáo lúc 0h theo múi giờ tài khoản (mksch.js), chạy cả đêm
+  if (vn.getUTCHours() === 3 && vn.getUTCMinutes() < 10) x.later(x.db.prepare("DELETE FROM kv WHERE exp IS NOT NULL AND exp < ? AND (k LIKE 'rl\\_%' ESCAPE '\\' OR k LIKE 'otpn\\_%' ESCAPE '\\' OR k LIKE 'cotpn\\_%' ESCAPE '\\' OR k LIKE 'reff\\_%' ESCAPE '\\' OR k LIKE 'chat\\_ip\\_%' ESCAPE '\\')").bind(now).run().catch(e => console.error('kv clean', e.message))); // 🧹 3h sáng: xoá bộ đếm giới hạn đã hết hạn (kvIncr, 25/11/2026)
   if (vn.getUTCHours() < 7 || vn.getUTCHours() >= 22) return; // ban đêm
   if (vn.getUTCMinutes() >= 20 && vn.getUTCMinutes() < 30) x.later(mkSnapBuild(x).catch(e => console.error('mkSnap', e.message))); // 📊 bảng số cho lệnh /so Telegram (mktg.js), 1 tiếng / lần (22h–7h) không ai làm việc → nghỉ, đỡ tốn lượt đọc
   if (vn.getUTCDay() === 1 && vn.getUTCHours() >= 9) x.later(nccDriveTick(x).catch(e => console.error('nccDrive', e.message))); // ☁️ thứ Hai: chép chứng từ nhà cung cấp lên Google Drive (ncc.js)

@@ -10,6 +10,8 @@ export const ROLE_URL = role => role === 'Quản trị' ? 'https://quantri.thucd
 export function normPhone(p) { p = String(p == null ? '' : p).replace(/\D/g, ''); if (p.indexOf('84') === 0 && p.length >= 11) p = '0' + p.slice(2); return p; }
 export function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); } // 25/11/2026: thêm " ' – chữ đặt trong value="…" không thoát ra chèn mã được (mcp.js trang đăng nhập)
 export function fmt(n) { return Math.round(Number(n) || 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' ₫'; }
+/** 0h ngày 1 tháng này (giờ VN). */
+export function monthStartVN(t) { const d = new Date(Number(t) + TZ_MS); return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1) - TZ_MS; }
 export function startOfDay(t) { t = typeof t === 'number' ? t : new Date(t).getTime(); return Math.floor((t + TZ_MS) / DAY) * DAY - TZ_MS; }
 /** Định dạng ngày giờ theo giờ Việt Nam: yyyy, yy, MM, dd, HH, mm, ss. */
 export function fmtDate(t, f) {

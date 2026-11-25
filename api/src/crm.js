@@ -1,5 +1,5 @@
 // CRM: đăng nhập, dữ liệu, đơn hàng, khách, tiềm năng, cài đặt. Chuyển từ Apps Script sang, giữ nguyên cách làm việc & dữ liệu trả về cho giao diện.
-import { normPhone, nrm, addrJoin, esc, fmt, startOfDay, TZ_MS, fmtDate, dateOrBlank, slugName, codePre, replaceRows, isVoid, randHex, all, first, run, insertMany, allIn, kvGet, kvSet, kvDel, kvIncr, kvJson, DAY, CRM_URL, ROLE_URL, refCode, crmSeen, adjOut, adjTot } from './lib.js';
+import { normPhone, nrm, addrJoin, esc, fmt, startOfDay, monthStartVN, TZ_MS, fmtDate, dateOrBlank, slugName, codePre, replaceRows, isVoid, randHex, all, first, run, insertMany, allIn, kvGet, kvSet, kvDel, kvIncr, kvJson, DAY, CRM_URL, ROLE_URL, refCode, crmSeen, adjOut, adjTot } from './lib.js';
 import { crmSnh } from './sinhnhat.js'; // 🎂 15/11/2026
 import { crmPartner, partnerSchema, partnerCfg, orderAttrib, refClaim, staffOf, staffHit } from './partner.js';
 import { crmDaily, dlMap, dlCaps, dlOrderCheck, dlOrderSave, dlAppsNew, DL_SELLER } from './daily.js'; // 🏪 kênh đại lý (23/11/2026)
@@ -1472,8 +1472,6 @@ async function orderFind(x, d) {
   return o;
 }
 /** Nhân viên được xử lý đơn mình bán hoặc đơn của khách mình phụ trách. */
-/** 0h ngày 1 tháng này (giờ VN). */
-function monthStartVN(t) { const d = new Date(t + TZ_MS); return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1) - TZ_MS; }
 async function orderGuard(x, u, o) { if (u.level >= 2 || o.seller === u.name) return ''; return guardPhone(x, u, o.phone); }
 async function crmOrderStatus(x, u, d, sys) { // sys: lệnh nội bộ đã tự kiểm quyền (kho nhận hàng hoàn)
   const o = await orderFind(x, d); if (!o) return { ok: false, error: 'Không tìm thấy đơn ' + d.id };

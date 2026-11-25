@@ -442,10 +442,16 @@ async function pPay(x, u, d, log) {
   if (!ids.length) return { ok: false, error: 'Chưa chọn đơn nào.' };
   const os = (await all(x.db, "SELECT rid, id, status, total, shipping, partner_rate, paid_out, time, ship_at, received_at FROM orders WHERE partner = ? AND id IN (SELECT value FROM json_each(?))", code, JSON.stringify(ids))).filter(o => !o.paid_out && !isVoid(o.status) && ready(o));
   if (!os.length) return { ok: false, error: 'Các đơn đã chọn chưa đủ điều kiện (đã giao + qua 7 ngày) hoặc đã trả rồi.' };
-  const amount = os.reduce((s, o) => s + comm(o), 0), tax = amount >= TAX_FROM ? Math.round(amount * TAX_PCT / 100) : 0;
-  const r = await run(x.db, 'INSERT INTO partner_pay (code, at, amount, tax, net, n, note, by_name) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', code, Date.now(), amount, tax, amount - tax, os.length, String(d.note || '').slice(0, 200), u.name);
-  const pid = r.meta.last_row_id;
-  await run(x.db, 'UPDATE orders SET paid_out = ? WHERE rid IN (SELECT value FROM json_each(?))', pid, JSON.stringify(os.map(o => o.rid)));
+  // 25/11/2026 (rà soát bảo mật): giữ đơn trước bằng 1 câu lệnh (chỉ đơn chưa trả) rồi mới ghi phiếu chi – bấm 2 lần / mạng gửi lại không còn ra 2 phiếu cho cùng đơn
+  const mk = -(1 + Math.floor(Math.random() * 2e9)), got = new Set((await all(x.db, 'UPDATE orders SET paid_out = ? WHERE rid IN (SELECT value FROM json_each(?)) AND coalesce(paid_out, 0) = 0 RETURNING rid', mk, JSON.stringify(os.map(o => o.rid)))).map(r => r.rid));
+  const mine = os.filter(o => got.has(o.rid)); if (!mine.length) return { ok: false, error: 'Các đơn này vừa được trả rồi (có người bấm cùng lúc). Tải lại để xem.' };
+  const amount = mine.reduce((s, o) => s + comm(o), 0), tax = amount >= TAX_FROM ? Math.round(amount * TAX_PCT / 100) : 0;
+  let pid; try {
+    const r = await run(x.db, 'INSERT INTO partner_pay (code, at, amount, tax, net, n, note, by_name) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', code, Date.now(), amount, tax, amount - tax, mine.length, String(d.note || '').slice(0, 200), u.name);
+    pid = r.meta.last_row_id;
+  } catch (e) { await run(x.db, 'UPDATE orders SET paid_out = NULL WHERE paid_out = ?', mk); throw e; }
+  await run(x.db, 'UPDATE orders SET paid_out = ? WHERE paid_out = ?', pid, mk);
+  os.length = 0; os.push(...mine);
   await log(x, u, 'Trả hoa hồng CTV', code, '', fmt(amount - tax) + (tax ? ' (đã trừ thuế ' + fmt(tax) + ')' : ''), os.length + ' đơn');
   return Object.assign(await pList(x), { paid: { amount, tax, net: amount - tax, n: os.length } });
 }

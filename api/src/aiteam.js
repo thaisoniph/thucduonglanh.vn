@@ -25,7 +25,7 @@ function newest(list) { return list.filter(Boolean).sort((a, b) => (b.at || 0) -
 async function leadRes(x, chans, since) {
   const ph = chans.map(() => '?').join(',');
   const l = await q1(x, `SELECT count(*) n, sum(CASE WHEN order_id <> '' THEN 1 ELSE 0 END) o FROM leads WHERE channel IN (${ph}) AND time >= ?`, ...chans, since);
-  const s = await q1(x, `SELECT count(*) n, coalesce(sum(o.total), 0) t FROM leads l JOIN orders o ON o.id = l.order_id WHERE l.channel IN (${ph}) AND l.time >= ? AND l.order_id <> '' AND o.status NOT IN ('Huỷ', 'Hoàn', 'Đang chuyển hoàn')`, ...chans, since);
+  const s = await q1(x, `SELECT count(*) n, coalesce(sum(o.total), 0) t FROM leads l JOIN orders o ON o.id = l.order_id WHERE l.channel IN (${ph}) AND l.time >= ? AND l.order_id <> '' AND o.status NOT IN ('Huỷ', 'Hủy', 'Hoàn', 'Đang chuyển hoàn')`, ...chans, since);
   return { leads: N(l), orders: s ? N(s) : 0, money: s ? Number(s.t) || 0 : 0 };
 }
 
@@ -84,7 +84,7 @@ export async function aiTeam(x, u) {
     const mt = await q1(x, "SELECT count(*) n FROM chats WHERE sid LIKE 'fb%' AND last >= ?", d0), mw = await q1(x, "SELECT count(*) n FROM chats WHERE sid LIKE 'fb%' AND last >= ?", d7);
     const ct = await k(['comment'], d0), cw = await k(['comment'], d7), lw = await k(['lead'], d7), pw = await k(['post'], d7);
     const last = await q1(x, "SELECT max(at) at FROM fp_log WHERE kind <> 'error'"), er = await q1(x, "SELECT at, text FROM fp_log WHERE kind = 'error' ORDER BY at DESC LIMIT 1");
-    const o = await q1(x, "SELECT count(*) n, coalesce(sum(o.total), 0) t FROM fp_users f JOIN leads l ON l.id = f.lead JOIN orders o ON o.id = l.order_id WHERE f.lead <> '' AND l.order_id <> '' AND l.time >= ? AND o.status NOT IN ('Huỷ', 'Hoàn', 'Đang chuyển hoàn')", d7);
+    const o = await q1(x, "SELECT count(*) n, coalesce(sum(o.total), 0) t FROM fp_users f JOIN leads l ON l.id = f.lead JOIN orders o ON o.id = l.order_id WHERE f.lead <> '' AND l.order_id <> '' AND l.time >= ? AND o.status NOT IN ('Huỷ', 'Hủy', 'Hoàn', 'Đang chuyển hoàn')", d7);
     cards.push({ id: 'fanpage', ic: '📘', name: 'Trợ lý Fanpage', what: 'Trả lời bình luận và tin nhắn Messenger, xin số tặng quà, đăng bài lên trang.',
       when: 'Mỗi khi có bình luận / tin nhắn (Facebook báo về ngay), bài đăng theo lịch', off: !N(pages), offTxt: 'Chưa nối trang nào (hoặc đang chờ Facebook duyệt quyền)',
       last: last && last.at, today: N(ct) + N(mt), d7: N(cw) + N(mw), unit: 'bình luận + cuộc nhắn',

@@ -138,3 +138,18 @@ export async function crmVoucher(x, u, d, log) {
   }
   return { ok: false, error: 'Không rõ thao tác: ' + a };
 }
+
+/** 25/11/2026 (rà soát bảo mật): kiểm lại SAU khi lưu đơn. vcCheck đếm lượt dùng trước khi lưu → nhiều đơn gửi cùng lúc với mã 1 lượt đều qua.
+ *  Đơn vượt lượt (không nằm trong N đơn đầu tiên dùng mã, xếp theo lúc lưu) → bỏ giảm giá, cộng lại tiền, ghi ⚠. Trả tổng tiền mới hoặc null nếu đơn hợp lệ. */
+export async function voucherRecheck(x, id) {
+  const o = await first(x.db, 'SELECT rid, phone, voucher, discount, total FROM orders WHERE id = ? ORDER BY rid DESC LIMIT 1', String(id || ''));
+  if (!o || !o.voucher || !(Number(o.discount) > 0)) return null;
+  const v = await first(x.db, 'SELECT max_uses, once FROM vouchers WHERE code = ?', o.voucher); if (!v) return null;
+  const firstN = async (sql, n, ...a) => (await all(x.db, sql + ' ORDER BY rid LIMIT ?', ...a, n)).map(r => r.rid);
+  const over = (v.max_uses > 0 && (await firstN('SELECT rid FROM orders WHERE voucher = ? AND ' + LIVE, v.max_uses, o.voucher)).indexOf(o.rid) < 0)
+    || (v.once && (await firstN('SELECT rid FROM orders WHERE voucher = ? AND phone = ? AND ' + LIVE, 1, o.voucher, o.phone)).indexOf(o.rid) < 0);
+  if (!over) return null;
+  const tot = (Number(o.total) || 0) + (Number(o.discount) || 0), why = '⚠ Mã ' + o.voucher + ' đã hết lượt (có đơn khác dùng cùng lúc) – đã bỏ giảm ' + fmt(o.discount) + ', gọi khách báo tổng tiền mới';
+  await run(x.db, "UPDATE orders SET total = ?, discount = 0, voucher = '', note = CASE WHEN coalesce(note, '') = '' THEN ? ELSE note || ' · ' || ? END WHERE rid = ?", tot, why, why, o.rid);
+  return tot;
+}
