@@ -47,7 +47,7 @@ import { crmPm } from './phongai.js';
 import { crmAsk, askAllowed } from './ask.js';
 import { crmMcp } from './mcp.js';
 import { saleDays } from './zday.js';
-import { wbQueue, wbOrderQueue, wbStatusQueue, wbEditQueue, wbDeleteQueue, wbInfoQueue, wbOrderInfo, WB_SHORT } from './wb.js';
+import { wbQueue, wbOrderQueue, wbStatusQueue, wbEditQueue, wbDeleteQueue, wbInfoQueue, wbOrderInfo, wbWebOrder, WB_SHORT } from './wb.js';
 
 let schemaDone = false, deltaOk = false; // deltaOk: đã có cột upd + trigger → cho CRM tải phần thay đổi
 const NOW_MS = "CAST((julianday('now') - 2440587.5) * 86400000 AS INTEGER)"; // giờ của máy chủ dữ liệu (ms)
@@ -1438,6 +1438,7 @@ export async function saveOrder(x, data, opt) {
   if (!manual) { try { at = await orderAttrib(x, { id: data.id, phone, ref: data.ref, refAt: data.ref_at, voucher: data.voucher, isNew }); } catch (e) { console.error('orderAttrib', e.message); } }
   const atNote = [at.refPhone ? '🎁 Được ' + (at.refName || at.refPhone) + ' giới thiệu' : '', at.partner ? '🤝 Khách của CTV ' + at.partner : '', at.ctvSkip || ''].filter(Boolean).join(' · ');
   if (atNote) await run(x.db, "UPDATE orders SET note = CASE WHEN coalesce(note, '') = '' THEN ? ELSE note || ' · ' || ? END WHERE id = ? AND phone = ?", atNote, atNote, String(data.id || ''), phone);
+  if (!manual && seller) await wbSafe(() => wbWebOrder(x, seller, data.id)); // 25/11/2026: đơn web → file lên đơn của người bán
   const notify = async () => {
     const tg = await tgConf(x.env);
     if (!manual && tg.notify) await sendMail(x.env, { to: tg.notify, subject: '🛒 Đơn hàng mới ' + data.id + ' – ' + c.name + ' – ' + fmt(data.total),
@@ -1504,6 +1505,7 @@ async function crmOrderStatus(x, u, d, sys) { // sys: lệnh nội bộ đã t�
   }
   const ks = Object.keys(set);
   if (ks.length) await run(x.db, 'UPDATE orders SET ' + ks.map(k => k + ' = ?').join(', ') + ' WHERE rid = ?', ...ks.map(k => set[k]), o.rid);
+  if (set.seller && isWebId(o)) await wbSafe(() => wbWebOrder(x, set.seller, o.id)); // 25/11/2026: quản lý giao đơn web cho sale → ghi vào file lên đơn của sale đó
   if (set.status) await recalc(x, [o.phone]); // huỷ / hoàn / khôi phục đơn → tính lại khách (và màu khách)
   if (set.status) await wbSafe(async () => { const ow = await ownerOf(x, o.phone), m = String(o.source || '').match(/^File .+? – (.+)$/);
     await wbStatusQueue(x, [o.seller, ow], { id: o.id, sheet: m ? m[1] : '', phone: o.phone, name: o.name, time: Number(o.time) || 0, total: Number(o.total) || 0, status: set.status }); });

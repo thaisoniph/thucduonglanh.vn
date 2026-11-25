@@ -293,6 +293,25 @@ export async function wbTick(x) {
   } catch (e) { console.error('wbTick', e.message); return { error: e.message }; }
 }
 
+/** Thêm dòng đơn (đã lưu trong D1) vào file lên đơn của owner. o: dòng orders, cv: customers (owner, orders). Gọi khi đã biết đơn chưa có trong file. */
+export async function wbOrderAdd(x, owner, o, cv) {
+    if (!(await wbSource(x, owner, true))) return { ok: false, error: owner ? 'File của ' + owner + ' chưa bật "Ghi ngược" hoặc chưa có sheet lên đơn. Vào Cài đặt → file sale của ' + owner + ' để bật.' : 'Khách chưa có người phụ trách.' };
+    const L = String(o.items || '').split('\n').map(t => t.trim()).filter(Boolean), real = L.filter(t => t.indexOf('🎁') !== 0).map(t => t.replace(/\s*=.*$/, '')), g = L.filter(t => t.indexOf('🎁') === 0)[0];
+    const gm = g && g.replace(/^🎁\s*/, '').replace(/\s*=.*$/, '').match(/^(.*?)(?:\s+x(\d+))?$/);
+    await wbOrderQueue(x, owner, { id: o.id, time: Number(o.time), name: o.name, phone: o.phone, address: addrJoin(o.address, o.ward, o.province), product: real.join(', '), qty: '', gift: gm ? gm[1] : '', giftQty: gm && gm[2] ? +gm[2] : '',
+      total: Number(o.total) || 0, status: o.status, ship: o.ship || '', note: '', ca: o.ca || '', otype: o.otype || '', old: !!cv && Number(cv.orders) > 1 });
+    return { ok: true, queued: true };
+}
+/** 25/11/2026 (anh Sơn, đơn web chị Biên): đơn web có người bán → tự thêm dòng vào file lên đơn của người bán. Đơn đã ghi / đang chờ ghi thì thôi.
+ *  shortcut: đổi người bán sau khi đã ghi thì dòng vẫn ở file người cũ, khi cần thì thêm bước chuyển dòng. */
+export async function wbWebOrder(x, seller, id) {
+  if (!seller) return;
+  await ensure(x.db);
+  const o = await first(x.db, 'SELECT id, time, name, phone, province, ward, address, items, total, status, ship, note, ca, otype, seller FROM orders WHERE id = ?', String(id || '')); if (!o) return;
+  const key = '%' + JSON.stringify({ id: o.id }).slice(1, -1) + '%';
+  if (await first(x.db, "SELECT rid FROM wb_queue WHERE text LIKE ? AND text LIKE '@order%' AND (done_at IS NULL OR result LIKE 'Đã thêm đơn%') LIMIT 1", key)) return;
+  await wbOrderAdd(x, seller, o, await first(x.db, 'SELECT owner, orders FROM customers WHERE phone = ?', normPhone(o.phone)));
+}
 /** 📄 Đơn CRM → file lên đơn của sale (05/11/2026, Thuỷ: đơn lên trên CRM chưa thấy trong VTG_lendon): xem đơn đã ghi chưa, lỗi gì, file của ai;
  *  d.retry → xếp hàng ghi lại (chỉ khi chưa ghi được và không còn đang chờ). Sale xem đơn của mình, quản lý xem mọi đơn. Không gửi link file. */
 export async function wbOrderInfo(x, u, d) {
@@ -305,15 +324,6 @@ export async function wbOrderInfo(x, u, d) {
   const q = (await all(x.db, "SELECT rid, time, src, text, result, done_at FROM wb_queue WHERE text LIKE ? ORDER BY rid", key)).map(r => ({ time: Number(r.time), kind: String(r.text).split(' ')[0], result: r.result || '', done: r.done_at ? Number(r.done_at) : 0, src: r.src }));
   const files = (await all(x.db, 'SELECT id, sale, url, cfg FROM sources WHERE sale = ? ORDER BY rid', owner)).map(parseSrc).map(s => ({ id: s.id, writeBack: !!s.cfg.writeBack, sheets: orderSheets(s).map(c => c.name), orderSheet: s.cfg.orderSheet || '' }));
   const added = q.some(r => r.kind === '@order' && /^Đã thêm đơn/.test(r.result)), waiting = q.some(r => r.kind === '@order' && !r.done);
-  if (d.retry) {
-    if (added) return { ok: false, error: 'Đơn đã có trong file rồi, không ghi thêm (tránh trùng dòng).' };
-    if (waiting) return { ok: false, error: 'Đơn đang chờ ghi (10 phút/lần), chưa cần ghi lại.' };
-    if (!(await wbSource(x, owner, true))) return { ok: false, error: owner ? 'File của ' + owner + ' chưa bật "Ghi ngược" hoặc chưa có sheet lên đơn. Vào Cài đặt → file sale của ' + owner + ' để bật.' : 'Khách chưa có người phụ trách.' };
-    const L = String(o.items || '').split('\n').map(t => t.trim()).filter(Boolean), real = L.filter(t => t.indexOf('🎁') !== 0).map(t => t.replace(/\s*=.*$/, '')), g = L.filter(t => t.indexOf('🎁') === 0)[0];
-    const gm = g && g.replace(/^🎁\s*/, '').replace(/\s*=.*$/, '').match(/^(.*?)(?:\s+x(\d+))?$/);
-    await wbOrderQueue(x, owner, { id: o.id, time: Number(o.time), name: o.name, phone: o.phone, address: addrJoin(o.address, o.ward, o.province), product: real.join(', '), qty: '', gift: gm ? gm[1] : '', giftQty: gm && gm[2] ? +gm[2] : '',
-      total: Number(o.total) || 0, status: o.status, ship: o.ship || '', note: '', ca: o.ca || '', otype: o.otype || '', old: !!cv && Number(cv.orders) > 1 });
-    return { ok: true, queued: true };
-  }
+  if (d.retry) { if (added) return { ok: false, error: 'Đơn đã có trong file rồi, không ghi thêm (tránh trùng dòng).' }; if (waiting) return { ok: false, error: 'Đơn đang chờ ghi (10 phút/lần), chưa cần ghi lại.' }; return wbOrderAdd(x, owner, o, cv); }
   return { ok: true, owner, queue: q, files, added, waiting };
 }
