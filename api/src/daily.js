@@ -15,6 +15,14 @@
  *   Giá vốn từ kv cost_cfg (💰 Giá vốn, Quản trị / Kế toán nhập). % từng sản phẩm = min(% bậc, trần). Chưa có giá vốn → theo bậc.
  *   dlCaps → {'loại|trọng lượng': %, 'loại': % thấp nhất của loại} gửi CRM (rules.dlCaps, không gửi giá vốn) để form lên đơn tính giống máy chủ.
  * - Sale giới thiệu được đại lý (dl_list.by) → thưởng `bonus`% tiền nhập (đã trừ chiết khấu, không gồm ship) trong `bonusMonths` tháng từ đơn đầu.
+ * - 25/11/2026 (anh Sơn duyệt 3 điểm học từ chính sách đại lý sơn Con Vẹt / An Huy / Fami):
+ *   ① 🎁 Thưởng quý: quý có tiền hàng (giá lẻ) ≥ qMin → qb% tiền đại lý đã trả (đơn đã xác nhận), +qGoal% nếu đạt mục tiêu đã đăng ký.
+ *      Không trả tiền mặt: thành "thưởng quý" trừ vào các đơn của quý kế tiếp (hết quý kế tiếp thì hết hạn). Mỗi đơn chỉ thưởng tới "room"
+ *      = phần còn trống dưới trần chiết khấu theo giá vốn (dl_ord.r) → công ty vẫn giữ đủ lãi gộp `keep`. Đã dùng: dl_ord.cr (quý dùng: crq).
+ *   ② 🚀 3 tháng đầu (boost tháng từ đơn đầu): hưởng bậc trên 1 bậc (không vượt trần giá vốn) + nhắc gửi bộ hàng mẫu (dl_list.kit = lúc gửi).
+ *   ③ 🎯 Mục tiêu quý: đại lý tự đăng ký (trang đặt hàng) hoặc người phụ trách ghi hộ → dl_list.goals {'yyyy-Qn': tiền giá lẻ}.
+ *      Mục tiêu ≥ max(qMin, tiền nhập quý trước) (phải là cam kết tăng). Đăng ký trong tháng đầu của quý hoặc khi quý này chưa nhập → áp quý này,
+ *      không thì áp quý sau. Sau tháng đầu chỉ được nâng, không hạ.
  */
 import { all, first, kvGet, kvJson, kvSet, normPhone, fmt, fmtDate, isVoid, esc, DAY, nrm } from './lib.js';
 import { staffOf, staffHit } from './partner.js';
@@ -24,7 +32,8 @@ export const DL_SELLER = 'Kênh đại lý';
 const CFG_DEF = {
   tiers: [{ name: 'Đại lý', pct: 30, min: 5000000 }, { name: 'Đại lý Bạc', pct: 35, min: 15000000 }, { name: 'Nhà phân phối tỉnh', pct: 40, min: 50000000 }],
   first: 5000000, top3: 3, bonus: 3, bonusMonths: 3, lead: 'Thủy', selfMin: 1000000, // selfMin: mỗi đơn đại lý tự đặt trên web tối thiểu (giá lẻ)
-  keep: 25 // keep: công ty giữ lãi gộp tối thiểu bao nhiêu % giá lẻ ở mọi sản phẩm (giới hạn chiết khấu theo giá vốn)
+  keep: 25, // keep: công ty giữ lãi gộp tối thiểu bao nhiêu % giá lẻ ở mọi sản phẩm (giới hạn chiết khấu theo giá vốn)
+  qb: 2, qGoal: 1, qMin: 15000000, boost: 3, kit: 'Bộ hàng mẫu dùng thử + tờ rơi giới thiệu sản phẩm' // 25/11/2026: thưởng quý, mục tiêu quý, 3 tháng đầu
 };
 const COMPANY = { name: 'CÔNG TY TNHH TẬP ĐOÀN VITAGREEN NUTRITION', mst: '0111053409', addr: 'HA10-SP8A-15, Đường Hải Âu 8A, KĐT Vinhomes Ocean Park, Gia Lâm, TP. Hà Nội', hotline: '0966 326 522', rep: 'Nguyễn Văn Hiếu', repTitle: 'Giám đốc' };
 
@@ -39,6 +48,13 @@ async function dlOrd(x) { return await kvJson(x.db, 'dl_ord', null) || {}; }
 /** Tháng (giờ VN) của 1 mốc thời gian: 'yyyy-MM'. */
 const ym = t => fmtDate(t, 'yyyy-MM');
 const ymShift = (k, n) => { let [y, m] = k.split('-').map(Number); m += n; while (m < 1) { m += 12; y--; } while (m > 12) { m -= 12; y++; } return y + '-' + String(m).padStart(2, '0'); };
+const monthStart = k => Date.parse(k + '-01T00:00:00+07:00');
+/* ---- quý 'yyyy-Qn' (giờ VN) */
+export const qOf = k => k.slice(0, 4) + '-Q' + Math.ceil(Number(k.slice(5, 7)) / 3);
+export const qShift = (q, n) => { let y = +q.slice(0, 4), i = +q.slice(6) + n; while (i < 1) { i += 4; y--; } while (i > 4) { i -= 4; y++; } return y + '-Q' + i; };
+const qFirstMonth = q => q.slice(0, 4) + '-' + String(+q.slice(6) * 3 - 2).padStart(2, '0');
+const qStartT = q => monthStart(qFirstMonth(q));
+const qName = q => 'Quý ' + q.slice(6) + '/' + q.slice(0, 4);
 
 /** Đơn của kênh đại lý (đã trừ huỷ / hoàn), kèm tiền giá lẻ. */
 async function dlOrders(x) {
@@ -46,18 +62,69 @@ async function dlOrders(x) {
   const rows = await all(x.db, 'SELECT id, phone, time, total, shipping, subtotal, status, note FROM orders WHERE seller = ? ORDER BY time', DL_SELLER);
   return rows.filter(r => !isVoid(r.status) && !/hoàn/i.test(String(r.status || ''))).map(r => {
     const o = O[r.id] || {}, paid = Math.max(0, (Number(r.total) || 0) - (Number(r.shipping) || 0)), p = Number(o.p) || 0;
-    return { id: r.id, ph: r.phone, t: Number(r.time) || 0, total: Number(r.total) || 0, paid, list: Number(o.l) || (p < 100 ? Math.round(paid / (1 - p / 100)) : paid), pct: p, status: r.status };
+    return { id: r.id, ph: r.phone, t: Number(r.time) || 0, total: Number(r.total) || 0, paid, list: Number(o.l) || (p < 100 ? Math.round(paid / (1 - p / 100)) : paid), pct: p, status: r.status,
+      room: o.r == null ? Infinity : Number(o.r) || 0, cr: Number(o.cr) || 0, crq: o.crq || '' };
   });
 }
 
-/** Bậc đang áp dụng (1–3) của 1 đại lý trong tháng `k` theo tiền giá lẻ các tháng trước. */
-function tierOf(cfg, e, byMonth, k) {
+/** Bậc đang áp dụng (1–3) của 1 đại lý trong tháng `k` theo tiền giá lẻ các tháng trước. until > at = đang trong ưu đãi 3 tháng đầu → lên 1 bậc. */
+function tierOf(cfg, e, byMonth, k, until, at) {
   if (Number(e.fix) >= 1 && Number(e.fix) <= 3) return Number(e.fix);
   const T = cfg.tiers, prev = byMonth[ymShift(k, -1)] || 0;
   let ok3 = true; for (let i = 1; i <= Math.max(1, cfg.top3); i++) if ((byMonth[ymShift(k, -i)] || 0) < T[2].min) ok3 = false;
-  if (ok3) return 3;
-  if (prev >= T[1].min) return 2;
-  return 1;
+  const t = ok3 ? 3 : prev >= T[1].min ? 2 : 1;
+  return until && (at == null ? monthStart(k) : at) < until ? Math.min(3, t + 1) : t;
+}
+/** 🚀 Hết ưu đãi 3 tháng đầu lúc nào (0 = không có). Tính từ đơn đầu; chưa có đơn → đơn sắp lên cũng được hưởng. */
+function boostUntil(cfg, e, mine) {
+  if (!(Number(cfg.boost) > 0) || Number(e.fix)) return 0;
+  return (mine.length ? mine[0].t : Date.now()) + cfg.boost * 30.5 * DAY;
+}
+/** Bậc tháng này + tháng sau + bậc thật (không ưu đãi) của 1 đại lý. */
+function tierAll(cfg, e, mine, now) {
+  const bm = {}, k = ym(now), nk = ymShift(k, 1), until = boostUntil(cfg, e, mine);
+  mine.forEach(o => { const mk = ym(o.t); bm[mk] = (bm[mk] || 0) + o.list; });
+  const tier = tierOf(cfg, e, bm, k, until, now), base = tierOf(cfg, e, bm, k, 0);
+  const next = tierOf(cfg, Object.assign({}, e, { fix: 0 }), bm, nk, until, monthStart(nk));
+  return { bm, k, tier, base, next, until: until > now ? until : 0 };
+}
+
+/* ---- 🎁 thưởng quý + 🎯 mục tiêu quý (25/11/2026) */
+/** Thưởng của quý q: điều kiện theo tiền hàng giá lẻ (mọi đơn chưa huỷ), tiền thưởng chỉ trên đơn đã xác nhận (không 'Mới'), mỗi đơn ≤ room. */
+function qEarn(cfg, e, mine, q) {
+  const os = mine.filter(o => qOf(ym(o.t)) === q), list = os.reduce((s, o) => s + o.list, 0), goal = Number((e.goals || {})[q]) || 0;
+  const hit = list >= cfg.qMin, goalHit = !!goal && list >= goal, rate = hit ? cfg.qb + (goalHit ? cfg.qGoal : 0) : 0;
+  const amt = rate ? os.filter(o => o.status !== 'Mới').reduce((s, o) => s + Math.min(o.paid * rate / 100, o.room), 0) : 0;
+  return { q, name: qName(q), list, goal, hit, goalHit, rate, amt: Math.floor(amt / 1000) * 1000 };
+}
+/** Thưởng quý trước còn dùng được trong quý này (trừ vào đơn), hết hạn cuối quý này. */
+function qCredit(cfg, e, mine, now) {
+  const q = qOf(ym(now)), E = qEarn(cfg, e, mine, qShift(q, -1)), used = mine.filter(o => o.crq === q).reduce((s, o) => s + o.cr, 0);
+  return { q, from: E.name, earned: E.amt, used, bal: Math.max(0, E.amt - used), until: qStartT(qShift(q, 1)) - 1 };
+}
+/** Quý này: tiến độ, mục tiêu, thưởng dự kiến + quý nào sẽ nhận mục tiêu nếu đăng ký bây giờ. */
+function qState(cfg, e, mine, now) {
+  const q = qOf(ym(now)), cur = qEarn(cfg, e, mine, q), prev = qEarn(cfg, e, mine, qShift(q, -1)), t0 = qStartT(q), t1 = qStartT(qShift(q, 1));
+  const firstMonth = ym(now) === qFirstMonth(q), noOrder = !mine.some(o => qOf(ym(o.t)) === q), goalQ = firstMonth || noOrder || cur.goal ? q : qShift(q, 1);
+  const elapsed = Math.min(1, (now - t0) / (t1 - t0)), pace = cur.goal ? cur.list / cur.goal : cur.list / cfg.qMin;
+  const projRate = cur.list >= cfg.qMin ? cfg.qb + (cur.goal && cur.list >= cur.goal ? cfg.qGoal : 0) : 0;
+  return Object.assign(cur, { left: Math.ceil((t1 - now) / DAY), elapsed, pace, behind: pace < elapsed - 0.2, near: pace >= 0.7 && pace < 1,
+    goalQ, goalQName: qName(goalQ), goalNext: Number((e.goals || {})[qShift(q, 1)]) || 0, goalMin: Math.max(cfg.qMin, goalQ === q ? prev.list : cur.list), canLower: firstMonth || noOrder, projRate });
+}
+/** Ghi mục tiêu quý (đại lý tự đăng ký trên trang đặt hàng, hoặc người phụ trách ghi hộ ở CRM). */
+async function goalSet(x, ph, v, by) {
+  const L = await dlList(x), e = L[ph]; if (!e) return { ok: false, error: 'Không tìm thấy đại lý này.' };
+  const cfg = await dlCfg(x), mine = (await dlOrders(x)).filter(o => o.ph === ph), st = qState(cfg, e, mine, Date.now()), q = st.goalQ;
+  v = Math.round(Number(v) || 0);
+  if (v < st.goalMin) return { ok: false, error: 'Mục tiêu ' + st.goalQName + ' tối thiểu ' + fmt(st.goalMin) + ' (giá lẻ)' + (st.goalMin > cfg.qMin ? ': không thấp hơn tiền hàng quý trước.' : '.') };
+  if (v > 1e10) return { ok: false, error: 'Mục tiêu lớn quá, bạn kiểm tra lại số nhé.' };
+  const old = Number((e.goals || {})[q]) || 0;
+  if (q === st.q && old && v < old && !st.canLower) return { ok: false, error: 'Sau tháng đầu của quý chỉ được nâng mục tiêu, không hạ (đang là ' + fmt(old) + ').' };
+  e.goals = Object.assign({}, e.goals || {}); e.goals[q] = v;
+  Object.keys(e.goals).forEach(k => { if (k < qShift(st.q, -4)) delete e.goals[k]; }); // giữ 1 năm
+  await kvSet(x.db, 'dl_list', JSON.stringify(L));
+  x.later(telegram(x.env, '🎯 <b>MỤC TIÊU QUÝ ĐẠI LÝ</b>\n🏬 ' + esc(e.name || ph) + ' – ' + esc(ph) + '\n' + esc(st.goalQName) + ': <b>' + fmt(v) + '</b> (giá lẻ)' + (old ? ' · trước ' + fmt(old) : '') + ' · ' + esc(by)).catch(er => console.error('dl goal tg', er.message)));
+  return { ok: true, q, v };
 }
 
 /* ---- 💰 chiết khấu riêng từng sản phẩm theo giá vốn (24/11/2026) */
@@ -98,18 +165,20 @@ export async function dlCaps(x, cfg) {
 }
 /** % chiết khấu của 1 dòng hàng: min(% bậc, trần của sản phẩm). */
 export function dlPctOf(caps, tierPct, name) {
-  const k = dlKey(name), c = caps[k.f + '|' + k.w] ?? caps[k.f];
+  const c = capOf(caps, name);
   return c == null ? tierPct : Math.min(tierPct, c);
 }
+function capOf(caps, name) { const k = dlKey(name); return caps[k.f + '|' + k.w] ?? caps[k.f] ?? null; }
+/** 🎁 Phần tiền còn trống dưới trần giá vốn của 1 đơn (để thưởng quý không làm công ty mất lãi gộp tối thiểu). Sản phẩm chưa có giá vốn: không giới hạn (= cả tiền hàng). */
+function roomOf(caps, lines) { return Math.round(lines.reduce((s, l) => { const c = capOf(caps, l.name); return s + (c == null ? l.list : l.list * Math.max(0, c - l.pct) / 100); }, 0)); }
 
 /** Bản gọn cho mọi nhân sự (gửi kèm lệnh load): form lên đơn tự nhận ra đại lý và trừ chiết khấu. */
 export async function dlMap(x) {
   const L = await dlList(x), keys = Object.keys(L); if (!keys.length) return {};
-  const cfg = await dlCfg(x), os = await dlOrders(x), k = ym(Date.now()), out = {};
+  const cfg = await dlCfg(x), os = await dlOrders(x), now = Date.now(), out = {};
   keys.forEach(ph => {
-    const mine = os.filter(o => o.ph === ph), bm = {}; mine.forEach(o => { const mk = ym(o.t); bm[mk] = (bm[mk] || 0) + o.list; });
-    const tr = tierOf(cfg, L[ph], bm, k), T = cfg.tiers[tr - 1];
-    out[ph] = { tier: tr, name: T.name, pct: T.pct, firstMin: mine.length ? 0 : cfg.first, shop: L[ph].name || '', lead: cfg.lead || '' };
+    const mine = os.filter(o => o.ph === ph), ta = tierAll(cfg, L[ph], mine, now), T = cfg.tiers[ta.tier - 1], cr = qCredit(cfg, L[ph], mine, now);
+    out[ph] = { tier: ta.tier, name: T.name, pct: T.pct, firstMin: mine.length ? 0 : cfg.first, shop: L[ph].name || '', lead: cfg.lead || '', boost: ta.until ? 1 : 0, cr: cr.bal, crFrom: cr.from };
   });
   return out;
 }
@@ -119,14 +188,17 @@ export async function dlOrderCheck(x, u, phone, items, sub, ship) {
   const L = await dlList(x); if (!L[phone]) return null;
   const m = (await dlMap(x))[phone], caps = await dlCaps(x), real = items.filter(i => !i.gift), list = real.reduce((s, i) => s + (Number(i.price) || 0) * (Number(i.qty) || 0), 0);
   if (!list) return { error: 'Đơn đại lý cần sản phẩm có giá niêm yết (chọn sản phẩm trong danh sách gợi ý) để CRM trừ chiết khấu.' };
-  const want = Math.round(real.reduce((s, i) => s + (Number(i.price) || 0) * (Number(i.qty) || 0) * (1 - dlPctOf(caps, m.pct, i.name + ' ' + (i.variant || '')) / 100), 0)), eff = Math.round((list - want) * 1000 / list) / 10;
-  if (u.level < 2 && sub < want - 1000) return { error: 'Tiền hàng ' + fmt(sub) + ' thấp hơn giá đại lý ' + m.name + ' (giá lẻ ' + fmt(list) + ', chiết khấu ' + (eff === m.pct ? m.pct + '%' : 'theo từng sản phẩm, bình quân ' + String(eff).replace('.', ',') + '%') + ' = ' + fmt(want) + '). Muốn giảm thêm thì nhờ ' + (m.lead ? 'chị ' + m.lead + ' (phụ trách đại lý)' : 'quản lý') + ' lên đơn.' };
+  const lines = real.map(i => { const nm = i.name + ' ' + (i.variant || ''), pct = dlPctOf(caps, m.pct, nm); return { name: nm, pct, list: (Number(i.price) || 0) * (Number(i.qty) || 0) }; });
+  const want = Math.round(lines.reduce((s, l) => s + l.list * (1 - l.pct / 100), 0)), eff = Math.round((list - want) * 1000 / list) / 10;
+  const crOk = Math.min(m.cr || 0, want), cr = Math.max(0, Math.min(crOk, want - sub)), crq = qOf(ym(Date.now())); // 🎁 thưởng quý trước trừ vào đơn này (phần sale đã trừ)
+  if (u.level < 2 && sub < want - crOk - 1000) return { error: 'Tiền hàng ' + fmt(sub) + ' thấp hơn giá đại lý ' + m.name + ' (giá lẻ ' + fmt(list) + ', chiết khấu ' + (eff === m.pct ? m.pct + '%' : 'theo từng sản phẩm, bình quân ' + String(eff).replace('.', ',') + '%') + ' = ' + fmt(want) + (crOk ? ', trừ thưởng quý ' + fmt(crOk) + ' = ' + fmt(want - crOk) : '') + '). Muốn giảm thêm thì nhờ ' + (m.lead ? 'chị ' + m.lead + ' (phụ trách đại lý)' : 'quản lý') + ' lên đơn.' };
   if (u.level < 2 && m.firstMin && list < m.firstMin) return { error: 'Đại lý nhập lần đầu tối thiểu ' + fmt(m.firstMin) + ' (tính theo giá lẻ). Đơn này giá lẻ ' + fmt(list) + '. Thêm hàng, hoặc nhờ ' + (m.lead ? 'chị ' + m.lead + ' (phụ trách đại lý)' : 'quản lý') + ' lên đơn.' };
-  return { list, pct: eff, tierName: m.name, want, note: '🏪 Đơn đại lý ' + m.name + ' −' + (eff === m.pct ? m.pct + '%' : String(eff).replace('.', ',') + '% (riêng từng sản phẩm theo giá vốn)') + ' (giá lẻ ' + fmt(list) + ') · ' + u.name + ' lên đơn' };
+  return { list, pct: eff, tierName: m.name, want, r: roomOf(caps, lines), cr, crq, note: '🏪 Đơn đại lý ' + m.name + ' −' + (eff === m.pct ? m.pct + '%' : String(eff).replace('.', ',') + '% (riêng từng sản phẩm theo giá vốn)') + ' (giá lẻ ' + fmt(list) + ')' + (cr ? ' · 🎁 trừ thưởng ' + m.crFrom + ' ' + fmt(cr) : '') + (m.boost ? ' · 🚀 ưu đãi 3 tháng đầu' : '') + ' · ' + u.name + ' lên đơn' };
 }
-/** Ghi giá lẻ của đơn đại lý vừa tạo. */
+/** Ghi giá lẻ của đơn đại lý vừa tạo (+ room dưới trần giá vốn, thưởng quý đã trừ). */
 export async function dlOrderSave(x, id, phone, chk) {
-  const O = await dlOrd(x); O[id] = { ph: phone, l: chk.list, p: chk.pct };
+  const O = await dlOrd(x); O[id] = { ph: phone, l: chk.list, p: chk.pct, r: chk.r };
+  if (chk.cr) Object.assign(O[id], { cr: chk.cr, crq: chk.crq });
   await kvSet(x.db, 'dl_ord', JSON.stringify(O));
 }
 
@@ -176,10 +248,9 @@ async function dlByKey(x, key) {
 }
 /** Bậc + tiền giá lẻ tháng này / tháng trước của 1 đại lý. */
 async function dlState(x, ph, e) {
-  const cfg = await dlCfg(x), os = (await dlOrders(x)).filter(o => o.ph === ph), bm = {}, k = ym(Date.now());
-  os.forEach(o => { const mk = ym(o.t); bm[mk] = (bm[mk] || 0) + o.list; });
-  const tr = tierOf(cfg, e, bm, k), T = cfg.tiers[tr - 1], next = tierOf(cfg, Object.assign({}, e, { fix: 0 }), bm, ymShift(k, 1));
-  return { cfg, os, tier: tr, T, next, thisList: bm[k] || 0, prevList: bm[ymShift(k, -1)] || 0, firstMin: os.length ? 0 : cfg.first };
+  const cfg = await dlCfg(x), os = (await dlOrders(x)).filter(o => o.ph === ph), now = Date.now(), ta = tierAll(cfg, e, os, now), bm = ta.bm, k = ta.k;
+  return { cfg, os, tier: ta.tier, base: ta.base, until: ta.until, T: cfg.tiers[ta.tier - 1], next: ta.next, thisList: bm[k] || 0, prevList: bm[ymShift(k, -1)] || 0, firstMin: os.length ? 0 : cfg.first,
+    cr: qCredit(cfg, e, os, now), qs: qState(cfg, e, os, now) };
 }
 const dlUnit = (price, pct) => Math.round(price * (1 - pct / 100) / 100) * 100; // giá đại lý / 1 sản phẩm, làm tròn 100đ
 /** Trang /dai-ly/dat-hang/: chào, bậc, bảng giá đại lý, địa chỉ nhận lần trước, đơn gần đây. */
@@ -194,6 +265,9 @@ export async function dlMe(x, d) {
     ok: true, shop: e.name || '', name: (c && c.name) || (last && last.name) || e.name || '', phone: ph, lead: st.cfg.lead || '',
     tier: st.tier, tierName: st.T.name, pct: st.T.pct, nextTier: st.next, nextName: st.cfg.tiers[st.next - 1].name, nextPct: st.cfg.tiers[st.next - 1].pct, fixed: Number(e.fix) || 0,
     thisList: st.thisList, prevList: st.prevList, firstMin: st.firstMin, selfMin: st.cfg.selfMin, tiers: st.cfg.tiers, top3: st.cfg.top3, toT2: Math.max(0, T2.min - st.thisList),
+    boost: st.until ? { until: st.until, baseName: st.cfg.tiers[st.base - 1].name, basePct: st.cfg.tiers[st.base - 1].pct, months: st.cfg.boost } : null,
+    credit: st.cr.bal ? { bal: st.cr.bal, from: st.cr.from, until: st.cr.until } : null,
+    quarter: { name: st.qs.name, list: st.qs.list, goal: st.qs.goal, qMin: st.cfg.qMin, qb: st.cfg.qb, qGoal: st.cfg.qGoal, left: st.qs.left, projRate: st.qs.projRate, goalQ: st.qs.goalQ, goalQName: st.qs.goalQName, goalMin: st.qs.goalMin, goalNext: st.qs.goalNext },
     items: items.map(i => { const p = dlPctOf(caps, st.T.pct, i.name + ' ' + i.variant); return { id: i.id, name: i.name, variant: i.variant, img: i.img || '', price: i.price, pct: p, dl: dlUnit(i.price, p) }; }),
     addr: last ? { name: last.name, province: last.province || '', ward: last.ward || '', address: last.address || '' } : c ? { name: c.name, province: c.province || '', ward: '', address: c.address || '' } : null,
     orders: rec.map(o => ({ id: o.id, time: Number(o.time) || 0, total: Number(o.total) || 0, status: o.status || '', paid: o.paid || '' }))
@@ -212,28 +286,35 @@ export async function dlOrderWeb(x, d, h) {
   const t = (v, m) => String(v || '').trim().replace(/\s+/g, ' ').slice(0, m), name = t(d.name, 80) || e.name, province = t(d.province, 60), ward = t(d.ward, 80), address = t(d.address, 200), note = t(d.note, 300);
   if (!province || address.length < 4) return { ok: false, error: 'Bạn ghi địa chỉ nhận hàng (số nhà, đường) và tỉnh / thành giúp nhé.' };
   const pct = st.T.pct, list = want.reduce((s, i) => s + i.p.price * i.qty, 0);
-  const items = want.map(i => { const u1 = dlUnit(i.p.price, dlPctOf(caps, pct, i.p.name + ' ' + (i.p.variant || ''))); return { name: i.p.name, variant: i.p.variant || '', qty: i.qty, price: u1, subtotal: u1 * i.qty }; });
-  const paid = items.reduce((s, i) => s + i.subtotal, 0), eff = Math.round((list - paid) * 1000 / list) / 10, effT = eff === pct ? pct + '%' : String(eff).replace('.', ',') + '% (riêng từng sản phẩm theo giá vốn)';
+  const lines = [], items = want.map(i => { const nm = i.p.name + ' ' + (i.p.variant || ''), p1 = dlPctOf(caps, pct, nm), u1 = dlUnit(i.p.price, p1); lines.push({ name: nm, pct: p1, list: i.p.price * i.qty }); return { name: i.p.name, variant: i.p.variant || '', qty: i.qty, price: u1, subtotal: u1 * i.qty }; });
+  const goods = items.reduce((s, i) => s + i.subtotal, 0), eff = Math.round((list - goods) * 1000 / list) / 10, effT = eff === pct ? pct + '%' : String(eff).replace('.', ',') + '% (riêng từng sản phẩm theo giá vốn)';
+  const cr = Math.min(st.cr.bal, goods), paid = goods - cr; // 🎁 thưởng quý trước tự trừ vào đơn
+  if (cr) { let left = cr; items.forEach((it, n) => { const cut = n === items.length - 1 ? left : Math.min(left, Math.round(cr * it.subtotal / goods)); it.subtotal -= cut; left -= cut; }); items.forEach(it => { it.price = Math.round(it.subtotal / it.qty); }); }
   if (st.firstMin && list < st.firstMin) return { ok: false, error: 'Lần nhập đầu tiên tối thiểu ' + fmt(st.firstMin) + ' (tính theo giá lẻ). Đơn này giá lẻ ' + fmt(list) + ', bạn thêm ' + fmt(st.firstMin - list) + ' nữa nhé.' };
   if (list < st.cfg.selfMin) return { ok: false, error: 'Mỗi đơn nhập tối thiểu ' + fmt(st.cfg.selfMin) + ' (tính theo giá lẻ) để được miễn phí ship. Đơn này giá lẻ ' + fmt(list) + '.' };
   const recent = await all(x.db, 'SELECT id, total, time FROM orders WHERE phone = ? AND seller = ? AND coalesce(entered_at, time) > ? ORDER BY time DESC', ph, DL_SELLER, now - DAY);
   const dup = recent.find(o => Number(o.total) === paid && Number(o.time) > now - 30 * 60e3);
-  if (dup) return { ok: true, dup: true, id: dup.id, total: paid, list, pct: eff, off: list - paid };
+  if (dup) return { ok: true, dup: true, id: dup.id, total: paid, list, pct: eff, off: list - goods, cr };
   if (recent.length >= 5) return { ok: false, error: 'Hôm nay bạn đã gửi 5 đơn rồi. Cần đặt thêm, bạn nhắn Zalo 0966 326 522 nhé.' };
   let id = ''; for (let n = 0; n < 6 && !id; n++) { const c = 'DL' + fmtDate(now, 'yyMMdd') + Math.floor(1000 + Math.random() * 9000); if (!(await first(x.db, 'SELECT rid FROM orders WHERE id = ?', c))) id = c; }
   if (!id) return { ok: false, error: 'Máy chủ đang bận, bạn bấm gửi lại giúp nhé.' };
-  const tag = '🏪 Đại lý tự đặt trên web · Đơn đại lý ' + st.T.name + ' −' + effT + ' (giá lẻ ' + fmt(list) + ')';
+  const tag = '🏪 Đại lý tự đặt trên web · Đơn đại lý ' + st.T.name + ' −' + effT + ' (giá lẻ ' + fmt(list) + ')' + (cr ? ' · 🎁 trừ thưởng ' + st.cr.from + ' ' + fmt(cr) : '') + (st.until ? ' · 🚀 ưu đãi 3 tháng đầu' : '');
   await h.saveOrder(x, { id, customer: { name, phone: ph, province, district: ward, address, note: tag + (note ? ' · 💬 ' + note : '') }, items, subtotal: paid, shipping: 0, total: paid, payment: 'bank', source: 'Đại lý tự đặt (web)', first_source: 'Đại lý tự đặt (web)' },
     { by: DL_SELLER, status: 'Mới' });
-  await dlOrderSave(x, id, ph, { list, pct: eff });
+  await dlOrderSave(x, id, ph, { list, pct: eff, r: roomOf(caps, lines), cr, crq: st.cr.q });
   const keeper = e.by || (h.staff.indexOf(st.cfg.lead) >= 0 ? st.cfg.lead : ''); // khách đại lý chưa có người chăm → sale giới thiệu, không thì người phụ trách đại lý
   if (keeper) await x.db.prepare("UPDATE customers SET owner = ? WHERE phone = ? AND (owner = '' OR owner IS NULL OR owner = ?)").bind(keeper, ph, DL_SELLER).run();
   const msg = '🏪 <b>ĐẠI LÝ TỰ ĐẶT HÀNG</b> – ' + esc(id) + '\n🏬 ' + esc(e.name || name) + ' – <b>' + esc(ph) + '</b> · ' + esc(st.T.name) + ' −' + esc(effT) + '\n' +
     items.map(i => '• ' + esc(i.name + (i.variant ? ' ' + i.variant : '')) + ' x' + i.qty).join('\n') +
-    '\n💰 Giá lẻ ' + fmt(list) + ' → đại lý trả <b>' + fmt(paid) + '</b> (chuyển khoản trước, miễn ship)\n📍 ' + esc([address, ward, province].filter(Boolean).join(', ')) + (note ? '\n💬 ' + esc(note) : '') +
+    '\n💰 Giá lẻ ' + fmt(list) + (cr ? ' → giá đại lý ' + fmt(goods) + ' − thưởng quý ' + fmt(cr) : '') + ' → đại lý trả <b>' + fmt(paid) + '</b> (chuyển khoản trước, miễn ship)\n📍 ' + esc([address, ward, province].filter(Boolean).join(', ')) + (note ? '\n💬 ' + esc(note) : '') +
     '\n👉 ' + (st.cfg.lead ? 'Chị ' + esc(st.cfg.lead) + ' g' : 'G') + 'ọi xác nhận, kiểm tiền vào rồi đổi đơn sang Đã xác nhận để kho soạn hàng';
   x.later((async () => { await telegram(x.env, msg); if (st.cfg.lead && h.staff.indexOf(st.cfg.lead) >= 0) await h.telegramUser(x, st.cfg.lead, msg); })().catch(er => console.error('dl tg', er.message)));
-  return { ok: true, id, total: paid, list, pct: eff, off: list - paid };
+  return { ok: true, id, total: paid, list, pct: eff, off: list - goods, cr };
+}
+/** 🎯 Đại lý tự đăng ký mục tiêu quý trên trang đặt hàng. */
+export async function dlGoalWeb(x, d) {
+  const b = await dlByKey(x, d.key); if (b.err) return { ok: false, bad: !!b.bad, error: b.err };
+  return goalSet(x, b.ph, d.v, 'đại lý tự đăng ký');
 }
 
 /** 🙋 Thưởng sale giới thiệu: bonus% tiền đại lý trả (không ship) các đơn trong bonusMonths tháng từ đơn đầu, gộp theo tháng của đơn. */
@@ -257,16 +338,18 @@ async function dlView(x, u) {
   cs.forEach(c => { C[c.phone] = c; });
   const bonusOf = {}; // {tháng: {sale: tiền}}
   const list = phones.map(ph => {
-    const e = L[ph], mine = os.filter(o => o.ph === ph), bm = {}, pm = {};
-    mine.forEach(o => { const mk = ym(o.t); bm[mk] = (bm[mk] || 0) + o.list; pm[mk] = (pm[mk] || 0) + o.paid; });
-    const tr = tierOf(cfg, e, bm, k), T = cfg.tiers[tr - 1], next = tierOf(cfg, Object.assign({}, e, { fix: 0 }), bm, ymShift(k, 1)), first0 = mine.length ? mine[0].t : 0;
+    const e = L[ph], mine = os.filter(o => o.ph === ph), pm = {}, ta = tierAll(cfg, e, mine, now), bm = ta.bm;
+    mine.forEach(o => { const mk = ym(o.t); pm[mk] = (pm[mk] || 0) + o.paid; });
+    const tr = ta.tier, T = cfg.tiers[tr - 1], next = ta.next, first0 = mine.length ? mine[0].t : 0, cr = qCredit(cfg, e, mine, now), qs = qState(cfg, e, mine, now);
     bonusAdd(bonusOf, cfg, e, mine);
     const last = mine.length ? mine[mine.length - 1].t : 0;
     return { ph, name: e.name || (C[ph] && C[ph].name) || '', cname: (C[ph] && C[ph].name) || '', area: e.area || (C[ph] && C[ph].province) || '', by: e.by || '', at: e.at || 0, fix: Number(e.fix) || 0, note: e.note || '',
       tier: tr, tierName: T.name, pct: T.pct, nextTier: next, key: e.key || '', thisList: bm[k] || 0, thisPaid: pm[k] || 0, prevList: bm[kp] || 0, allPaid: mine.reduce((s, o) => s + o.paid, 0), n: mine.length, first: first0, last, idle: last ? Math.floor((now - last) / DAY) : null,
-      months: Object.keys(bm).sort().slice(-6).map(mk => [mk, bm[mk], pm[mk]]) };
+      months: Object.keys(bm).sort().slice(-6).map(mk => [mk, bm[mk], pm[mk]]),
+      boost: ta.until ? { until: ta.until, base: ta.base } : null, kit: e.kit || 0, cr: cr.bal ? { bal: cr.bal, from: cr.from, until: cr.until } : null,
+      q: { name: qs.name, list: qs.list, goal: qs.goal, rate: qs.projRate, left: qs.left, behind: qs.behind, near: qs.near, goalQ: qs.goalQ, goalQName: qs.goalQName, goalMin: qs.goalMin, goalNext: qs.goalNext, est: qs.amt } };
   }).sort((a, b) => b.thisPaid - a.thisPaid || b.allPaid - a.allPaid);
-  const sum = { n: list.length, thisPaid: list.reduce((s, r) => s + r.thisPaid, 0), prevPaid: os.filter(o => ym(o.t) === kp).reduce((s, o) => s + o.paid, 0), orders: os.filter(o => ym(o.t) === k).length };
+  const sum = { n: list.length, thisPaid: list.reduce((s, r) => s + r.thisPaid, 0), prevPaid: os.filter(o => ym(o.t) === kp).reduce((s, o) => s + o.paid, 0), orders: os.filter(o => ym(o.t) === k).length, crBal: list.reduce((s, r) => s + (r.cr ? r.cr.bal : 0), 0) };
   const A = await dlApps(x), apps = A.filter(r => r.st === 'new').concat(A.filter(r => r.st !== 'new').slice(0, 10));
   const caps = u.level >= 3 ? (await dlCapList(x, cfg)).map(i => ({ name: i.name, variant: i.variant, price: i.price, cost: i.cost, cap: i.cap })) : null; // 💰 chỉ Quản trị thấy giá vốn
   return { ok: true, cfg, list, sum, apps, caps, month: k, prev: kp, bonus: { [k]: bonusOf[k] || {}, [kp]: bonusOf[kp] || {} }, company: COMPANY, canCfg: u.level >= 3 };
@@ -284,7 +367,8 @@ export async function crmDaily(x, u, d, log, staffNames) {
     const fix = Math.round(Number(d.fix) || 0);
     const sw = staffHit(await staffOf(x), { phone: ph, name: d.cname || '' });
     if (sw && !d.okStaff) return { ok: false, warn: 1, error: sw + '. Nhân sự và người nhà không làm đại lý (giống luật CTV). Vẫn thêm thì bấm lại.' };
-    L[ph] = { name, area: String(d.area || '').trim().slice(0, 120), by, fix: fix >= 1 && fix <= 3 ? fix : 0, note: String(d.note || '').trim().slice(0, 300), at: old ? old.at : Date.now(), atBy: old ? old.atBy : u.name };
+    const prev = old || (d.oldPhone && L[normPhone(d.oldPhone)]) || null; // giữ link đặt hàng, mục tiêu quý, bộ hàng mẫu khi sửa (trước 25/11/2026 sửa là mất link)
+    L[ph] = Object.assign({}, prev || {}, { name, area: String(d.area || '').trim().slice(0, 120), by, fix: fix >= 1 && fix <= 3 ? fix : 0, note: String(d.note || '').trim().slice(0, 300), at: prev ? prev.at : Date.now(), atBy: prev ? prev.atBy : u.name });
     if (d.oldPhone && normPhone(d.oldPhone) !== ph) delete L[normPhone(d.oldPhone)];
     if (d.appId) L[ph].app = String(d.appId).slice(0, 20);
     await kvSet(x.db, 'dl_list', JSON.stringify(L));
@@ -297,6 +381,19 @@ export async function crmDaily(x, u, d, log, staffNames) {
     const ph = normPhone(d.phone), L = await dlList(x); if (!L[ph]) return { ok: false, error: 'Không tìm thấy đại lý này.' };
     if (!L[ph].key || d.reset) { L[ph].key = newKey(); await kvSet(x.db, 'dl_list', JSON.stringify(L)); await log(x, u, d.reset ? 'Đổi link đặt hàng đại lý' : 'Tạo link đặt hàng đại lý', ph, L[ph].name, d.reset ? 'link cũ hết dùng được' : '', ''); }
     return { ok: true, key: L[ph].key, link: DL_ORDER_URL + '#' + L[ph].key };
+  }
+  if (a === 'dl_goal') { // 🎯 người phụ trách ghi hộ mục tiêu quý (đại lý ngại dùng web)
+    if (u.level < 2) return { ok: false, error: 'Chỉ Quản lý và Quản trị ghi mục tiêu quý cho đại lý.' };
+    const r = await goalSet(x, normPhone(d.phone), d.v, u.name + ' ghi hộ'); if (!r.ok) return r;
+    await log(x, u, 'Mục tiêu quý đại lý', normPhone(d.phone), '', r.q + ': ' + fmt(r.v), '');
+    return dlView(x, u);
+  }
+  if (a === 'dl_kit') { // 🎁 đã gửi bộ hàng mẫu cho đại lý mới
+    if (u.level < 2) return { ok: false, error: 'Chỉ Quản lý và Quản trị đánh dấu bộ hàng mẫu.' };
+    const ph = normPhone(d.phone), L = await dlList(x); if (!L[ph]) return { ok: false, error: 'Không tìm thấy đại lý này.' };
+    L[ph].kit = d.undo ? 0 : Date.now(); await kvSet(x.db, 'dl_list', JSON.stringify(L));
+    await log(x, u, d.undo ? 'Bỏ đánh dấu bộ hàng mẫu đại lý' : 'Đã gửi bộ hàng mẫu đại lý', ph, L[ph].name, '', '');
+    return dlView(x, u);
   }
   if (a === 'dl_app_no') {
     if (u.level < 2) return { ok: false, error: 'Chỉ Quản lý và Quản trị xử lý đăng ký đại lý.' };
@@ -326,8 +423,11 @@ export async function crmDaily(x, u, d, log, staffNames) {
     const old = await dlCfg(x), lead = d.lead == null ? old.lead : String(d.lead).trim().slice(0, 40), selfMin = d.selfMin == null ? old.selfMin : Math.max(0, Math.round(Number(d.selfMin) || 0));
     const keep = d.keep == null || d.keep === '' ? old.keep : Number(String(d.keep).replace(',', '.'));
     if (!(keep >= 0 && keep <= 80)) return { ok: false, error: 'Lãi gộp tối thiểu giữ lại 0–80% giá lẻ.' };
-    await kvSet(x.db, 'dl_cfg', JSON.stringify({ tiers, first: firstMin, bonus, bonusMonths, top3, lead, selfMin, keep }));
-    await log(x, u, 'Cài đặt đại lý', '', '', tiers.map(r => r.name + ' ' + r.pct + '% từ ' + fmt(r.min)).join(' · '), 'phụ trách ' + (lead || '—') + ' · đơn đầu ' + fmt(firstMin) + ' · tự đặt từ ' + fmt(selfMin) + ' · giữ lãi gộp ≥ ' + keep + '% giá lẻ' + ' · thưởng sale ' + bonus + '% ' + bonusMonths + ' tháng');
+    const pick = (k, lo, hi) => { const v = d[k] == null || d[k] === '' ? old[k] : Number(String(d[k]).replace(',', '.')); return v >= lo && v <= hi ? v : NaN; };
+    const qb = pick('qb', 0, 10), qGoal = pick('qGoal', 0, 10), qMin = Math.round(pick('qMin', 0, 1e10)), boost = Math.round(pick('boost', 0, 12)), kit = d.kit == null ? old.kit : String(d.kit).trim().slice(0, 200);
+    if ([qb, qGoal, qMin, boost].some(Number.isNaN)) return { ok: false, error: 'Kiểm tra lại: thưởng quý 0–10%, cộng thêm khi đạt mục tiêu 0–10%, ưu đãi đầu 0–12 tháng.' };
+    await kvSet(x.db, 'dl_cfg', JSON.stringify({ tiers, first: firstMin, bonus, bonusMonths, top3, lead, selfMin, keep, qb, qGoal, qMin, boost, kit }));
+    await log(x, u, 'Cài đặt đại lý', '', '', tiers.map(r => r.name + ' ' + r.pct + '% từ ' + fmt(r.min)).join(' · '), 'phụ trách ' + (lead || '—') + ' · đơn đầu ' + fmt(firstMin) + ' · tự đặt từ ' + fmt(selfMin) + ' · giữ lãi gộp ≥ ' + keep + '% giá lẻ' + ' · thưởng sale ' + bonus + '% ' + bonusMonths + ' tháng' + ' · thưởng quý ' + qb + '% (+' + qGoal + '% đạt mục tiêu) từ ' + fmt(qMin) + ' · ưu đãi đầu ' + boost + ' tháng');
     return dlView(x, u);
   }
   return { ok: false, error: 'Không rõ thao tác: ' + a };

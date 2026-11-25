@@ -767,6 +767,10 @@ collections:
               - { label: "Nhập lần đầu tối thiểu (triệu, giá lẻ)", name: first, widget: number, value_type: int, min: 0, max: 500, default: 5 }
               - { label: "Lên Đại lý Bạc từ (triệu / tháng, giá lẻ)", name: min2, widget: number, value_type: int, min: 0, max: 1000, default: 15 }
               - { label: "Lên Nhà phân phối tỉnh từ (triệu / tháng, 3 tháng liền)", name: min3, widget: number, value_type: int, min: 0, max: 5000, default: 50 }
+              - { label: "Thưởng quý (% tiền hàng đã trả, 0 = không hiện)", name: qb, widget: number, value_type: int, min: 0, max: 10, default: 2 }
+              - { label: "Đạt mục tiêu quý: thưởng thêm (%)", name: qgoal, widget: number, value_type: int, min: 0, max: 10, default: 1 }
+              - { label: "Thưởng quý khi quý nhập từ (triệu, giá lẻ)", name: qmin, widget: number, value_type: int, min: 0, max: 5000, default: 15 }
+              - { label: "Đại lý mới hưởng bậc trên trong (tháng, 0 = không hiện)", name: boost, widget: number, value_type: int, min: 0, max: 12, default: 3 }
           - label: "Ưu đãi chỉ có khi đặt trên website"
             name: web_offer
             i18n: true

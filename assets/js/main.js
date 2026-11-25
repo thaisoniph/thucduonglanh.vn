@@ -1411,6 +1411,19 @@
     });
   }
   /** 🛒 Đại lý tự đặt hàng /dai-ly/dat-hang/#<link riêng> (đợt 3, 23/11/2026): api daily.js dlMe (bậc, giá) → dlOrderWeb (máy chủ tự tính tiền theo /dl-gia.json). */
+  /** 🎯 Khối quý trên trang đặt hàng đại lý: tiến độ, thưởng quý, ô đăng ký mục tiêu (25/11/2026, api daily.js dlMe.quarter). */
+  function dlQuarter(j) {
+    var q = j.quarter; if (!q || !q.qb) return '';
+    var pc = q.goal ? Math.min(100, Math.round(q.list * 100 / q.goal)) : Math.min(100, Math.round(q.list * 100 / q.qMin));
+    var mine = q.goalQName === q.name ? q.goal : q.goalNext;
+    return '<div class="dlo-q4"><p class="rf-eye">🎯 ' + esc(q.name) + ' · còn ' + q.left + ' ngày</p>' +
+      '<p>Đã nhập <b>' + money(q.list) + '</b> (giá lẻ)' + (q.goal ? ' / mục tiêu <b>' + money(q.goal) + '</b>' : '') + '.</p>' +
+      '<div class="dlo-bar"><span style="width:' + pc + '%"></span></div>' +
+      '<p class="small">' + (q.projRate ? '✅ Đã đủ thưởng quý <b>' + q.projRate + '%</b>' + (q.goal && q.list < q.goal ? ', nhập thêm ' + money(q.goal - q.list) + ' để được ' + (q.qb + q.qGoal) + '%' : '') + '.' : 'Nhập đủ <b>' + money(q.qMin) + '</b> trong quý → thưởng <b>' + q.qb + '%</b> tiền hàng' + (q.qGoal ? ', đạt mục tiêu bạn đăng ký thêm ' + q.qGoal + '%' : '') + '.') +
+        ' Thưởng tự trừ vào đơn quý sau.</p>' +
+      (q.qGoal ? '<form class="plg-form" data-dlo-goal novalidate><label class="plg-f"><span>Mục tiêu ' + esc(q.goalQName) + ' của bạn (giá lẻ, từ ' + money(q.goalMin) + ')</span><input name="v" inputmode="numeric" placeholder="Ví dụ: 20000000" value="' + (mine || '') + '"></label>' +
+        '<button class="btn" type="submit">🎯 Lưu mục tiêu</button><p class="form-msg" data-dlo-gmsg role="status"></p></form>' : '') + '</div>';
+  }
   function initDlOrder() {
     var box = $('#dlOrder'); if (!box || !CFG.endpoint) return;
     var key = String(location.hash || '').replace(/^#k?=?/, '').replace(/[^a-f0-9]/g, '') || load('tdl_dl_key', '');
@@ -1433,7 +1446,10 @@
       }).join('');
       var a = j.addr || {}, st = { 'Mới': '🕐 Chờ xác nhận', 'Đã xác nhận': '✅ Đã xác nhận', 'Đang giao': '🚚 Đang giao', 'Đã giao': '📦 Đã giao', 'Huỷ': '✖ Huỷ' };
       out.innerHTML = '<div class="dlo-tier"><span class="dlo-tic">' + (tic[j.tier - 1] || '🏪') + '</span><div><small>Bậc của bạn tháng này</small><b>' + esc(j.tierName) + ' · −' + j.pct + '%</b>' +
-          '<p>Tháng này đã nhập <b>' + money(j.thisList) + '</b> (giá lẻ)' + (j.prevList ? ' · tháng trước ' + money(j.prevList) : '') + '. ' + prog + '</p></div></div>' +
+          '<p>Tháng này đã nhập <b>' + money(j.thisList) + '</b> (giá lẻ)' + (j.prevList ? ' · tháng trước ' + money(j.prevList) : '') + '. ' + prog + '</p>' +
+          (j.boost ? '<p>🚀 Ưu đãi ' + j.boost.months + ' tháng đầu (tới ' + d2(j.boost.until) + '): bạn được hưởng bậc trên, bậc thật là ' + esc(j.boost.baseName) + ' −' + j.boost.basePct + '%.</p>' : '') + '</div></div>' +
+        (j.credit ? '<p class="dlo-min">🎁 Bạn có <b>' + money(j.credit.bal) + '</b> thưởng ' + esc(j.credit.from) + ', tự trừ vào đơn này. Dùng trước ' + d2(j.credit.until) + '.</p>' : '') +
+        dlQuarter(j) +
         (j.items.some(function (i) { return i.pct < j.pct; }) ? '<p class="small muted">Sản phẩm ghi <b>“riêng”</b> có giá vốn cao nên chiết khấu thấp hơn bậc.</p>' : '') +
         '<p class="dlo-min">' + (j.firstMin ? '🚀 Lần nhập đầu tối thiểu <b>' + money(j.firstMin) + '</b> (giá lẻ).' : '📦 Mỗi đơn từ <b>' + money(j.selfMin) + '</b> (giá lẻ).') + ' Miễn phí ship, chuyển khoản trước.</p>' +
         '<p class="rf-eye">1. Chọn số lượng</p><div class="dlo-list">' + rows + '</div>' +
@@ -1453,11 +1469,12 @@
       var byId = {}; j.items.forEach(function (i) { byId[i.id] = i; });
       var pick = function () { return $$('.dlo-it', out).map(function (r) { return { id: r.getAttribute('data-id'), qty: Math.max(0, Math.min(2000, parseInt($('input', r).value, 10) || 0)) }; }).filter(function (i) { return i.qty > 0; }); };
       var calc = function () {
-        var ls = pick(), list = 0, pay = 0, n = 0;
+        var ls = pick(), list = 0, pay = 0, n = 0, cr = 0;
         ls.forEach(function (i) { var p = byId[i.id]; list += p.price * i.qty; pay += p.dl * i.qty; n += i.qty; });
+        var goods = pay; cr = j.credit ? Math.min(j.credit.bal, pay) : 0; pay -= cr; // 🎁 thưởng quý trước (máy chủ tính lại)
         $$('.dlo-it', out).forEach(function (r) { r.classList.toggle('on', (parseInt($('input', r).value, 10) || 0) > 0); });
-        sum.innerHTML = n ? '<div><span>Giá lẻ (' + n + ' sản phẩm)</span><b>' + money(list) + '</b></div><div><span>Chiết khấu' + (list && Math.round((list - pay) * 100 / list) !== j.pct ? '' : ' −' + j.pct + '%') + '</span><b>−' + money(list - pay) + '</b></div><div class="dlo-tot"><span>Bạn chuyển khoản</span><b>' + money(pay) + '</b></div>' +
-          (list < need ? '<p class="dlo-warn">Còn thiếu <b>' + money(need - list) + '</b> (giá lẻ) để đủ mức ' + (j.firstMin ? 'nhập lần đầu' : 'tối thiểu mỗi đơn') + '.</p>' : '<p class="dlo-ok">Bán đúng giá web, bạn lãi khoảng <b>' + money(list - pay) + '</b>.</p>') : '<p class="muted">Chọn số lượng ở trên, tiền tự tính ở đây.</p>';
+        sum.innerHTML = n ? '<div><span>Giá lẻ (' + n + ' sản phẩm)</span><b>' + money(list) + '</b></div><div><span>Chiết khấu' + (list && Math.round((list - pay) * 100 / list) !== j.pct ? '' : ' −' + j.pct + '%') + '</span><b>−' + money(list - goods) + '</b></div>' + (cr ? '<div><span>🎁 Thưởng ' + esc(j.credit.from) + '</span><b>−' + money(cr) + '</b></div>' : '') + '<div class="dlo-tot"><span>Bạn chuyển khoản</span><b>' + money(pay) + '</b></div>' +
+          (list < need ? '<p class="dlo-warn">Còn thiếu <b>' + money(need - list) + '</b> (giá lẻ) để đủ mức ' + (j.firstMin ? 'nhập lần đầu' : 'tối thiểu mỗi đơn') + '.</p>' : '<p class="dlo-ok">Bán đúng giá web, bạn lãi khoảng <b>' + money(list - goods) + '</b>' + (cr ? ', cộng ' + money(cr) + ' thưởng quý' : '') + '.</p>') : '<p class="muted">Chọn số lượng ở trên, tiền tự tính ở đây.</p>';
         return { ls: ls, list: list, pay: pay };
       };
       $$('.dlo-it', out).forEach(function (r) {
@@ -1466,6 +1483,16 @@
         inp.onfocus = function () { if (inp.value === '0') inp.select(); };
       });
       calc();
+      var gf = $('[data-dlo-goal]', out); // 🎯 đại lý tự đăng ký mục tiêu quý
+      if (gf) gf.addEventListener('submit', function (e) {
+        e.preventDefault(); var gm = $('[data-dlo-gmsg]', gf), v = parseInt(String(gf.v.value).replace(/\D/g, ''), 10) || 0;
+        if (v && v < 1000) v *= 1000000; // gõ "20" = 20 triệu
+        gm.textContent = 'Đang lưu…'; gm.className = 'form-msg';
+        post({ type: 'dl_goal', key: key, v: v }).then(function (r) {
+          if (!r || !r.ok) { gm.textContent = (r && r.error) || 'Chưa lưu được, bạn thử lại nhé.'; gm.className = 'form-msg err'; return; }
+          track('dl_goal', { value: r.v }); gm.textContent = '✅ Đã ghi mục tiêu ' + money(r.v) + '. Đạt mục tiêu bạn được thêm ' + j.quarter.qGoal + '% thưởng quý.'; gm.className = 'form-msg';
+        }, function () { gm.textContent = 'Mạng chập chờn, bạn bấm lại nhé.'; gm.className = 'form-msg err'; });
+      });
       var err = function (t, el) { fmsg.textContent = t; fmsg.className = 'form-msg err'; if (el) el.focus(); };
       f.addEventListener('submit', function (e) {
         e.preventDefault(); fmsg.textContent = '';
@@ -1482,7 +1509,7 @@
           track('dl_order', { value: r.total, currency: 'VND', transaction_id: r.id });
           var b = CFG.bank, qr = b ? '<div class="qr-box"><h3>Quét mã để chuyển khoản</h3><img src="https://img.vietqr.io/image/' + encodeURIComponent(b.bank_id) + '-' + encodeURIComponent(b.account_no) + '-compact2.png?amount=' + r.total + '&addInfo=' + encodeURIComponent(r.id) + '&accountName=' + encodeURIComponent(b.account_name) + '" alt="Mã QR chuyển khoản" width="260" height="300"><p><b>' + esc(b.bank_name) + '</b><br>STK: <b>' + esc(b.account_no) + '</b><br>Chủ TK: ' + esc(b.account_name) + '<br>Số tiền: <b>' + money(r.total) + '</b><br>Nội dung: <b>' + esc(r.id) + '</b></p></div>' : '';
           var dn = $('[data-dlo-done]', out);
-          dn.innerHTML = '<p class="cj-ic">🎉</p><h2>Đã nhận đơn ' + esc(r.id) + '</h2><p>' + (r.dup ? 'Đơn này bạn đã gửi rồi, không tạo đơn trùng. ' : '') + 'Giá lẻ ' + money(r.list) + ', chiết khấu −' + r.pct + '% → bạn chuyển khoản <b>' + money(r.total) + '</b>. ' + esc(lead.charAt(0).toUpperCase() + lead.slice(1)) + ' sẽ gọi xác nhận, kho gửi hàng khi tiền vào.</p>' + qr +
+          dn.innerHTML = '<p class="cj-ic">🎉</p><h2>Đã nhận đơn ' + esc(r.id) + '</h2><p>' + (r.dup ? 'Đơn này bạn đã gửi rồi, không tạo đơn trùng. ' : '') + 'Giá lẻ ' + money(r.list) + ', chiết khấu −' + r.pct + '%' + (r.cr ? ', trừ thưởng quý ' + money(r.cr) : '') + ' → bạn chuyển khoản <b>' + money(r.total) + '</b>. ' + esc(lead.charAt(0).toUpperCase() + lead.slice(1)) + ' sẽ gọi xác nhận, kho gửi hàng khi tiền vào.</p>' + qr +
             '<p><button type="button" class="btn" data-dlo-again>🛒 Đặt đơn khác</button></p>';
           f.hidden = true; $('.dlo-list', out).hidden = true; $$('.rf-eye', out)[0].hidden = true; dn.hidden = false; dn.scrollIntoView({ behavior: 'smooth', block: 'start' });
           $('[data-dlo-again]', dn).onclick = function () { location.reload(); };

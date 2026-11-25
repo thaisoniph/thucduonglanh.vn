@@ -1966,6 +1966,7 @@ def page_dl_join():
     """🏪 Đăng ký làm đại lý /dai-ly/ (đợt 2, 23/11/2026): cửa hàng / người bán online tự đăng ký → báo Telegram → người phụ trách (CRM dl_cfg.lead) gọi làm quen
     rồi Duyệt ở CRM → Cài đặt → 🏪 Đại lý. Chữ từ site.json "dl_join" (/admin); mức THẬT ở CRM (api/src/daily.js dl_cfg). main.js initDlJoin gửi api daily.js dlApply."""
     p1, p2, p3, fst, m2, m3 = (int(num(DLJ.get(k)) or 0) for k in ("pct1", "pct2", "pct3", "first", "min2", "min3"))
+    qb, qg, qm, bst = (int(num(DLJ.get(k)) or 0) for k in ("qb", "qgoal", "qmin", "boost"))  # 25/11/2026: thưởng quý, mục tiêu quý, ưu đãi tháng đầu
     kinds = ["Cửa hàng thực phẩm sạch / chay", "Tiệm thực dưỡng", "Spa / phòng tập / yoga", "Bán online (Facebook, Zalo, TikTok)", "Hội nhóm, cộng đồng", "Khác"]
     chips = "".join(f'<label class="cn-chip"><input type="checkbox" name="kind" value="{esc(c)}"><span>{esc(c)}</span></label>' for c in kinds)
     plans = ["Dưới 5 triệu", "5 – 15 triệu", "15 – 50 triệu", "Trên 50 triệu", "Chưa rõ"]
@@ -1975,6 +1976,8 @@ def page_dl_join():
         f"Đại lý mua hàng về tự bán, chuyển khoản trước 100% mỗi lần nhập. Lần đầu nhập từ {fst} triệu (tính theo giá lẻ trên web).",
         f"Chiết khấu tính theo tổng tiền hàng giá lẻ đã nhập trong tháng trước: {p1}% (Đại lý), {p2}% khi tháng trước nhập từ {m2} triệu (Đại lý Bạc), {p3}% khi nhập từ {m3} triệu 3 tháng liền (Nhà phân phối tỉnh). Bậc được xét lại đầu mỗi tháng.",
         "Một số sản phẩm có giá vốn cao (ví dụ xì dầu) có mức chiết khấu riêng thấp hơn bậc, ghi rõ trong bảng giá đại lý.",
+        *([f"Ưu đãi mở thị trường: {bst} tháng đầu kể từ đơn nhập đầu tiên, bạn được hưởng chiết khấu của bậc cao hơn 1 bậc và nhận bộ hàng mẫu dùng thử, tờ rơi để giới thiệu cho khách."] if bst else []),
+        *([f"Thưởng quý: quý nào bạn nhập từ {qm} triệu (giá lẻ) thì được thưởng {qb}% tiền hàng đã trả" + (f", đạt mục tiêu quý bạn tự đăng ký (không thấp hơn quý trước) thì thêm {qg}%" if qg else "") + ". Tiền thưởng tự trừ vào các đơn nhập của quý sau (không đổi ra tiền mặt, hết quý sau thì hết hạn). Sản phẩm đã có mức chiết khấu riêng tối đa thì không cộng thưởng quý."] if qb else []),
         "Giữ giá bán lẻ không thấp hơn giá trên thucduonglanh.vn. Không bán trên Shopee, TikTok Shop, Lazada khi " + BRAND + " chưa đồng ý bằng văn bản.",
         "Khách đang mua trực tiếp của " + BRAND + " vẫn là khách của công ty; đại lý phát triển khách mới của mình.",
         "Hàng lỗi do nhà sản xuất được đổi ngay. Hàng chậm bán được đổi sang sản phẩm khác tối đa 10% giá trị đã nhập mỗi năm (hàng còn hạn trên 12 tháng). Không trả hàng lấy tiền.",
@@ -1990,6 +1993,7 @@ def page_dl_join():
   <h1 class="plg-h"><span class="nw">Nhập hàng lành</span> <span class="nw">về bán,</span> <span class="nw">chiết khấu</span> <span class="nw">đến {p3}%</span></h1>
   <p class="plg-lead">Bạn có cửa hàng, spa, phòng tập, hay bán online cho người quan tâm ăn uống lành mạnh? Làm đại lý {BRAND}: nhập hàng giá tốt, bán đúng giá web, phần chênh là của bạn. Nhập càng nhiều, chiết khấu càng cao.</p>
   <div class="dlj-tiers">{tier_html}</div>
+  {f'<ul class="dlj-plus">' + (f'<li>🚀 <b>{bst} tháng đầu</b> hưởng bậc trên + bộ hàng mẫu</li>' if bst else '') + (f'<li>🎁 <b>Thưởng quý {qb}%</b>' + (f'–{qb + qg}%' if qg else '') + ' trừ vào đơn quý sau</li>' if qb else '') + '</ul>' if bst or qb else ''}
   <p class="small muted dlj-ex">Ví dụ: lấy hàng giá lẻ {money(ex)}, bậc Đại lý −{p1}% → bạn trả <b>{money(round(ex * (100 - p1) / 100))}</b>, bán đúng giá web lãi {money(round(ex * p1 / 100))}.</p>
   <ol class="rf-steps">
     <li><span>1</span><b>Đăng ký</b>Điền form bên dưới, mất 1 phút.</li>
@@ -2060,6 +2064,7 @@ def page_dl_order():
     <li>Kiểm tra địa chỉ nhận hàng rồi bấm <b>Gửi đơn nhập hàng</b>.</li>
     <li>Chuyển khoản đúng số tiền, nội dung ghi <b>mã đơn</b> (quét mã QR là tự điền). Người phụ trách gọi xác nhận, kho gửi hàng khi tiền vào.</li>
     <li>Bậc chiết khấu xét lại đầu mỗi tháng theo tổng tiền hàng (giá lẻ) bạn nhập tháng trước.</li>
+    <li>Đăng ký <b>mục tiêu quý</b> ở khối 🎯 để được thêm thưởng khi đạt. Thưởng quý tự trừ vào đơn của quý sau.</li>
     <li>Giữ giá bán lẻ không thấp hơn giá trên thucduonglanh.vn. Khi giới thiệu sản phẩm, chỉ nói đúng công dụng ghi trên bao bì, không dùng các từ “chữa”, “điều trị”, “khỏi bệnh”; sản phẩm không phải là thuốc, không có tác dụng thay thế thuốc chữa bệnh.</li>
   </ol><p>Link trang này là của riêng bạn, đừng chia sẻ cho người khác. Cần hỗ trợ, bạn nhắn Zalo <a href="tel:{tel(SITE["hotline"])}">{esc(SITE["hotline"])}</a>.</p></details>
 </div></section>'''

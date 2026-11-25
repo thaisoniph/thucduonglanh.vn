@@ -4,7 +4,7 @@ nav: Đại lý
 group: ban-hang
 short: Chiết khấu 30 / 35 / 40%, lên đơn tự trừ
 order: 2.7
-updated: 2026-11-23
+updated: 2026-11-25
 description: Đại lý mua hàng về tự bán, trả tiền trước, chiết khấu theo bậc. Lên đơn cho số của đại lý, CRM tự trừ chiết khấu. Sale giới thiệu được đại lý thì được thưởng.
 roles: [sale, ql]
 ---
@@ -35,6 +35,14 @@ Ví dụ: đại lý lấy hàng giá lẻ 5.000.000đ, bậc Đại lý 30% →
 
 CRM tự lên / xuống bậc đầu mỗi tháng. Quản lý có thể **giữ cố định** 1 bậc cho đại lý đặc biệt.
 
+## 3 ưu đãi thêm (từ 25/11/2026)
+
+1. 🚀 **3 tháng đầu hưởng bậc trên.** Đại lý mới, tính từ đơn nhập đầu tiên: bậc Đại lý 30% được trừ như Đại lý Bạc 35%. Công ty gửi kèm **bộ hàng mẫu dùng thử + tờ rơi** để đại lý mời khách thử.
+2. 🎁 **Thưởng quý.** Quý nào đại lý nhập từ **15 triệu** giá lẻ → thưởng **2%** tiền đã trả. Không trả tiền mặt: CRM **tự trừ vào đơn của quý sau**. Hết quý sau thì hết hạn.
+3. 🎯 **Mục tiêu quý.** Đại lý tự đăng ký mục tiêu (không thấp hơn quý trước). Đạt mục tiêu → thưởng quý **thêm 1%** (tức 3%).
+
+Ví dụ: Quý 4 đại lý trả 14.000.000đ (giá lẻ 20 triệu) → thưởng 2% = **280.000đ**. Đơn đầu Quý 1, CRM tự trừ 280.000đ.
+
 > 💰 **Sản phẩm giá vốn cao trừ ít hơn.** Công ty luôn giữ lại ít nhất 25% giá lẻ làm lãi ở mọi sản phẩm. Vì vậy có sản phẩm không được trừ đủ % của bậc. Mức riêng từng sản phẩm Quản trị xem ở ⚙️ Mức chiết khấu. CRM và trang đặt hàng của đại lý **tự tính**, form lên đơn ghi rõ sản phẩm nào trừ ít hơn. Bạn không cần nhớ.
 
 ## 6 luật đại lý phải giữ
@@ -63,7 +71,7 @@ Lên đơn **như khách thường** (nút 🛒 Lên đơn). Gõ số điện th
 ![Form lên đơn cho đại lý: khung xanh báo bậc và chiết khấu, ô tiền tự điền giá đại lý](/huong-dan/img/dl-len-don.webp)
 
 - Hiện khung xanh **🏪 Khách là Đại lý …: chiết khấu …%**.
-- Ô **Số tiền thu khách** tự điền: giá lẻ − chiết khấu. Bạn **không phải tự tính**.
+- Ô **Số tiền thu khách** tự điền: giá lẻ − chiết khấu − 🎁 thưởng quý trước (nếu đại lý còn). Bạn **không phải tự tính**.
 - Không cần chọn **Loại đơn**.
 - Thanh toán chọn **Chuyển khoản**. Đại lý chuyển tiền xong mới gửi hàng.
 
@@ -95,9 +103,14 @@ Vào **⚙️ Cài đặt → 🌐 Website & khuyến mãi → 🏪 Đại lý �
 2. Mỗi đại lý có 1 thẻ: bậc đang được, tiền nhập tháng này, **còn bao nhiêu nữa để lên bậc**.
 3. Thẻ có ⚠️ **30 ngày chưa nhập hàng** → gọi hỏi đại lý bán thế nào, cần hỗ trợ gì.
 4. Nút **📄 Hợp đồng**: mở hợp đồng phân phối điền sẵn tên, bậc, 6 luật. Sửa chữ được, bấm **🖨 In**. Nên nhờ kế toán xem lại trước khi ký.
-5. Khung **🙋 Thưởng sale giới thiệu đại lý**: tiền thưởng từng sale tháng này / tháng trước. Số này **tự cộng vào bảng lương** (cột Hoa hồng, phiếu lương ghi rõ), không cần gửi kế toán. Đơn đại lý huỷ / hoàn không tính.
+5. Mỗi thẻ có dòng **📅 Quý này**: đã nhập bao nhiêu / mục tiêu, còn mấy ngày, đủ thưởng chưa.
+   - ⏳ **Đang chậm** → gọi hỏi đại lý cần hỗ trợ gì. Chữ **sắp đạt** → gọi động viên nhập nốt.
+   - 🎁 **Thưởng quý trước còn …** → nhắc đại lý nhập để dùng trước khi hết hạn.
+   - Đại lý mới có 🚀 và dòng đỏ **🎁 Chưa gửi bộ hàng mẫu** → gửi bộ mẫu cùng đơn đầu rồi bấm **Đã gửi**.
+   - Đại lý ngại dùng web: bấm **🎯 Mục tiêu quý** để ghi hộ mục tiêu.
+6. Khung **🙋 Thưởng sale giới thiệu đại lý**: tiền thưởng từng sale tháng này / tháng trước. Số này **tự cộng vào bảng lương** (cột Hoa hồng, phiếu lương ghi rõ), không cần gửi kế toán. Đơn đại lý huỷ / hoàn không tính.
 
-Đổi mức chiết khấu: nút **⚙️ Mức chiết khấu** (chỉ Quản trị).
+Đổi mức chiết khấu, thưởng quý, số tháng ưu đãi đầu: nút **⚙️ Mức chiết khấu** (chỉ Quản trị). Đổi xong nhớ sửa chữ trên trang /dai-ly/ ở /admin → Cài đặt chung → Đại lý cho khớp.
 
 ## Việc 5 (Quản lý): Gửi link để đại lý tự đặt hàng
 
@@ -106,7 +119,7 @@ Vào **⚙️ Cài đặt → 🌐 Website & khuyến mãi → 🏪 Đại lý �
 1. Mở danh sách đại lý, ở thẻ đại lý bấm **🔗 Link đặt hàng**. CRM copy sẵn tin nhắn kèm link.
 ![Thẻ đại lý: nút Link đặt hàng](/huong-dan/img/dl-link.webp)
 2. Dán vào Zalo gửi đại lý. Dặn đại lý **ghim tin nhắn** để lần sau mở lại.
-3. Đại lý mở link sẽ thấy: **(1)** bậc tháng này, còn bao nhiêu để giữ / lên bậc; **(2)** chọn số lượng từng sản phẩm; **(3)** giá lẻ, chiết khấu, số tiền chuyển; **(4)** bấm **Gửi đơn nhập hàng** → trang hiện mã QR chuyển khoản, nội dung là mã đơn (bắt đầu bằng **DL**).
+3. Đại lý mở link sẽ thấy: **(1)** bậc tháng này, còn bao nhiêu để giữ / lên bậc; **(2)** khối **🎯 Quý này**: tiến độ, thưởng quý, ô đăng ký mục tiêu; **(3)** chọn số lượng từng sản phẩm; **(4)** giá lẻ, chiết khấu, 🎁 thưởng quý trước tự trừ, số tiền chuyển; **(5)** bấm **Gửi đơn nhập hàng** → trang hiện mã QR chuyển khoản, nội dung là mã đơn (bắt đầu bằng **DL**).
 ![Trang đặt hàng của đại lý](/huong-dan/img/dl-dat-hang.webp)
 4. Nhóm Telegram báo **🏪 ĐẠI LÝ TỰ ĐẶT HÀNG**. Người phụ trách gọi xác nhận, thấy tiền vào thì đổi đơn sang **Đã xác nhận** để kho soạn hàng.
 

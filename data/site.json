@@ -95,7 +95,11 @@
     "pct3": 40,
     "first": 5,
     "min2": 15,
-    "min3": 50
+    "min3": 50,
+    "qb": 2,
+    "qgoal": 1,
+    "qmin": 15,
+    "boost": 3
   },
   "web_offer": {
     "enabled": true,

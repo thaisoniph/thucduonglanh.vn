@@ -3926,13 +3926,14 @@
     $('#noOtEdit', m).onclick = otOpen;
     /** 🏪 khung báo khách là đại lý (23/11/2026): bậc, % chiết khấu, giá lẻ → giá đại lý, mức nhập lần đầu */
     var dlyBank = false;
-    var dlyLow = [];
+    var dlyLow = [], dlyCr = 0; // dlyCr: 🎁 thưởng quý trước trừ vào đơn này (25/11/2026)
     function dlySync(dly, base, want, paid) {
       var bx = $('#noDly', m); if (!bx) return; bx.hidden = !dly; if (!dly) { bx.innerHTML = ''; dlyBank = false; return; }
       if (!dlyBank) { dlyBank = true; var bk = $('input[name=payment][value=bank]', form); if (bk && !bk.checked) { bk.checked = true; sumSync(); } } // đại lý trả trước: chọn sẵn chuyển khoản
       var low = base && paid < want - 1000, firstLow = dly.firstMin && base && base < dly.firstMin;
       bx.innerHTML = '<div class="notice info dly-note"><b>🏪 Khách là ' + esc(dly.name) + (dly.shop ? ' · ' + esc(dly.shop) : '') + ': chiết khấu ' + dly.pct + '%</b>' +
-        '<div class="small" style="margin-top:4px">' + (base ? 'Giá lẻ ' + money(base) + ' − chiết khấu = <b>' + money(want) + '</b> (CRM đã tự điền ô Số tiền thu khách).' : 'Chọn sản phẩm, CRM tự trừ ' + dly.pct + '%.') +
+        '<div class="small" style="margin-top:4px">' + (base ? 'Giá lẻ ' + money(base) + ' − chiết khấu' + (dlyCr ? ' − 🎁 thưởng ' + esc(dly.crFrom || 'quý trước') + ' ' + money(dlyCr) : '') + ' = <b>' + money(want) + '</b> (CRM đã tự điền ô Số tiền thu khách).' : 'Chọn sản phẩm, CRM tự trừ ' + dly.pct + '%' + (dly.cr ? ' và 🎁 thưởng quý trước ' + money(dly.cr) : '') + '.') +
+          (dly.boost ? ' 🚀 Đại lý mới: 3 tháng đầu được hưởng bậc trên.' : '') +
           (dlyLow.length ? ' 💰 Sản phẩm giá vốn cao trừ ít hơn: ' + dlyLow.map(esc).join(', ') + '.' : '') +
         ' Đơn này tính cho <b>Kênh đại lý</b>, không vào doanh số và hoa hồng của bạn. Đại lý trả tiền trước (chuyển khoản).</div>' +
         (firstLow ? '<div class="small dly-warn">⚠️ Đại lý nhập lần đầu tối thiểu ' + money(dly.firstMin) + ' giá lẻ' + (mgr ? ' (bạn là quản lý nên vẫn lưu được).' : '. Thêm hàng, hoặc nhờ quản lý lên đơn.') + '</div>' : '') +
@@ -3981,6 +3982,7 @@
       var ls = read(items), gs = read(gifts), base = ls.reduce(function (s, i) { return s + i.qty * i.price; }, 0), ship = Math.max(0, +F.shipping.value || 0);
       var dly = eo ? null : dlyOf(F.phone.value), dlyWant = dly && base ? Math.round(ls.reduce(function (s, i) { return s + i.qty * i.price * (1 - dlyItemPct(dly, i) / 100); }, 0)) : 0; // 🏪 đại lý: tự trừ chiết khấu theo bậc, sản phẩm giá vốn cao trừ ít hơn
       dlyLow = dly ? ls.filter(function (i) { return i.price && dlyItemPct(dly, i) < dly.pct; }).map(function (i) { return shortLabel(i.name + (i.variant ? ' – ' + i.variant : '')) + ' −' + dlyItemPct(dly, i) + '%'; }) : [];
+      dlyCr = dly && dly.cr ? Math.min(dly.cr, dlyWant) : 0; dlyWant -= dlyCr; // 🎁 thưởng quý trước tự trừ (máy chủ daily.js dlOrderCheck tính lại)
       if (!totalEdited && base) F.total.value = (dly ? dlyWant : base) + ship;
       var tot = moneyIn(F.total.value);
       dlySync(dly, base, dlyWant, tot - ship);
@@ -17340,6 +17342,18 @@
     $('#bkAll', m).onclick = function () { var b = this; copy(ta.value.replace(/\[Tên\]/gi, 'anh/chị')).then(function () { toast('Đã copy tin chung ✓ Trong Zalo: dán gửi 1 khách, rồi giữ tay vào tin → Chuyển tiếp → chọn nhiều người'); b.textContent = '✓ Đã copy'; }); };
   }
   /* ---------- 🏪 Kênh đại lý – đợt 1 (23/11/2026, anh Sơn duyệt 3 bậc 30 / 35 / 40%). Máy chủ: api/src/daily.js */
+  /** 🎯🎁🚀 1 dòng quý / thưởng / ưu đãi đầu trên thẻ đại lý (25/11/2026, daily.js dlView). */
+  function dlyQLine(e, cfg) {
+    var q = e.q || {}, out = [];
+    if (e.boost) out.push('🚀 Ưu đãi ' + cfg.boost + ' tháng đầu tới ' + fDate(e.boost.until) + ': đang hưởng bậc trên (bậc thật ' + esc(cfg.tiers[e.boost.base - 1].name) + ')' + (e.kit ? ' · 🎁 đã gửi bộ mẫu ' + fDate(e.kit) : ''));
+    var ql = '📅 ' + esc(q.name) + ': giá lẻ <b>' + moneyShort(q.list || 0) + '</b>' + (q.goal ? ' / mục tiêu ' + moneyShort(q.goal) + ' (' + Math.round(q.list * 100 / q.goal) + '%)' : ' / mức thưởng ' + moneyShort(cfg.qMin)) + ' · còn ' + q.left + ' ngày' +
+      (q.rate ? ' · ✅ đủ thưởng ' + q.rate + '% (dự kiến ' + moneyShort(q.est) + ')' : '') + (q.goalNext ? ' · mục tiêu quý sau ' + moneyShort(q.goalNext) : '');
+    out.push(ql);
+    if (e.cr) out.push('🎁 Thưởng ' + esc(e.cr.from) + ' còn <b>' + money(e.cr.bal) + '</b>: CRM tự trừ vào đơn tới, hết hạn ' + fDate(e.cr.until) + '. Nhắc đại lý nhập để dùng.');
+    var warn = q.behind && e.n ? '<div class="small dly-warn">⏳ Đang chậm so với ' + (q.goal ? 'mục tiêu' : 'mức thưởng') + ' quý: gọi hỏi đại lý cần hỗ trợ gì.</div>' : '';
+    var kit = e.boost && !e.kit ? '<div class="small dly-warn">🎁 Chưa gửi ' + esc(cfg.kit || 'bộ hàng mẫu') + ' cho đại lý mới. <button class="btn" data-dlykit="' + esc(e.ph) + '">Đã gửi</button></div>' : '';
+    return '<div class="small" style="margin-top:4px">' + out.join('<br>') + (q.near && !q.rate ? ' · <span class="dly-tag">sắp đạt</span>' : '') + '</div>' + warn + kit;
+  }
   function dlyBox() {
     var D = (S.d && S.d.rules && S.d.rules.dl) || {}, n = Object.keys(D).length;
     return '<div class="box"><h3>🏪 Đại lý</h3><p class="hint" style="margin:0 0 10px">Đại lý mua hàng về tự bán, trả tiền trước, được chiết khấu theo bậc (tính theo tiền hàng giá lẻ tháng trước). Lên đơn cho số điện thoại của đại lý: CRM <b>tự trừ chiết khấu</b>, đơn tính cho <b>Kênh đại lý</b>, không vào doanh số / hoa hồng / thi đua của sale. Sale giới thiệu được đại lý nhận thưởng theo % tiền nhập.' + (function () { var k = Object.keys(D)[0], ld = k && D[k].lead; return ld ? ' <b>👩‍💼 Phụ trách đại lý: chị ' + esc(ld) + '</b> (thêm đại lý mới, chăm sóc, duyệt giảm thêm).' : ''; })() + '</p>' +
@@ -17355,7 +17369,8 @@
     function list() {
       var j = D.j, cfg = j.cfg; foot(true);
       var h = '<p class="small muted" style="margin:0 0 10px">' + tierLine(cfg) + ' · tính theo tiền hàng <b>giá lẻ</b> · sale giới thiệu thưởng <b>' + cfg.bonus + '%</b> tiền nhập trong ' + cfg.bonusMonths + ' tháng đầu.' + (cfg.lead ? ' · 👩‍💼 phụ trách: <b>chị ' + esc(cfg.lead) + '</b>' : '') + '</p>';
-      h += '<div class="kpis" style="margin:0 0 12px">' + kpi('🏪 Đại lý', j.sum.n, '', '', 'đang có') + kpi('💵 Tiền nhập tháng này', moneyShort(j.sum.thisPaid), j.sum.thisPaid ? 'good' : '', '', j.sum.orders + ' đơn · đã trừ chiết khấu') + kpi('📅 Tháng trước', moneyShort(j.sum.prevPaid), '', '', 'tiền nhập') + '</div>';
+      h += '<div class="kpis" style="margin:0 0 12px">' + kpi('🏪 Đại lý', j.sum.n, '', '', 'đang có') + kpi('💵 Tiền nhập tháng này', moneyShort(j.sum.thisPaid), j.sum.thisPaid ? 'good' : '', '', j.sum.orders + ' đơn · đã trừ chiết khấu') + kpi('📅 Tháng trước', moneyShort(j.sum.prevPaid), '', '', 'tiền nhập') + (j.sum.crBal ? kpi('🎁 Thưởng quý chưa dùng', moneyShort(j.sum.crBal), '', '', 'đại lý trừ vào đơn quý này') : '') + '</div>';
+      h += '<p class="hint" style="margin:0 0 10px">🎁 <b>Thưởng quý:</b> quý nhập từ ' + moneyShort(cfg.qMin) + ' giá lẻ → thưởng ' + cfg.qb + '% tiền đã trả' + (cfg.qGoal ? ', đạt mục tiêu đã đăng ký thêm ' + cfg.qGoal + '%' : '') + ', trừ vào đơn quý sau (CRM tự trừ). ' + (cfg.boost ? '🚀 <b>' + cfg.boost + ' tháng đầu</b> đại lý mới được hưởng bậc trên + gửi ' + esc(cfg.kit || 'bộ hàng mẫu') + '.' : '') + '</p>';
       var aNew = (j.apps || []).filter(function (a) { return a.st === 'new'; }), aOld = (j.apps || []).filter(function (a) { return a.st !== 'new'; });
       if (aNew.length) h += '<div class="box dly-apps"><h3>📝 Đăng ký mới từ web (' + aNew.length + ')</h3><p class="hint" style="margin:0 0 8px">Người lạ tự đăng ký ở thucduonglanh.vn/dai-ly/. Gọi / Zalo làm quen, hỏi họ bán cho ai, rồi bấm <b>✅ Duyệt</b> (CRM mở sẵn form thêm đại lý) hoặc <b>✕ Không hợp</b>.</p>' + aNew.map(dlyAppCard).join('') + '</div>';
       if (!j.list.length) h += empty('Chưa có đại lý nào. Bấm <b>＋ Thêm đại lý</b> (số điện thoại + tên cửa hàng), rồi lên đơn như khách thường: CRM tự trừ chiết khấu.');
@@ -17371,8 +17386,9 @@
           '<div class="small">Tháng này: giá lẻ <b>' + moneyShort(e.thisList) + '</b> (trả ' + moneyShort(e.thisPaid) + ') · tháng trước ' + moneyShort(e.prevList) +
             go + '</div>' +
           (idle ? '<div class="small dly-warn">⚠️ ' + e.idle + ' ngày chưa nhập hàng: gọi hỏi đại lý bán thế nào, cần hỗ trợ gì.</div>' : '') +
+          dlyQLine(e, cfg) +
           (e.note ? '<div class="small muted">💬 ' + esc(e.note) + '</div>' : '') +
-          '<div class="acts"><button class="btn pri" data-dlyord="' + esc(e.ph) + '">🛒 Lên đơn</button><button class="btn" data-dlyed="' + esc(e.ph) + '">✏️ Sửa</button><button class="btn" data-dlylk="' + esc(e.ph) + '" title="Link riêng để đại lý tự đặt hàng trên web, giá đã trừ chiết khấu">🔗 Link đặt hàng</button><button class="btn" data-dlyhd="' + esc(e.ph) + '">📄 Hợp đồng</button></div></div>';
+          '<div class="acts"><button class="btn pri" data-dlyord="' + esc(e.ph) + '">🛒 Lên đơn</button><button class="btn" data-dlygoal="' + esc(e.ph) + '" title="Ghi hộ mục tiêu quý khi đại lý ngại dùng web">🎯 Mục tiêu quý</button><button class="btn" data-dlyed="' + esc(e.ph) + '">✏️ Sửa</button><button class="btn" data-dlylk="' + esc(e.ph) + '" title="Link riêng để đại lý tự đặt hàng trên web, giá đã trừ chiết khấu">🔗 Link đặt hàng</button><button class="btn" data-dlyhd="' + esc(e.ph) + '">📄 Hợp đồng</button></div></div>';
       }).join('');
       var bk = function (k, t) { var b = j.bonus[k] || {}, ks = Object.keys(b); return ks.length ? '<p class="small" style="margin:4px 0">' + t + ': ' + ks.map(function (n) { return esc(n) + ' <b>' + money(b[n]) + '</b>'; }).join(' · ') + '</p>' : ''; };
       var bh = bk(j.month, 'Tháng này') + bk(j.prev, 'Tháng trước');
@@ -17386,6 +17402,14 @@
       $$('[data-dlylk]', m).forEach(function (b) { b.onclick = function () { dlyLinkSend(j.list.filter(function (e) { return e.ph === b.getAttribute('data-dlylk'); })[0], false); }; });
       $$('[data-dlyhd]', m).forEach(function (b) { b.onclick = function () { dlyContract(j.list.filter(function (e) { return e.ph === b.getAttribute('data-dlyhd'); })[0], j); }; });
       $$('[data-dlyord]', m).forEach(function (b) { b.onclick = function () { var ph = b.getAttribute('data-dlyord'); closeModal(); openOrderForm({ phone: ph }); }; });
+      $$('[data-dlykit]', m).forEach(function (b) { b.onclick = function () { api('dl_kit', { phone: b.getAttribute('data-dlykit') }).then(function (j) { toast('Đã ghi: gửi bộ hàng mẫu ✓'); done(j); }, fail); }; });
+      $$('[data-dlygoal]', m).forEach(function (b) {
+        b.onclick = function () {
+          var e = j.list.filter(function (z) { return z.ph === b.getAttribute('data-dlygoal'); })[0], q = e.q;
+          var v = prompt('Mục tiêu ' + q.goalQName + ' của ' + e.name + ' (tiền hàng giá lẻ, tối thiểu ' + money(q.goalMin) + ').\nĐạt mục tiêu: thưởng quý thêm ' + cfg.qGoal + '%.', (q.goalQName === q.name ? q.goal : q.goalNext) || q.goalMin); if (v === null) return;
+          api('dl_goal', { phone: e.ph, v: moneyIn(v) }).then(function (jj) { toast('Đã ghi mục tiêu ' + q.goalQName + ' ✓'); done(jj); }, fail);
+        };
+      });
     }
     /** 🛒 đợt 3: link đặt hàng riêng của đại lý → copy tin Zalo kèm link (reset = đổi link khi lộ, link cũ hết dùng được). */
     function dlyLinkSend(e, reset) {
@@ -17445,13 +17469,16 @@
         '<div class="row2c"><label class="f"><span>Thưởng sale giới thiệu (% tiền nhập)</span><input type="text" inputmode="decimal" id="dlyBonus" value="' + c.bonus + '"></label><label class="f"><span>Trong bao nhiêu tháng đầu</span><input type="number" min="0" max="24" id="dlyBm" value="' + c.bonusMonths + '"></label></div>' +
         '<label class="f"><span>🛒 Mỗi đơn đại lý tự đặt trên web tối thiểu (giá lẻ)</span><input type="text" inputmode="numeric" id="dlySelf" value="' + (c.selfMin || 0) + '"></label>' +
         '<label class="f"><span>💰 Công ty giữ lãi gộp tối thiểu (% giá lẻ) ở mọi sản phẩm</span><input type="text" inputmode="decimal" id="dlyKeep" value="' + (c.keep == null ? 25 : c.keep) + '"></label>' + dlyCapTable(D.j.caps, c) +
+        '<h3 style="margin:14px 0 4px">🎁 Thưởng quý · 🎯 Mục tiêu · 🚀 3 tháng đầu</h3><p class="hint" style="margin:0 0 8px">Thưởng quý không trả tiền mặt: trừ vào đơn của quý sau, hết quý sau thì hết hạn. Không vượt trần giá vốn ở trên (sản phẩm đã sát trần thì không có thưởng quý).</p>' +
+        '<div class="row2c"><label class="f"><span>Quý nhập từ (giá lẻ)</span><input type="text" inputmode="numeric" id="dlyQMin" value="' + (c.qMin || 0) + '"></label><label class="f"><span>Thưởng quý (% tiền đã trả)</span><input type="text" inputmode="decimal" id="dlyQb" value="' + (c.qb || 0) + '"></label><label class="f"><span>Đạt mục tiêu đã đăng ký: thêm (%)</span><input type="text" inputmode="decimal" id="dlyQg" value="' + (c.qGoal || 0) + '"></label></div>' +
+        '<div class="row2c"><label class="f"><span>🚀 Đại lý mới hưởng bậc trên trong (tháng, 0 = tắt)</span><input type="number" min="0" max="12" id="dlyBoost" value="' + (c.boost || 0) + '"></label><label class="f"><span>🎁 Gửi đại lý mới</span><input type="text" id="dlyKit" maxlength="200" value="' + esc(c.kit || '') + '"></label></div>' +
         '<label class="f"><span>👩‍💼 Người phụ trách đại lý (tên gọi, hiện cho sale khi cần nhờ)</span><input type="text" id="dlyLead" maxlength="40" value="' + esc(c.lead || '') + '"></label>' +
         '<p class="err" id="dlyErr"></p><div class="steps" style="margin-top:12px"><button class="btn pri" id="dlyCSave">Lưu mức</button><button class="btn ghost" id="dlyBack">Quay lại</button></div>';
       $('#dlyBack', m).onclick = list;
       var nv = function (s) { return Number(String(s).replace(/[^\d.,]/g, '').replace(',', '.')) || 0; };
       $('#dlyCSave', m).onclick = function () {
         var tiers = [0, 1, 2].map(function (i) { return { name: $('[data-dn="' + i + '"]', m).value, pct: nv($('[data-dp="' + i + '"]', m).value), min: moneyIn($('[data-dm="' + i + '"]', m).value) || 0 }; });
-        api('dl_cfg', { tiers: tiers, first: moneyIn($('#dlyFirst', m).value) || 0, top3: +$('#dlyTop3', m).value, bonus: nv($('#dlyBonus', m).value), bonusMonths: +$('#dlyBm', m).value, lead: $('#dlyLead', m).value, selfMin: moneyIn($('#dlySelf', m).value) || 0, keep: $('#dlyKeep', m).value }).then(function (j) { toast('Đã lưu mức chiết khấu ✓'); done(j); }, function (e) { $('#dlyErr', m).textContent = e.message; });
+        api('dl_cfg', { tiers: tiers, first: moneyIn($('#dlyFirst', m).value) || 0, top3: +$('#dlyTop3', m).value, bonus: nv($('#dlyBonus', m).value), bonusMonths: +$('#dlyBm', m).value, lead: $('#dlyLead', m).value, selfMin: moneyIn($('#dlySelf', m).value) || 0, keep: $('#dlyKeep', m).value, qMin: moneyIn($('#dlyQMin', m).value) || 0, qb: $('#dlyQb', m).value, qGoal: $('#dlyQg', m).value, boost: +$('#dlyBoost', m).value || 0, kit: $('#dlyKit', m).value }).then(function (j) { toast('Đã lưu mức chiết khấu ✓'); done(j); }, function (e) { $('#dlyErr', m).textContent = e.message; });
       };
     }
     $('#dlyNew').onclick = function () { edit(null); };
@@ -17475,7 +17502,9 @@
       '<h2>Điều 2. Giá và chiết khấu</h2>' + L('Giá mua = giá bán lẻ niêm yết trên thucduonglanh.vn tại thời điểm đặt hàng trừ chiết khấu theo bậc:') + tiers +
       L('Một số sản phẩm có giá vốn cao được áp mức chiết khấu riêng thấp hơn bậc (ghi rõ trong bảng giá đại lý tại thời điểm đặt hàng).') +
       L('Bậc của mỗi tháng tính theo tổng tiền hàng (giá bán lẻ) Bên B đã nhập trong tháng trước, đã trừ đơn huỷ / hoàn. Bậc hiện tại của Bên B: <b>' + esc(e.tierName) + ' – chiết khấu ' + e.pct + '%</b>.') +
-      '<h2>Điều 3. Đặt hàng, thanh toán, giao hàng</h2>' + L('Bên B đặt hàng qua điện thoại / Zalo của Bên A. Bên B thanh toán 100% bằng chuyển khoản trước khi Bên A gửi hàng. Phí vận chuyển theo thoả thuận từng đơn.') +
+      (cfg.boost ? L('Ưu đãi mở thị trường: trong ' + cfg.boost + ' tháng đầu kể từ đơn nhập đầu tiên, Bên B được hưởng chiết khấu của bậc cao hơn 1 bậc và được Bên A gửi ' + esc(cfg.kit || 'bộ hàng mẫu dùng thử') + '.') : '') +
+      (cfg.qb ? L('Thưởng quý: quý nào tổng tiền hàng (giá bán lẻ) Bên B nhập từ ' + money(cfg.qMin) + ' thì Bên B được thưởng ' + cfg.qb + '% số tiền đã thanh toán cho các đơn trong quý' + (cfg.qGoal ? '; nếu đạt mục tiêu quý Bên B đã đăng ký trước (không thấp hơn tiền hàng quý trước) thì được thêm ' + cfg.qGoal + '%' : '') + '. Tiền thưởng được trừ vào giá các đơn nhập trong quý kế tiếp, không trả bằng tiền mặt, hết quý kế tiếp thì hết hạn. Thưởng quý không áp dụng cho phần sản phẩm đã ở mức chiết khấu riêng tối đa.') : '') +
+      '<h2>Điều 3. Đặt hàng, thanh toán, giao hàng</h2>' + L('Bên B đặt hàng qua điện thoại / Zalo của Bên A hoặc trang đặt hàng riêng Bên A cấp. Bên B thanh toán 100% bằng chuyển khoản trước khi Bên A gửi hàng. Phí vận chuyển theo thoả thuận từng đơn.') +
       '<h2>Điều 4. Giữ giá bán lẻ</h2>' + L('Bên B không bán thấp hơn giá bán lẻ niêm yết trên thucduonglanh.vn. Vi phạm lần 1: Bên A nhắc bằng văn bản / tin nhắn; vi phạm lần 2: Bên A hạ Bên B xuống bậc thấp hơn hoặc ngừng hợp tác.') +
       L('Bên B không bán sản phẩm của Bên A trên sàn thương mại điện tử (Shopee, TikTok Shop, Lazada…) khi chưa được Bên A đồng ý bằng văn bản.') +
       '<h2>Điều 5. Khách hàng</h2>' + L('Bên B tự tìm và chăm sóc khách hàng của mình. Bên B không chủ động mời khách hàng đang mua trực tiếp của Bên A chuyển sang mua của Bên B.') +
