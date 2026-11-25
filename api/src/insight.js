@@ -646,7 +646,10 @@ async function trendWrite(x, d) {
     'Mẹo: nổi hôm nay thường là giai đoạn 2, ngày thứ 2 là giai đoạn 3, từ ngày thứ 3 thường đã sang giai đoạn 4. Thông tin Marketing đưa ít thì đoán thận trọng và nói rõ là đoán.',
     '', '# Mục tiêu (chọn 1): share = chia sẻ / lưu lại (series "Bản chất của…", tổng hợp) · cmt = bình luận (câu hỏi chọn A/B, mời kể chuyện nhà mình) · bridge = bắt cầu (mượn phim, sự kiện, câu nói ai cũng biết rồi dẫn sang tension) · make = tạo trend (tung 1 thứ người khác dùng lại được: câu lệnh AI, khuôn ảnh, thử thách 7 ngày)',
     '', '# NGÂN HÀNG INSIGHT (chỉ được chọn nhóm khách + tension trong danh sách này; không nối được tự nhiên thì quyết định BỎ):',
-    ...bank.map(g => '- ' + g.name + (g.who ? ' (' + cut(g.who, 160) + ')' : '') + ':\n' + g.tensions.map(tenOf).filter(t => !t.sp.length).slice(0, 6).map(t => '   · ' + t.t).join('\n')),
+    ...bank.map(g => { const bg = (g.bigs || []).find(b => b.on && (!b.until || b.until >= fmtDate(Date.now(), 'yyyy-MM-dd'))); return '- ' + g.name + (g.who ? ' (' + cut(g.who, 160) + ')' : '') + ':\n' + g.tensions.map(tenOf).filter(t => !t.sp.length).slice(0, 6).map(t => '   · ' + t.t).join('\n') + (bg ? '\n   🌟 Big idea đang chạy: ' + bg.t : ''); }),
+    '', '# CHUỖI BẮT BUỘC (khoá Tuấn Hà – Vinalink): Trend → Tension của con người (không xuất phát từ sản phẩm) → Big idea → Góc kể. Sản phẩm KHÔNG phải điểm xuất phát, chỉ là cầu nối gỡ tension ở cuối bài.',
+    '- "big": nhóm đã có big idea đang chạy thì kể trend như 1 góc của big idea đó (chép nguyên câu); chưa có thì đề xuất 1 big idea ngắn, có hình ảnh, nói hộ nhóm khách, không nhắc sản phẩm.',
+    '- "noi": 1 câu cầu nối cuối bài: sản phẩm nào trong tài liệu giúp gỡ tension này một cách nhẹ nhàng (đúng hồ sơ công bố, không hứa công dụng chữa bệnh).',
     '', 'KHO GÓC KỂ:', ...ANGLES.map(a => '- ' + a),
     '', '# LUẬT ĐỎ (vướng 1 điều là BỎ hoặc đổi hướng):',
     '- Không gây hai phe, không chạm định kiến xã hội (vùng miền, thế hệ, tôn giáo, giới tính) cho bất kỳ chủ đề sức khoẻ, ăn uống, bệnh tật nào.',
@@ -656,8 +659,8 @@ async function trendWrite(x, d) {
     '- Series "Bản chất của…" không viết về bệnh.',
     LAW, VIET,
     '', 'Trả về DUY NHẤT 1 khối JSON, không lời dẫn, mỗi chuyện 1 phần tử:',
-    '{"list":[{"chuyen":"1 câu: chuyện gì","gd":2,"dau":["dấu hiệu 1","dấu hiệu 2"],"song":"còn sống khoảng mấy ngày","lam":true,"ly":"1 câu lý do LÀM / BỎ","nhom":"tên nhóm khách đúng như ngân hàng","tension":"tension chép từ ngân hàng","goal":"share|cmt|bridge|make","huong":[{"goc":"tên góc kể","y":"bài nói gì, 1–2 câu","mo":"câu mở bài"}],"cau":"1–3 câu để dán vào ô 🔥 Chuyện đang nóng: chuyện gì + góc nhìn nên đi (không nhắc sản phẩm)","luat":"từ / ý nào chạm luật, nếu có; không thì để trống"}]}',
-    'BỎ thì để "huong": [], "cau": "", "nhom": "", "tension": "", "goal": "". LÀM thì đủ 3 hướng bài khác góc kể, và gd phải là 2 hoặc 3.'].join('\n');
+    '{"list":[{"chuyen":"1 câu: chuyện gì","gd":2,"dau":["dấu hiệu 1","dấu hiệu 2"],"song":"còn sống khoảng mấy ngày","lam":true,"ly":"1 câu lý do LÀM / BỎ","nhom":"tên nhóm khách đúng như ngân hàng","tension":"tension chép từ ngân hàng","goal":"share|cmt|bridge|make","big":"big idea nối vào","noi":"1 câu cầu nối sản phẩm cuối bài","huong":[{"goc":"tên góc kể","y":"bài nói gì, 1–2 câu","mo":"câu mở bài"}],"cau":"1–3 câu để dán vào ô 🔥 Chuyện đang nóng: chuyện gì + góc nhìn nên đi (không nhắc sản phẩm)","luat":"từ / ý nào chạm luật, nếu có; không thì để trống"}]}',
+    'BỎ thì để "huong": [], "cau": "", "nhom": "", "tension": "", "goal": "", "big": "", "noi": "". LÀM thì đủ 3 hướng bài khác góc kể, và gd phải là 2 hoặc 3.'].join('\n');
   const res = await ai(x.env).messages.create({ model: LITE, max_tokens: 6000, output_config: { effort: 'medium' },
     system: [{ type: 'text', text: 'Bạn là người xét trend mạng xã hội cho thương hiệu thực phẩm dinh dưỡng Việt Nam: nhạy với tâm lý đám đông, thận trọng, trung thực, đúng luật quảng cáo thực phẩm, giữ DNA "Lành" (không thao túng, không câu kéo bằng chia rẽ).\n' + TRUTH_RULES },
       { type: 'text', text: 'TÀI LIỆU (thông tin chính thức của Thực Dưỡng Lành):\n\n' + know, cache_control: { type: 'ephemeral' } }],
@@ -669,7 +672,7 @@ async function trendWrite(x, d) {
   const list = j.list.slice(0, 3).map(v => {
     const gd = Math.max(1, Math.min(5, Number(v.gd) || 0)) || 0, lam = !!v.lam && (gd === 2 || gd === 3) && !!cut(v.tension, 10);
     return { chuyen: s(v.chuyen), gd, dau: (Array.isArray(v.dau) ? v.dau : []).slice(0, 3).map(s).filter(Boolean), song: s(v.song), lam, ly: s(v.ly),
-      nhom: lam ? s(v.nhom) : '', tension: lam ? s(v.tension) : '', goal: lam && TR_GOAL[v.goal] ? v.goal : '', huong: lam ? (Array.isArray(v.huong) ? v.huong : []).slice(0, 3).map(h => ({ goc: s(h && h.goc), y: s(h && h.y), mo: s(h && h.mo) })).filter(h => h.y) : [],
+      nhom: lam ? s(v.nhom) : '', tension: lam ? s(v.tension) : '', goal: lam && TR_GOAL[v.goal] ? v.goal : '', big: lam ? s(v.big) : '', noi: lam ? s(v.noi) : '', huong: lam ? (Array.isArray(v.huong) ? v.huong : []).slice(0, 3).map(h => ({ goc: s(h && h.goc), y: s(h && h.y), mo: s(h && h.mo) })).filter(h => h.y) : [],
       cau: lam ? cut(insViet(String(v.cau || '')), 600) : '', st: lam ? gd : 0, luat: s(v.luat) };
   });
   return { ok: true, list };

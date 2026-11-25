@@ -10390,14 +10390,15 @@
             '<p class="small" style="margin:2px 0">' + esc(IN_TRGD[v.gd] || '') + (v.song ? ' · còn sống ' + esc(v.song) : '') + '</p>' +
             (v.dau.length ? '<p class="small muted" style="margin:2px 0">Dấu hiệu: ' + esc(v.dau.join(' · ')) + '</p>' : '') +
             '<p class="small" style="margin:2px 0">Lý do: ' + esc(v.ly) + '</p>' +
-            (v.lam ? '<p class="small" style="margin:6px 0 2px">🎯 <b>' + esc(v.nhom) + '</b>: ' + esc(v.tension) + (IN_TRG[v.goal] ? '<br>🎯 Mục tiêu: <b>' + esc(IN_TRG[v.goal][0]) + '</b> (' + esc(IN_TRG[v.goal][1]) + ')' : '') + '</p>' +
+            (v.lam ? '<p class="small" style="margin:6px 0 2px">🎯 <b>' + esc(v.nhom) + '</b>: ' + esc(v.tension) + (IN_TRG[v.goal] ? '<br>🎯 Mục tiêu: <b>' + esc(IN_TRG[v.goal][0]) + '</b> (' + esc(IN_TRG[v.goal][1]) + ')' : '') + (v.big ? '<br>🌟 Big idea: <b>' + esc(v.big) + '</b>' : '') + '</p>' +
               '<ol class="small inx-tra-l">' + v.huong.map(function (h) { return '<li><b>' + esc(h.goc) + '</b>: ' + esc(h.y) + (h.mo ? '<br><span class="muted">Câu mở: “' + esc(h.mo) + '”</span>' : '') + '</li>'; }).join('') + '</ol>' +
-              (v.cau ? '<p class="small inx-ev-tr">' + esc(v.cau) + '</p><div class="lq-btns"><button type="button" class="btn sm pri" data-trk="' + k + '">✅ Dùng câu này cho ô 🔥</button></div>' : '') : '') +
+              (v.noi ? '<p class="small muted" style="margin:2px 0 6px">🌉 Cầu nối cuối bài (1 câu): ' + esc(v.noi) + '</p>' : '') +
+              (v.cau ? '<p class="small inx-ev-tr">' + esc(v.cau) + '</p><div class="lq-btns"><button type="button" class="btn sm pri" data-tcau="' + k + '">✅ Dùng câu này cho ô 🔥</button></div>' : '') : '') +
             (v.luat ? '<p class="small" style="margin:4px 0 0">⚠️ Kiểm luật: ' + esc(v.luat) + '</p>' : '') + '</div>';
         }).join('');
-        [].forEach.call(m.querySelectorAll('[data-trk]'), function (bt) {
+        [].forEach.call(m.querySelectorAll('[data-tcau]'), function (bt) {
           bt.onclick = function () {
-            var v = m._tr[Number(bt.getAttribute('data-trk'))]; bt.disabled = true;
+            var v = m._tr[Number(bt.getAttribute('data-tcau'))]; bt.disabled = true;
             api('ins_trend', { t: v.cau, st: v.st === 3 ? 3 : 2, goal: v.goal || '' }).then(function (r2) { IN.d.trend = r2.trend; closeModal(); toast('Đã lưu vào ô 🔥, trợ lý dùng trong ' + (r2.trend.st === 3 ? '1 ngày' : '3 ngày') + ' ✓'); render(); }, function (er) { bt.disabled = false; toast(er.message, true); });
           };
         });
