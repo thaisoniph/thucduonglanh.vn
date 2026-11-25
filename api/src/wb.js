@@ -8,7 +8,7 @@
 import { normPhone, nrm, addrJoin, fmtDate, all, first, run, allIn, kvGet, kvSet, TZ_MS, DAY } from './lib.js';
 import { sheetValues, sheetBatchGet, sheetWrite, sheetAppend, a1 } from './google.js';
 import { fileIdOf, SRC_UTIL } from './sync.js';
-import { phoneAlias } from './crm.js';
+import { phoneAlias, isWebId } from './crm.js';
 
 const WB_ORDER = '@order ', WB_OST = '@ost ', WB_OED = '@oed ', WB_ODEL = '@odel ', WB_CINFO = '@cinfo ', WB_ZALO = '@zalo';
 export const WB_SHORT = { 'Không nghe máy': 'knm', 'Đã hỏi thăm': 'đã hỏi thăm', 'Hẹn gọi lại': 'hẹn gọi lại', 'Đã đặt lại': 'kh đặt lại', 'Không có nhu cầu': 'kh không có nhu cầu' }; // chữ viết tắt sale quen dùng
@@ -318,7 +318,7 @@ export async function wbOrderInfo(x, u, d) {
   await ensure(x.db);
   const o = await first(x.db, 'SELECT id, time, name, phone, province, ward, address, items, total, status, ship, note, ca, otype, seller FROM orders WHERE id = ?', String(d.id || ''));
   if (!o) return { ok: false, error: 'Không tìm thấy đơn ' + d.id };
-  const cv = await first(x.db, 'SELECT owner, orders FROM customers WHERE phone = ?', normPhone(o.phone)), owner = (cv && cv.owner) || o.seller || '';
+  const cv = await first(x.db, 'SELECT owner, orders FROM customers WHERE phone = ?', normPhone(o.phone)), owner = (isWebId(o) && o.seller) || (cv && cv.owner) || o.seller || ''; // đơn web: file của người bán (như wbWebOrder)
   if (u.level < 2 && o.seller !== u.name && owner !== u.name) return { ok: false, error: 'Đơn này không phải của bạn.' };
   const key = '%' + JSON.stringify({ id: o.id }).slice(1, -1) + '%'; // "id":"…"
   const q = (await all(x.db, "SELECT rid, time, src, text, result, done_at FROM wb_queue WHERE text LIKE ? ORDER BY rid", key)).map(r => ({ time: Number(r.time), kind: String(r.text).split(' ')[0], result: r.result || '', done: r.done_at ? Number(r.done_at) : 0, src: r.src }));
