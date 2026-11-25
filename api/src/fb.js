@@ -529,16 +529,17 @@ export async function fpTick(x) {
     if (r.status === 'draft' && (p.cfg.mode !== 'auto' || !p.cfg.post || p.cfg.slots.indexOf(r.slot) < 0)) continue;
     await publish(x, p, r);
   }
-  // soạn trước: mỗi lần chạy tối đa 1 bài
+  // soạn trước: mỗi lần chạy tối đa 2 bài liền nhau (💸 25/11/2026: trước 1 bài / lượt 10 phút → cache AI 5 phút của phần TÀI LIỆU hết hạn, bài nào cũng trả tiền ghi mới; nay bài thứ 2 đọc lại cache của bài đầu, như zbotTick). Bài lỗi thì dừng lượt.
   if (!x.env.ANTHROPIC_API_KEY) return;
+  let wrote = 0;
   const have = new Set((await all(x.db, 'SELECT id FROM fp_posts WHERE day IN (?, ?)', day, fmtDate(now + DAY, 'yyyyMMdd'))).map(r => r.id));
   for (const d of [day, fmtDate(now + DAY, 'yyyyMMdd')]) for (const p of Object.values(P)) {
     if (!p.cfg.post) continue;
     for (const sl of p.cfg.slots) {
       const id = p.id + '_' + d + '_' + sl.replace(':', '');
       if (have.has(id) || slotTime(d, sl) < now + 20 * 60e3) continue;
-      try { await fpWrite(x, p, d, sl, '', ''); } catch (e) { console.error('fpWrite', e.message); await kvSet(x.db, 'fp_write_err', fmtDate(now, 'HH:mm dd/MM') + ' (' + p.name + '): ' + String(e.message).slice(0, 200)); }
-      return;
+      try { await fpWrite(x, p, d, sl, '', ''); } catch (e) { console.error('fpWrite', e.message); await kvSet(x.db, 'fp_write_err', fmtDate(now, 'HH:mm dd/MM') + ' (' + p.name + '): ' + String(e.message).slice(0, 200)); return; }
+      if (++wrote >= 2) return;
     }
   }
 }
