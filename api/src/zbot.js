@@ -545,7 +545,9 @@ async function zLogin(x, d) {
   return { ok: true };
 }
 
-/* ---------------------------------------------------------------- soạn bài hằng ngày (cron 10 phút / lần, mỗi lần tối đa 1 bài) */
+/* ---------------------------------------------------------------- soạn bài hằng ngày (cron 10 phút / lần, mỗi lần tối đa 2 bài liền nhau)
+ * 💸 25/11/2026: trước mỗi lượt 1 bài → 2 bài sáng + tối cách nhau 10 phút, cache AI (giữ 5 phút) của phần TÀI LIỆU đã hết hạn, bài nào cũng trả tiền ghi mới (~46 nghìn token).
+ * Soạn 2 bài liền nhau thì bài thứ 2 đọc lại cache của bài đầu (rẻ bằng 1/25 tiền ghi). Bài lỗi thì dừng lượt như cũ. */
 export async function zbotTick(x) {
   const cfg = await zCfg(x), now = Date.now(), st = await kvJson(x.db, 'zb_status', null);
   if (st && !st.down && now - st.at > 20 * 60e3) { // chương trình Zalo im lặng > 20 phút → báo 1 lần
@@ -557,6 +559,7 @@ export async function zbotTick(x) {
   const today = fmtDate(now, 'yyyyMMdd'), days = Array.from({ length: leadOf(cfg) + 1 }, (_, i) => addDay(today, i)), last = days[days.length - 1];
   const have = new Set((await all(x.db, 'SELECT id FROM zb_posts WHERE day >= ? AND day <= ?', today, last)).map(r => r.id));
   const plan = {}; for (const r of await all(x.db, 'SELECT id, status, at_time FROM zb_plan WHERE day >= ? AND day <= ?', today, last)) plan[r.id] = r;
+  let wrote = 0;
   for (const day of days) for (const sl of cfg.slots) {
     const id = day + '_' + sl.id, pl = plan[id];
     if (!sl.on || have.has(id) || (pl && pl.status === 'skip')) continue; // 📋 kế hoạch ghi "không đăng bài này"
@@ -564,9 +567,10 @@ export async function zbotTick(x) {
     if (t < now + 20 * 60e3) continue;
     if (pl && pl.status === 'draft' && t - now > DAY) continue; // 📋 chủ đề chưa duyệt: chờ duyệt, còn dưới 24 tiếng mới viết theo chủ đề nháp (vẫn kịp duyệt bài)
     // soạn được thì xoá lỗi cũ (16/11/2026: khoá AI hết hạn, chạy lại rồi mà CRM vẫn đỏ 24 giờ)
-    try { await zWrite(x, day, sl.id, ''); if (await kvGet(x.db, 'zb_write_err')) await kvSet(x.db, 'zb_write_err', ''); } catch (e) { console.error('zWrite', e.message); await kvSet(x.db, 'zb_write_err', fmtDate(now, 'HH:mm dd/MM') + ': ' + String(e.message).slice(0, 200)); }
-    return;
+    try { await zWrite(x, day, sl.id, ''); if (await kvGet(x.db, 'zb_write_err')) await kvSet(x.db, 'zb_write_err', ''); } catch (e) { console.error('zWrite', e.message); await kvSet(x.db, 'zb_write_err', fmtDate(now, 'HH:mm dd/MM') + ': ' + String(e.message).slice(0, 200)); return; }
+    if (++wrote >= 2) return;
   }
+  if (wrote) return; // lượt đã soạn bài thì không lập kế hoạch (như trước)
   try { await planTick(x, cfg, now); } catch (e) { console.error('planTick', e.message); await kvSet(x.db, 'zb_plan_err', fmtDate(now, 'HH:mm dd/MM') + ': ' + String(e.message).slice(0, 200)); }
 }
 

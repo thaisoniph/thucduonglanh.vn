@@ -49,6 +49,10 @@ const now = Date.now(), today = fmtDate(now, 'yyyyMMdd');
 await D1.prepare("INSERT INTO kv (k, v) VALUES ('zb_status', ?)").bind(JSON.stringify({ at: now, groups: [{ id: 'g1', name: 'Thực Dưỡng Lành' }] })).run();
 await D1.prepare("INSERT INTO kv (k, v) VALUES ('zb_cfg', ?)").bind(JSON.stringify({ groups: ['g1'] })).run();
 
+// 0) 💸 1 lượt soạn 2 bài liền nhau, phần đầu lời gọi (system) giống hệt → bài thứ 2 đọc lại được cache AI của bài đầu
+await Z.zbotTick(x);
+const w2 = aiCalls.filter(b => b.messages[0].content.startsWith('Viết 1 bài'));
+ok(w2.length === 2 && JSON.stringify(w2[0].system) === JSON.stringify(w2[1].system) && w2[0].system.at(-1).cache_control, '1 lượt soạn 2 bài, system giống hệt, có cache: ' + w2.length);
 // 1) zbotTick soạn trước tới hôm nay + 3 ngày
 for (let i = 0; i < 12; i++) await Z.zbotTick(x);
 const posts = sq.prepare('SELECT id FROM zb_posts ORDER BY id').all().map(r => r.id);
