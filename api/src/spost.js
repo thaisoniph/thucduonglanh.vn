@@ -69,7 +69,7 @@ async function spWrite(x, u, d) {
   const skip = new Set(libAll.filter(i => !usedImg.has(pathOf(i))).length >= 15 ? lib.map((i, n) => usedImg.has(pathOf(i)) ? n + 1 : 0).filter(Boolean) : []);
   const prod = prods[d.prod] ? d.prod : f === 'BOFU' && pk.length ? pk[Math.floor(Math.random() * pk.length)] : ''; // bài 🟠 chưa chọn sản phẩm → chọn ngẫu nhiên
   const offers = f === 'BOFU' ? await offersLive(x).catch(() => []) : [];
-  const p = await insPick(x, 'fbcn', cut(d.g, 80), prod ? { prod } : undefined);
+  const p = await insPick(x, 'fbcn', cut(d.g, 80), { prod, f });
   if (!p.g) return { ok: false, error: 'Ngân hàng insight chưa có nhóm khách nào đang bật.' };
   const ask = [
     'Viết 1 bài để NHÂN VIÊN TƯ VẤN của Thực Dưỡng Lành tự đăng trên FACEBOOK CÁ NHÂN của họ (không phải fanpage). Bạn bè của họ là người quen, đồng nghiệp cũ, hàng xóm, phụ huynh cùng lớp con… Bài phải đọc như người thật kể chuyện đời thường, KHÔNG giống quảng cáo.',

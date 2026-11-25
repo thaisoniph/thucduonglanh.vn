@@ -227,7 +227,7 @@ Có 6 ô, mỗi ô là 1 bước của hệ thống content. Ô đã tải skill
 |---|---|---|
 | 🔍 Tìm insight | tim-insights-ta-3c | nút 🔍 Tìm insight |
 | 🌟 Big idea & kế hoạch | vinalink-3c-content hoặc kehoachcontent | nút ✨ AI gợi ý big idea |
-| ✍️ Viết bài | viet-bai-ban-hang | mọi trợ lý viết: bài web, nhóm Zalo, Fanpage, bài FB cá nhân, kho bài |
+| ✍️ Viết bài | viet-bai-ban-hang | bài **tạo niềm tin** và bài **chốt đơn** của mọi trợ lý viết: bài web, nhóm Zalo, Fanpage, bài FB cá nhân, kho bài. Bài **nhận biết** (không bán) không kèm skill này |
 | 🎁 Offer & quảng cáo | viet-offer-hormozi | nút 🎁 Viết offer |
 | 🎬 Kịch bản video | sieu-tro-ly-video | nút 🎬 Viết kịch bản |
 | 🧪 Chấm bài | he-thong-content-ai | nút 🧪 Chấm bài |

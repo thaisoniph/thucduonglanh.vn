@@ -785,7 +785,7 @@ export async function zWrite(x, day, slot, hint, by, grp, other) { // other = �
   const old = await first(x.db, 'SELECT ins, at_time FROM zb_posts WHERE id = ?', day + '_' + slot); let og = ''; try { og = hint && !other && old && old.ins ? JSON.parse(old.ins).g || '' : ''; } catch (e) { }
   const atT = (old && old.at_time) || (plRow && plRow.at_time) || '', at = atT || slotAt(sl0, day), hh = Number(at.slice(0, 2));
   const tod = hh < 9 ? 'sáng sớm' : hh < 11 ? 'buổi sáng' : hh < 13 ? 'buổi trưa' : hh < 18 ? 'buổi chiều' : 'buổi tối';
-  const ip = await insPick(x, 'zalo', grp || og || (pl ? pl.g : ''), Object.assign(pl && pl.sp ? { prod: pl.sp } : {}, { noBig: !!(th.ev && !th.moved && th.f === 'TOFU') })); // nhân sự chọn nhóm khi viết lại > nhóm cũ > nhóm trong kế hoạch; bài chúc dịp lễ không theo big idea
+  const ip = await insPick(x, 'zalo', grp || og || (pl ? pl.g : ''), Object.assign(pl && pl.sp ? { prod: pl.sp } : {}, { noBig: !!(th.ev && !th.moved && th.f === 'TOFU'), f: th.f })); // nhân sự chọn nhóm khi viết lại > nhóm cũ > nhóm trong kế hoạch; bài chúc dịp lễ không theo big idea
   const plTn = pl && pl.tn && ip.g && ip.g.id === pl.g ? pl.tn : '';
   const edits = await edPairs(x, slot);
   const learn = scored.length >= 4 ? 'Bài cùng loại trong nhóm này được nhiều người hưởng ứng nhất (học cách đặt vấn đề, cách hỏi):\n' + scored.slice(0, 3).map(r => '- ' + r.topic + ' (' + r.eng_people + ' người)').join('\n') + '\nBài ít người hưởng ứng (tránh kiểu này):\n' + scored.slice(-2).map(r => '- ' + r.topic + ' (' + r.eng_people + ' người)').join('\n') : '';

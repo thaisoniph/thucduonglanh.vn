@@ -19,7 +19,7 @@ const WRITER = 'claude-opus-5-5';
 /** 24/11/2026 (anh Sơn: "khu vực tải các skill của khoá content lên để hệ thống chạy theo skill"): 6 ô theo 6 bước của hệ thống content */
 export const SLOTS = { insight: '🔍 Tìm insight', big: '🌟 Big idea & kế hoạch', write: '✍️ Viết bài', offer: '🎁 Offer & quảng cáo', video: '🎬 Kịch bản video', score: '🧪 Chấm bài' };
 /** Trợ lý nào làm theo skill của ô đó (hiện ở CRM) */
-export const USED = { insight: 'nút 🔍 Tìm insight', big: 'nút ✨ AI gợi ý big idea', write: 'mọi trợ lý viết: bài web, nhóm Zalo, Fanpage, bài FB cá nhân của sale, kho bài', offer: 'nút 🎁 Viết offer', video: 'nút 🎬 Viết kịch bản video', score: 'nút 🧪 Chấm bài' };
+export const USED = { insight: 'nút 🔍 Tìm insight', big: 'nút ✨ AI gợi ý big idea', write: 'bài tạo niềm tin và bài chốt đơn của mọi trợ lý viết (bài web, nhóm Zalo, Fanpage, bài FB cá nhân của sale, kho bài); bài nhận biết không kèm skill này', offer: 'nút 🎁 Viết offer', video: 'nút 🎬 Viết kịch bản video', score: 'nút 🧪 Chấm bài' };
 /** Skill nên tải cho từng ô (gợi ý trên CRM) */
 export const HINT = { insight: 'tim-insights-ta-3c', big: 'vinalink-3c-content, kehoachcontent', write: 'viet-bai-ban-hang', offer: 'viet-offer-hormozi', video: 'sieu-tro-ly-video', score: 'he-thong-content-ai' };
 /** Đoán ô từ tên + mô tả skill (📦 Tải nhanh). Không chắc → '' (CRM bảo chọn ô) */

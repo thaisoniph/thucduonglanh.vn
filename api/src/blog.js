@@ -169,7 +169,7 @@ async function write(x, cfg, day, row) {
     // 🎯 nhóm khách: chủ đề có ghi nhóm → nhóm đó; viết lại → giữ nhóm cũ; còn lại xoay vòng nhóm ít được viết nhất (insight.js)
     // 🔑 trợ lý tự chọn chủ đề → lấy 1 từ khoá chưa viết trong ngân hàng 100 từ khoá (khoá K218); viết lại thì giữ từ khoá cũ
     const kw = topic ? null : km.kw ? { k: km.kw, g: km.g } : await kwPick(x, funnel).catch(() => null);
-    const ip = await insPick(x, 'web', (topic && topic.group) || km.g || (kw && kw.g) || '', { prod: topic && topic.product || '' }); // chủ đề có sản phẩm → chỉ tension riêng của sản phẩm đó + tension dùng chung
+    const ip = await insPick(x, 'web', (topic && topic.group) || km.g || (kw && kw.g) || '', { prod: topic && topic.product || '', f: funnel }); // chủ đề có sản phẩm → chỉ tension riêng của sản phẩm đó + tension dùng chung
     const ask = [
       'Viết 1 bài cho mục "Góc Sống Lành" trên website thucduonglanh.vn. Ngày đăng: ' + dayTxt(day) + '/' + day.slice(0, 4) + '.',
       'Tầng phễu: ' + FUNNEL[funnel].name + '. Mục tiêu: ' + FUNNEL[funnel].goal,

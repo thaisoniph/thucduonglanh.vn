@@ -565,7 +565,7 @@ async function fpWrite(x, p, day, slot, hint, by, grp) {
   const si = Math.max(0, c.slots.indexOf(slot)), theme = FP_THEME[(wd + si * 3) % 7], id = p.id + '_' + day + '_' + slot.replace(':', '');
   // 🎯 nhóm khách + tension (insight.js): chỉ trong nhóm trang nhắm tới (cfg.aud), viết lại theo ý kiến thì giữ nhóm cũ
   const old = await first(x.db, 'SELECT ins FROM fp_posts WHERE id = ?', id); let og = ''; try { og = hint && old && old.ins ? JSON.parse(old.ins).g || '' : ''; } catch (e) { }
-  const ip = await insPick(x, 'fb', grp || og, { only: c.aud });
+  const ip = await insPick(x, 'fb', grp || og, { only: c.aud, f: theme.f });
   const recent = await all(x.db, "SELECT page, day, topic FROM fp_posts WHERE topic != '' AND day >= ? ORDER BY day DESC LIMIT 30", fmtDate(Date.now() - 8 * DAY, 'yyyyMMdd'));
   const ask = [
     'Viết 1 bài đăng cho fanpage Facebook "' + p.name + '" của Thực Dưỡng Lành.',

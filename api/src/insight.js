@@ -272,7 +272,7 @@ export async function insPick(x, ch, want, opt) {
   // 📅 dịp sắp tới (8 ngày; bài nhóm Zalo đã có lịch ngày lễ riêng trong zday.js) + 🔥 chuyện đang nóng Marketing ghi (kv ins_trend, hết hạn 2 ngày)
   let ev = [], trend = null; try { ev = ch === 'zalo' ? [] : eventsAhead(fmtDate(now, 'yyyyMMdd'), 8); trend = await kvJson(x.db, 'ins_trend', null); } catch (e) { }
   let voc = []; try { voc = await vqPick(x, { prod, n: 8 }); } catch (e) { } // 🗣 câu khách thật (voc.js)
-  let wsk = null; try { wsk = opt && opt.noSkill ? null : await skillOf(x, 'write'); if (wsk) await skUse(x, 'write', wsk); } catch (e) { } // 🧩 skill ô ✍️ Viết bài (24/11/2026)
+  let wsk = null; try { wsk = opt && (opt.noSkill || opt.f === 'TOFU') ? null : await skillOf(x, 'write'); if (wsk) await skUse(x, 'write', wsk); } catch (e) { } // 🧩 skill ô ✍️ Viết bài (24/11/2026). 25/11 (anh Sơn duyệt PA B): skill là "viết bài bán hàng" → chỉ kèm cho bài tạo niềm tin / chốt đơn; bài nhận biết (opt.f = 'TOFU') không tải, không đếm lượt dùng
   return { bank, g, recent, prod, big, angle, recentA, learn, ev, trend, voc, wsk };
 }
 
@@ -358,7 +358,7 @@ export function insBlock(p, f, opt) {
     F ? 'TẦNG PHỄU: ' + F.name + '. ' + F.rule + '\nCông thức viết hợp tầng này (chọn 1): ' + FORMULA[f] + '.' : 'TẦNG PHỄU: tự chọn 1 tầng hợp với tension và chủ đề:\n' + Object.entries(FUN).map(([k, v]) => '- ' + v.name + ': ' + v.rule + ' Công thức hợp: ' + FORMULA[k] + '.').join('\n'),
     'Đạo đức: nội dung phải GỠ tension, không khoét sâu nỗi sợ bệnh tật, mặc cảm cơ thể, áp lực gia đình để ép mua; không bịa lời khách, số liệu, khuyến mãi; không đóng vai khách tự hỏi tự trả lời.',
     LAW,
-    p && p.wsk && !opt.light ? '\n' + methodBlock(p.wsk, '', 20000) + '\nSkill trên là CÁCH VIẾT anh Sơn chọn (công thức, giọng, cấu trúc bài): áp dụng cho bài này. Quy trình 4Is, tầng phễu, luật quảng cáo thực phẩm, đạo đức và ĐỊNH DẠNG ĐẦU RA mà trợ lý được giao vẫn bắt buộc; chỗ nào skill khác các luật đó thì theo luật.' : ''
+    p && p.wsk && !opt.light && f !== 'TOFU' ? '\n' + methodBlock(p.wsk, '', 20000) + '\nSkill trên là CÁCH VIẾT anh Sơn chọn (công thức, giọng, cấu trúc bài): áp dụng cho bài này. Quy trình 4Is, tầng phễu, luật quảng cáo thực phẩm, đạo đức và ĐỊNH DẠNG ĐẦU RA mà trợ lý được giao vẫn bắt buộc; chỗ nào skill khác các luật đó thì theo luật.' : ''
   ].filter(Boolean).join('\n');
 }
 /** Luật quảng cáo thực phẩm (Playbook trà DILVANG + kế hoạch content khoá K133, Nghị định 15/2018): chỉ công dụng đúng hồ sơ công bố */
@@ -499,7 +499,7 @@ async function vdWrite(x, u, d) {
   if (!x.env.ANTHROPIC_API_KEY) return { ok: false, error: 'Máy chủ chưa có khoá AI.' };
   await schema(x.db);
   const sec = [15, 30, 45, 60, 90, 180, 300].includes(Number(d.sec)) ? Number(d.sec) : 60, long = sec > 90, kind = KIND[d.kind] ? d.kind : 'noi', f = funOf(d.f), hint = cut(d.hint, 1000), genre = GENRE[d.genre] ? d.genre : '';
-  const know = await kb(), prods = prodMap(know), pc = prods[cut(d.prod, 80)] ? cut(d.prod, 80) : '', p = await insPick(x, 'video', cut(d.g, 80), { prod: pc }), vsk = await skillOf(x, 'video');
+  const know = await kb(), prods = prodMap(know), pc = prods[cut(d.prod, 80)] ? cut(d.prod, 80) : '', p = await insPick(x, 'video', cut(d.g, 80), { prod: pc, f }), vsk = await skillOf(x, 'video');
   await skUse(x, 'video', vsk);
   if (!p.g && !live(p.bank).length) return { ok: false, error: 'Ngân hàng insight chưa có nhóm khách nào đang bật.' };
   const scenes = sec <= 15 ? '3–5' : sec <= 30 ? '5–8' : sec <= 60 ? '8–14' : sec <= 90 ? '12–20' : sec <= 180 ? '18–28' : '26–40';
