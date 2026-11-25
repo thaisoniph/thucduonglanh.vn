@@ -61,7 +61,8 @@ export function usdOf(model, u) {
   const m = String(model || '');
   let p = PRICE.find(r => m.startsWith(r[0])) || PRICE[0];
   if (p[0] === 'claude-haiku-5-5' && (Number(u.input_tokens) || 0) + (Number(u.cache_read_input_tokens) || 0) + (Number(u.cache_creation_input_tokens) || 0) > 100000) p = HAIKU_BIG;
-  return ((Number(u.input_tokens) || 0) * p[1] + (Number(u.output_tokens) || 0) * p[2] + (Number(u.cache_read_input_tokens) || 0) * p[3] + (Number(u.cache_creation_input_tokens) || 0) * p[4]) / 1e6;
+  const w1h = Number(u.cache_creation && u.cache_creation.ephemeral_1h_input_tokens) || 0; // ghi cache giữ 1 giờ: giá gấp 2 giá vào (ghi 5 phút: gấp 1,25)
+  return ((Number(u.input_tokens) || 0) * p[1] + (Number(u.output_tokens) || 0) * p[2] + (Number(u.cache_read_input_tokens) || 0) * p[3] + (Number(u.cache_creation_input_tokens) || 0) * p[4] + w1h * (p[1] * 2 - p[4])) / 1e6;
 }
 
 let schemaOk = false;

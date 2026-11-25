@@ -97,9 +97,9 @@ async function spWrite(x, u, d) {
     '',
     'Trả về ĐÚNG định dạng (không lời dẫn):', INS_HEAD, '---', 'BÀI:', '<nội dung bài>', 'BÌNH LUẬN GHIM:', '<1–2 câu>', 'TRẢ LỜI CÓ LINK:', '<1 câu> [LINK]', 'BÀI HỘI NHÓM:', '<nội dung>', 'NHẬT KÝ ZALO:', '<nội dung> [LINK]', 'TIN ZALO:', '<2–4 câu> [LINK]', 'GỢI Ý ẢNH:', '<1 câu: ảnh THẬT người đăng tự chụp bằng điện thoại đúng khoảnh khắc trong bài (vd ly trà trên bàn làm việc, mâm cơm tối, góc bếp buổi sáng); không chụp mặt khách, không ảnh sản phẩm trơn, không banner, không chữ trên ảnh>', lib.length ? 'ẢNH SỐ:' : '', lib.length ? '<số của 1 ảnh trong KHO ẢNH THẬT khớp nhất, hoặc "không">' : '', '', libAsk(lib)
   ].join('\n');
-  const req = { model: WRITER, max_tokens: 9000, // 13/11/2026: 5000 bị cụt phần Zalo + gợi ý ảnh ở bài dài output_config: { effort: 'medium' },
+  const req = { model: WRITER, max_tokens: 9000, output_config: { effort: 'medium' }, // 13/11/2026: 5000 bị cụt phần Zalo + gợi ý ảnh ở bài dài · 25/11: effort từng nằm lọt trong chú thích này nên AI nghĩ ở mức cao nhất
     system: [{ type: 'text', text: 'Bạn là người viết nội dung mạng xã hội cho nhân viên Thực Dưỡng Lành (VitaGreen Nutrition): thực phẩm dinh dưỡng từ hạt, trà thảo mộc, đồ chay. Tiếng Việt đời thường, ấm, thật, đúng luật quảng cáo thực phẩm Việt Nam.\n' + TRUTH_RULES },
-      { type: 'text', text: 'TÀI LIỆU (thông tin chính thức của Thực Dưỡng Lành):\n\n' + know, cache_control: { type: 'ephemeral' } }],
+      { type: 'text', text: 'TÀI LIỆU (thông tin chính thức của Thực Dưỡng Lành):\n\n' + know, cache_control: d.fill ? { type: 'ephemeral', ttl: '1h' } : { type: 'ephemeral' } }], // 💸 viết sẵn kho bài chạy 3 bài / 10 phút: lưu đệm 5 phút hết hạn giữa 2 lượt → giữ 1 giờ (ghi 1 lần, các bài sau chỉ đọc)
     messages: [{ role: 'user', content: ask }] };
   let res;
   try { res = await ai(x.env).beta.messages.create(Object.assign({ betas: ['server-side-fallback-2026-07-01'], fallbacks: 'default' }, req)); }
@@ -293,7 +293,7 @@ export async function spFillTick(x) {
   for (let i = 0; i < 3; i++) { // 3 bài / lượt 10 phút
     const cur = await kvJson(x.db, 'spf_q', []); if (!Array.isArray(cur) || !cur.length) break;
     const it = cur[0]; let ok = false;
-    try { const r = await spWrite(x, { name: 'AI · ' + by }, { c: it.c, prod: it.prod, g: it.g || '', hint: it.h || '', to: it.c === 'BOFU' ? 'web' : it.c === 'MOFU' ? 'qua' : 'nhom' }); ok = r.ok; if (!ok) console.error('spFill', r.error); } catch (e) { console.error('spFill', e.message); }
+    try { const r = await spWrite(x, { name: 'AI · ' + by }, { fill: 1, c: it.c, prod: it.prod, g: it.g || '', hint: it.h || '', to: it.c === 'BOFU' ? 'web' : it.c === 'MOFU' ? 'qua' : 'nhom' }); ok = r.ok; if (!ok) console.error('spFill', r.error); } catch (e) { console.error('spFill', e.message); }
     const nx = await kvJson(x.db, 'spf_q', []); if (!Array.isArray(nx)) break;
     if (ok || (it.tries || 0) >= 1) nx.shift(); else nx[0] = Object.assign({}, it, { tries: (it.tries || 0) + 1 }); // lỗi 2 lần thì bỏ bài đó
     await kvSet(x.db, 'spf_q', JSON.stringify(nx));

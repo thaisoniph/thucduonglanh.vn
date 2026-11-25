@@ -75,8 +75,8 @@ export async function chatSchema(db) {
 /** Kiến thức bot: tải từ web, giữ trong bộ nhớ 10 phút. Lỗi mạng thì dùng bản cũ. */
 let kbMem = null;
 export async function kb() {
-  if (kbMem && Date.now() - kbMem.t < 10 * 60e3) return kbMem.text;
-  try {
+  // 25/11/2026: trước đây gọi lại trong 10 phút thì trả về bản THIẾU Sổ tay → trợ lý lúc có lúc mất Sổ tay, và lưu đệm AI (cache) không dùng lại được (kho bài 23/11 tốn gấp đôi)
+  if (!kbMem || Date.now() - kbMem.t >= 10 * 60e3) try {
     const r = await fetch(KB_URL, { cf: { cacheTtl: 600, cacheEverything: true } });
     if (r.ok) { const t = await r.text(); if (t.length > 2000) kbMem = { t: Date.now(), text: t }; }
   } catch (e) { console.error('chat kb', e.message); }
