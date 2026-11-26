@@ -128,6 +128,6 @@ Vào **⚙️ Cài đặt → 🌐 Website & khuyến mãi → 🏪 Đại lý �
 
 ## Anh Sơn xem kết quả kênh đại lý
 
-**Tổng quan → 📈 Doanh số → 🏪 Kênh đại lý**: tiền đại lý nhập, số đơn, số đại lý có nhập / tổng số, chiết khấu đã cho, đại lý nhập nhiều nhất, số đăng ký chờ duyệt.
+**Tổng quan → 📈 Kinh doanh → 🏪 Kênh đại lý**: tiền đại lý nhập, số đơn, số đại lý có nhập / tổng số, chiết khấu đã cho, đại lý nhập nhiều nhất, số đăng ký chờ duyệt.
 ![Tổng quan: mục Kênh đại lý](/huong-dan/img/dl-tong-quan.webp)
 

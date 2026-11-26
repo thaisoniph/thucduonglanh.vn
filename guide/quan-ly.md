@@ -41,7 +41,7 @@ Trang này dành cho **Quản lý** và **Quản trị**. Bạn nên biết các
 
 > **Mỗi tuần chỉ cần:** mở khung này → khen người làm tốt → hỏi riêng người chưa làm.
 
-**Mở ở đâu:** Quản lý mở tab **Hiệu quả**, khung nằm trên cùng. Quản trị mở **Tổng quan → 🔎 nhóm 3 · 👥 Đội ngũ → 📊 Đợt phát động mở rộng khách**.
+**Mở ở đâu:** Quản lý mở tab **Hiệu quả**, khung nằm trên cùng. Quản trị mở **Tổng quan → 👥 Nhân sự → 📊 Đợt phát động mở rộng khách**.
 
 **Mỗi sale có 1 dòng, đọc từ trái qua phải:**
 
@@ -91,7 +91,7 @@ CRM có nhiều mục. Để nhân sự không bị rối, mỗi người chỉ 
 | --- | --- |
 | **Quản lý** | Hôm nay, Khách hỏi, Đơn hàng, Hiệu quả. Ở **Thêm**: Khách đã mua, Trợ lý Zalo, Việc tuần, Cài đặt |
 | **Marketing** | Marketing, Khách hỏi, Insight & nội dung, Cài đặt |
-| **Quản trị** (trừ tài khoản anh Sơn) | Tổng quan, Đơn hàng, Hiệu quả, Marketing. Ở **Thêm**: Hôm nay, Khách hỏi, Hỏi số liệu, Cài đặt |
+| **Quản trị** (trừ tài khoản anh Sơn) | Tổng quan, Đơn hàng, Marketing. Ở **Thêm**: Hiệu quả, Hôm nay, Khách hỏi, Hỏi số liệu, Cài đặt |
 | **Anh Hiếu** (tập trung quảng cáo Facebook) | Mở CRM vào thẳng **Marketing**. Thanh trên: Marketing · Khách hỏi · Hiệu quả · Tổng quan. Mở thêm **Insight & nội dung** (chấm bài, kịch bản video trước khi chạy quảng cáo) |
 | **Sale, Kho, Kế toán** | Như cũ (đã gọn sẵn) |
 
@@ -500,7 +500,7 @@ Nút **💡 Góp ý** có số đỏ khi có góp ý mới (trên điện thoạ
 
 Tab đầu tiên, dành cho chủ doanh nghiệp. **Nhìn 5 giây là nắm được tình hình.**
 
-Menu của Quản trị **trên máy tính và điện thoại giống nhau** (từ 11/11/2026), chỉ 4 mục: **Tổng quan · Đơn hàng · Hiệu quả · Marketing · ••• Thêm** (kết quả, đơn và tiền chờ thu, đội sale, tiền quảng cáo). Trên cùng chỉ còn 2 nút: **🔍** tìm 1 khách / số điện thoại / mã đơn, và **⚙** Cài đặt.
+Menu của Quản trị **trên máy tính và điện thoại giống nhau** (từ 11/11/2026), chỉ 3 mục: **Tổng quan · Đơn hàng · Marketing · ••• Thêm** (từ 26/11/2026). Hiệu quả của cả đội đã nằm trong **Tổng quan → 👥 Nhân sự**; muốn mở tab Hiệu quả đầy đủ (việc quản lý, 6 bước bán hàng) thì vào **Thêm → ① Xem đội sale → Hiệu quả**. Trên cùng chỉ còn 2 nút: **🔍** tìm 1 khách / số điện thoại / mã đơn, và **⚙** Cài đặt.
 
 Màn **••• Thêm** chia 4 nhóm:
 
@@ -529,15 +529,16 @@ Số đỏ trên nút Thêm không cộng việc gọi khách của sale.
 
 Dòng chú thích màu đèn, ▲▼, đường nhỏ được thu gọn thành **? Ý nghĩa màu, ▲▼, đường nhỏ**, bấm để mở.
 
- **Mở ra là thấy ngay:** *Hôm nay cần làm gì? Tháng này ổn không? Chỗ nào đang có vấn đề?* Từ 19/11/2026 dưới khung **👉 Việc hôm nay** là **các thẻ chia 3 nhóm theo việc** (giống trang Marketing, Insight), mỗi lần xem 1 thẻ:
+ **Mở ra là thấy ngay:** *Hôm nay cần làm gì? Tháng này ổn không? Chỗ nào đang có vấn đề?* Từ 26/11/2026 dưới khung **👉 Việc hôm nay** chỉ còn **4 thẻ, đúng 4 việc của chủ** (mỗi lần xem 1 thẻ, đổi kỳ ở hàng nút Hôm nay · Tuần này · Tháng này… trên cùng). Những phần trước đây lặp lại ở Hiệu quả và Kế toán đã gộp về đây, mỗi số chỉ còn 1 chỗ xem:
 
 | Nhóm | Thẻ | Trong thẻ |
 | --- | --- | --- |
-| **📊 Xem nhanh** (mỗi ngày) | 📊 Tình hình | Câu kết luận, 4 ô số chính, mục tiêu tháng, 🩺 Sức khỏe công ty |
-| **💵 Tiền & doanh số** (mỗi tuần) | 💵 Tiền & lãi lỗ | Lãi lỗ từng ngày, tiền & công nợ, lãi lỗ cả tháng, chi phí lớn, báo cáo 3 · 6 · 12 tháng |
-| | 📈 Doanh số | Vì sao tăng / giảm, theo ngày, từng mảng, nguồn khách, văn phòng, sàn, sản phẩm, đơn lên từ đâu |
-| **👥 Người & khách** (mỗi tuần) | 👥 Đội ngũ | Doanh số từng nhân viên, đợt phát động, giá trị từng nhân sự |
-| | 📣 Khách mới | Quảng cáo từng kênh, khách hỏi theo kênh, khách giới thiệu & CTV, website |
+| **📊 Mỗi ngày** | 📊 Hôm nay | Câu kết luận, 4 ô số chính, mục tiêu tháng, 🩺 Sức khỏe công ty |
+| | 💵 Lãi lỗ | Lãi lỗ từng ngày, tiền & công nợ, lãi lỗ tháng / quý, chi phí lớn, báo cáo 3 · 6 · 12 tháng |
+| **📅 Theo kỳ** | 📈 Kinh doanh | Vì sao tăng / giảm, biểu đồ theo ngày, 🧭 Doanh số đến từ đâu (từng mảng, nguồn khách, đơn lên từ đâu, khách hỏi theo kênh), bán hàng văn phòng, sản phẩm, quảng cáo, sàn, đại lý, giới thiệu & CTV, website |
+| | 👥 Nhân sự | 📊 So sánh nhân viên (1 bảng cho mọi người, bấm tên mở Hiệu quả của người đó), 💎 Giá trị nhân sự & đánh giá 3 tháng, 📋 KPI sale, đợt phát động |
+
+Kế toán của Quản trị không còn thẻ 📊 Lãi lỗ (đã có ở Tổng quan → 💵 Lãi lỗ); tài khoản Kế toán vẫn giữ thẻ đó.
 
 Thẻ **📊 Tình hình** gồm:
 
@@ -552,7 +553,7 @@ Thẻ **📊 Tình hình** gồm:
 
 Các thẻ còn lại: đầu thẻ có ô xanh **📌 Dùng để**, mỗi mục bên trong có dòng số tóm tắt nên nhiều khi không cần mở. Thẻ và mục nào anh mở thì lần sau vào vẫn mở sẵn (nhớ trên máy).
 
-- **💵 Lãi lỗ thật từng ngày** (thẻ 💵 Tiền & lãi lỗ, chỉ Quản trị thấy): trả lời *hôm nay lãi hay lỗ, từ đầu tháng tới giờ lãi hay lỗ*.
+- **💵 Lãi lỗ thật từng ngày** (thẻ 💵 Lãi lỗ, chỉ Quản trị thấy): trả lời *hôm nay lãi hay lỗ, từ đầu tháng tới giờ lãi hay lỗ*.
     - 3 ô: **Hôm nay** (tới giờ hiện tại, kèm "bán thêm khoảng … là hoà vốn") · **Từ đầu tháng tới nay** · **Dự kiến cả tháng** (nếu giữ nhịp các ngày đã qua). Xanh = lãi, đỏ = lỗ.
     - Mỗi ngày = lãi gộp (doanh số − giá vốn, cả sàn) − quảng cáo chạy ngày đó − **chi phí cố định 1 ngày** (lương, BHXH, mặt bằng, điện, ship… trong file kế toán ÷ số ngày của tháng). Tháng này kế toán chưa gửi file thì CRM **tạm lấy chi phí tháng trước**.
     - Cột xanh / đỏ = lãi / lỗ từng ngày (cột mờ = hôm nay đang chạy), số dưới cột là ngày trong tháng. Chạm vào cột để xem số.
@@ -561,14 +562,14 @@ Các thẻ còn lại: đầu thẻ có ô xanh **📌 Dùng để**, mỗi mụ
     - Nút **Giá vốn: … ⇄** đổi giữa *bảng giá CRM* (giá nhập + 15%) và *tỷ lệ giá vốn trong file kế toán* (vd T10 = 31% doanh thu). Kế toán tính giá vốn cao hơn nên thường ra lỗ nhiều hơn; xem cả hai để biết khoảng thật.
     - Sáng sớm ô Hôm nay thường đỏ vì đã trừ đủ chi phí cả ngày; về tối mới đúng. Số tự cập nhật 15 phút / lần, bấm **↻ Cập nhật số** để lấy ngay.
     - Ô **💵 Tiền đã về** có thêm dòng **💤 … treo ở hãng** (đơn COD đã giao mà hãng chưa trả tiền) khi kế toán đã bắt đầu ghi tiền về ở tab **💼 Kế toán** (xem [trang Kế toán](/huong-dan/ke-toan/)).
-- **🏦 Tiền & công nợ** (thẻ 💵 Tiền & lãi lỗ, chỉ Quản trị thấy): 4 ô **Tiền ngân hàng** (đủ chi khoảng bao nhiêu ngày) · **Tiền sắp về** (đơn đang giao / chờ thu) · **Nợ nhà cung cấp** (quá hạn, tới hạn 7 ngày) · **Đã chi tháng này**.
+- **🏦 Tiền & công nợ** (thẻ 💵 Lãi lỗ, chỉ Quản trị thấy): 4 ô **Tiền ngân hàng** (đủ chi khoảng bao nhiêu ngày) · **Tiền sắp về** (đơn đang giao / chờ thu) · **Nợ nhà cung cấp** (quá hạn, tới hạn 7 ngày) · **Đã chi tháng này**.
     - Số lấy từ file Google Sheet báo cáo của kế toán. Nối 1 lần: bấm **🔗 Nối link** → dán link (chế độ *Bất kỳ ai có đường liên kết → Người xem*) → **Lưu và lấy số**. Sau đó CRM tự đọc lúc **7h30 sáng**, rồi **3 tiếng / lần** tới 20h. Bấm **↻ Lấy số mới** để đọc ngay.
     - Kế toán cập nhật hằng ngày 3 trang trong file đó: **Sổ chi** (mỗi khoản chi 1 dòng), **Số dư ngân hàng** (số dư cuối ngày), **Công nợ** (mỗi hoá đơn mua hàng 1 dòng, có **Hạn thanh toán**). Mẫu + hướng dẫn cho kế toán: Drive → 05_Tài chính & Kế toán → Báo cáo doanh thu - chi phí → *2026-11-05_Mẫu cập nhật thu chi hằng ngày cho kế toán.xlsx*.
     - **8h sáng** Quản trị đã nối Telegram nhận tin **💼 Tài chính**: hôm qua lãi / lỗ, từ đầu tháng, tiền ngân hàng, nợ tới hạn, khoản chi lớn. Bấm **📲 Gửi thử tin sáng** để xem trước.
-- **🔍 Vì sao doanh số tăng / giảm** (thẻ 📈 Doanh số): Doanh số = khách hỏi mới × tỷ lệ chốt × giá trị 1 đơn + khách cũ mua lại. Ô **viền đỏ** là khâu giảm nhiều nhất, nên sửa trước.
-- **🏆 Sản phẩm bán chạy** (thẻ 📈 Doanh số): 10 sản phẩm bán nhiều nhất trong kỳ đang chọn (chọn **Tháng này** ở đầu trang để xem theo tháng). Bấm **💰 Tiền bán ra** để xếp theo tiền, hoặc **📦 Số hộp / gói bán ra** để xếp theo số lượng. Máy nhớ cách xếp anh chọn lần sau. Chỉ gồm đơn văn phòng (sale + web), sản phẩm bán trên sàn xem ở tab **Sàn**.
+- **🔍 Vì sao doanh số tăng / giảm** (thẻ 📈 Kinh doanh): Doanh số = khách hỏi mới × tỷ lệ chốt × giá trị 1 đơn + khách cũ mua lại. Ô **viền đỏ** là khâu giảm nhiều nhất, nên sửa trước.
+- **🏆 Sản phẩm bán chạy** (thẻ 📈 Kinh doanh): 10 sản phẩm bán nhiều nhất trong kỳ đang chọn (chọn **Tháng này** ở đầu trang để xem theo tháng). Bấm **💰 Tiền bán ra** để xếp theo tiền, hoặc **📦 Số hộp / gói bán ra** để xếp theo số lượng. Máy nhớ cách xếp anh chọn lần sau. Chỉ gồm đơn văn phòng (sale + web), sản phẩm bán trên sàn xem ở tab **Sàn**.
 
-- **🧮 Lãi lỗ theo tháng, quý (sau mọi chi phí)** (thẻ 💵 Tiền & lãi lỗ, chỉ Quản trị thấy): cho biết công ty **lãi hay lỗ** bao nhiêu, đang tốt lên hay xấu đi.
+- **🧮 Lãi lỗ theo tháng, quý (sau mọi chi phí)** (thẻ 💵 Lãi lỗ, chỉ Quản trị thấy): cho biết công ty **lãi hay lỗ** bao nhiêu, đang tốt lên hay xấu đi.
     - Trên cùng là **📊 Bức tranh nhiều tháng** (lấy từ các tháng kế toán đã chốt). Bấm **📅 Theo tháng** hoặc **🗓 Theo quý** để đổi cách xem.
     - 4 ô số: **cộng dồn lãi / lỗ**, **tháng gần nhất** (tốt hơn hay kém hơn tháng trước), **doanh thu trung bình 1 tháng**, **dự kiến tháng này** (CRM tạm tính, nét đứt).
     - **🧭 Đọc nhanh để ra quyết định**: máy tự viết đang tốt dần hay xấu dần, quảng cáo nên về mức nào thì lãi thêm bao nhiêu, khoản nào tăng mạnh nhất, cần doanh thu bao nhiêu để hoà vốn, tiền và nợ nhà cung cấp.
@@ -611,7 +612,7 @@ Các thẻ còn lại: đầu thẻ có ô xanh **📌 Dùng để**, mỗi mụ
 - **💰 Giá vốn sản phẩm** (Cài đặt, chỉ Quản trị): mỗi dòng 1 sản phẩm + giá nhập, cộng thêm 15% (sửa được) ra giá vốn. Tên chỉ cần đúng **loại + trọng lượng** (vd "Gafo Fucoidan 800g"). Máy tự khớp với tên trong đơn ("Bữa ăn DD 500G", combo, "Mua 3 tặng 1"…). Nhanh nhất: bấm **📋 Dán cả bảng**, copy bảng giá từ Notion / Excel dán vào → **Đọc bảng đã dán** → xem lại → **Lưu giá vốn**. Dưới bảng có danh sách sản phẩm đã bán mà **chưa khớp** giá vốn, thấy tên nào thì thêm dòng cho tên đó.
 - **Khách quay lại mua** (trong mục Bán hàng văn phòng): bao nhiêu % khách mua lần đầu đã mua tiếp sau 30 / 60 / 90 ngày, 1 khách mang về bao nhiêu tiền và bao nhiêu lãi trong 90 ngày đầu. Mục 📣 so số lãi này với **chi phí có 1 khách mới**: tốn hơn số lãi thì quảng cáo đang lỗ, máy đưa vào 👉 Việc hôm nay.
 - **Đèn**: 🟢 tốt · 🟠 cần để ý · 🔴 cần xử lý · ⚪ chưa đặt mục tiêu. Quảng cáo: chi phí dưới 30% tiền khách mới mua = 🟢, 30–40% = 🟠, trên 40% = 🔴. Đổi mức ở **Cài đặt → 🚦 Mức đèn Tổng quan**.
-- **Quảng cáo** (thẻ 📣 Khách mới): 3 chiến dịch **ra đơn rẻ nhất** nên dồn tiền, 3 chiến dịch **ra đơn đắt nhất** nên giảm hoặc tắt.
+- **Quảng cáo** (thẻ 📈 Kinh doanh): 3 chiến dịch **ra đơn rẻ nhất** nên dồn tiền, 3 chiến dịch **ra đơn đắt nhất** nên giảm hoặc tắt.
 - **Mỗi tab cho một người xem:** 📊 **Tổng quan** cho chủ doanh nghiệp · 📣 **Marketing** cho bạn chạy quảng cáo · 📈 **Hiệu quả** cho sale và chăm sóc khách. Nút sang các tab khác (📊 Bán hàng · 📣 Marketing · 🛒 Sàn · 📍 Link & QR · 🤖 Trợ lý Zalo · 📘 Fanpage) nằm ở **cuối trang** (cách dùng: [Marketing](/huong-dan/marketing/), [Fanpage](/huong-dan/fanpage/)).
 
 Chọn thời gian ở hàng nút trên cùng. Kỳ đang chạy so với **cùng số ngày** của kỳ trước (ví dụ 1–12/10 so với 1–12/9), cho công bằng.
