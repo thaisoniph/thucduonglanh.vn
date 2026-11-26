@@ -107,6 +107,16 @@ Mỗi lần chấm, AI còn được xem **8 bài gần nhất đã có kết qu
 
 Bên cạnh là bảng **👤 Điểm trung bình theo người làm** (60 ngày qua). Bảng này giúp từng bạn biết mình đang tiến bộ tới đâu.
 
+## 🤖 Quảng cáo mới: CRM tự chấm, tự ghi kết quả
+
+Từ 26/11/2026, mỗi **chiến dịch Facebook mới chạy** (bắt đầu trong 14 ngày gần đây) được CRM **tự chấm**, không cần ai dán bài:
+
+1. Khoảng 3 tiếng 1 lần, CRM đọc **chữ quảng cáo + ảnh bìa** của chiến dịch mới, chấm như bước 1 và báo **Telegram** cho Quản trị + Marketing: điểm, đèn, việc nên sửa trước.
+2. Bài tự chấm hiện trong danh sách 🧪 Chấm bài, người làm ghi là **🤖 Tự chấm QC**.
+3. **Tiền đã chi + số khách để lại số** tự cập nhật từ Facebook Ads mỗi 3 tiếng (dòng kết quả ghi "tự lấy từ Facebook Ads"). Bạn chỉ cần bấm **📈 Ghi kết quả thật** để thêm **số đơn, doanh thu**; khi bạn đã tự ghi thì CRM không đè lên nữa.
+
+Quảng cáo video: máy mới đọc chữ + ảnh bìa, **chưa xem video**. Muốn chấm cả video thì dán link Google Drive như mục trên.
+
 ## Ai dùng được?
 
 - **Marketing, Quản lý, Quản trị:** thấy tất cả các bài đã chấm.

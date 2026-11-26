@@ -162,6 +162,15 @@ async function fbLive(x) {
   await kvSet(x.db, 'mkt_live', JSON.stringify(L));
   return L;
 }
+/** 🧪 Chữ + ảnh bìa của 1 quảng cáo để CRM tự chấm (score.js scoreAuto, 26/11/2026). Quảng cáo dùng bài có sẵn của trang thì đọc chữ bài viết. */
+export async function mktAdText(x, adId) {
+  const fb = (await cfgOf(x)).fb || {}; if (!fb.token || !/^\d+$/.test(String(adId))) return null;
+  const a = await fbGet(fb.token, String(adId), { fields: 'creative{body,title,video_id,image_url,thumbnail_url,effective_object_story_id,object_story_spec,asset_feed_spec{bodies,titles}}' });
+  const cr = a.creative || {}, os = cr.object_story_spec || {}, ld = os.link_data || {}, vd = os.video_data || {}, af = cr.asset_feed_spec || {};
+  let tx = cr.body || ld.message || vd.message || ((af.bodies || [])[0] || {}).text || '';
+  if (!tx && cr.effective_object_story_id) { try { tx = (await fbGet(fb.token, cr.effective_object_story_id, { fields: 'message' })).message || ''; } catch (e) { /* mã chưa đọc được bài của trang */ } }
+  return { tx: String(tx).slice(0, 6000), title: String(cr.title || ld.name || vd.title || ((af.titles || [])[0] || {}).text || '').slice(0, 200), video: !!(cr.video_id || vd.video_id), img: vd.image_url || cr.image_url || cr.thumbnail_url || '' };
+}
 /** mkt_fb_edit (Quản trị + Marketing, 02/11/2026): bật / tắt chiến dịch, nhóm quảng cáo, quảng cáo; đổi ngân sách ngày (chiến dịch CBO hoặc nhóm quảng cáo ABO).
  *  Chỉ sửa được mục có trong danh sách 📋 đang chạy (kv mkt_live) để không đụng nhầm tài khoản khác. Mã truy cập cần quyền ads_management (chỉ ads_read thì báo cách cấp).
  *  d: { kind: campaign|adset|ad, id, op: pause|resume|budget, amount (đ / ngày), force } → { ok, log, live } */

@@ -6,7 +6,8 @@ import { adsSync, srcAutoTick, fixAdsLeads } from './sync.js';
 import { sanSheetTick } from './san.js';
 import { sanAiMorning, sanAiEvening } from './sanai.js';
 import { shpTick } from './sanshp.js';
-import { mktTick, mktFbEdit } from './mkt.js';
+import { mktTick, mktFbEdit, mktAdText } from './mkt.js';
+import { scoreAuto } from './score.js';
 import { mkSchTick } from './mksch.js';
 import { mkSnapBuild } from './mktg.js';
 import { mktDailyMsgs } from './mktv.js';
@@ -218,6 +219,12 @@ export async function scheduled(x, cron) {
   if (await kvGet(x.db, 'recalc_all') === '1') { await kvSet(x.db, 'recalc_all', '0'); try { await recalcAll(x); } catch (e) { console.error('recalcAll', e.message); } } // 1 lần sau khi thêm cột ngày nhận / đơn hoàn / khách quen
   try { await backfillCustomerExtras(x); } catch (e) { console.error('backfill', e.message); } // 1 lần: Zalo / cộng đồng / ngày sinh từ Sheet cũ
   try { await mktTick(x); } catch (e) { console.error('mktTick', e.message); } // chi phí Facebook Ads: 3 tiếng 1 lần
+  if (Date.now() - Number(await kvGet(x.db, 'sc_auto_at') || 0) > 3 * 3600e3) { await kvSet(x.db, 'sc_auto_at', String(Date.now()), 2 * DAY); x.later((async () => { // 🤖 tự chấm quảng cáo mới + tự lấy kết quả (score.js scoreAuto, 26/11/2026)
+    for (const r of await scoreAuto(x, mktAdText)) {
+      const L = { ok: '🟢', sua: '🟡', lai: '🔴', luat: '⛔' }[r.v] || '•', t = '<b>🧪 Đã tự chấm quảng cáo mới</b>\n' + esc(r.camp) + '\n' + L + ' <b>' + r.score + '/100</b>' + (r.v === 'luat' ? ' · có chữ dễ phạm luật quảng cáo' : '') + (r.top ? '\n👉 Sửa trước: ' + esc(r.top) : '') + (r.video ? '\n(Máy mới đọc chữ + ảnh bìa, chưa xem video)' : '') + '\n\nXem chi tiết: CRM → 🎯 Insight & nội dung → 🧪 Chấm bài\n' + CRM_URL;
+      for (const u of await crmUsers(x)) if (u.active && u.tg && (u.level >= 3 || u.role === 'Marketing')) await telegramTo(x.env, u.tg, t);
+    }
+  })().catch(e => console.error('scoreAuto', e.message))); }
   x.later(spRepurposeTick(x).catch(e => console.error('spRepurposeTick', e.message)));
   x.later(spFillTick(x).catch(e => console.error('spFillTick', e.message))); // 🗂 viết dần kho bài cho sale (spf_fill, 23/11/2026) // ♻️ bài web / nhóm Zalo → bài FB cá nhân + tin Zalo cho sale (13/11/2026)
   x.later(vqTick(x).catch(e => console.error('vqTick', e.message))); // 🗣 9h mỗi ngày: gom lời khách nguyên văn vào kho + AI phân loại (voc.js)

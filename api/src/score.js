@@ -50,6 +50,7 @@ async function schema(db) {
     score INTEGER DEFAULT 0, v TEXT DEFAULT '', res TEXT DEFAULT '', parent INTEGER DEFAULT 0,
     r_spend INTEGER DEFAULT 0, r_leads INTEGER DEFAULT 0, r_eng INTEGER DEFAULT 0, r_orders INTEGER DEFAULT 0, r_rev INTEGER DEFAULT 0, r_note TEXT DEFAULT '', r_at INTEGER DEFAULT 0, r_by TEXT DEFAULT '')`);
   await run(db, 'CREATE INDEX IF NOT EXISTS cs_scores_at ON cs_scores (at)');
+  try { await run(db, "ALTER TABLE cs_scores ADD COLUMN camp TEXT DEFAULT ''"); } catch (e) { } // 26/11/2026: tên chiến dịch Facebook (bài tự chấm, tự lấy kết quả)
   schemaOk = true;
 }
 let client = null;
@@ -246,4 +247,41 @@ export async function crmScore(x, u, d, crmLog) {
   }
   if (a === 'ins_sdel') { await run(x.db, 'DELETE FROM cs_scores WHERE id = ?', row.id); return { ok: true }; }
   return { ok: false, error: 'Không rõ thao tác.' };
+}
+
+/* 🤖 Tự chấm quảng cáo mới chạy (26/11/2026, rà khoá content: ~70 triệu quảng cáo T11 mà chưa mẫu nào qua 🧪 Chấm bài).
+ * cron.js gọi 3 tiếng 1 lần: (1) mọi bài gắn chiến dịch tự cập nhật tiền + số khách từ bảng ad_spend (không đè kết quả người tự ghi) → vòng học có số thật;
+ * (2) chiến dịch đang chạy bắt đầu trong 14 ngày mà chưa chấm → chấm 1 chiến dịch / lượt (chữ quảng cáo + ảnh bìa; video chưa nghe lời).
+ * Trả về bài vừa chấm để cron báo Telegram Quản trị + Marketing. */
+export const AUTO = '🤖 Tự chấm QC';
+export async function scoreAuto(x, adText) {
+  await schema(x.db);
+  const now = Date.now(), out = [];
+  for (const r of await all(x.db, "SELECT id, camp FROM cs_scores WHERE camp <> '' AND r_by IN ('', ?) AND at > ?", AUTO, now - 90 * DAY)) {
+    const s = await first(x.db, 'SELECT SUM(spend) s, SUM(leads) l, SUM(msgs) m FROM ad_spend WHERE campaign = ?', r.camp);
+    if (s && s.s > 0) await run(x.db, 'UPDATE cs_scores SET r_spend = ?, r_leads = ?, r_note = ?, r_at = ?, r_by = ? WHERE id = ?', Math.round(s.s), Math.round(s.l || s.m || 0), 'tự lấy từ Facebook Ads', now, AUTO, r.id);
+  }
+  const L = await kvJson(x.db, 'mkt_live', null);
+  if (!x.env.ANTHROPIC_API_KEY || !L || !(L.camps || []).length) return out;
+  const done = new Set((await all(x.db, "SELECT camp FROM cs_scores WHERE camp <> ''")).map(r => r.camp)), skip = await kvJson(x.db, 'sc_auto_skip', null) || {};
+  const t0 = c => Date.parse(String(c.start || '').replace(/([+-]\d\d)(\d\d)$/, '$1:$2')) || 0;
+  const cp = L.camps.filter(c => c.n && !done.has(c.n) && !skip[c.n] && t0(c) > now - 14 * DAY).sort((a, b) => t0(b) - t0(a))[0];
+  if (!cp) return out;
+  const ad = (cp.ads || []).find(a => a.st === 'ACTIVE') || (cp.ads || [])[0];
+  let t = null; try { t = ad && await adText(x, ad.id); } catch (e) { await kvSet(x.db, 'sc_auto_err', JSON.stringify({ at: now, camp: cp.n, err: String(e.message).slice(0, 300) }), 7 * DAY); return out; } // lỗi Facebook: 3 tiếng sau thử lại, chưa tốn tiền AI
+  skip[cp.n] = now; await kvSet(x.db, 'sc_auto_skip', JSON.stringify(skip), 30 * DAY); // đánh dấu trước khi gọi AI: lỗi thì không chấm lại mãi tốn tiền
+  if (!t || (t.title + t.tx).length < 20) return out;
+  const frames = [];
+  if (/^https:\/\/[^/]*(fbcdn\.net|facebook\.com)\//.test(t.img)) {
+    try { const r = await fetch(t.img), b = new Uint8Array(await r.arrayBuffer()), ty = (r.headers.get('content-type') || '').split(';')[0];
+      if (r.ok && b.length < 280e3 && /^image\/(jpeg|png|webp)$/.test(ty)) { let bin = ''; for (let i = 0; i < b.length; i += 8192) bin += String.fromCharCode.apply(null, b.subarray(i, i + 8192)); frames.push('data:' + ty + ';base64,' + btoa(bin)); } }
+    catch (e) { /* không tải được ảnh bìa: chấm chữ */ }
+  }
+  const dk = 'ins_sc_' + fmtDate(now, 'yyMMdd'); await kvSet(x.db, dk, String(Number(await kvGet(x.db, dk) || 0) + 1), 2 * DAY);
+  const r = await scoreWrite(x, { name: AUTO }, { text: (t.title ? t.title + '\n\n' : '') + t.tx, ch: 'qc', kind: t.video ? 'video' : 'bai', frames, author: AUTO,
+    note: 'Quảng cáo đang chạy: ' + cp.n + (t.video ? '. Máy chỉ đọc được chữ quảng cáo và ảnh bìa, CHƯA xem video: chấm hook theo ảnh bìa + câu đầu, nói rõ phần video cần người xem lại.' : '') });
+  if (!r.ok || !r.item) { await kvSet(x.db, 'ins_sc_err', JSON.stringify({ at: now, by: AUTO, err: r.error || 'lỗi' }), 2 * DAY); return out; }
+  await run(x.db, 'UPDATE cs_scores SET camp = ? WHERE id = ?', cp.n, r.item.id);
+  out.push({ id: r.item.id, camp: cp.n, score: r.item.score, v: r.item.v, top: ((r.item.res || {}).top3 || [])[0] || '', video: t.video });
+  return out;
 }
