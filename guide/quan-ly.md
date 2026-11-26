@@ -538,7 +538,7 @@ Dòng chú thích màu đèn, ▲▼, đường nhỏ được thu gọn thành 
 | **📅 Theo kỳ** | 📈 Kinh doanh | Vì sao tăng / giảm, biểu đồ theo ngày, 🧭 Doanh số đến từ đâu (từng mảng, nguồn khách, đơn lên từ đâu, khách hỏi theo kênh), bán hàng văn phòng, sản phẩm, quảng cáo, sàn, đại lý, giới thiệu & CTV, website |
 | | 👥 Nhân sự | 📊 So sánh nhân viên (1 bảng cho mọi người, bấm tên mở Hiệu quả của người đó), 💎 Giá trị nhân sự & đánh giá 3 tháng, 📋 KPI sale, đợt phát động |
 
-Kế toán của Quản trị không còn thẻ 📊 Lãi lỗ (đã có ở Tổng quan → 💵 Lãi lỗ); tài khoản Kế toán vẫn giữ thẻ đó.
+Mục 💰 Bán hàng văn phòng bỏ ô Data quảng cáo (đã có ở Marketing → 📊 Kết quả: *100 số thì mấy người mua*). Kế toán của Quản trị không còn thẻ 📊 Lãi lỗ (đã có ở Tổng quan → 💵 Lãi lỗ); tài khoản Kế toán vẫn giữ thẻ đó.
 
 Thẻ **📊 Tình hình** gồm:
 
@@ -612,7 +612,7 @@ Các thẻ còn lại: đầu thẻ có ô xanh **📌 Dùng để**, mỗi mụ
 - **💰 Giá vốn sản phẩm** (Cài đặt, chỉ Quản trị): mỗi dòng 1 sản phẩm + giá nhập, cộng thêm 15% (sửa được) ra giá vốn. Tên chỉ cần đúng **loại + trọng lượng** (vd "Gafo Fucoidan 800g"). Máy tự khớp với tên trong đơn ("Bữa ăn DD 500G", combo, "Mua 3 tặng 1"…). Nhanh nhất: bấm **📋 Dán cả bảng**, copy bảng giá từ Notion / Excel dán vào → **Đọc bảng đã dán** → xem lại → **Lưu giá vốn**. Dưới bảng có danh sách sản phẩm đã bán mà **chưa khớp** giá vốn, thấy tên nào thì thêm dòng cho tên đó.
 - **Khách quay lại mua** (trong mục Bán hàng văn phòng): bao nhiêu % khách mua lần đầu đã mua tiếp sau 30 / 60 / 90 ngày, 1 khách mang về bao nhiêu tiền và bao nhiêu lãi trong 90 ngày đầu. Mục 📣 so số lãi này với **chi phí có 1 khách mới**: tốn hơn số lãi thì quảng cáo đang lỗ, máy đưa vào 👉 Việc hôm nay.
 - **Đèn**: 🟢 tốt · 🟠 cần để ý · 🔴 cần xử lý · ⚪ chưa đặt mục tiêu. Quảng cáo: chi phí dưới 30% tiền khách mới mua = 🟢, 30–40% = 🟠, trên 40% = 🔴. Đổi mức ở **Cài đặt → 🚦 Mức đèn Tổng quan**.
-- **Quảng cáo** (thẻ 📈 Kinh doanh): 3 chiến dịch **ra đơn rẻ nhất** nên dồn tiền, 3 chiến dịch **ra đơn đắt nhất** nên giảm hoặc tắt.
+- **📣 Quảng cáo** và **🛒 Sàn TMĐT** (thẻ 📈 Kinh doanh, từ 26/11/2026): chỉ 1 dòng tóm tắt (tiền chi, 1đ thu về bao nhiêu, 1 khách mới tốn bao nhiêu / doanh số sàn). Bấm mở mục rồi bấm nút để sang đúng thẻ của tab **Marketing** (kênh nào, chiến dịch nào tốt, nên dồn tiền / tắt) hoặc tab **Sàn**. Chi tiết chỉ nằm ở 1 chỗ đó, không lặp lại.
 - **Mỗi tab cho một người xem:** 📊 **Tổng quan** cho chủ doanh nghiệp · 📣 **Marketing** cho bạn chạy quảng cáo · 📈 **Hiệu quả** cho sale và chăm sóc khách. Nút sang các tab khác (📊 Bán hàng · 📣 Marketing · 🛒 Sàn · 📍 Link & QR · 🤖 Trợ lý Zalo · 📘 Fanpage) nằm ở **cuối trang** (cách dùng: [Marketing](/huong-dan/marketing/), [Fanpage](/huong-dan/fanpage/)).
 
 Chọn thời gian ở hàng nút trên cùng. Kỳ đang chạy so với **cùng số ngày** của kỳ trước (ví dụ 1–12/10 so với 1–12/9), cho công bằng.
