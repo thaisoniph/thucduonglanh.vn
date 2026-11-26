@@ -134,7 +134,7 @@ async function scoreWrite(x, u, d) {
     messages: [{ role: 'user', content }] };
   let res;
   try { res = await ai(x.env).beta.messages.create(Object.assign({ betas: ['server-side-fallback-2026-07-01'], fallbacks: 'default' }, req)); }
-  catch (e) { if (!(e instanceof Anthropic.BadRequestError)) throw e; res = await ai(x.env).messages.create(req); }
+  catch (e) { if (!(e instanceof Anthropic.BadRequestError)) throw e; res = await ai(x.env).messages.create(Object.assign({}, req, { output_config: { effort: 'medium' } })); } // 26/11/2026: khuôn JSON lớn quá ('compiled grammar is too large') → hỏi lại không khoá khuôn, câu hỏi đã dặn chỉ trả 1 khối JSON
   if (res.stop_reason === 'refusal') return { ok: false, error: 'AI từ chối chấm nội dung này.' };
   if (res.stop_reason === 'max_tokens') return { ok: false, error: 'AI viết dài quá giới hạn nên bị cắt giữa chừng (' + (res.usage && res.usage.output_tokens) + ' token). Báo quản trị để nâng giới hạn.' };
   const raw = textOf(res), m = raw.match(/\{[\s\S]*\}/);
