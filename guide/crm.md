@@ -167,8 +167,8 @@ Không có nút nào hợp? Bấm **Kết quả khác / tự chọn ngày hẹn*
 Mỗi số điện thoại khách hỏi từ quảng cáo là **tiền thật công ty đã trả**. Tab **Hôm nay** → thẻ **🏁 Mục tiêu & thi đua** có khung **💸 Tháng này công ty đã chi … quảng cáo cho … số giao cho bạn**:
 
 - **Mỗi số khoảng bao nhiêu tiền**: tiền quảng cáo chia cho số khách hỏi.
-- **Bạn đã bán được bao nhiêu** từ chính các số đó, và **cần bao nhiêu để công ty hoà vốn**. Hoà vốn tức là đủ trả tiền quảng cáo, tiền hàng, phí ship, thuế và hoa hồng của bạn (chưa tính lương cứng, văn phòng).
-- Thanh màu: 🔴 còn xa, 🟠 sắp tới, 🟢 đã qua mức hoà vốn, từ đó mỗi đơn là công ty có lãi.
+- **Bạn đã bán được bao nhiêu** từ chính các số đó, và **cần bao nhiêu để bù đủ tiền quảng cáo các số này**: bán tới mức đó thì tiền lãi (sau tiền hàng, phí ship, thuế, hoa hồng của bạn) vừa đủ trả tiền quảng cáo. Khác với dòng **Tối thiểu để công ty đủ chi phí** ở đầu Hôm nay (dòng đó tính cả lương, văn phòng của cả công ty).
+- Thanh màu: 🔴 còn xa, 🟠 sắp tới, 🟢 đã bù đủ tiền quảng cáo, từ đó mỗi đơn là công ty có lãi.
 - **📵 Còn N số chưa gọi = … tiền công ty đã trả**: gọi ngay, khách vừa để số còn nhớ quảng cáo nên dễ chốt nhất.
 
 Muốn xem theo từng sản phẩm thì bấm **Xem chi tiết ›** (tab Hiệu quả → thẻ 📈 Bán hàng → 📣 Từ quảng cáo).
@@ -457,7 +457,7 @@ Mỗi bạn **tự đặt** mục tiêu của mình ngay từ ngày 1 đầu th�
 - **Quản lý** cũng tự đặt mục tiêu của mình: thấp nhất = **tháng trước + 10%**, không áp mức 100 triệu.
 - Kho, Kế toán, Marketing không đặt mục tiêu doanh số.
 
-1. Vào tab **Hiệu quả** (hoặc dùng hộp nhắc tự hiện).
+1. Vào tab **Hôm nay** → thẻ **🏁 Mục tiêu & thi đua** (hoặc dùng hộp nhắc tự hiện).
 2. Bấm **🎯 Đặt mục tiêu**. Bấm 1 trong 3 nút gợi ý (**+10%**, **+15%**, **+20%** so với tháng trước), hoặc tự gõ số khác, ví dụ `150tr`.
 3. Ô **🙋 Khách tự tạo trong tháng** (từ 10/11/2026): gõ số khách bạn sẽ tự tìm, ví dụ `8` (mỗi tuần 2 khách). Khách tự tạo = khách hỏi bạn **tự thêm** vào CRM (không từ quảng cáo) + khách do **khách cũ của bạn giới thiệu**. Để trống nếu chưa đặt.
 4. Bấm **Lưu mục tiêu**.
@@ -478,7 +478,7 @@ Từ đó, CRM cho bạn biết mỗi ngày cần bán bao nhiêu. Thanh màu ch
 | **Khách hỏi** | Người hỏi mà chưa mua |
 | **Khách đã mua** | Người đã mua ít nhất 1 lần. Tìm khách, xem lịch sử mua. Trên điện thoại nằm trong **••• Thêm** (tìm nhanh 1 khách thì bấm 🔍 ở trên) |
 | **Đơn hàng** | Xác nhận, gửi hàng, tạo đơn. Có nhãn **🚚 số đơn của bạn đang giao** |
-| **Hiệu quả** | Doanh số và mục tiêu của bạn. Có nhãn **% mục tiêu tháng**: 🟢 xanh = đúng tiến độ, 🟠 cam = hơi chậm, 🔴 đỏ = đang chậm. Ở Hôm nay bấm **Xem hiệu quả ›** cũng mở được |
+| **Hiệu quả** | Doanh số, đơn, chăm sóc của bạn theo kỳ. Mục tiêu tháng chỉ hiện 1 dòng % + nút **🏁 Xem mục tiêu & thi đua** (từ 26/11/2026 mục tiêu và thi đua xem đủ ở Hôm nay → 🏁). Có nhãn **% mục tiêu tháng**: 🟢 xanh = đúng tiến độ, 🟠 cam = hơi chậm, 🔴 đỏ = đang chậm. Ở Hôm nay bấm **Xem hiệu quả ›** cũng mở được |
 
 **Con số trên các tab nghĩa là gì?**
 

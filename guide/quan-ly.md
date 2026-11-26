@@ -108,7 +108,7 @@ Mục anh đã bật riêng cho 1 người (Marketing, Phụ trách kho, Trợ l
 | Nhóm | Thẻ | Trong thẻ |
 | --- | --- | --- |
 | **👀 Đội ngũ** (mỗi ngày) | 🙋 Chờ quản lý | Khách tự mang về cần xác minh, khách sale báo ngừng liên hệ |
-| | 👥 Từng người | **Tiến độ nhân sự hôm nay**, **🧺 Kho chung** (khách chưa ai phụ trách), 🏁 Thi đua cả nhóm |
+| | 👥 Từng người | **🧺 Kho chung** (khách chưa ai phụ trách) + nút **👥 Mở Từng người** sang Hiệu quả (tiến độ từng người, thi đua: từ 26/11/2026 chỉ xem ở Hiệu quả) |
 | **📞 Việc gọi** (khách của mình) | 🧾 Đơn | Đơn mới chờ xác nhận, chuyển khoản chưa thấy tiền, đơn đang giao cần gọi |
 | | 💚 Chăm sóc | Khách vừa hỏi, chăm sóc theo mốc, khách hỏi chưa mua |
 | **🌱 Khác** | 🌱 Mở rộng khách | Dịp chúc khách, cảm ơn người giới thiệu, mời đại sứ |
@@ -619,9 +619,9 @@ Chọn thời gian ở hàng nút trên cùng. Kỳ đang chạy so với **cùn
 
 Số website chỉ đếm khách đã bấm "Đồng ý" cookie, nên thấp hơn thực tế. Số đơn và doanh số thì đủ.
 
-## Bao nhiêu người vào website (Tổng quan → 🌐 Website thucduonglanh.vn)
+## Bao nhiêu người vào website (Marketing → 🔎 Vì sao → 🌐 Website)
 
-Mở tab **Tổng quan**, kéo xuống mục **🌐 Website thucduonglanh.vn** rồi bấm vào để mở. Có 2 nguồn số:
+Từ 26/11/2026 mọi số về website nằm 1 chỗ: tab **Marketing** → thẻ **🔎 Vì sao** → câu **4** → mục **🌐 Website: bao nhiêu người vào, bán được bao nhiêu?** (Tổng quan → 📈 Kinh doanh chỉ còn 1 dòng + nút sang đây). Có 2 nguồn số:
 
 - **Cloudflare** đếm **lượt vào web**: đếm đủ mọi người vì không dùng cookie. Ô **Lượt vào web** và **Tỷ lệ ra đơn** (đơn web ÷ lượt vào) lấy từ đây.
 - **Google Analytics** chỉ đếm khách đã bấm **Đồng ý** ở thông báo cookie, nên ít hơn số thật. Dùng để xem **hành vi**: khách ở lại xem bao lâu, rơi ở bước nào trong phễu mua hàng, vào từ bài đăng nào (link UTM).

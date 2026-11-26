@@ -277,9 +277,9 @@ Thẻ **🔎 Vì sao** là **4 câu hỏi** theo đúng thứ tự người làm
    - 📊 Kênh nào bỏ 1 đồng thu về nhiều nhất · 📈 Hiệu quả đang tốt lên hay kém đi · 💎 Được chi tối đa bao nhiêu để có 1 khách mới (1 khách mang về bao nhiêu tiền trong 12 tháng, mức 🟢 tốt và mức trần) · 🎯 Mỗi kênh đạt bao nhiêu % mục tiêu.
 2. **📣 Quảng cáo nào tốt, quảng cáo nào dở?**
    - 🎬 Tính cả kỳ: chiến dịch nào nên tăng, nên tắt (gồm cả chiến dịch đã tắt) · 🧴 Sản phẩm nào chạy quảng cáo có lời · 🪜 Khách rơi rụng ở bước nào (thấy → bấm → nhắn → để số → mua).
-3. **📇 Số điện thoại về sale có ra đơn không?**
-   - 📇 Bao nhiêu số, giá 1 số, còn bao nhiêu sale chưa gọi · 🤝 Sale kể lại: vì sao khách không mua, nguồn nào số tốt. Nếu các sale chênh nhau nhiều, vấn đề có thể nằm ở khâu tư vấn, chưa chắc do quảng cáo.
-4. **🌱 Kênh tự có (không tốn tiền quảng cáo)**: 🛍 sản phẩm trên website, 🌐 website, 👥 nhóm Zalo, 🌱 "Tôi chọn sống lành", 🖐 trò chơi trên web.
+3. **📇 Số điện thoại về sale có ra đơn không?** (số về, giá 1 số, số chưa gọi: xem ở thẻ 📇 Số điện thoại, không lặp lại ở đây)
+   - 🤝 Sale kể lại: vì sao khách không mua, nguồn nào số tốt. Nếu các sale chênh nhau nhiều, vấn đề có thể nằm ở khâu tư vấn, chưa chắc do quảng cáo.
+4. **🌱 Kênh tự có (không tốn tiền quảng cáo)**: 🛍 sản phẩm trên website, 🌐 website (lượt vào, tỷ lệ ra đơn, khách vào từ đâu – từ 26/11/2026 chỉ xem ở đây), 👥 nhóm Zalo, 🌱 "Tôi chọn sống lành", 🖐 trò chơi trên web.
 
 ### 🌐 Khách đặt trên web
 

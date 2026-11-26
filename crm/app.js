@@ -1728,11 +1728,11 @@
       var TOP = h; h = ''; // 19/11/2026: phần dưới chia thẻ (TD_MG)
       h += ownWaitBlock() + stopWaitBlock(); // 🙋 khách tự mang về cần xác minh · 📵 khách sale báo ngừng liên hệ
       var S_CHO = h; h = '';
-      if (!wn) h += teamBlock() + waitingBlock(); // đang xem 1 nhân viên → ẩn khách chưa ai phụ trách
+      if (!wn) h += waitingBlock(); // đang xem 1 nhân viên → ẩn khách chưa ai phụ trách
+      h += '<div class="box"><p>👥 Hôm nay mỗi người đã gọi bao nhiêu, ai đang chậm, bảng thi đua: xem ở <b>Hiệu quả → 👥 Từng người</b> (26/11/2026: gộp 1 chỗ).</p><a class="btn pri" href="#bao-cao" data-gorep="nguoi">👥 Mở Từng người</a></div>';
       var S_TEAM0 = h; h = '';
       var S_OCC = occBlock(); // 🎉 dịp chúc khách
       var rOpen = S.f.gopen && 'race' in S.f.gopen ? S.f.gopen.race : false;
-      h += '<details class="fold-race" data-grp="race"' + (rOpen ? ' open' : '') + '><summary><b>🏁 Thi đua & mục tiêu cả nhóm</b><span class="muted small">bấm để xem bảng xếp hạng tuần / tháng</span></summary>' + raceBlock() + '</details>';
       var S_TEAM = S_TEAM0 + h; h = '';
     } else { var TOP = h, S_CHO = '', S_TEAM = '', S_OCC = occBlock(); h = ''; } // 🎉 dịp chúc khách: ngày lễ, rằm, mùng 1, sinh nhật (09/11/2026)
     var TB = trendBuckets(monthRange(monthOf(Date.now()))), tsk = function (v) { return sparkSvg(v, TB.partial); };
@@ -1780,7 +1780,7 @@
     var tb = tdTab('td_mtab', TD_MG, S_CHO ? 'cho' : 'team');
     h = TOP + grpMenu(TD_MG, tb, function (k) { return 'data-tdt="td_mtab|' + k + '"'; });
     if (tb === 'cho') h += inTabi('Việc sale đang chờ quản lý: khách tự mang về cần xác minh, khách sale báo ngừng liên hệ.', ['Đọc từng việc', 'Bấm nút trên việc để duyệt hoặc trả lại sale']) + (S_CHO || '<div class="box"><p>✅ Không có việc nào đang chờ quản lý.</p></div>');
-    if (tb === 'team') h += inTabi('Hôm nay mỗi người đã gọi bao nhiêu, ai đang chậm; khách chưa ai phụ trách; thi đua cả nhóm.', ['Người đang chậm: nhắn hỏi xem có vướng gì', 'Khách chưa ai phụ trách: chia cho sale']) + (S_TEAM || '<div class="box"><p class="muted">Đang xem 1 nhân viên. Chọn “Tất cả nhân sự” để xem cả nhóm.</p></div>');
+    if (tb === 'team') h += inTabi('Khách chưa ai phụ trách: chia cho sale. Tiến độ từng người, thi đua: ở Hiệu quả.', ['Khách chưa ai phụ trách: chia cho sale', 'Xem từng người: bấm <b>👥 Mở Từng người</b>']) + (S_TEAM || '<div class="box"><p class="muted">Đang xem 1 nhân viên. Chọn “Tất cả nhân sự” để xem cả nhóm.</p></div>');
     if (tb === 'don') h += inTabi('Đơn mới chờ gọi xác nhận, chuyển khoản chưa thấy tiền, đơn đang giao cần gọi giữ đơn.', ['Gọi khách xác nhận đơn', 'Gọi xong bấm <b>Xác nhận</b>']) + (S_DON || '<div class="box"><p>✅ Không có đơn nào cần gọi.</p></div>');
     if (tb === 'cs') h += inTabi('Khách vừa hỏi, khách cần chăm sóc theo mốc, khách hỏi chưa mua.', ['Bấm nút <b>▶ Bắt đầu gọi lần lượt</b> trên cùng', 'Hoặc bấm vào nhóm để mở danh sách']) + S_CS;
     if (tb === 'grow') h += inTabi('Dịp chúc khách, cảm ơn người giới thiệu, mời đại sứ, Kho chung số quảng cáo.', ['Xong việc gọi thì làm ở đây']) + (S_GROW || '<div class="box"><p class="muted">Hôm nay chưa có việc mở rộng khách.</p></div>');
@@ -2116,10 +2116,16 @@
   }
   function mini(label, n, href, cls) { return '<' + (href ? 'a href="' + href + '"' : 'div') + ' class="mini ' + (cls || '') + '"><span>' + label + '</span><b>' + n + '</b></' + (href ? 'a' : 'div') + '>'; }
   /** Tab Hôm nay của nhân viên: khối mục tiêu tháng (như tab Hiệu quả) + doanh số hôm nay so với mức cần bán mỗi ngày. */
+  /** Sale xem Hiệu quả của mình (26/11/2026): mục tiêu tháng chỉ xem đủ ở Hôm nay → 🏁, ở đây 1 dòng % + nút sang đó */
+  function goalLinkLine(name, month, sales) {
+    var t = targetOf(name, month);
+    return '<div class="box goal-link"><p>🎯 <b>Mục tiêu ' + monthLabel(month) + '</b>: ' + (t && t.amount ? 'đã đạt <b>' + Math.round(sales * 100 / t.amount) + '%</b> (' + moneyShort(sales) + ' / ' + moneyShort(t.amount) + ')' : 'chưa đặt') + '</p><a class="btn" href="#hom-nay" data-gotd="goal">🏁 Xem mục tiêu & thi đua</a></div>';
+  }
   function myGoalToday() {
     var me = S.user.name, mk = monthOf(Date.now()), R = monthRange(mk), t = targetOf(me, mk), t0 = today();
     var sales = perf(me, R).sales, td = perf(me, [t0, t0 + DAY]), h = targetBlock(me, mk, sales, true);
     if (!t || !t.amount) return h;
+    h = h.replace(/<p>Còn thiếu <b>.*?<\/p>/, ''); // 26/11/2026: chỉ giữ "📅 Hôm nay … / cần" bên dưới, khỏi 2 con số "cần mỗi ngày" khác nhau
     var left = Math.round((R[1] - t0) / DAY), need = Math.max(0, Math.ceil((t.amount - (sales - td.sales)) / Math.max(1, left))); // mức cần/ngày tính từ đầu hôm nay
     var p = need ? Math.min(1, td.sales / need) : 1;
     return h.replace(/<button class="btn[^"]*" data-target=/, '<div class="goal-day"><div><b>📅 Hôm nay:</b> đã bán <b>' + moneyShort(td.sales) + '</b> (' + td.orders + ' đơn)' + (need ? ' / cần <b>' + moneyShort(need) + '</b>' : '') + '<span>' + (need ? (p >= 1 ? '✅ Đủ chỉ tiêu ngày' : 'còn ' + moneyShort(need - td.sales)) : '') + '</span></div>' +
@@ -5105,7 +5111,7 @@
     var k = key.split('_');
     api('ga', { from: k[0], to: k[1], pf: k[2], pt: k[3], fresh: fresh ? 1 : 0 }).then(function (j) { GA.cache[key] = j; }, function (e) {
       GA.err = /Không rõ thao tác/.test(e.message) ? 'Máy chủ đang cập nhật bản mới, anh/chị thử lại sau 2 phút.' : e.message;
-    }).then(function () { GA.busy = ''; if (route().view === 'tong-quan') softRender(true); });
+    }).then(function () { GA.busy = ''; if (route().view === 'tong-quan' || route().view === 'marketing') softRender(true); });
   }
 
   /* ================================================================ Biểu đồ xu hướng (Hiệu quả, Tổng quan, Marketing, Sàn).
@@ -6686,6 +6692,32 @@
   function trendRateNZ(a, b, k) { return b ? a.map(function (x, i) { return x && b[i] ? x * (k || 1) / b[i] : null; }) : null; }
   /** Hoàn trên đơn văn phòng đã gửi (n không gồm đơn huỷ; c = số đơn huỷ). */
   function voidStats(R) { var n = 0, v = 0, vr = 0, l = 0, c = 0; S.d.orders.forEach(function (o) { if (o.time >= R[0] && o.time < R[1]) { if (isCancel(o.status)) { c++; return; } n++; if (isBack(o.status)) { v++; vr += o.total || 0; l += backFee(o); } } }); return { n: n, v: v, vr: vr, l: l, c: c, pct: n ? Math.round(v * 100 / n) : null }; }
+  /** 🌐 Website: lượt vào (Cloudflare), hành vi (Google Analytics), tỷ lệ ra đơn. 26/11/2026 chuyển từ Tổng quan sang Marketing → 🔎 Vì sao → câu 4 (mỗi số 1 chỗ). */
+  function webBlk(R, P) {
+    var key = gaKey(R, P), gj = GA.cache[key], g = gj && gj.ga, noGaCmp = R[1] - R[0] <= DAY, b = bizStats(R), bp = bizStats(P);
+    if (!gj && !GA.err) setTimeout(function () { gaFetch(key); }, 0);
+    var DB = trendBuckets(R), BZ = trendEachMemo('biz', DB, bizStats), sk = function (v, bad) { return v ? sparkSvg(v, DB.partial, bad) : ''; };
+    // ---- website. Lượt vào: ưu tiên Cloudflare Web Analytics (đếm đủ 100%, không cookie, 10/11/2026); Google Analytics chỉ đếm khách bấm Đồng ý → dùng cho hành vi (người xem, ở lại xem, phễu, nguồn UTM)
+    var cf = gj && gj.cf, vis = cf ? cf.cur.visits : g ? g.cur.sessions : 0, visP = cf ? cf.prev.visits : g ? g.prev.sessions : 0;
+    var conv = (cf || g) && vis ? b.web * 100 / vis : null, convP = (cf || g) && visP ? bp.web * 100 / visP : null, wh = '';
+    var GD = g ? g.days || [] : [], eng = GD.length && GD[0][3] !== undefined, gs = function (i) { return trendSum(DB, GD, function (r) { return dayMs(r[0]); }, function (r) { return r[i] || 0; }); }, gS = g ? gs(1) : null, gU = g ? gs(2) : null;
+    var cfS = cf ? trendSum(DB, cf.days || [], function (r) { return dayMs(r[0]); }, function (r) { return r[1] || 0; }) : null, vS = cf ? cfS : gS;
+    var okPct = cf && g && cf.cur.visits ? Math.min(100, pct(g.cur.sessions, cf.cur.visits)) : null; // ước tỷ lệ khách bấm Đồng ý cookie
+    if (cf || g) {
+      wh = '<p class="small muted">' + (cf ? 'Lượt vào: Cloudflare (đếm đủ 100%, không cần cookie)' : '') + (cf && g ? ' · ' : '') + (g ? 'Hành vi: Google Analytics (chỉ khách bấm Đồng ý cookie)' : '') + ' · cập nhật ' + fDateTime((cf || g).at) + (cf ? ' · <button class="link" data-dash="cfoff">ngắt Cloudflare</button>' : '') + '</p><div class="metrics dash-m3">' +
+        metric('Lượt vào web', vis.toLocaleString('vi-VN'), cf ? cf.cur.views.toLocaleString('vi-VN') + ' lượt xem trang. Cloudflare đếm không cần cookie nên đủ mọi khách.' + (g ? ' Google Analytics chỉ thấy ' + g.cur.sessions.toLocaleString('vi-VN') + ' lượt (≈ ' + okPct + '% khách bấm Đồng ý).' : '') : g.cur.views.toLocaleString('vi-VN') + ' lượt xem trang · mỗi lượt xem TB ' + (g.cur.sessions ? oneDec(g.cur.views / g.cur.sessions) : 0) + ' trang. Chỉ đếm khách bấm Đồng ý cookie.', noGaCmp ? '' : delta(vis, visP), '', sk(vS)) +
+        (g ? metric('Người xem', g.cur.users.toLocaleString('vi-VN'), g.cur.newUsers.toLocaleString('vi-VN') + ' người lần đầu vào web (Google Analytics).', noGaCmp ? '' : delta(g.cur.users, g.prev.users), '', sk(gU)) : '') +
+        metric('Đơn đặt trên web', b.web, moneyShort(b.webRev) + ' · đếm từ CRM, đủ cả khách không bấm đồng ý cookie.', delta(b.web, bp.web), '', sk(trendPick(BZ, 'web'))) +
+        metric('Tỷ lệ ra đơn', conv === null ? '–' : oneDec(conv) + '%', 'Đơn web ÷ lượt vào. Web bán lẻ thường đạt 1–3%.' + (cf ? '' : ' Hơi cao hơn thực tế vì Analytics chỉ đếm khách bấm đồng ý cookie.'), conv === null || noGaCmp ? '' : dRate(conv, convP), '', sk(trendRate(trendPick(BZ, 'web'), vS, 100))) +
+        (g ? metric('Khách ở lại xem', g.cur.sessions ? pct(g.cur.engaged, g.cur.sessions) + '%' : '–', 'Lượt truy cập có xem ≥ 10 giây, hoặc xem ≥ 2 trang, hoặc bấm mua / gọi. Thấp = trang vào đầu không hợp với khách.', noGaCmp || !g.prev.sessions ? '' : delta(pct(g.cur.engaged, g.cur.sessions), pct(g.prev.engaged, g.prev.sessions), 'rate'), '', eng ? sk(trendRate(gs(3), gS, 100)) : '') +
+          metric('Thời gian xem TB', g.cur.users ? fDur(g.cur.dur / g.cur.users) : '–', 'Thời gian 1 người thật sự xem web (tab đang mở) trong kỳ.', noGaCmp || !g.prev.users ? '' : delta(Math.round(g.cur.dur / g.cur.users), Math.round(g.prev.dur / g.prev.users)), '', eng ? sk(trendRate(gs(4), gU)) : '') : '') +
+        '</div>';
+      if (!g) wh += gaSetupBox(gj);
+      if (!cf) wh += cfwSetupBox(gj);
+      wh += '<details class="dash-webmore"><summary>Xem thêm: khách vào web từ đâu' + (g ? ', phễu mua hàng, trang xem nhiều, video' : ', trang xem nhiều') + '</summary>' + (cf ? cfwBlocks(cf) : '') + (g ? gaBlocks(g, b, noGaCmp) : '') + '</details>';
+    } else wh = gaSetupBox(gj) + cfwSetupBox(gj);
+    return { line: cf || g ? vis.toLocaleString('vi-VN') + ' lượt vào · ' + b.web + ' đơn web' + (conv === null ? '' : ' · ' + oneDec(conv) + '% ra đơn') : gj ? '🔌 chưa kết nối' : GA.err ? '⚠️ chưa tải được' : '⏳ đang tải…', h: wh };
+  }
   function viewDash() {
     beRatePush(); // ⚖️ gửi tỷ lệ gộp giá vốn + ship + VAT cho khung hoà vốn của sale
     var f = S.f.g || (S.f.g = {}); if (!f.p || f.p.k === 'all') f.p = { k: 'month' }; if (f.sfb === undefined) f.sfb = store('dash_sfb') === '1'; // mặc định TẮT (16/10/2026): đơn chưa rõ nguồn không tự tính cho Facebook
@@ -6746,7 +6778,6 @@
     if (TR.B.L.length >= 2) {
       var dh = dashRevChart(T, sj) + '<div class="dash-grid"><div class="box"><h3>🧾 Số đơn hàng</h3>' + trendChart({ B: TR.B, what: 'Số đơn', series: [{ v: TR.n, name: 'Kỳ này', cls: 'cur' }, TR.nP && { v: TR.nP, name: 'Kỳ trước', cls: 'prev' }] }) + '</div>' +
         '<div class="box"><h3>🙋 Khách mới mua</h3>' + trendChart({ B: TR.B, what: 'Khách mới', series: [{ v: TR.nw, name: 'Kỳ này', cls: 'cur' }, TR.nwP && { v: TR.nwP, name: 'Kỳ trước', cls: 'prev' }] }) + '</div>';
-      if (g) dh += '<div class="box"><h3>🌐 Lượt vào website</h3>' + trendChart({ B: TR.B, what: 'Lượt vào web', fmt: function (v) { return Math.round(v).toLocaleString('vi-VN'); }, series: [{ v: trendSum(TR.B, g.days, function (x) { return dayMs(x[0]); }, function (x) { return x[1]; }), name: 'Kỳ này', cls: 'cur' }] }) + '</div>';
       var vs = [['Doanh số', trendVerdict(TR.rev, TR.B.partial)], ['số đơn', trendVerdict(TR.n, TR.B.partial)], ['khách mới', trendVerdict(TR.nw, TR.B.partial)]].filter(function (x) { return x[1]; });
       X.day = dashMore('day', '📈 Biểu đồ doanh số theo ngày', vs.length ? vs.map(function (x) { return x[0] + ' ' + TRD_WORD[x[1].k].toLowerCase(); }).join(' · ') : 'Số đơn, khách mới, lượt vào web', dh + '</div>');
     }
@@ -6787,26 +6818,9 @@
       metric('Chiết khấu đã cho', moneyShort(dk.off), 'Giá lẻ − tiền đại lý trả. Phần này thay cho chi phí quảng cáo + lương sale của các đơn đó.', '') +
       '</div><div class="box"><h3>🏪 Đại lý nhập nhiều nhất</h3>' + barList(dk.top.slice(0, 8), moneyShort, 'Chưa có đơn đại lý trong kỳ.', { below: 1 }) + '</div>' +
       (lvl() >= 2 ? '<p><button class="btn" data-dlyopen="1">🏪 Mở danh sách đại lý</button></p>' : ''));
-    // ---- website. Lượt vào: ưu tiên Cloudflare Web Analytics (đếm đủ 100%, không cookie, 10/11/2026); Google Analytics chỉ đếm khách bấm Đồng ý → dùng cho hành vi (người xem, ở lại xem, phễu, nguồn UTM)
-    var cf = gj && gj.cf, vis = cf ? cf.cur.visits : g ? g.cur.sessions : 0, visP = cf ? cf.prev.visits : g ? g.prev.sessions : 0;
-    var conv = (cf || g) && vis ? b.web * 100 / vis : null, convP = (cf || g) && visP ? bp.web * 100 / visP : null, wh = '';
-    var GD = g ? g.days || [] : [], eng = GD.length && GD[0][3] !== undefined, gs = function (i) { return trendSum(DB, GD, function (r) { return dayMs(r[0]); }, function (r) { return r[i] || 0; }); }, gS = g ? gs(1) : null, gU = g ? gs(2) : null;
-    var cfS = cf ? trendSum(DB, cf.days || [], function (r) { return dayMs(r[0]); }, function (r) { return r[1] || 0; }) : null, vS = cf ? cfS : gS;
-    var okPct = cf && g && cf.cur.visits ? Math.min(100, pct(g.cur.sessions, cf.cur.visits)) : null; // ước tỷ lệ khách bấm Đồng ý cookie
-    if (cf || g) {
-      wh = '<p class="small muted">' + (cf ? 'Lượt vào: Cloudflare (đếm đủ 100%, không cần cookie)' : '') + (cf && g ? ' · ' : '') + (g ? 'Hành vi: Google Analytics (chỉ khách bấm Đồng ý cookie)' : '') + ' · cập nhật ' + fDateTime((cf || g).at) + (cf ? ' · <button class="link" data-dash="cfoff">ngắt Cloudflare</button>' : '') + '</p><div class="metrics dash-m3">' +
-        metric('Lượt vào web', vis.toLocaleString('vi-VN'), cf ? cf.cur.views.toLocaleString('vi-VN') + ' lượt xem trang. Cloudflare đếm không cần cookie nên đủ mọi khách.' + (g ? ' Google Analytics chỉ thấy ' + g.cur.sessions.toLocaleString('vi-VN') + ' lượt (≈ ' + okPct + '% khách bấm Đồng ý).' : '') : g.cur.views.toLocaleString('vi-VN') + ' lượt xem trang · mỗi lượt xem TB ' + (g.cur.sessions ? oneDec(g.cur.views / g.cur.sessions) : 0) + ' trang. Chỉ đếm khách bấm Đồng ý cookie.', noGaCmp ? '' : delta(vis, visP), '', sk(vS)) +
-        (g ? metric('Người xem', g.cur.users.toLocaleString('vi-VN'), g.cur.newUsers.toLocaleString('vi-VN') + ' người lần đầu vào web (Google Analytics).', noGaCmp ? '' : delta(g.cur.users, g.prev.users), '', sk(gU)) : '') +
-        metric('Đơn đặt trên web', b.web, moneyShort(b.webRev) + ' · đếm từ CRM, đủ cả khách không bấm đồng ý cookie.', delta(b.web, bp.web), '', sk(trendPick(BZ, 'web'))) +
-        metric('Tỷ lệ ra đơn', conv === null ? '–' : oneDec(conv) + '%', 'Đơn web ÷ lượt vào. Web bán lẻ thường đạt 1–3%.' + (cf ? '' : ' Hơi cao hơn thực tế vì Analytics chỉ đếm khách bấm đồng ý cookie.'), conv === null || noGaCmp ? '' : dRate(conv, convP), '', sk(trendRate(trendPick(BZ, 'web'), vS, 100))) +
-        (g ? metric('Khách ở lại xem', g.cur.sessions ? pct(g.cur.engaged, g.cur.sessions) + '%' : '–', 'Lượt truy cập có xem ≥ 10 giây, hoặc xem ≥ 2 trang, hoặc bấm mua / gọi. Thấp = trang vào đầu không hợp với khách.', noGaCmp || !g.prev.sessions ? '' : delta(pct(g.cur.engaged, g.cur.sessions), pct(g.prev.engaged, g.prev.sessions), 'rate'), '', eng ? sk(trendRate(gs(3), gS, 100)) : '') +
-          metric('Thời gian xem TB', g.cur.users ? fDur(g.cur.dur / g.cur.users) : '–', 'Thời gian 1 người thật sự xem web (tab đang mở) trong kỳ.', noGaCmp || !g.prev.users ? '' : delta(Math.round(g.cur.dur / g.cur.users), Math.round(g.prev.dur / g.prev.users)), '', eng ? sk(trendRate(gs(4), gU)) : '') : '') +
-        '</div>';
-      if (!g) wh += gaSetupBox(gj);
-      if (!cf) wh += cfwSetupBox(gj);
-      wh += '<details class="dash-webmore"><summary>Xem thêm: khách vào web từ đâu' + (g ? ', phễu mua hàng, trang xem nhiều, video' : ', trang xem nhiều') + '</summary>' + (cf ? cfwBlocks(cf) : '') + (g ? gaBlocks(g, b, noGaCmp) : '') + '</details>';
-    } else wh = gaSetupBox(gj) + cfwSetupBox(gj);
-    X.web = dashMore('web', '🌐 Website thucduonglanh.vn', cf || g ? vis.toLocaleString('vi-VN') + ' lượt vào · ' + b.web + ' đơn web' + (conv === null ? '' : ' · ' + oneDec(conv) + '% ra đơn') : gj ? '🔌 chưa kết nối' : GA.err ? '⚠️ chưa tải được' : '⏳ đang tải…', wh);
+    // ---- website: chi tiết ở Marketing (26/11/2026), ở đây 1 dòng + nút
+    var WB = webBlk(R, P);
+    X.web = dashMore('web', '🌐 Website', WB.line, '<p class="small muted">Lượt vào web, tỷ lệ ra đơn, khách mới / cũ đặt web nằm ở tab Marketing.</p><p><a class="btn" href="#marketing" data-gomk="ct" data-gomko="web">🌐 Xem website ở Marketing</a></p>');
     // 4 nhóm thu gọn: mở nhóm → thấy các mục kèm dòng số tóm tắt → bấm mục mới ra chi tiết
     var GR = [
       ['money', '💵', 'Tiền & lãi lỗ', 'Công ty đang lãi hay lỗ, tiền trong tài khoản còn bao nhiêu, chi phí nào lớn.', ['daily', 'fin', 'pnl', 'cost', 'rpm'], dashDaily.line && DL ? dashDaily.line : ''],
@@ -12740,7 +12754,7 @@
     var wb = mj.web, wbp = mj.webPrev;
     if (wb && wb.share !== null) {
       var wsum = wb.newRev + wb.oldRev + wb.fb, wsp = wbp ? wbp.newRev + wbp.oldRev + wbp.fb : null;
-      D.web = mkMore('web', '🌐 Website bán được bao nhiêu, khách từ đâu tới?', oneDec(wb.share) + '% tổng doanh số · khách mới ' + pct(wb.newRev, wsum) + '% · khách cũ ' + pct(wb.oldRev, wsum) + '%', '<div class="metrics dash-m3">' +
+      D.web = mkMore('web', '🌐 Website: bao nhiêu người vào, bán được bao nhiêu?', oneDec(wb.share) + '% tổng doanh số · khách mới ' + pct(wb.newRev, wsum) + '% · khách cũ ' + pct(wb.oldRev, wsum) + '%', '<div class="metrics dash-m3">' +
         metric('Tiền đơn web', moneyShort(wsum), (wb.newN + wb.oldN) + ' khách đặt trên web.', delta(wsum, wsp)) +
         metric('% tiền qua website', oneDec(wb.share) + '%', 'Tiền đơn web ÷ toàn bộ doanh số (sale + web + sàn). Càng cao càng đỡ phí sàn.', wbp && wbp.share !== null ? dRate(wb.share, wbp.share) : '') +
         metric('🆕 Khách mới đặt web', moneyShort(wb.newRev) + ' <small>(' + pct(wb.newRev, wsum) + '%)</small>', wb.newN + ' khách mua lần đầu trên web' + (wb.newN ? ' · trung bình ' + moneyShort(Math.round(wb.newRev / wb.newN)) : '') + '.', delta(wb.newRev, wbp ? wbp.newRev : null)) +
@@ -12748,6 +12762,8 @@
         (wb.fb ? metric('📘 Khách mới từ quảng cáo Facebook', moneyShort(wb.fb) + ' <small>(' + pct(wb.fb, wsum) + '%)</small>', 'Đặt trên web nhưng đến từ quảng cáo Facebook → tính cho kênh Facebook, không tính vào mục tiêu Website.', '') : '') +
         '</div><p class="bar-legend">Mục tiêu Website = tiền khách mới + khách cũ đặt trên web (không gồm phần quảng cáo Facebook). Khách cũ = đã từng mua trước kỳ này. Muốn tăng khách cũ đặt web: gửi link web trong nhóm Zalo, tin nhắn CSKH, thẻ trong đơn sàn.</p>' + mkWebList(wb, S.f.m));
     }
+    var WB = webBlk(R, cmpRange(f.p)); // 🌐 lượt vào, tỷ lệ ra đơn, hành vi web (chuyển từ Tổng quan 26/11/2026)
+    D.web = D.web ? D.web.replace('<span>', '<span>' + WB.line + ' · ').replace(/<\/div><\/details>$/, WB.h + '</div></details>') : mkMore('web', '🌐 Website: bao nhiêu người vào, bao nhiêu % đặt hàng?', WB.line, WB.h);
     var cm = mj.comm, cmp = mj.commPrev, csp = 0; mj.days.forEach(function (r) { if (r[1] === MK_COMM) csp += r[2]; });
     if (cm && (cm.rev || csp || (mj.cv && mj.cv.n))) D.comm = mkMore('comm', '👥 Khách trong nhóm Zalo mua lại bao nhiêu?', moneyShort(cm.rev) + ' tiền mua lại · ' + cm.buyers + ' khách', '<div class="metrics dash-m3">' +
       metric('Tiền mua lại', moneyShort(cm.rev), 'Đơn mua lại (không tính đơn đầu) của khách đã vào nhóm Zalo cộng đồng.', delta(cm.rev, cmp ? cmp.rev : null)) +
@@ -12786,7 +12802,7 @@
     h += inTabi('Trả lời <b>4 câu hỏi</b> theo thứ tự người làm marketing tự hỏi, tính theo kỳ đang chọn ở thẻ 📊 Kết quả (' + esc(perLabel(f.p)) + ').', ['Đọc câu trả lời ngắn của từng câu', 'Muốn xem kỹ: bấm mục bên dưới câu đó để mở']);
     h += mkGroup('1', '💰 Tiền quảng cáo có lời không?', !tot ? 'Kỳ này chưa có chi phí quảng cáo.' : adsA === 'ok' ? '🟢 Có lời: bỏ 1đ quảng cáo, khách mới mua ' + oneDec(nr / tot) + 'đ.' : adsA === 'mid' ? '🟠 Tạm ổn: bỏ 1đ, khách mới mua ' + oneDec(nr / tot) + 'đ. Cần rẻ hơn chút nữa.' : '🔴 Chưa có lời: bỏ 1đ quảng cáo, khách mới chỉ mua ' + oneDec(nr / (tot || 1)) + 'đ. Mở các mục dưới để xem kênh, chiến dịch nào kéo xuống.', mins(['ch', 'tr', 'ltv', 'goal']));
     h += mkGroup('2', '📣 Quảng cáo nào tốt, quảng cáo nào dở?', CB.line || 'Chưa có chiến dịch trong kỳ', mins(['camp', 'prod', 'fun']));
-    h += mkGroup('3', '📇 Số điện thoại về sale có ra đơn không?', ad ? ad.n + ' số điện thoại · ' + pct(ad.won, ad.n) + '% đã mua' + (ad.idle ? ' · ⏳ ' + ad.idle + ' số sale chưa gọi xong' : '') : 'Chưa có file số quảng cáo của sale.', mins(['data', 'sale']));
+    h += mkGroup('3', '📇 Số điện thoại về sale có ra đơn không?', ad ? ad.n + ' số điện thoại · ' + pct(ad.won, ad.n) + '% đã mua' + (ad.idle ? ' · ⏳ ' + ad.idle + ' số sale chưa gọi xong' : '') : 'Chưa có file số quảng cáo của sale.', mins(['sale']) + '<p class="small muted">Số điện thoại về, giá 1 số, số chưa gọi: xem ở thẻ <button class="link" data-mkt="so">📇 Số điện thoại</button>.</p>');
     h += mkGroup('4', '🌱 Kênh tự có: website & nhóm Zalo (không tốn tiền quảng cáo)', [wb && wb.share !== null ? '🌐 Web = ' + oneDec(wb.share) + '% doanh số' : '', cm && cm.rev ? '👥 Nhóm Zalo mua lại ' + moneyShort(cm.rev) : ''].filter(Boolean).join(' · ') || 'Website, nhóm Zalo, hoạt động trên web', mins(['site', 'web', 'comm', 'pledge', 'quiz']));
     }
     if (tab === 'cc') {
@@ -12814,6 +12830,7 @@
   function bindMkv() {
     $$('[data-mkt]').forEach(function (el) { el.onclick = function () { S.f.m.tab = el.getAttribute('data-mkt'); store('mkt_tab', S.f.m.tab); render(); }; });
     $$('[data-mkv]').forEach(function (el) { el.onclick = function () { var a = el.getAttribute('data-mkv'); if (a === 'aud') openFbAud(); else if (a === 'flform') openFbForm(); else if (a === 'cost') openMkt(); else if (a === 'budget') { var bj = MV.cache[mvKey()]; if (bj) openBudget(bj.budget); } else if (a === 'call') { S.f.m.call = 1; render(); } else if (a === 'tgtest') { el.disabled = true; api('mkt_tg_test').then(function () { toast('📲 Đã gửi, mở Telegram để xem'); }, function (e) { toast(/Không rõ thao tác/.test(e.message) ? 'Máy chủ đang cập nhật bản mới, thử lại sau 2 phút.' : e.message, true); }).then(function () { el.disabled = false; }); } else if (a === 'goal') { var gj = MV.cache[mvKey()]; if (gj) openMkGoal(gj); } else if (a === 'fresh') { KP.err = ''; kpFetch(true); var mk0 = mvMonthKey(), k = mvKey(); delete MV.cache[k]; MV.err = ''; delete MV.pend[k]; mvFetch(k, true); if (mk0 !== k) { delete MV.cache[mk0]; delete MV.pend[mk0]; mvFetch(mk0, true); } render(); } }; });
+    bindDashBtn(); // 🌐 nút kết nối Cloudflare / Google Analytics trong mục Website (26/11/2026)
     $$('#view [data-dash="sfb"]').forEach(function (el) { el.onclick = function () { var f = S.f.m; f.sfb = !f.sfb; store('dash_sfb', f.sfb ? '1' : '0'); render(); }; });
     $$('#view [data-dgo]').forEach(function (el) { el.onclick = function () {
       var g = el.getAttribute('data-dgo').replace(/^mk-/, ''), go = function () { var t = $('#mk-' + g); if (!t) return; for (var d = t; d; d = d.parentElement && d.parentElement.closest('details')) if (d.tagName === 'DETAILS') d.open = true; t.scrollIntoView({ behavior: 'smooth', block: 'start' }); };
@@ -13207,6 +13224,11 @@
     ['🧰 Công cụ', 'khi cần', [['cc', '📤', 'Tải file & cài đặt', 'file sàn, Google Sheet']]]];
   var SAN_TAB = '';
   function sanTab() { var t = SAN_TAB || store('san_tab') || 'kq'; if (['kq', 'shop', 'dt', 'cc'].indexOf(t) < 0) t = 'kq'; return (SAN_TAB = t); }
+  document.addEventListener('click', function (e) { // 26/11/2026: nút "xem ở chỗ khác" mở đúng thẻ con
+    var a = e.target.closest('[data-gotd],[data-gorep]'); if (!a) return;
+    if (a.hasAttribute('data-gorep')) { REP_TAB = a.getAttribute('data-gorep'); store('rep_tab', REP_TAB); if (S.who) setWho(''); }
+    else { TD_TAB.td_stab = a.getAttribute('data-gotd'); store('td_stab', TD_TAB.td_stab); }
+  });
   document.addEventListener('click', function (e) { var t = e.target.closest('[data-sant]'); if (!t) return; SAN_TAB = t.getAttribute('data-sant'); store('san_tab', SAN_TAB); render(); });
   function saiBlock(part) {
     var j = saiGet(), h = '';
@@ -14104,26 +14126,10 @@
     if (!DASH_G.some(function (g) { return g[2].some(function (x) { return x[0] === f.tab; }); })) f.tab = 'tq';
     return f.tab;
   }
-  function bindDash() {
-    $$('[data-gomk]').forEach(function (el) { el.onclick = function () { var t = el.getAttribute('data-gomk'); store('mkt_tab', t); if (S.f.m) S.f.m.tab = t; }; });
-    $$('[data-gosan]').forEach(function (el) { el.onclick = function () { SAN_TAB = el.getAttribute('data-gosan'); store('san_tab', SAN_TAB); }; });
-    $$('[data-dgt]').forEach(function (el) { el.onclick = function () { S.f.g.tab = el.getAttribute('data-dgt'); store('dash_tab', S.f.g.tab); render(); }; });
-    $$('[data-psort]').forEach(function (el) { el.onclick = function () { store('dash_psort', el.getAttribute('data-psort') === 'q' ? 'q' : null); S.f.g.open.prod = 1; render(); }; });
-    [['#nsvX', 'x'], ['#nsvKho', 'kho'], ['#nsvKt', 'kt']].forEach(function (z) { var e = $(z[0]); if (e) e.onchange = function () { var v = z[1] === 'x' ? lgtF(e.value) : lgtNum(e.value); store('nsv_' + z[1], v > 0 ? String(v) : null); NSV_C = {}; S.f.g.open.nsv = 1; render(); }; });
-    var nvt = $('#nsvV'); if (nvt) nvt.onchange = function () { var v = lgtF(nvt.value); store('nsv_v', v >= 0 && v < 100 ? String(v) : null); NSV_C = {}; S.f.g.open.nsv = 1; render(); };
-    $$('[data-nsvt]').forEach(function (c) { c.onchange = function () { var T = nsvTick(), v = (T.f ? 'f' : '') + (T.b ? 'b' : '') + (T.o ? 'o' : ''), k = c.getAttribute('data-nsvt'); v = c.checked ? v + k : v.replace(k, ''); store('nsv_t', v || '-'); NSV_C = {}; S.f.g.open.nsv = 1; render(); }; });
-    $$('[data-nsvpaysave]').forEach(function (b) { b.onclick = function () {
-      var nm = b.getAttribute('data-nsvpaysave'), f = $$('[data-nsvpay]').filter(function (x) { return x.getAttribute('data-nsvpay') === nm; })[0], v = +String(f ? f.value : '').replace(/\D/g, '');
-      if (!(v >= 100000)) { toast('Nhập lương 1 tháng, ví dụ 8.000.000', true); return; }
-      var u = (S.d.users || []).filter(function (z) { return z.name === nm; })[0] || {}, L = ((NSV.d || {}).staff || []).slice();
-      L.push({ name: nm, dept: u.role || '', kind: 'fix', base: v, bh: 0, cc: 0, pa: [0, 0, 0], other: 0, on: true }); b.disabled = true;
-      api('kt_luong', { op: 'staff', list: L }).then(function (j) { j.rows = (NSV.d || {}).rows; NSV.d = j; NSV_C = {}; S.f.g.open.nsv = 1; toast('Đã lưu lương ' + nm + ' ✓'); render(); }, function (er) { b.disabled = false; toast(er.message, true); });
-    }; });
-    var no = $('#nsvO'); if (no) no.onchange = function () { var v = lgtF(no.value); store('nsv_o', v >= 0 && v < 100 ? String(v) : null); NSV_C = {}; S.f.g.open.nsv = 1; render(); };
-    var rl = $('#rpmL'); if (rl) rl.onchange = function () { var v = +String(rl.value).replace(/[^\d]/g, ''); store('rpm_L', v > 0 ? String(v) : null); RPM_C = {}; render(); };
+  function bindDashBtn() {
     $$('[data-dash]').forEach(function (el) {
       el.onclick = function () {
-        var a = el.getAttribute('data-dash'), f = S.f.g, key = gaKey(perRange(f.p), cmpRange(f.p));
+        var a = el.getAttribute('data-dash'), f = route().view === 'marketing' ? S.f.m : S.f.g, key = gaKey(perRange(f.p), cmpRange(f.p));
         if (a === 'mkt') { openMkt(); return; }
         if (a === 'opex') { opexEdit(el.getAttribute('data-m')); return; }
         if (a === 'nsvn') { store('nsv_n', el.getAttribute('data-n')); S.f.g.open.nsv = 1; render(); return; }
@@ -14150,6 +14156,25 @@
         if (a === 'prop') { el.disabled = true; api('ga_prop', { prop: ($('#gaProp') || {}).value || '' }).then(function () { GA.cache = {}; GA.err = ''; toast('Đã lưu mã thuộc tính'); render(); }, function (e) { el.disabled = false; toast(e.message, true); }); }
       };
     });
+  }
+  function bindDash() {
+    $$('[data-gomk]').forEach(function (el) { el.onclick = function () { var t = el.getAttribute('data-gomk'), o = el.getAttribute('data-gomko'); store('mkt_tab', t); if (S.f.m) S.f.m.tab = t; if (o) { var mo = {}; try { mo = JSON.parse(store('mkt_open') || '{}') || {}; } catch (e) { } mo[o] = 1; store('mkt_open', JSON.stringify(mo)); if (S.f.m) S.f.m.open = mo; } }; });
+    $$('[data-gosan]').forEach(function (el) { el.onclick = function () { SAN_TAB = el.getAttribute('data-gosan'); store('san_tab', SAN_TAB); }; });
+    $$('[data-dgt]').forEach(function (el) { el.onclick = function () { S.f.g.tab = el.getAttribute('data-dgt'); store('dash_tab', S.f.g.tab); render(); }; });
+    $$('[data-psort]').forEach(function (el) { el.onclick = function () { store('dash_psort', el.getAttribute('data-psort') === 'q' ? 'q' : null); S.f.g.open.prod = 1; render(); }; });
+    [['#nsvX', 'x'], ['#nsvKho', 'kho'], ['#nsvKt', 'kt']].forEach(function (z) { var e = $(z[0]); if (e) e.onchange = function () { var v = z[1] === 'x' ? lgtF(e.value) : lgtNum(e.value); store('nsv_' + z[1], v > 0 ? String(v) : null); NSV_C = {}; S.f.g.open.nsv = 1; render(); }; });
+    var nvt = $('#nsvV'); if (nvt) nvt.onchange = function () { var v = lgtF(nvt.value); store('nsv_v', v >= 0 && v < 100 ? String(v) : null); NSV_C = {}; S.f.g.open.nsv = 1; render(); };
+    $$('[data-nsvt]').forEach(function (c) { c.onchange = function () { var T = nsvTick(), v = (T.f ? 'f' : '') + (T.b ? 'b' : '') + (T.o ? 'o' : ''), k = c.getAttribute('data-nsvt'); v = c.checked ? v + k : v.replace(k, ''); store('nsv_t', v || '-'); NSV_C = {}; S.f.g.open.nsv = 1; render(); }; });
+    $$('[data-nsvpaysave]').forEach(function (b) { b.onclick = function () {
+      var nm = b.getAttribute('data-nsvpaysave'), f = $$('[data-nsvpay]').filter(function (x) { return x.getAttribute('data-nsvpay') === nm; })[0], v = +String(f ? f.value : '').replace(/\D/g, '');
+      if (!(v >= 100000)) { toast('Nhập lương 1 tháng, ví dụ 8.000.000', true); return; }
+      var u = (S.d.users || []).filter(function (z) { return z.name === nm; })[0] || {}, L = ((NSV.d || {}).staff || []).slice();
+      L.push({ name: nm, dept: u.role || '', kind: 'fix', base: v, bh: 0, cc: 0, pa: [0, 0, 0], other: 0, on: true }); b.disabled = true;
+      api('kt_luong', { op: 'staff', list: L }).then(function (j) { j.rows = (NSV.d || {}).rows; NSV.d = j; NSV_C = {}; S.f.g.open.nsv = 1; toast('Đã lưu lương ' + nm + ' ✓'); render(); }, function (er) { b.disabled = false; toast(er.message, true); });
+    }; });
+    var no = $('#nsvO'); if (no) no.onchange = function () { var v = lgtF(no.value); store('nsv_o', v >= 0 && v < 100 ? String(v) : null); NSV_C = {}; S.f.g.open.nsv = 1; render(); };
+    var rl = $('#rpmL'); if (rl) rl.onchange = function () { var v = +String(rl.value).replace(/[^\d]/g, ''); store('rpm_L', v > 0 ? String(v) : null); RPM_C = {}; render(); };
+    bindDashBtn();
     // mục chi tiết: nhớ mục đang mở; bấm ô ở màn hình đầu → mở mục tương ứng và cuộn tới
     $$('details[data-dk]').forEach(function (d) {
       d.addEventListener('toggle', function () { var o = S.f.g.open, k = d.getAttribute('data-dk'); if (d.open) o[k] = 1; else delete o[k]; store('dash_open', JSON.stringify(o)); });
@@ -14314,9 +14339,9 @@
     var h = '<section class="section be-sale ' + lv + '"><p class="be-sale-h">💸 Tháng này công ty đã chi <b>' + moneyShort(b.cost) + '</b> quảng cáo <span style="white-space:nowrap">cho <b>' + b.n + ' số</b> giao cho bạn</span> <small>(mỗi số khoảng ' + moneyShort(Math.round(cpl / 1000) * 1000) + ')</small></p>';
     if (need) {
       h += '<div class="be-sale-bar"><i style="width:' + p + '%"></i></div>' +
-        '<p>Bạn đã bán được <b>' + moneyShort(rev) + '</b> từ các số này · cần <b>' + moneyShort(need) + '</b> để công ty hoà vốn</p>' +
+        '<p>Bạn đã bán được <b>' + moneyShort(rev) + '</b> từ các số này · cần <b>' + moneyShort(need) + '</b> để bù đủ tiền quảng cáo các số này</p>' +
         (left ? '<p class="be-sale-left">' + DASH_LV[lv] + ' Còn thiếu <b>' + moneyShort(left) + '</b>' + (nO ? ', khoảng <b>' + nO + ' đơn</b>' : '') + ' nữa. Mỗi số là tiền thật của công ty, tư vấn hết sức nhé!</p>'
-          : '<p class="be-sale-left">🎉 Đã qua mức hoà vốn! Từ đây mỗi đơn bạn chốt là công ty có lãi. Cảm ơn bạn 💚</p>');
+          : '<p class="be-sale-left">🎉 Đã bù đủ tiền quảng cáo! Từ đây mỗi đơn bạn chốt là công ty có lãi. Cảm ơn bạn 💚</p>');
     } else h += '<p>Bạn đã bán được <b>' + moneyShort(rev) + '</b> từ các số này' + (rev ? ' → cứ 1đ công ty chi, bạn mang về <b>' + oneDec(rev / b.cost) + 'đ</b> ' + (DASH_LV[lv] || '') : '') + '.</p>';
     var tr = d.tier, TW = d.tierW; if (tr && TW) h += saleTierBox(d, tr, TW);
     if (b.none) h += '<p class="be-sale-none">📵 Còn <b>' + b.none + ' số chưa gọi</b> = <b>' + moneyShort(Math.round(b.none * cpl)) + '</b> tiền công ty đã trả. Gọi ngay để khách còn nhớ!</p>';
@@ -14525,7 +14550,7 @@
     var ms = cx.whole ? c.sales : perf(name, monthRange(month)).sales, mk = smkGet(me && lvl() < 2 ? '' : name, cx), mb = mk && mk.me, T = smkT(mk);
     c.name = name; c.cx = cx;
     var h = (lvl() >= 2 && !me ? '<button class="btn ghost" data-who="team" style="margin-bottom:10px">← Quay lại cả nhóm</button>' : '') +
-      targetBlock(name, month, ms, me || lvl() >= 2, c.avg || p.avg) + repMoneyLine(c, p, cx);
+      (me && lvl() < 2 && month === monthOf(Date.now()) ? goalLinkLine(name, month, ms) : targetBlock(name, month, ms, me || lvl() >= 2, c.avg || p.avg)) + repMoneyLine(c, p, cx);
     h += '<section class="dash-hero">' + repTodo(c, p, me, mb) + repSteps(c, p, mk, mb, T) + repFix(c, p, mb, T, mk && mk.best) + '</section>';
     if (lvl() >= 2) h += ksCard(name, month) + (me ? '' : ksTrend(ksSaleNames().concat(ksSaleNames().indexOf(name) < 0 ? [name] : []), ksSaleNames().concat(ksSaleNames().indexOf(name) < 0 ? [name] : []), name)); // 📋 Phiếu KPI tháng (19/11/2026); 20/11 anh Sơn: tạm chỉ Quản lý / Quản trị xem, sale chưa thấy
     // 19/11/2026 (anh Sơn: "làm tương tự" Tổng quan / Kế toán): mục tiêu + việc cần làm + 6 bước ở thẻ đầu, chi tiết chia thẻ
