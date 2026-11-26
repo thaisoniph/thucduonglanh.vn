@@ -126,7 +126,7 @@ Máy tính cũng gọn như điện thoại: thanh trên chỉ 4 mục + **Thêm
 
 1. Mở tab **Hiệu quả**, chọn **Tất cả nhân sự**.
 2. Thẻ **👥 Từng người**: xem bảng **👥 Tiến độ nhân sự hôm nay**: mỗi người đã gọi bao nhiêu khách, còn bao nhiêu, việc nào bị trễ.
-3. Thẻ **🎯 Mục tiêu & việc**: làm theo khung **👉 Quản lý làm 3 việc này trước** (bấm **＋ việc khác** để xem thêm). Ví dụ: ai đang chậm mục tiêu, số quảng cáo chưa ai gọi, khách VIP chưa ai gọi, đơn chưa có người bán (bấm **Gán**).
+3. Thẻ **🎯 Mục tiêu & việc**: ngay dưới mục tiêu cả nhóm có khung **🏢 Cả văn phòng cần bán … / ngày** (từ 26/11/2026): thanh cam = cả văn phòng đang bán trung bình bao nhiêu mỗi ngày, đủ 100% là công ty đủ trả mọi chi phí (lương, mặt bằng, điện, ship…). Dưới 100% thì nhắc cả nhóm tăng tốc. Tiếp theo làm theo khung **👉 Quản lý làm 3 việc này trước** (bấm **＋ việc khác** để xem thêm). Ví dụ: ai đang chậm mục tiêu, số quảng cáo chưa ai gọi, khách VIP chưa ai gọi, đơn chưa có người bán (bấm **Gán**).
 4. Mở tab **Hôm nay** → thẻ **👥 Từng người**, xem mục **🧺 Kho chung**. Đây là khách chưa ai phụ trách. Giao cho người phù hợp.
 5. Giao **đơn mới**: trên mỗi đơn mới có ô **Giao cho…**, chọn tên nhân viên. Nhân viên chỉ thấy đơn đã giao cho mình.
 

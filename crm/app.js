@@ -14317,12 +14317,12 @@
     if ((!c || Date.now() - c.at > 600e3) && !c0busy(k)) {
       S.smkBusy = S.smkBusy || {}; S.smkBusy[k] = 1;
       api('sale_mkt', { from: isoDate(R[0]), to: isoDate(t), name: '' }).then(function (j) { C[k] = { at: Date.now(), d: j && j.ok ? j : null }; }, function () { C[k] = { at: Date.now(), d: null }; })
-        .then(function () { delete S.smkBusy[k]; if (route().view === 'hom-nay') softRender(true); });
+        .then(function () { delete S.smkBusy[k]; if (route().view === 'hom-nay' || route().view === 'bao-cao') softRender(true); });
     }
     return c ? c.d : undefined;
   }
   function beSaleBlock() {
-    var d = beGet(), me = (S.d.users || []).filter(function (u) { return u.name === S.user.name; })[0], co = d && lvl() === 2 ? beCoBlock(d.co) : ''; return beAdsBlock(d) + co; // sale xem phần của mình ở thẻ 🎯 đầu tab (todayMust), CTV không thấy
+    return beAdsBlock(beGet()); // sale xem mức đủ chi phí ở thẻ 🎯 đầu tab (todayMust); Quản lý xem 🏢 cả văn phòng ở Hiệu quả (beCoBlock)
   }
   function beAdsBlock(d) {
     var b = d && d.me; if (!b || !b.n || !b.cost) return '';
@@ -14674,7 +14674,7 @@
     all.name = null; all.cx = cx;
     var csN = coSales(), csD = 0, csW = 0; rows.forEach(function (r) { if (csN.indexOf(r.n) >= 0) { csD += r.data; csW += r.won; } });
     all.closeRef = csD ? pct(csW, csD) : all.closePct; // mốc so từng người: chỉ sale văn phòng nhận số quảng cáo (giống 📊 So sánh, Phiếu KPI)
-    var h = targetBlockTeam(ms, tt, month, all.avg || prev.avg) + repMoneyLine(all, prev, cx);
+    var h = targetBlockTeam(ms, tt, month, all.avg || prev.avg) + (lvl() === 2 && !isMkt() ? beCoBlock((beGet() || {}).co) : '') + repMoneyLine(all, prev, cx); // 🏢 cả văn phòng cần bán / ngày: Quản lý xem ở đây (26/11/2026, trước đây không hiện ở đâu)
     // 29/10/2026: cùng thứ tự màn hình 1 người: mục tiêu → việc cần làm → 6 bước → khâu cần sửa nhất → từng người → chi tiết → công cụ
     h += '<section class="dash-hero">' + repMgrTodo(rows, all, cx, noSeller) + repSteps(all, prev, mk, mk && mk.team, mk && mk.team) + repFix(all, prev, mk && mk.team, mk && mk.team, mk && mk.best) + '</section>';
     // 19/11/2026: tiến độ hôm nay + thi đua + bảng từng người sang thẻ 👥 Từng người
