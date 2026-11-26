@@ -278,8 +278,9 @@ export async function scoreAuto(x, adText) {
     catch (e) { /* không tải được ảnh bìa: chấm chữ */ }
   }
   const dk = 'ins_sc_' + fmtDate(now, 'yyMMdd'); await kvSet(x.db, dk, String(Number(await kvGet(x.db, dk) || 0) + 1), 2 * DAY);
-  const r = await scoreWrite(x, { name: AUTO }, { text: (t.title ? t.title + '\n\n' : '') + t.tx, ch: 'qc', kind: t.video ? 'video' : 'bai', frames, author: AUTO,
-    note: 'Quảng cáo đang chạy: ' + cp.n + (t.video ? '. Máy chỉ đọc được chữ quảng cáo và ảnh bìa, CHƯA xem video: chấm hook theo ảnh bìa + câu đầu, nói rõ phần video cần người xem lại.' : '') });
+  let r; try { r = await scoreWrite(x, { name: AUTO }, { text: (t.title ? t.title + '\n\n' : '') + t.tx, ch: 'qc', kind: t.video ? 'video' : 'bai', frames, author: AUTO,
+    note: 'Quảng cáo đang chạy: ' + cp.n + (t.video ? '. Máy chỉ đọc được chữ quảng cáo và ảnh bìa, CHƯA xem video: chấm hook theo ảnh bìa + câu đầu, nói rõ phần video cần người xem lại.' : '') }); }
+  catch (e) { r = { ok: false, error: 'AI chưa chấm xong (' + cp.n.slice(0, 60) + '): ' + String(e && e.message).slice(0, 240) }; }
   if (!r.ok || !r.item) { await kvSet(x.db, 'ins_sc_err', JSON.stringify({ at: now, by: AUTO, err: r.error || 'lỗi' }), 2 * DAY); return out; }
   await run(x.db, 'UPDATE cs_scores SET camp = ? WHERE id = ?', cp.n, r.item.id);
   out.push({ id: r.item.id, camp: cp.n, score: r.item.score, v: r.item.v, top: ((r.item.res || {}).top3 || [])[0] || '', video: t.video });
