@@ -343,7 +343,7 @@ Bấm **🛒 Đơn đặt / 🎁 Hàng hỗ trợ**:
 
 **Trước khi trả tiền:** so hoá đơn với **📥 Hàng về kho** (mục Hàng tồn kho bên dưới) xem kho đã nhận đủ chưa.
 
-Số công nợ này cũng hiện ở ô **🧾 Nợ nhà cung cấp** (Tổng quan của anh Sơn) và tin Telegram 8h sáng (khoản quá hạn, tới hạn 7 ngày). Nút **📋 Chép bảng công nợ** chép cả sổ để dán vào Google Sheet khi cần gửi báo cáo.
+Đây là **chỗ duy nhất** xem từng khoản nợ (từ 26/11/2026). Ô **🧾 Nợ nhà cung cấp** ở 🏦 Tiền & công nợ chỉ hiện tổng nợ + nút sang đây và tin Telegram 8h sáng (khoản quá hạn, tới hạn 7 ngày). Nút **📋 Chép bảng công nợ** chép cả sổ để dán vào Google Sheet khi cần gửi báo cáo.
 
 ## KPI tháng: tự chấm, quản lý chấm lại
 

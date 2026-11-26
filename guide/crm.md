@@ -64,7 +64,7 @@ Tab **Hôm nay** có **1 nút ▶ Bắt đầu gọi**. Bấm là CRM hiện **t
 | | 💬 Zalo của tôi | Khách nhắn Zalo đang chờ bạn trả lời |
 | | 📦 Hàng hôm nay | Hàng còn, sắp hết, cần đẩy bán |
 | **🌱 Xong việc gọi** | 🌱 Mở rộng khách | 5 việc nhỏ để có thêm khách, Kho chung |
-| **🏁 Kết quả của tôi** | 🏁 Mục tiêu & thi đua | Mục tiêu tháng, số đã đủ hoà vốn chưa, bảng thi đua |
+| **🏁 Kết quả của tôi** | 🏁 Mục tiêu & thi đua | Mục tiêu tháng, tiền quảng cáo công ty đã chi cho số của bạn, bảng thi đua |
 | | ✅ Đã làm | Việc đã ghi hôm nay |
 
 Bấm thẻ nào là việc trong thẻ đó **hiện ra luôn**, không phải bấm mở thêm từng mục (từ 23/11/2026).
@@ -162,14 +162,15 @@ Không có nút nào hợp? Bấm **Kết quả khác / tự chọn ngày hẹn*
 - Biểu tượng **Zalo** cạnh tên khách: bạn đã kết bạn Zalo với khách. Nên nhắn Zalo trước. Chưa kết bạn thì gọi trước, rồi xin kết bạn.
 - Trên máy tính: đang gõ ghi chú mà kéo xuống chọn nút thì ô **Khách nói gì?** tự ghim ở trên cùng, bạn vẫn thấy chữ vừa gõ. Cứ bấm nút như bình thường.
 
-### 💸 Số của bạn đã đủ hoà vốn chưa?
+### 💸 Tiền quảng cáo công ty đã chi cho số của bạn
 
 Mỗi số điện thoại khách hỏi từ quảng cáo là **tiền thật công ty đã trả**. Tab **Hôm nay** → thẻ **🏁 Mục tiêu & thi đua** có khung **💸 Tháng này công ty đã chi … quảng cáo cho … số giao cho bạn**:
 
 - **Mỗi số khoảng bao nhiêu tiền**: tiền quảng cáo chia cho số khách hỏi.
-- **Bạn đã bán được bao nhiêu** từ chính các số đó, và **cần bao nhiêu để bù đủ tiền quảng cáo các số này**: bán tới mức đó thì tiền lãi (sau tiền hàng, phí ship, thuế, hoa hồng của bạn) vừa đủ trả tiền quảng cáo. Khác với dòng **Tối thiểu để công ty đủ chi phí** ở đầu Hôm nay (dòng đó tính cả lương, văn phòng của cả công ty).
-- Thanh màu: 🔴 còn xa, 🟠 sắp tới, 🟢 đã bù đủ tiền quảng cáo, từ đó mỗi đơn là công ty có lãi.
+- **Bạn đã bán được bao nhiêu** từ chính các số đó: cứ 1đ công ty chi, bạn mang về mấy đồng.
 - **📵 Còn N số chưa gọi = … tiền công ty đã trả**: gọi ngay, khách vừa để số còn nhớ quảng cáo nên dễ chốt nhất.
+
+Mức **hôm nay cần bán tối thiểu để công ty đủ chi phí** chỉ có **1 chỗ**: thẻ **🎯 Hôm nay bạn cần bán** ở đầu tab Hôm nay (từ 26/11/2026 không còn con số hoà vốn thứ hai trong khung 💸).
 
 Muốn xem theo từng sản phẩm thì bấm **Xem chi tiết ›** (tab Hiệu quả → thẻ 📈 Bán hàng → 📣 Từ quảng cáo).
 
@@ -190,7 +191,7 @@ Mở tab **Hôm nay** là thấy ngay thẻ **🎯 Hôm nay bạn cần bán** (
 
 - **Tối thiểu để công ty đủ chi phí** (số đỏ): phần của bạn để công ty đủ trả lương, mặt bằng, điện, ship… hôm nay.
 - **Mục tiêu của bạn** (số xanh): phần mục tiêu tháng còn lại chia cho số ngày còn lại.
-- **Đã bán hôm nay**: thanh cam chạy dần. Qua **vạch đỏ** là đủ phần hoà vốn, qua **vạch xanh** là đạt mục tiêu ngày.
+- **Đã bán hôm nay**: thanh cam chạy dần. Qua **vạch đỏ** là đủ phần chi phí của bạn, qua **vạch xanh** là đạt mục tiêu ngày.
 - Bấm **Vì sao cần bán ngần này?** để xem: cả văn phòng cần bán bao nhiêu 1 ngày, đang bán bao nhiêu; sàn, web, quản lý, cộng tác viên đã gánh 1 phần, phần còn lại chia cho các bạn nhận số quảng cáo **theo mục tiêu tháng mỗi người đặt**.
 
 **Chia số theo nhóm (từ 16/11/2026):** quảng cáo đắt nên công ty ưu tiên số cho bạn chốt tốt. CRM xếp nhóm mỗi tuần theo 60 ngày gần nhất, dựa trên câu hỏi: **1đ quảng cáo bạn mang về bao nhiêu đồng?**

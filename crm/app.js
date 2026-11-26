@@ -6309,12 +6309,10 @@
       card(days !== null && days < 7 ? 'bad' : days !== null && days < 15 ? 'mid' : '', '🏦 Tiền ngân hàng' + (bank ? ' <small>' + dd(bank[0]) + '</small>' : K && K.cash != null ? ' <small>cuối ' + monthLabel(KM[0].m).replace(/^tháng /, 'T') + '</small>' : ''), cash != null ? ms(cash) : '–',
         (days !== null ? 'Đủ chi khoảng <b>' + days + ' ngày</b>' : 'Chưa có số dư') + (wk ? ' · ' + (bank[1] >= wk[1] ? '▲ ' : '▼ ') + ms(Math.abs(bank[1] - wk[1])) + ' so với 7 ngày trước' : '')) +
       card('', '💵 Tiền sắp về', ms(coming), cn + ' đơn đang giao / chờ thu (45 ngày gần đây)') +
-      card(over.length ? 'bad' : due7.length ? 'mid' : '', '🧾 Nợ nhà cung cấp', ptot != null ? ms(ptot) : '–',
-        (pay ? (over.length ? '⚠️ <b>Quá hạn ' + ms(over.reduce(function (s, r) { return s + r[4]; }, 0)) + '</b> · ' : '') + (due7.length ? 'Tới hạn 7 ngày: <b>' + ms(due7.reduce(function (s, r) { return s + r[4]; }, 0)) + '</b>' : 'Không khoản nào tới hạn 7 ngày') + (noHan ? ' · ' + noHan + ' hoá đơn chưa ghi hạn' : '') : 'Kế toán chưa ghi công nợ') + (F && F.paySrc === 'crm' ? ' · sổ CRM' + (F.payUnk ? ' · <b>⚠️ ' + F.payUnk + ' khoản sao kê chưa rõ trả ai</b>' : '') : '')) +
+      card(over.length ? 'bad' : due7.length ? 'mid' : '', '🧾 Nợ nhà cung cấp', ptot != null ? ms(ptot) : '–', (over.length ? '⚠️ <b>Có khoản quá hạn</b> · ' : due7.length ? 'Có khoản tới hạn 7 ngày · ' : '') + '<a class="link" href="#ke-toan" data-gokt="ncc">Xem từng khoản ở 🧾 Nhà cung cấp ›</a>') + // 26/11/2026: chi tiết nợ chỉ ở 1 chỗ
       card('', '💸 Đã chi ' + monthLabel(mk).replace(/^tháng /, 'T'), chi ? ms(cost) : '–', chi ? (top ? 'Lớn nhất: ' + esc(top) + ' ' + ms(G[top]) : '') + (nccPaid ? ' · trả nhà cung cấp ' + ms(nccPaid) : '') + (lastChi && lastChi < isoDate(Date.now() - 2 * DAY) ? ' · ⚠️ sổ chi chưa ghi từ ' + dd(lastChi) : '') : 'Chưa có trang Sổ chi') + '</div>';
     if (cash != null && pay && due30) { var gap = cash + coming - due30; h += '<p class="dpl-be">' + (gap < 0 ? '🔴 <b>Tiền đang có + sắp về chưa đủ trả nợ tới hạn trong 30 ngày (' + ms(due30) + '), thiếu khoảng ' + ms(-gap) + '.</b> Cần hẹn lại lịch trả hoặc thu tiền đơn đang giao sớm.' : '🟢 Tiền đang có + sắp về đủ trả nợ tới hạn trong 30 ngày (' + ms(due30) + '), còn dư khoảng ' + ms(gap) + '.') + '</p>'; }
     h += finNet(cash, coming, cn, ptot, pay ? over.length : 0, K && !pay);
-    if (over.length || due7.length) h += '<ul class="small fin-due">' + over.concat(due7).slice(0, 5).map(function (r) { return '<li>' + (r[3] < td ? '⚠️ <b>quá hạn</b> ' : '') + esc(r[0]) + (r[1] ? ' (HĐ ' + esc(r[1]) + ')' : '') + ': <b>' + ms(r[4]) + '</b> · hạn ' + dd(r[3]) + '</li>'; }).join('') + '</ul>';
     h += '<p class="small muted" style="margin:6px 0 0">' + (F && F.at ? 'Số kế toán đọc lúc ' + fDateTime(F.at) + (F.by ? ' (' + esc(F.by) + ')' : '') : KM[0] ? 'Số tiền / nợ lấy từ file kế toán ' + monthLabel(KM[0].m) : 'Nợ nhà cung cấp lấy từ sổ công nợ trong CRM') + '. Tiền sắp về tính từ đơn CRM.' + (FIN.err ? ' <span class="bad-line">⚠️ ' + esc(FIN.err) + '</span>' : L && L.err ? ' <span class="bad-line">⚠️ ' + esc(L.err) + '</span>' : '') +
       (L ? ' <button class="btn sm ghost" data-dash="fintest">📲 Gửi thử tin sáng</button>' : '') + '</p></div>';
     return h;
@@ -13225,7 +13223,8 @@
   var SAN_TAB = '';
   function sanTab() { var t = SAN_TAB || store('san_tab') || 'kq'; if (['kq', 'shop', 'dt', 'cc'].indexOf(t) < 0) t = 'kq'; return (SAN_TAB = t); }
   document.addEventListener('click', function (e) { // 26/11/2026: nút "xem ở chỗ khác" mở đúng thẻ con
-    var a = e.target.closest('[data-gotd],[data-gorep]'); if (!a) return;
+    var a = e.target.closest('[data-gotd],[data-gorep],[data-gokt]'); if (!a) return;
+    if (a.hasAttribute('data-gokt')) { KT_TAB = a.getAttribute('data-gokt'); store('kt_tab', KT_TAB); if (route().view === 'ke-toan') { e.preventDefault(); render(); } return; }
     if (a.hasAttribute('data-gorep')) { REP_TAB = a.getAttribute('data-gorep'); store('rep_tab', REP_TAB); if (S.who) setWho(''); }
     else { TD_TAB.td_stab = a.getAttribute('data-gotd'); store('td_stab', TD_TAB.td_stab); }
   });
@@ -14301,8 +14300,8 @@
     var d = beGet(), co = d && d.co, mb = co && co.my && co.sv ? Math.round(co.sv * co.my) : 0;
     if (!mb && !goal) return '<section class="section tdm"><p class="tdm-h">🎯 Hôm nay bạn cần bán</p><p class="small">' + (t && t.amount ? '' : 'Bạn chưa đặt mục tiêu tháng: vào thẻ <b>🏁 Mục tiêu & thi đua</b> để đặt. ') + (d === undefined ? '⏳ Đang tải mức hoà vốn…' : '') + '</p></section>';
     var mx = Math.max(mb, goal, td, 1) * 1.08, pc = function (v) { return (Math.min(v, mx) / mx * 100).toFixed(1) + '%'; };
-    var st = mb && td < mb ? '<p class="tdm-st bad">Còn <b>' + moneyShort(mb - td) + '</b> nữa là đủ phần hoà vốn của bạn hôm nay. Cố lên nhé 💪</p>'
-      : goal && td < goal ? '<p class="tdm-st ok">✅ Đã đủ phần hoà vốn! Còn <b>' + moneyShort(goal - td) + '</b> nữa là đạt mục tiêu ngày.</p>'
+    var st = mb && td < mb ? '<p class="tdm-st bad">Còn <b>' + moneyShort(mb - td) + '</b> nữa là đủ phần chi phí của bạn hôm nay. Cố lên nhé 💪</p>'
+      : goal && td < goal ? '<p class="tdm-st ok">' + (mb ? '✅ Đã đủ phần chi phí! ' : '') + 'Còn <b>' + moneyShort(goal - td) + '</b> nữa là đạt mục tiêu ngày.</p>'
       : '<p class="tdm-st ok">🎉 Đã vượt mục tiêu hôm nay! Mỗi đơn từ giờ là công ty có lãi. Cảm ơn bạn 💚</p>';
     var mAvg = co && co.nd ? (msales - td) / Math.max(1, Math.round((t0 - R[0]) / DAY)) : 0;
     return '<section class="section tdm' + (mb && td < mb ? ' bad' : ' ok') + '"><p class="tdm-h">🎯 Hôm nay bạn cần bán</p>' +
@@ -14322,18 +14321,12 @@
     }
     return c ? c.d : undefined;
   }
-  /** % hoa hồng khách mới của sale này (Phụ lục 01): bậc hiện tại, chưa vào bậc thì lấy bậc đầu. */
-  function beComm() {
-    var P = (S.d.rules && S.d.rules.payplan) || {}; if (!P.tiers || !P.tiers.length) return 0;
-    var p = payOf(S.user.name, monthOf(Date.now())); if (p && p.tier) return (p.rt[1] || 0) / 100;
-    return (((P.tiers[0][3] || [])[p ? p.si : 0] || [0, 0])[1] || 0) / 100;
-  }
   function beSaleBlock() {
     var d = beGet(), me = (S.d.users || []).filter(function (u) { return u.name === S.user.name; })[0], co = d && lvl() === 2 ? beCoBlock(d.co) : ''; return beAdsBlock(d) + co; // sale xem phần của mình ở thẻ 🎯 đầu tab (todayMust), CTV không thấy
   }
   function beAdsBlock(d) {
     var b = d && d.me; if (!b || !b.n || !b.cost) return '';
-    var vr = d.be && d.be.r, mg = vr ? 1 - vr - beComm() : null, need = mg && mg > 0.05 ? Math.round(b.cost / mg) : null, rev = b.rev || 0, cpl = b.cost / b.n;
+    var need = null, rev = b.rev || 0, cpl = b.cost / b.n; // 26/11/2026 (anh Sơn "gộp"): mức hoà vốn chỉ còn 1 chỗ = thẻ 🎯 đầu Hôm nay (todayMust)
     var lv = need ? (rev >= need ? 'ok' : rev >= need * 0.6 ? 'mid' : 'bad') : adsLv(b.cost, rev), left = need ? Math.max(0, need - rev) : 0;
     var avg = perf(S.user.name, monthRange(monthOf(Date.now()))).avg || 0, nO = left && avg ? Math.ceil(left / avg) : 0, p = need ? Math.min(100, Math.round(rev * 100 / need)) : 0;
     var h = '<section class="section be-sale ' + lv + '"><p class="be-sale-h">💸 Tháng này công ty đã chi <b>' + moneyShort(b.cost) + '</b> quảng cáo <span style="white-space:nowrap">cho <b>' + b.n + ' số</b> giao cho bạn</span> <small>(mỗi số khoảng ' + moneyShort(Math.round(cpl / 1000) * 1000) + ')</small></p>';
