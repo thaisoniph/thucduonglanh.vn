@@ -403,27 +403,29 @@ Mã giảm giá gửi riêng cho **khách cũ, đối tác**. Trên web không q
 
 **Câu dễ nhớ: gõ việc, chờ Lành, bấm Duyệt.** Mở CRM → **Thêm** → **🤖 Đội nhân sự AI**. Phần trên cùng là Phòng Marketing AI. Tạm thời **chỉ anh Sơn và anh Hiếu** (quyền Quản trị) thấy và dùng mục này; Quản lý chỉ thấy phần trợ lý AI tự chạy.
 
-**Sơ đồ phòng:** Anh Sơn, anh Hiếu (giao việc, duyệt kết quả) → **Lành** (trưởng phòng, chia việc) → **Thám** (hiểu khách, làm offer) · **Văn** (viết nội dung) · **Chuẩn** (kiểm duyệt) · **Phát** (quảng cáo, đo lường). Bấm vào một người để xem người đó làm gì và chỉ xem việc của người đó. Dưới mỗi người có chữ: Rảnh / Có việc / Đang làm / Chờ anh duyệt.
+**Màn hình xếp từ trên xuống (27/11/2026):** ① dòng cam **👉 Việc của anh bây giờ** (có kết quả chờ duyệt thì bấm **Xem & duyệt ›**) → ② dải **4 bước**: ① Giao việc → ② Phòng tự làm → ③ Anh duyệt → ④ Đưa ra dùng (bước đang có việc tô xanh) → ③ ô **① Giao việc** → ④ **📋 Việc của phòng** xếp theo bước, việc chờ duyệt lên đầu → ⑤ **👥 Phòng có ai** (gập, bấm để mở).
+
+**Sơ đồ phòng** (trong mục 👥, bấm để mở): Anh Sơn, anh Hiếu (giao việc, duyệt kết quả) → **Lành** (trưởng phòng, chia việc) → **Thám** (hiểu khách, làm offer) · **Văn** (viết nội dung) · **Chuẩn** (kiểm duyệt) · **Phát** (quảng cáo, đo lường). Bấm vào một người để xem người đó làm gì và chỉ xem việc của người đó. Dưới mỗi người có chữ: Rảnh / Có việc / Đang làm / Chờ anh duyệt.
 
 Góc trên bên phải cho biết Lành có đang trực không: 🟢 máy Mac đang bật · 🔴 máy Mac đang tắt (việc vẫn được lưu, mở máy là Lành làm tiếp).
 
 **Việc 1 – Giao việc**
-1. Ô **Giao cho**: để **Để Lành chia việc**, hoặc chọn thẳng 1 người.
-2. Gõ **Việc cần làm** thật cụ thể: cho ai, tầng phễu nào, bao nhiêu bài. Ví dụ: *Viết 3 bài Quà Tết cho tệp mẹ bỉm, tầng MOFU*.
+1. Gõ **Việc cần làm** thật cụ thể: cho ai, tầng phễu nào, bao nhiêu bài. Không biết gõ gì thì **bấm 1 câu ví dụ** ngay dưới ô, câu đó tự điền và tự chọn đúng người.
+2. Ô **Giao cho**: để **Để Lành chia việc** (nên chọn), hoặc chọn thẳng 1 người.
 3. Cần thì bấm **➕ Thêm chi tiết** để dán bối cảnh, số liệu, link Drive, thế nào là đạt.
-4. Chọn **Hạn**, bấm **📨 Giao việc**. Việc hiện ở cột **📥 Mới giao**.
+4. Chọn **Hạn**, bấm **📨 Giao việc**. Việc hiện ở nhóm **② Mới giao, chờ Lành nhận**.
 
-**Việc 2 – Chờ Lành làm.** Khoảng 5 phút Lành xem việc mới 1 lần, nhận việc là việc chuyển sang **⚙️ Đang làm** (có ghi Lành đang làm bao nhiêu phút). Lành chia việc trong phòng, Chuẩn chấm trước khi gửi anh. Một việc thường mất 5–30 phút.
+**Việc 2 – Chờ Lành làm.** Khoảng 5 phút Lành xem việc mới 1 lần, nhận việc là việc chuyển sang nhóm **② Phòng đang làm** (có ghi Lành đang làm bao nhiêu phút). Lành chia việc trong phòng, Chuẩn chấm trước khi gửi anh. Một việc thường mất 5–30 phút.
 
-**Việc 3 – Duyệt kết quả.** Xong việc, Telegram báo anh và việc hiện ở cột **👀 Chờ anh duyệt** (Tổng quan và màn Thêm cũng có dòng nhắc). Bấm vào việc:
+**Việc 3 – Duyệt kết quả.** Xong việc, Telegram báo anh và việc hiện ở nhóm **③ Chờ anh duyệt** và dòng cam **👉 Việc của anh bây giờ** ở trên cùng (Tổng quan và màn Thêm cũng có dòng nhắc). Bấm vào việc:
 - Việc mở ra thành màn đọc rộng (trên điện thoại là toàn màn hình), chữ to, một thanh cuộn. Đọc khung xanh **Tóm tắt cho anh** ở đầu; hàng **Đi tới** để nhảy nhanh tới từng phần. Nút Duyệt / Sửa lại luôn nằm cố định ở dưới. Bản gốc nằm trong Drive (`09_Phòng Marketing AI/08_Kết quả công việc/`).
-- **✅ Duyệt**: việc sang cột **Xong**. Rồi giao Phương đăng, hoặc anh Hiếu bấm quảng cáo như thường lệ.
+- **✅ Duyệt**: việc sang nhóm **✅ Xong**. Rồi giao Phương đăng, hoặc anh Hiếu bấm quảng cáo như thường lệ.
 - **✏️ Sửa lại**: ghi rõ cần sửa chỗ nào, bấm **📨 Gửi lời sửa cho Lành**. Lành sửa đúng chỗ đó rồi gửi lại.
 - **📋 Copy kết quả** để dán vào Zalo, Fanpage. **🗑 Huỷ việc** nếu không cần nữa.
 
 Lưu ý:
 - Phòng **chỉ soạn**: không tự đăng bài, không gửi tin cho khách, không sửa quảng cáo, website hay CRM.
-- Thiếu thông tin thì Lành ghi **THIẾU: …** trong kết quả. Không làm được thì việc về cột Chờ anh duyệt kèm chữ ⚠️ và lý do: anh bấm Sửa lại, ghi thêm thông tin.
+- Thiếu thông tin thì Lành ghi **THIẾU: …** trong kết quả. Không làm được thì việc về nhóm Chờ anh duyệt kèm chữ ⚠️ và lý do: anh bấm Sửa lại, ghi thêm thông tin.
 - Máy Mac tắt hơn 1 tiếng mà còn việc chờ thì Telegram báo 1 lần. Muốn Lành làm cả đêm thì để máy Mac cắm sạc, không cho máy ngủ.
 
 ## 🤖 Đội nhân sự AI (14/11/2026)

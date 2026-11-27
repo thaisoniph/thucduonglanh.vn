@@ -17723,38 +17723,47 @@
       (t.due ? '<small class="' + (late ? 'pma-late' : '') + '">⏰ ' + (late ? 'Quá hạn ' : 'Hạn ') + esc(fDate(t.due).slice(0, 5)) + '</small>' : '') + '</button>';
   }
   function pmaHTML() {
+    // 27/11/2026 anh Sơn "trực quan, ai nhìn cũng hiểu từng bước": 👉 việc của anh → dải 4 bước → ① giao việc (câu ví dụ bấm là điền) → danh sách theo bước → sơ đồ phòng gập
     var h = '<section class="pma" id="pmaBox"><div class="pma-head"><h2>📣 Phòng Marketing AI</h2>';
     if (PMA.err && !PMA.d) return h + '</div><p class="err">' + esc(PMA.err) + '</p><button class="btn" data-pma="re">🔄 Thử lại</button></section>';
     if (!PMA.d) return h + '</div><p class="muted">Đang tải phòng…</p></section>';
     var D = PMA.d, mac = pmaMac(), T = D.tasks || [], team = D.team || [];
-    h += '<span class="pma-mac pma-mac-' + mac[0] + '" title="' + esc(mac[3]) + '">' + mac[1] + ' ' + mac[2] + '</span></div>' +
-      '<p class="pma-intro">Anh Sơn, anh Hiếu giao việc ở đây, <b>Lành</b> (trên máy Mac) chia cho đúng người làm, <b>Chuẩn</b> chấm trước, rồi kết quả về cột <b>Chờ anh duyệt</b>. ' + esc(mac[3]) + '</p>';
-    // sơ đồ phòng
-    var lanh = team.filter(function (m) { return m.id === 'lanh'; })[0], four = team.filter(function (m) { return m.id !== 'lanh'; });
-    var mcard = function (m, big) {
-      var st = m.busy ? '<i class="pma-on">● Đang làm</i>' : m.wait ? '<i class="pma-wait">● Chờ anh duyệt ' + m.wait + '</i>' : m.open ? '<i class="pma-on">● Có ' + m.open + ' việc</i>' : '<i>● Rảnh</i>';
-      return '<button type="button" class="pma-mem' + (big ? ' pma-lead' : '') + (PMA.pick === m.id ? ' on' : '') + '" data-pmam="' + m.id + '"><span class="pma-ic">' + m.ic + '</span><b>' + esc(m.name) + '</b><small>' + esc(m.role) + '</small>' + st + '</button>';
-    };
-    h += '<div class="pma-org"><div class="pma-bosses"><div class="pma-boss">👤 <b>Anh Sơn</b></div><div class="pma-boss">👤 <b>Anh Hiếu</b></div></div><small class="pma-boss-t">giao việc · duyệt kết quả</small><div class="pma-line"></div>' +
-      (lanh ? mcard(lanh, 1) : '') + '<div class="pma-line"></div><div class="pma-four">' + four.map(function (m) { return mcard(m); }).join('') + '</div>' +
-      '<p class="pma-real">Sau khi duyệt: <b>anh Hiếu</b> bấm quảng cáo theo phiếu của Phát · <b>Phương</b> đăng bài. Chỉ anh Sơn và anh Hiếu thấy mục này.</p></div>';
-    var pm = PMA.pick && pmaMem(PMA.pick);
-    if (pm) h += '<div class="pma-job"><b>' + pm.ic + ' ' + esc(pm.name) + ' – ' + esc(pm.role) + '</b><p>' + esc(pm.job) + '</p><small>Chuyên môn: ' + esc((pm.skills || []).join(', ')) + ' · Đã xong 30 ngày: ' + (pm.done30 || 0) + ' việc</small></div>';
-    // ô giao việc
-    h += '<div class="pma-add"><h3>✉️ Giao việc</h3><div class="pma-row"><label class="f"><span>Giao cho</span><select id="pmaWho"><option value="">🌿 Để Lành chia việc</option>' +
+    var lanh = team.filter(function (m) { return m.id === 'lanh'; })[0], four = team.filter(function (m) { return m.id !== 'lanh'; }), pm = PMA.pick && pmaMem(PMA.pick);
+    var by = function (sts) { return T.filter(function (t) { return sts.indexOf(t.status) >= 0 && (!PMA.pick || t.who === PMA.pick); }); };
+    var W = by(['duyet']), G = by(['dang', 'sua']), N = by(['moi']), X = by(['xong']).slice(0, 8);
+    h += '<span class="pma-mac pma-mac-' + mac[0] + '" title="' + esc(mac[3]) + '">' + mac[1] + ' ' + mac[2] + '</span></div>';
+    if (mac[0] === 'down' || mac[0] === 'off') h += '<p class="pma-intro">' + esc(mac[3]) + '</p>';
+    // 👉 việc của anh bây giờ
+    h += W.length ? '<div class="pma-now"><b>👉 Việc của anh bây giờ</b><span>🔴 ' + W.length + ' kết quả chờ anh duyệt</span><button class="btn pri" data-pmat="' + W[0].id + '">Xem &amp; duyệt ›</button></div>'
+      : '<div class="pma-now pma-now-ok"><b>👉 Việc của anh bây giờ</b><span>Không có gì chờ duyệt. Muốn phòng làm gì thì giao ở bước ①.</span></div>';
+    // dải 4 bước
+    var st = function (n, t, d, k) { return '<li' + (k ? ' class="on"' : '') + '><b>' + n + ' ' + t + '</b><small>' + d + '</small></li>'; };
+    h += '<ol class="pma-steps">' + st('①', 'Giao việc', 'anh gõ 1 câu', 0) + st('②', 'Phòng tự làm', 'Lành chia việc, Chuẩn chấm, khoảng 5 phút', G.length + N.length) +
+      st('③', 'Anh duyệt', 'bấm Duyệt hoặc Sửa lại', W.length) + st('④', 'Đưa ra dùng', 'anh Hiếu bấm quảng cáo, Phương đăng bài', 0) + '</ol>';
+    // ① giao việc
+    var ex = (pm ? [pm] : four).filter(function (m) { return m.ex; });
+    h += '<div class="pma-add"><h3>① Giao việc</h3><label class="f"><span>Việc cần làm</span><textarea id="pmaTitle" rows="2" placeholder="Gõ 1 câu, ví dụ: ' + esc(ex[0] ? ex[0].ex : 'Viết 3 bài Quà Tết') + '"></textarea></label>' +
+      '<div class="pma-ex"><small>Bấm 1 ví dụ để điền sẵn:</small>' + ex.map(function (m) { return '<button type="button" data-pmaex="' + m.id + '">' + m.ic + ' ' + esc(m.ex) + '</button>'; }).join('') + '</div>' +
+      '<div class="pma-row"><label class="f"><span>Giao cho</span><select id="pmaWho"><option value="">🌿 Để Lành chia việc (nên chọn)</option>' +
       four.map(function (m) { return '<option value="' + m.id + '"' + (PMA.pick === m.id ? ' selected' : '') + '>' + m.ic + ' ' + esc(m.name) + ' – ' + esc(m.role) + '</option>'; }).join('') + '</select></label>' +
       '<label class="f"><span>Hạn</span><select id="pmaDue">' + PMA_DUE.map(function (o) { return '<option value="' + o[0] + '">' + o[1] + '</option>'; }).join('') + '</select></label></div>' +
-      '<label class="f"><span>Việc cần làm</span><textarea id="pmaTitle" rows="2" placeholder="' + esc(pm && pm.ex || 'Viết 3 bài Quà Tết cho tệp mẹ bỉm, tầng MOFU') + '"></textarea></label>' +
       '<details class="pma-more"><summary>➕ Thêm chi tiết, link Drive (không bắt buộc)</summary><textarea id="pmaBody" rows="3" placeholder="Bối cảnh, số liệu, link tài liệu, thế nào là đạt…"></textarea></details>' +
       '<p class="err" id="pmaErr" hidden></p><button class="btn pri" data-pma="add">📨 Giao việc</button></div>';
-    // bảng 4 cột
-    var col = function (key, lab, list, empty) {
-      return '<div class="pma-col pma-col-' + key + '"><h3>' + lab + ' <span>' + list.length + '</span></h3>' + (list.length ? list.map(pmaCard).join('') : '<p class="pma-empty">' + empty + '</p>') + '</div>';
+    // danh sách theo bước
+    var grp = function (cls, lab, list) { return list.length ? '<div class="pma-grp pma-grp-' + cls + '"><h3>' + lab + ' <span>' + list.length + '</span></h3>' + list.map(pmaCard).join('') + '</div>' : ''; };
+    var L = grp('duyet', '③ Chờ anh duyệt', W) + grp('dang', '② Phòng đang làm', G) + grp('moi', '② Mới giao, chờ Lành nhận', N) + grp('xong', '✅ Xong (30 ngày)', X);
+    h += '<h3 class="pma-lt">📋 Việc của phòng</h3>' + (PMA.pick ? '<p class="pma-filter">Đang xem việc của <b>' + esc(pm.name) + '</b> <button type="button" class="linkbtn" data-pma="all">Xem cả phòng</button></p>' : '') +
+      (L || '<p class="pma-empty">Chưa có việc nào. Giao việc đầu tiên ở bước ① ở trên.</p>');
+    // sơ đồ phòng (gập)
+    var mcard = function (m, big) {
+      var s2 = m.busy ? '<i class="pma-on">● Đang làm</i>' : m.wait ? '<i class="pma-wait">● Chờ anh duyệt ' + m.wait + '</i>' : m.open ? '<i class="pma-on">● Có ' + m.open + ' việc</i>' : '<i>● Rảnh</i>';
+      return '<button type="button" class="pma-mem' + (big ? ' pma-lead' : '') + (PMA.pick === m.id ? ' on' : '') + '" data-pmam="' + m.id + '"><span class="pma-ic">' + m.ic + '</span><b>' + esc(m.name) + '</b><small>' + esc(m.role) + '</small>' + s2 + '</button>';
     };
-    var by = function (sts) { return T.filter(function (t) { return sts.indexOf(t.status) >= 0 && (!PMA.pick || t.who === PMA.pick); }); };
-    h += (PMA.pick ? '<p class="pma-filter">Đang xem việc của <b>' + esc(pm.name) + '</b> <button type="button" class="linkbtn" data-pma="all">Xem cả phòng</button></p>' : '') +
-      '<div class="pma-board">' + col('moi', '📥 Mới giao', by(['moi']), 'Chưa có việc mới') + col('dang', '⚙️ Đang làm', by(['dang', 'sua']), 'Không có việc đang làm') +
-      col('duyet', '👀 Chờ anh duyệt', by(['duyet']), 'Không có gì chờ duyệt') + col('xong', '✅ Xong (30 ngày)', by(['xong']).slice(0, 8), 'Chưa có việc xong') + '</div>';
+    h += '<details class="pma-team"' + (PMA.pick ? ' open' : '') + '><summary>👥 Phòng có ai, mỗi người làm gì <small>bấm để mở</small></summary>' +
+      '<div class="pma-org"><div class="pma-bosses"><div class="pma-boss">👤 <b>Anh Sơn</b></div><div class="pma-boss">👤 <b>Anh Hiếu</b></div></div><small class="pma-boss-t">giao việc · duyệt kết quả</small><div class="pma-line"></div>' +
+      (lanh ? mcard(lanh, 1) : '') + '<div class="pma-line"></div><div class="pma-four">' + four.map(function (m) { return mcard(m); }).join('') + '</div>' +
+      '<p class="pma-real">Bấm 1 người để xem việc của người đó và câu ví dụ giao cho họ. Chỉ anh Sơn và anh Hiếu thấy mục này.</p></div>' +
+      (pm ? '<div class="pma-job"><b>' + pm.ic + ' ' + esc(pm.name) + ' – ' + esc(pm.role) + '</b><p>' + esc(pm.job) + '</p><small>Chuyên môn: ' + esc((pm.skills || []).join(', ')) + ' · Đã xong 30 ngày: ' + (pm.done30 || 0) + ' việc</small></div>' : '') + '</details>';
     return h + '</section>';
   }
   function pmaPaint() { var el = $('#pmaBox'); if (!el) return; var keep = pmaKeep(); el.outerHTML = pmaHTML(); pmaBind(); pmaKeep(keep); }
@@ -17769,6 +17778,7 @@
     $$('[data-pma="all"]', box).forEach(function (b) { b.onclick = function () { PMA.pick = ''; pmaPaint(); }; });
     $$('[data-pmam]', box).forEach(function (b) { b.onclick = function () { var id = b.getAttribute('data-pmam'); PMA.pick = PMA.pick === id ? '' : id; pmaPaint(); if (PMA.pick && id !== 'lanh') { var t = $('#pmaTitle'); if (t) t.focus({ preventScroll: true }); } }; });
     $$('[data-pmat]', box).forEach(function (b) { b.onclick = function () { pmaOpen(Number(b.getAttribute('data-pmat'))); }; });
+    $$('[data-pmaex]', box).forEach(function (b) { b.onclick = function () { var m = pmaMem(b.getAttribute('data-pmaex')), t = $('#pmaTitle'); t.value = m.ex || ''; $('#pmaWho').value = m.id === 'lanh' ? '' : m.id; t.focus(); }; });
     var ta = $('#pmaTitle', box); if (ta) ta.oninput = function () { var e = $('#pmaErr'); if (e) e.hidden = true; };
     var add = $('[data-pma="add"]', box); if (add) add.onclick = function () {
       var title = $('#pmaTitle').value.trim(), e = $('#pmaErr');
