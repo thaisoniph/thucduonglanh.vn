@@ -9,7 +9,7 @@ import { shpTick } from './sanshp.js';
 import { mktTick, mktFbEdit, mktAdText } from './mkt.js';
 import { scoreAuto } from './score.js';
 import { mkSchTick } from './mksch.js';
-import { mkSnapBuild } from './mktg.js';
+import { mkSnapBuild, mkPhatAlert, mkSoOk } from './mktg.js';
 import { mktDailyMsgs } from './mktv.js';
 import { wbTick } from './wb.js';
 import { backfillCustomerExtras } from './migrate.js';
@@ -182,6 +182,8 @@ export async function scheduled(x, cron) {
     if (!await kvGet(x.db, gk)) { await kvSet(x.db, gk, '1', 2 * DAY); try { await gvMorning(x); } catch (e) { console.error('gvMorning', e.message); } }
     const sk = 'sanai_m_' + fmtDate(now, 'yyyyMMdd'); // 🛒 8h: nhắc người phụ trách sàn chấm sức khoẻ shop, thứ Hai xem đối thủ (sanai.js)
     if (!await kvGet(x.db, sk)) { await kvSet(x.db, sk, '1', 2 * DAY); try { await sanAiMorning(x, await crmUsers(x), telegramTo); } catch (e) { console.error('sanAiMorning', e.message); } }
+    const pk = 'phat_' + fmtDate(now, 'yyyyMMdd'); // 🚨 8h: Phát báo giá 1 SĐT thật vượt trần (mktg.js mkPhatAlert, không AI) → Quản trị, Quản lý, Marketing
+    if (!await kvGet(x.db, pk)) { await kvSet(x.db, pk, '1', 2 * DAY); try { const t = mkPhatAlert(await kvJson(x.db, 'mk_snap', null)); if (t) for (const u of await crmUsers(x)) if (u.active && u.tg && mkSoOk(u)) await telegramTo(x.env, u.tg, t); } catch (e) { console.error('phat', e.message); } }
     const mk = 'mktd_' + fmtDate(now, 'yyyyMMdd'); // tin Telegram marketing buổi sáng
     if (!await kvGet(x.db, mk)) { await kvSet(x.db, mk, '1', 2 * DAY); try { for (const m of await mktDailyMsgs(x, await crmUsers(x))) await telegramTo(x.env, m.tg, m.text); } catch (e) { console.error('mktDaily', e.message); } }
   }

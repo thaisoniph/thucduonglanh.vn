@@ -323,6 +323,8 @@ Bấm thẻ **🧰 Công cụ** (nhóm 🛠 Chuẩn bị): **📍 Link & QR**, *
 
 Nối Telegram ở **⚙ Cài đặt → 📲 Thông báo Telegram riêng** (cách làm giống bên sale, xem [Đăng nhập](/huong-dan/crm/#dang-nhap)). 8h sáng bạn nhận tin **"📣 Marketing sáng nay"**: dòng đầu là **📇 Số điện thoại cho sale** (hôm qua về bao nhiêu số, giá 1 số, từ nay cần bao nhiêu số / ngày), rồi hạng thi đua của bạn, tiến độ mục tiêu, số hôm qua, việc nên làm. Muốn xem ngay: cuối tab Marketing bấm **Gửi thử cho tôi**.
 
+Ngày nào **giá 1 số điện thoại thật vượt trần** (mặc định 270.000đ, sửa ở mức tốt của tab Marketing), 8h bạn nhận thêm tin **"🚨 Phát báo"**: hôm qua tốn bao nhiêu 1 số, chiến dịch nào đắt. Đọc xong thì vào tab Marketing giảm tiền hoặc tắt chiến dịch đó, hẹn lệnh lúc 0h. Ngày nào giá ổn thì không có tin này.
+
 ## Trợ lý Zalo, Fanpage
 
 Duyệt bài đăng nhóm, gửi tin vào nhóm, xử lý ca khó: trang **[Trợ lý Zalo](/huong-dan/zalo/)**. Trả lời bình luận, tin nhắn Facebook: trang **[Fanpage](/huong-dan/fanpage/)**.
