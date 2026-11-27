@@ -43,6 +43,7 @@ async function tellBoss(x, msg, exceptEmail) {
 
 /* ---------------------------------------------------------------- lệnh CRM */
 export async function crmPm(x, u, a, d) {
+  if ((a === 'pm_done' || a === 'pm_post') && (u.level >= 3 || u.role === 'Marketing')) { await pmSchema(x.db); return a === 'pm_done' ? { ok: true, rows: await pmDoneList(x) } : pmPost(x, u, d); } // 📝 27/11/2026: bạn marketing xem kết quả đã duyệt để đăng
   if (u.level < 3) return { ok: false, error: 'Phòng Marketing AI chỉ dành cho anh Sơn và anh Hiếu (quyền Quản trị).' }; // anh Sơn 16/11/2026: tạm thời chỉ Quản trị
   await pmSchema(x.db);
   if (a === 'pm_view') return pmView(x);
@@ -68,6 +69,20 @@ async function pmView(x) {
   });
   // kết quả trả về trong vòng chạy hiện tại (việc duyệt / xong) gửi kèm nội dung để mở xem không phải tải thêm
   return { ok: true, team, st: PM_ST, alive, offMs: OFF_MS, now: nowMs(), tasks: rows.map(t => pub(t, t.status === 'duyet' || t.status === 'xong')) };
+}
+/** Kết quả anh đã duyệt 14 ngày qua mà chưa ai bấm Đã đăng (kv pm_posted = danh sách mã việc đã đăng). */
+const POSTED_K = 'pm_posted';
+export async function pmDoneList(x) {
+  const posted = JSON.parse(await kvGet(x.db, POSTED_K) || '[]');
+  const rows = await all(x.db, "SELECT * FROM pm_tasks WHERE status = 'xong' AND coalesce(done_at, upd) >= ? ORDER BY done_at DESC LIMIT 30", nowMs() - 14 * DAY);
+  return rows.filter(t => posted.indexOf(t.id) < 0 && t.result).map(t => Object.assign(pub(t, true), { ic: (PM_TEAM.find(m => m.id === t.who) || PM_TEAM[0]).ic, name: (PM_TEAM.find(m => m.id === t.who) || PM_TEAM[0]).name }));
+}
+async function pmPost(x, u, d) {
+  const t = await first(x.db, "SELECT * FROM pm_tasks WHERE id = ? AND status = 'xong'", Number(d.id)); if (!t) return { ok: false, error: 'Không thấy kết quả này' };
+  const posted = JSON.parse(await kvGet(x.db, POSTED_K) || '[]'); if (posted.indexOf(t.id) < 0) posted.push(t.id);
+  await kvSet(x.db, POSTED_K, JSON.stringify(posted.slice(-300)));
+  await run(x.db, 'UPDATE pm_tasks SET hist = ? WHERE id = ?', histAdd(t, u.name + ' đã đăng / đưa ra dùng 📤'), t.id);
+  return { ok: true };
 }
 async function pmAdd(x, u, d) {
   const title = clean(d.title, 300); if (!title) return { ok: false, error: 'Anh gõ việc cần làm trước nhé.' };

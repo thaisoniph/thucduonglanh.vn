@@ -9,6 +9,7 @@ import { aiFetch } from './airelay.js';
 import { all, kvGet, kvSet, kvJson, normPhone, fmtDate, esc, DAY } from './lib.js';
 import { mkCampReal } from './mkcamp.js';
 import { mkSchList, SCH_ST } from './mksch.js';
+import { pmSchema, pmDoneList } from './phongai.js';
 
 const MODEL = 'claude-haiku-5-5';
 const ASK_DAY = 30, ASK_ALL = 200; // câu hỏi AI / người / ngày, cả công ty / ngày
@@ -53,20 +54,35 @@ function plain(S) {
 }
 
 /** 🚨 Phát báo 8h (27/11/2026, anh Sơn "làm phần báo miễn phí"): giá 1 SĐT thật vượt trần → tin Telegram, KHÔNG gọi AI. null = không có gì vượt, không gửi. */
-export function mkPhatAlert(S, now = Date.now()) {
-  if (!S || now - (S.at || 0) > 3 * 3600e3) return null; // bảng số cũ quá 3 tiếng → không báo theo số cũ
-  const T = S.muc_tot.gia_1_sdt_tran, D = S.theo_ngay_14_ngay, y = D[D.length - 2] || {}, out = [];
+/** Phần tính chung: hôm qua có vượt trần không + chiến dịch 7 ngày vượt trần. Dùng cho tin 8h (mkPhatAlert) và dòng 👉 ở tab Marketing (mkToday). */
+export function mkPhatCalc(S, now = Date.now(), maxAge = 3 * 3600e3) {
+  if (!S || now - (S.at || 0) > maxAge) return null; // bảng số cũ → không báo theo số cũ
+  const T = S.muc_tot.gia_1_sdt_tran, D = S.theo_ngay_14_ngay, y = D[D.length - 2] || {};
   const over = (chi, n) => chi >= T && (!n || chi / n > T);
-  if (over(y.chi_facebook || 0, y.sdt_that)) out.push('<b>Hôm qua ' + y.ngay.slice(8, 10) + '/' + y.ngay.slice(5, 7) + '</b>: chi ' + vnd(y.chi_facebook) + ' → ' + y.sdt_that + ' SĐT thật' + (y.sdt_that ? ' = <b>' + vnd(y.gia_1_sdt_that) + ' / 1 SĐT</b>' : ''));
   // shortcut: bỏ chiến dịch Shopee / Tương tác / Lượt bấm theo tên (không nhằm lấy số); đổi cách đặt tên thì sửa NOSDT
   const NOSDT = /shopee|tuong tac|luot bam/, nm = t => String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd');
   const R = (S.chien_dich_7_ngay.rows || []).filter(r => !NOSDT.test(nm(r.chien_dich))), mapped = R.some(r => r.sdt_that > 0);
   const bad = mapped ? R.filter(r => over(r.chi || 0, r.sdt_that)).sort((a, b) => b.chi - a.chi) : []; // chưa gắn được SĐT nào theo chiến dịch → không liệt kê (tránh báo nhầm mọi chiến dịch 0 số)
+  return { T, y, yOver: over(y.chi_facebook || 0, y.sdt_that), R, mapped, bad };
+}
+export function mkPhatAlert(S, now = Date.now()) {
+  const C = mkPhatCalc(S, now); if (!C) return null;
+  const { T, y, R, mapped, bad } = C, out = [];
+  if (C.yOver) out.push('<b>Hôm qua ' + y.ngay.slice(8, 10) + '/' + y.ngay.slice(5, 7) + '</b>: chi ' + vnd(y.chi_facebook) + ' → ' + y.sdt_that + ' SĐT thật' + (y.sdt_that ? ' = <b>' + vnd(y.gia_1_sdt_that) + ' / 1 SĐT</b>' : ''));
   if (out.length && !mapped && R.length) out.push('<i>Chưa biết chiến dịch nào đắt: SĐT thật chưa gắn được theo chiến dịch (CRM tab Marketing → 🎯 Số thật theo chiến dịch).</i>');
   if (bad.length) out.push('<b>Chiến dịch 7 ngày vượt trần</b>:\n' + bad.slice(0, 5).map(r => '• ' + esc(r.chien_dich) + ': chi ' + vnd(r.chi) + ', ' + (r.sdt_that ? r.sdt_that + ' SĐT = ' + vnd(r.gia_1_sdt_that) + ' / số' : 'chưa có SĐT thật')).join('\n') + (bad.length > 5 ? '\n• … và ' + (bad.length - 5) + ' chiến dịch khác' : ''));
   if (!out.length) return null;
   return '🚨 <b>Phát báo: giá 1 SĐT vượt trần ' + vnd(T) + '</b>\n\n' + out.join('\n\n') +
     '\n\n👉 Nên giảm tiền hoặc tắt các chiến dịch trên: vào CRM tab Marketing, hẹn lệnh lúc 0h để Facebook không phải học lại giữa ngày.\n<i>Số tính lúc ' + S.lap_luc + '. Hỏi thêm: /so</i>';
+}
+
+/** 👉 Việc hôm nay ở tab Marketing (27/11/2026): dòng Phát báo (hôm qua giá 1 số vượt trần) + kết quả Phòng AI đã duyệt chờ đăng. Chỉ đọc kv + bảng pm_tasks. */
+export async function mkToday(x, u) {
+  const C = mkPhatCalc(await kvJson(x.db, 'mk_snap', null), Date.now(), 26 * 3600e3);
+  const phat = C && C.yOver ? { ngay: C.y.ngay, chi: C.y.chi_facebook || 0, n: C.y.sdt_that || 0, tran: C.T, bad: C.bad.slice(0, 3).map(r => r.chien_dich), mapped: C.mapped } : null;
+  let pm = [];
+  if (u.level >= 3 || u.role === 'Marketing') { try { await pmSchema(x.db); pm = await pmDoneList(x); } catch (e) { console.error('mkToday pm', e.message); } }
+  return { ok: true, phat, pm };
 }
 
 let client = null;

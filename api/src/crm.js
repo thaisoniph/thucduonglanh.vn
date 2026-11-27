@@ -44,6 +44,7 @@ import { crmBt } from './bangtin.js';
 import { aiUsage, aiFund, aiPickSet } from './aiuse.js';
 import { aiTeam } from './aiteam.js';
 import { crmPm } from './phongai.js';
+import { mkToday } from './mktg.js';
 import { crmAsk, askAllowed } from './ask.js';
 import { crmMcp } from './mcp.js';
 import { saleDays } from './zday.js';
@@ -2711,7 +2712,7 @@ async function crmKhoFind(x, u, d) {
     Date.now() - 180 * DAY, like, like, like, dg.length >= 4 ? dg : '', '%' + dg);
   return { ok: true, list: rows.map(khoRetOut) };
 }
-const MKT_ACTIONS = { guide_ask: 1, link_list: 1, link_save: 1, link_active: 1, load: 1, mktv: 1, mkt_tg_test: 1, mkt_goal: 1, mkt_import: 1, mkt_add: 1, mkt_list: 1, mkt_kpi: 1, mkt_fb_edit: 1, mk_camp_col: 1, mk_sch_act: 1, quiz_cms: 1, web_prods: 1, cms_sso: 1, mkt_del: 1, prefs: 1, tg_link: 1, tg_check: 1, tg_off: 1, perf: 1, usage: 1, feedback: 1, fb_list: 1, fb_img: 1, offers: 1, offer_save: 1, offer_del: 1, wall_hide: 1, zb_view: 1, zb_cfg: 1, zb_post: 1, zb_regen: 1, zb_other: 1, zb_send: 1, zb_cancel: 1, zb_recall: 1, zb_img: 1, zb_hist: 1, zb_logmore: 1, zb_done: 1, zb_time: 1, zb_plan_make: 1, zb_plan_set: 1, zb_plan_redo: 1, fl_view: 1, fl_scan: 1, fp_view: 1, fp_page: 1, fp_resub: 1, fp_scan: 1, fp_post: 1, fp_now: 1, fp_regen: 1, fp_send: 1, fp_logmore: 1, fp_done: 1, bl_view: 1, bl_post: 1, bl_act: 1, bl_cfg: 1, bl_stats: 1, ins_view: 1, ins_save: 1, ins_st: 1, ins_stsave: 1, ins_stok: 1, ins_stdel: 1, ins_stcfg: 1, ins_video: 1, ins_vdel: 1, ins_merge: 1, ins_import: 1, ins_skill: 1, ins_skilldel: 1, ins_skillview: 1, ins_odel: 1, ins_find: 1, ins_big: 1, ins_kw: 1, ins_kwsave: 1, ins_trend: 1, ins_trendai: 1, ins_img: 1, spf_list: 1, spf_imgs: 1, spf_used: 1, spf_write: 1, spf_save: 1, spf_okall: 1, spf_fill: 1, spf_mix: 1, spf_del: 1, ins_offer: 1, ins_sview: 1, ins_score: 1, ins_stt: 1, ins_sres: 1, ins_sdel: 1, ins_vqlist: 1, ins_vqsave: 1, ins_vqdel: 1, ins_vqadd: 1, ins_vqrun: 1, ins_gate: 1, ins_yt: 1, ins_ytcfg: 1, ins_ytrun: 1 };
+const MKT_ACTIONS = { mk_today: 1, pm_done: 1, pm_post: 1, guide_ask: 1, link_list: 1, link_save: 1, link_active: 1, load: 1, mktv: 1, mkt_tg_test: 1, mkt_goal: 1, mkt_import: 1, mkt_add: 1, mkt_list: 1, mkt_kpi: 1, mkt_fb_edit: 1, mk_camp_col: 1, mk_sch_act: 1, quiz_cms: 1, web_prods: 1, cms_sso: 1, mkt_del: 1, prefs: 1, tg_link: 1, tg_check: 1, tg_off: 1, perf: 1, usage: 1, feedback: 1, fb_list: 1, fb_img: 1, offers: 1, offer_save: 1, offer_del: 1, wall_hide: 1, zb_view: 1, zb_cfg: 1, zb_post: 1, zb_regen: 1, zb_other: 1, zb_send: 1, zb_cancel: 1, zb_recall: 1, zb_img: 1, zb_hist: 1, zb_logmore: 1, zb_done: 1, zb_time: 1, zb_plan_make: 1, zb_plan_set: 1, zb_plan_redo: 1, fl_view: 1, fl_scan: 1, fp_view: 1, fp_page: 1, fp_resub: 1, fp_scan: 1, fp_post: 1, fp_now: 1, fp_regen: 1, fp_send: 1, fp_logmore: 1, fp_done: 1, bl_view: 1, bl_post: 1, bl_act: 1, bl_cfg: 1, bl_stats: 1, ins_view: 1, ins_save: 1, ins_st: 1, ins_stsave: 1, ins_stok: 1, ins_stdel: 1, ins_stcfg: 1, ins_video: 1, ins_vdel: 1, ins_merge: 1, ins_import: 1, ins_skill: 1, ins_skilldel: 1, ins_skillview: 1, ins_odel: 1, ins_find: 1, ins_big: 1, ins_kw: 1, ins_kwsave: 1, ins_trend: 1, ins_trendai: 1, ins_img: 1, spf_list: 1, spf_imgs: 1, spf_used: 1, spf_write: 1, spf_save: 1, spf_okall: 1, spf_fill: 1, spf_mix: 1, spf_del: 1, ins_offer: 1, ins_sview: 1, ins_score: 1, ins_stt: 1, ins_sres: 1, ins_sdel: 1, ins_vqlist: 1, ins_vqsave: 1, ins_vqdel: 1, ins_vqadd: 1, ins_vqrun: 1, ins_gate: 1, ins_yt: 1, ins_ytcfg: 1, ins_ytrun: 1 };
 export async function crmApi(x, d, sync, mgr) {
   await ensureSchema(x.db);
   const a = d.action;
@@ -2753,7 +2754,8 @@ export async function crmApi(x, d, sync, mgr) {
   if (a === 'vh_admin') return vhAdmin(x, u);
   if (a === 'vh_save') return vhSave(x, u, d);
   if (a === 'vh_wish_save') return vhWishSave(x, u, d); // ☀️ lời chúc mỗi ngày (loichuc.js)
-  if (/^pm_(view|add|review|cancel)$/.test(a)) return crmPm(x, u, a, d); // 📣 Phòng Marketing AI: giao việc cho Lành trên Mac, duyệt kết quả (phongai.js, 16/11/2026)
+  if (/^pm_(view|add|review|cancel|done|post)$/.test(a)) return crmPm(x, u, a, d); // 📣 Phòng Marketing AI: giao việc cho Lành trên Mac, duyệt kết quả (phongai.js, 16/11/2026)
+  if (a === 'mk_today') return mkToday(x, u); // 👉 Việc hôm nay tab Marketing: Phát báo + kết quả Phòng AI chờ đăng (mktg.js, 27/11/2026)
   if (a === 'aiteam') return aiTeam(x, u); // 🤖 Đội nhân sự AI: mỗi trợ lý 1 thẻ (Quản lý + Quản trị, 14/11/2026, aiteam.js)
   if (a === 'ai_usage') return aiUsage(x, u, d); // 🤖 mức dùng & chi phí AI theo mục (Quản trị, 10/11/2026, aiuse.js)
   if (a === 'ai_pick') return aiPickSet(x, u, d); // 🎛 Quản trị chọn mô hình AI cho từng việc (20/11/2026)

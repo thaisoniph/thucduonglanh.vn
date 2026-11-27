@@ -52,18 +52,28 @@ Bạn không thấy khách đã mua, đơn hàng hay doanh số toàn công ty. 
 
 [[steps:mk-man]]
 
-**Khung 👉 Việc hôm nay** luôn ở trên cùng: các việc đánh số 1, 2, 3… Làm lần lượt từ bước 1. Góc phải ghi **Còn mấy việc**; không có việc thì ghi **🎉 Xong hết**. Nhãn màu ghi ai làm (Marketing hay Sale). Bấm **Xem** trong một việc là CRM tự mở đúng thẻ.
+**Dải 4 bước** ở trên cùng (từ 27/11/2026) cho biết việc marketing mỗi ngày đi theo thứ tự nào. Mỗi ô có nút **Mở ›** đến đúng chỗ làm:
 
-Ngay dưới là **các thẻ chia 3 nhóm theo việc** (từ 19/11/2026). Mỗi lần xem 1 thẻ, đầu thẻ có ô xanh **📌 Dùng để** + các bước ① ②:
+| Bước | Làm gì | Ai |
+| --- | --- | --- |
+| ① Xem số về | Mỗi sáng: số điện thoại về cho sale đủ chưa, giá 1 số bao nhiêu | Cả nhóm |
+| ② Sửa quảng cáo | Chiến dịch 🔴 giảm / tắt, 🟢 tăng tiền (đang chạy thì áp lúc 0h) | Anh Hiếu |
+| ③ Giao việc cho Phòng AI | Nhờ Phòng Marketing AI viết bài, phân tích, làm offer | Anh Sơn, anh Hiếu |
+| ④ Duyệt & đăng | Bài Phòng AI đã được duyệt → copy, đăng, bấm **✅ Đã đăng** | Phương |
+
+**Khung 👉 Việc của [tên bạn] hôm nay** ngay dưới: các việc đánh số 1, 2, 3… Làm lần lượt từ bước 1. Mỗi người thấy việc của mình trước:
+- **Quản trị (anh Hiếu chạy quảng cáo):** dòng **🔴 Phát báo** khi giá 1 số điện thoại hôm qua vượt trần (cùng số với tin Telegram 8h). Bấm **Sửa quảng cáo ›**.
+- **Marketing (Phương):** dòng **📝 Phòng Marketing AI có N kết quả đã được duyệt**. Bấm **Xem & copy ›** → mở từng bài → **📋 Copy** → đăng lên Fanpage, Zalo… → bấm **✅ Đã đăng** để bài rời khỏi danh sách.
+
+Góc phải ghi **Còn mấy việc**; không có việc thì ghi **🎉 Xong hết**. Nhãn màu ghi ai làm (Marketing hay Sale). Bấm **Xem** trong một việc là CRM tự mở đúng thẻ.
+
+Ngay dưới là **4 thẻ** (27/11/2026 gộp từ 7 thẻ). Mỗi lần xem 1 thẻ, đầu thẻ có ô xanh **📌 Dùng để** + các bước ① ②:
 
 | Nhóm | Thẻ | Dùng để |
 | --- | --- | --- |
-| **📇 Mỗi ngày** | 📇 Số điện thoại | Số về cho sale đã đủ chưa, giá 1 số bao nhiêu |
-| | 📘 Quảng cáo đang chạy | Từng chiến dịch Facebook: tăng, giảm, tắt ([Việc 2](#viec-2-xem-va-sua-quang-cao-facebook)) |
-| **📊 Xem kết quả** (mỗi tuần) | 📊 Kết quả | 6 ô số theo kỳ: tiền bỏ ra, tiền khách mới mang về |
-| | 🔎 Vì sao | 4 câu hỏi chi tiết: có lời không, quảng cáo nào dở, số có ra đơn không, kênh tự có |
-| **🛠 Chuẩn bị** (đầu tháng, khi cần) | 🎯 Mục tiêu | Mục tiêu và ngân sách tháng ([Việc 3](#viec-3-dat-muc-tieu-thang)) |
-| | 🎁 Ưu đãi | Ưu đãi đang chạy (Quản trị) |
+| **📇 Mỗi ngày** (mỗi sáng) | 📇 Hôm nay | Số về cho sale đã đủ chưa, giá 1 số bao nhiêu; ngay dưới là từng chiến dịch Facebook đang chạy: tăng, giảm, tắt ([Việc 2](#viec-2-xem-va-sua-quang-cao-facebook)) |
+| **📊 Xem kết quả** (mỗi tuần) | 📊 Kết quả | 6 ô số theo kỳ: tiền bỏ ra, tiền khách mới mang về; bên dưới là 🔎 Vì sao: 4 câu hỏi (có lời không, quảng cáo nào dở, số có ra đơn không, kênh tự có) |
+| **🛠 Chuẩn bị** (đầu tháng, khi cần) | 🎯 Đầu tháng | Mục tiêu và ngân sách tháng ([Việc 3](#viec-3-dat-muc-tieu-thang)), ưu đãi đang chạy (Quản trị) |
 | | 🧰 Công cụ | Link & QR, biểu mẫu FB, tệp khách, tin Telegram |
 
 **Thẻ 📇 Số điện thoại về cho sale: đủ chưa, giá bao nhiêu?** Luôn tính **hôm nay** và **tháng này**.

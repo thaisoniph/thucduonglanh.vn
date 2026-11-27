@@ -12736,16 +12736,28 @@
     var OA = offerAdmin();
     // 16/11/2026: 👉 Việc hôm nay lên TRÊN CÙNG (cùng khung mọi vai trò), ô 📇 số điện thoại ngay dưới
     var Linfo = L.filter(function (x) { return /^(🏆|ℹ️)/.test(x); }), Ldo = L.filter(function (x) { return !/^(🏆|ℹ️)/.test(x); });
-    h += '<div class="box dash-notes mk-steps td-box">' + todayHead('👉 Việc hôm nay', Ldo.length, 'Làm lần lượt từ bước 1 · nhãn màu = ai làm' + (f.p.k !== 'month' && f.p.k !== 'today' ? ' · tính theo kỳ đang xem: ' + esc(perLabel(f.p)) : '')) +
-      (Ldo.length ? '<ol class="mk-step-l">' + Ldo.map(function (x, i) { return '<li><span class="mk-step-n">' + (i + 1) + '</span><div>' + x + '</div></li>'; }).join('') + '</ol>' : '<p>✅ Hôm nay quảng cáo đang ổn, chưa có việc gì cần sửa. Xem số điện thoại về ở thẻ 📇 Số điện thoại bên dưới.</p>') + Linfo.map(function (x) { return '<p class="td-info">' + x + '</p>'; }).join('') + '</div>';
+    // 27/11/2026 (anh Sơn): việc riêng từng người lên đầu – Quản trị (anh Hiếu chạy quảng cáo): Phát báo giá vượt trần · Marketing (Phương): kết quả Phòng AI đã duyệt chờ đăng
+    if (!MKT2.j || Date.now() - MKT2.at > 5 * 60e3) setTimeout(mkTodayFetch, 0);
+    var T2 = MKT2.j || {}, P2 = T2.phat, my = [];
+    if (P2 && lvl() >= 3) my.push('🔴 <b>Phát báo:</b> hôm qua ' + esc(P2.ngay.slice(8, 10) + '/' + P2.ngay.slice(5, 7)) + ' chi ' + moneyShort(P2.chi) + ' → ' + P2.n + ' số điện thoại' + (P2.n ? ' = <b>' + moneyShort(Math.round(P2.chi / P2.n)) + ' / số</b>' : '') + ', vượt trần ' + moneyShort(P2.tran) + '. ' +
+      (P2.bad.length ? 'Đắt nhất: ' + P2.bad.map(esc).join(', ') + '. ' : '') + 'Giảm tiền hoặc tắt chiến dịch đắt (đang chạy thì áp lúc 0h). <button class="link" data-dgo="mk-live">Sửa quảng cáo ›</button>');
+    if ((T2.pm || []).length && (isMkt() || lvl() >= 3)) my.push('📝 <b>Phòng Marketing AI</b> có ' + T2.pm.length + ' kết quả đã được duyệt, chờ đăng / đưa ra dùng. <button class="link" data-mkpd="1">Xem &amp; copy ›</button>');
+    Ldo = my.concat(Ldo);
+    var fs = function (n, t, d, a) { return '<li><b>' + n + ' ' + t + '</b><small>' + d + '</small>' + (a || '') + '</li>'; };
+    h += '<ol class="pma-steps mk-flow">' + fs('①', 'Xem số về', 'mỗi sáng: đủ số chưa, giá 1 số', '<button class="link" data-mkt="so">Mở ›</button>') +
+      fs('②', 'Sửa quảng cáo', 'tăng, giảm, tắt (áp lúc 0h)', '<button class="link" data-dgo="mk-live">Mở ›</button>') +
+      fs('③', 'Giao việc cho Phòng AI', 'bài viết, phân tích, offer', lvl() >= 3 ? '<a class="link" href="#doi-ai">Mở ›</a>' : '<small>anh Sơn, anh Hiếu giao</small>') +
+      fs('④', 'Duyệt &amp; đăng', 'Phương đăng bài đã duyệt', (T2.pm || []).length ? '<button class="link" data-mkpd="1">' + T2.pm.length + ' bài chờ ›</button>' : '<small>chưa có bài chờ</small>') + '</ol>';
+    h += '<div class="box dash-notes mk-steps td-box">' + todayHead('👉 Việc của ' + esc(((S.user && S.user.name) || 'bạn').split(' ').pop()) + ' hôm nay', Ldo.length, 'Làm lần lượt từ bước 1 · nhãn màu = ai làm' + (f.p.k !== 'month' && f.p.k !== 'today' ? ' · tính theo kỳ đang xem: ' + esc(perLabel(f.p)) : '')) +
+      (Ldo.length ? '<ol class="mk-step-l">' + Ldo.map(function (x, i) { return '<li><span class="mk-step-n">' + (i + 1) + '</span><div>' + x + '</div></li>'; }).join('') + '</ol>' : '<p>✅ Hôm nay quảng cáo đang ổn, chưa có việc gì cần sửa. Xem số điện thoại về ở thẻ 📇 Hôm nay bên dưới.</p>') + Linfo.map(function (x) { return '<p class="td-info">' + x + '</p>'; }).join('') + '</div>';
     // 19/11/2026 (anh Sơn: "làm tương tự trang Insight"): trang dài 8 khối → 3 nhóm thẻ theo việc, mỗi lần xem 1 thẻ; 👉 Việc hôm nay vẫn trên cùng
     var tab = mkTab(f, OA);
     h += grpMenu(mkGroups(OA), tab, function (k) { return 'data-mkt="' + k + '"'; });
-    if (tab === 'so') h += inTabi('Biết hôm nay và tháng này <b>số điện thoại về cho sale đã đủ chưa, giá 1 số bao nhiêu</b>.', ['Ô đỏ / cam: làm các bước ở khung 👉 Việc hôm nay', 'Muốn xem từng chiến dịch: bấm thẻ <b>📘 Quảng cáo đang chạy</b>']) + mkNeedBox(gKey === key ? mj : gm, mj);
-    if (tab === 'live') h += inTabi('Xem từng chiến dịch Facebook đang chạy: <b>🟢 nên tăng tiền, 🔴 nên giảm / tắt</b>, sửa ngay tại đây.', ['Đọc nhãn màu và lý do trên từng chiến dịch', 'Bấm nút trên chiến dịch để tăng, giảm, tắt (chiến dịch đang chạy thì áp lúc 0h)']) + LB.h;
-    if (tab === 'kq') h += inTabi('Tiền bỏ ra quảng cáo và tiền khách mới mang về <b>theo kỳ bạn chọn</b>, so với kỳ trước.', ['Chọn kỳ (tuần này, tháng này…)', 'Ô đỏ: bấm thẻ <b>🔎 Vì sao</b> để biết lý do']) + '<div id="mk-kq">' + perChips('m', f.p) + HT + '</div>';
+    // 27/11/2026: 7 thẻ → 4 (📇 Hôm nay = số về + quảng cáo đang chạy · 📊 Kết quả = kết quả + vì sao · 🎯 Đầu tháng = mục tiêu + ưu đãi · 🧰 Công cụ)
+    if (tab === 'so') h += inTabi('Mỗi sáng: <b>số điện thoại về cho sale đã đủ chưa, giá 1 số bao nhiêu</b>, rồi sửa quảng cáo ngay bên dưới.', ['Xem ô 📇: đỏ / cam là thiếu số hoặc số đắt', 'Kéo xuống 📘: chiến dịch 🔴 giảm / tắt, 🟢 tăng tiền (đang chạy thì áp lúc 0h)']) + mkNeedBox(gKey === key ? mj : gm, mj) + LB.h;
+    if (tab === 'kq') h += inTabi('Tiền bỏ ra quảng cáo và tiền khách mới mang về <b>theo kỳ bạn chọn</b>, so với kỳ trước, và <b>vì sao</b>.', ['Chọn kỳ (tuần này, tháng này…)', 'Ô đỏ: đọc 4 câu hỏi 🔎 Vì sao ngay bên dưới']) + '<div id="mk-kq">' + perChips('m', f.p) + HT + '</div>';
     if (tab === 'mt') h += inTabi('Đầu tháng đặt <b>mục tiêu tiền khách mới</b> và <b>ngân sách quảng cáo</b> cho từng kênh; trong tháng xem đã đạt bao nhiêu %.', ['Đầu tháng: bấm <b>🎯 Đặt mục tiêu</b>', 'Kênh không tự cập nhật chi phí: bấm <b>⚙️ Nhập chi phí</b> trên cùng']) + (GB.h ? GB.h.replace(/<\/section>$/, BH + '</section>') : BH ? '<div id="mk-mt">' + BH + '</div>' : '<div class="box"><p class="muted">Chưa có mục tiêu tháng này.</p></div>');
-    if (tab === 'ud' && OA) h += inTabi('Các ưu đãi đang chạy mà sale và trợ lý AI được nhắc tới khách.', ['Ưu đãi mới: 🎯 Insight & nội dung → ✍️ Tạo nội dung → 🎁 Viết offer', 'Duyệt giá xong mới bật ở đây']) + '<div id="mk-ud">' + OA + '</div>';
+    if (tab === 'mt' && OA) h += inTabi('Các ưu đãi đang chạy mà sale và trợ lý AI được nhắc tới khách.', ['Ưu đãi mới: 🎯 Insight & nội dung → ✍️ Tạo nội dung → 🎁 Viết offer', 'Duyệt giá xong mới bật ở đây']) + '<div id="mk-ud">' + OA + '</div>';
     // ---- chi tiết (29/10/2026): gom thành 4 câu hỏi theo thứ tự người làm marketing tự hỏi; mỗi câu có câu trả lời ngắn, mục con thu gọn bấm mới mở (mkGroup)
     var D = {};
     if (GB.body) D.goal = mkMore('goal', '🎯 Mỗi kênh đạt bao nhiêu % mục tiêu tháng?', GB.line, GB.body);
@@ -12796,8 +12808,8 @@
         trendChart({ B: BM, fmt: moneyShort, what: 'Tiền khách mới', series: [{ v: nv, name: 'Tiền khách mới mua', cls: 'cur' }, { v: sv, name: 'Chi phí quảng cáo', cls: 'alt' }], note: (eff ? '<b>' + eff + '</b> ' : '') + 'Đường xanh nằm càng cao trên đường vàng là tiền thu về càng nhiều so với tiền quảng cáo.' }));
     }
     var adsA = tot ? adsLv(tot, nr) : '', mins = function (ks) { return ks.map(function (k) { return D[k] || ''; }).join(''); };
-    if (tab === 'ct') {
-    h += inTabi('Trả lời <b>4 câu hỏi</b> theo thứ tự người làm marketing tự hỏi, tính theo kỳ đang chọn ở thẻ 📊 Kết quả (' + esc(perLabel(f.p)) + ').', ['Đọc câu trả lời ngắn của từng câu', 'Muốn xem kỹ: bấm mục bên dưới câu đó để mở']);
+    if (tab === 'kq') {
+    h += '<h2 class="mk-why-h">🔎 Vì sao: 4 câu hỏi</h2><p class="small muted">Tính theo kỳ đang chọn ở trên (' + esc(perLabel(f.p)) + '). Đọc câu trả lời ngắn; muốn xem kỹ thì bấm mục bên dưới câu đó.</p>';
     h += mkGroup('1', '💰 Tiền quảng cáo có lời không?', !tot ? 'Kỳ này chưa có chi phí quảng cáo.' : adsA === 'ok' ? '🟢 Có lời: bỏ 1đ quảng cáo, khách mới mua ' + oneDec(nr / tot) + 'đ.' : adsA === 'mid' ? '🟠 Tạm ổn: bỏ 1đ, khách mới mua ' + oneDec(nr / tot) + 'đ. Cần rẻ hơn chút nữa.' : '🔴 Chưa có lời: bỏ 1đ quảng cáo, khách mới chỉ mua ' + oneDec(nr / (tot || 1)) + 'đ. Mở các mục dưới để xem kênh, chiến dịch nào kéo xuống.', mins(['ch', 'tr', 'ltv', 'goal']));
     h += mkGroup('2', '📣 Quảng cáo nào tốt, quảng cáo nào dở?', CB.line || 'Chưa có chiến dịch trong kỳ', mins(['camp', 'prod', 'fun']));
     h += mkGroup('3', '📇 Số điện thoại về sale có ra đơn không?', ad ? ad.n + ' số điện thoại · ' + pct(ad.won, ad.n) + '% đã mua' + (ad.idle ? ' · ⏳ ' + ad.idle + ' số sale chưa gọi xong' : '') : 'Chưa có file số quảng cáo của sale.', mins(['sale']) + '<p class="small muted">Số điện thoại về, giá 1 số, số chưa gọi: xem ở thẻ <button class="link" data-mkt="so">📇 Số điện thoại</button>.</p>');
@@ -12812,27 +12824,50 @@
     h += '<p class="small muted" style="margin-top:12px">' + (mj.fb.on ? '📘 Facebook Ads tự cập nhật' + (mj.fb.last ? ' · lần gần nhất ' + fDateTime(mj.fb.last) : '') + ' · ' : '') + 'Số tính lúc ' + fDateTime(mj.at) + (mj.cached ? ' (bấm ↻ để tính lại)' : '') + '. Tiền khách mới = tiền khách mua lần đầu mang về trong kỳ (cả các đơn sau của họ trong kỳ), gắn theo kênh đã đưa khách tới.</p>';
     return h;
   }
+  /** 👉 việc riêng tab Marketing (27/11/2026, máy chủ mktg.js mkToday): Phát báo + kết quả Phòng AI đã duyệt chờ đăng */
+  var MKT2 = { j: null, at: 0, busy: 0 };
+  function mkTodayFetch() {
+    if (MKT2.busy) return; MKT2.busy = 1; MKT2.at = Date.now();
+    api('mk_today', {}).then(function (j) { MKT2.busy = 0; MKT2.j = j; if (route().view === 'marketing' && !$('.modal')) render(); }, function () { MKT2.busy = 0; MKT2.j = { phat: null, pm: [] }; });
+  }
+  function mkPostOpen() {
+    var L = (MKT2.j && MKT2.j.pm) || []; if (!L.length) { toast('Không còn bài chờ đăng'); return; }
+    var body = '<p class="small muted">Anh Sơn / anh Hiếu đã duyệt. Bấm <b>📋 Copy</b> để dán vào Fanpage, Zalo…; đăng xong bấm <b>✅ Đã đăng</b> để bài rời khỏi danh sách.</p>' + L.map(function (t) {
+      return '<details class="mk-pd"><summary><b>' + esc(t.title) + '</b><small>' + t.ic + ' ' + esc(t.name) + ' · duyệt ' + esc(when(t.done || t.upd)) + '</small></summary><article class="pma-res">' + pmaMd(t.result) + '</article>' +
+        '<div class="steps"><button class="btn" data-mkpc="' + t.id + '">📋 Copy</button><button class="btn pri" data-mkpp="' + t.id + '">✅ Đã đăng</button></div></details>';
+    }).join('');
+    var md = modal('📝 Kết quả Phòng AI chờ đăng (' + L.length + ')', body, '<button class="btn">Đóng</button>');
+    md.classList.add('pma-read');
+    $$('.sheet-f .btn', md).forEach(function (b) { b.onclick = closeModal; });
+    var first = $('details.mk-pd', md); if (first) first.open = true;
+    $$('[data-mkpc]', md).forEach(function (b) { b.onclick = function () { var t = L.filter(function (z) { return z.id === Number(b.getAttribute('data-mkpc')); })[0]; copy(t.result).then(function () { toast('Đã copy'); }); }; });
+    $$('[data-mkpp]', md).forEach(function (b) { b.onclick = function () {
+      b.disabled = true; api('pm_post', { id: Number(b.getAttribute('data-mkpp')) }).then(function () { toast('Đã ghi: đã đăng ✓'); closeModal(); MKT2.at = 0; mkTodayFetch(); }, function (e) { b.disabled = false; toast(e.message, true); });
+    }; });
+  }
   /** 📣 Marketing chia 3 nhóm thẻ (19/11/2026) */
   function mkGroups(OA) {
-    return [['📇 Mỗi ngày', 'số về, quảng cáo đang chạy', [['so', '📇', 'Số điện thoại', 'đủ chưa, giá bao nhiêu'], ['live', '📘', 'Quảng cáo đang chạy', 'tăng, giảm, tắt']]],
-      ['📊 Xem kết quả', 'mỗi tuần 1 lần', [['kq', '📊', 'Kết quả', 'tiền bỏ ra, thu về'], ['ct', '🔎', 'Vì sao', '4 câu hỏi chi tiết']]],
-      ['🛠 Chuẩn bị', 'đầu tháng, khi cần', [['mt', '🎯', 'Mục tiêu', 'và ngân sách tháng']].concat(OA ? [['ud', '🎁', 'Ưu đãi', 'đang chạy']] : [], [['cc', '🧰', 'Công cụ', 'link, QR, biểu mẫu']])]];
+    return [['📇 Mỗi ngày', 'mỗi sáng', [['so', '📇', 'Hôm nay', 'số về, sửa quảng cáo']]],
+      ['📊 Xem kết quả', 'mỗi tuần 1 lần', [['kq', '📊', 'Kết quả', 'tiền bỏ ra, thu về, vì sao']]],
+      ['🛠 Chuẩn bị', 'đầu tháng, khi cần', [['mt', '🎯', 'Đầu tháng', 'mục tiêu, ngân sách' + (OA ? ', ưu đãi' : '')], ['cc', '🧰', 'Công cụ', 'link, QR, biểu mẫu']]]];
   }
   function mkTab(f, OA) {
     if (!f.tab) f.tab = store('mkt_tab') || 'so';
+    f.tab = ({ live: 'so', ct: 'kq', ud: 'mt' })[f.tab] || f.tab; // thẻ cũ (trước 27/11/2026) đã gộp
     if (!mkGroups(OA).some(function (g) { return g[2].some(function (x) { return x[0] === f.tab; }); })) f.tab = 'so';
     return f.tab;
   }
   /** chỗ cần tới (id mk-…) nằm ở thẻ nào; còn lại ở 🔎 Vì sao */
-  var MK_GO = { need: 'so', live: 'live', kq: 'kq', mt: 'mt', ud: 'ud', cc: 'cc' };
+  var MK_GO = { need: 'so', live: 'so', kq: 'kq', mt: 'mt', ud: 'mt', cc: 'cc' };
   function bindMkv() {
     $$('[data-mkt]').forEach(function (el) { el.onclick = function () { S.f.m.tab = el.getAttribute('data-mkt'); store('mkt_tab', S.f.m.tab); render(); }; });
+    $$('[data-mkpd]').forEach(function (el) { el.onclick = mkPostOpen; });
     $$('[data-mkv]').forEach(function (el) { el.onclick = function () { var a = el.getAttribute('data-mkv'); if (a === 'aud') openFbAud(); else if (a === 'flform') openFbForm(); else if (a === 'cost') openMkt(); else if (a === 'budget') { var bj = MV.cache[mvKey()]; if (bj) openBudget(bj.budget); } else if (a === 'call') { S.f.m.call = 1; render(); } else if (a === 'tgtest') { el.disabled = true; api('mkt_tg_test').then(function () { toast('📲 Đã gửi, mở Telegram để xem'); }, function (e) { toast(/Không rõ thao tác/.test(e.message) ? 'Máy chủ đang cập nhật bản mới, thử lại sau 2 phút.' : e.message, true); }).then(function () { el.disabled = false; }); } else if (a === 'goal') { var gj = MV.cache[mvKey()]; if (gj) openMkGoal(gj); } else if (a === 'fresh') { KP.err = ''; kpFetch(true); var mk0 = mvMonthKey(), k = mvKey(); delete MV.cache[k]; MV.err = ''; delete MV.pend[k]; mvFetch(k, true); if (mk0 !== k) { delete MV.cache[mk0]; delete MV.pend[mk0]; mvFetch(mk0, true); } render(); } }; });
     bindDashBtn(); // 🌐 nút kết nối Cloudflare / Google Analytics trong mục Website (26/11/2026)
     $$('#view [data-dash="sfb"]').forEach(function (el) { el.onclick = function () { var f = S.f.m; f.sfb = !f.sfb; store('dash_sfb', f.sfb ? '1' : '0'); render(); }; });
     $$('#view [data-dgo]').forEach(function (el) { el.onclick = function () {
       var g = el.getAttribute('data-dgo').replace(/^mk-/, ''), go = function () { var t = $('#mk-' + g); if (!t) return; for (var d = t; d; d = d.parentElement && d.parentElement.closest('details')) if (d.tagName === 'DETAILS') d.open = true; t.scrollIntoView({ behavior: 'smooth', block: 'start' }); };
-      if (route().view === 'marketing' && !$('#mk-' + g)) { S.f.m.tab = MK_GO[g] || 'ct'; store('mkt_tab', S.f.m.tab); render(); setTimeout(go, 50); } else go();
+      if (route().view === 'marketing' && !$('#mk-' + g)) { S.f.m.tab = MK_GO[g] || 'kq'; store('mkt_tab', S.f.m.tab); render(); setTimeout(go, 50); } else go();
     }; });
     $$('details[data-mk]').forEach(function (d) { d.addEventListener('toggle', function () { var o = S.f.m.open || (S.f.m.open = {}), k = d.getAttribute('data-mk'); if (d.open) o[k] = 1; else delete o[k]; store('mkt_open', JSON.stringify(o)); }); });
     $$('[data-mka]').forEach(function (el) { el.onclick = function () { S.f.m.acc = el.getAttribute('data-mka'); render(); }; });
