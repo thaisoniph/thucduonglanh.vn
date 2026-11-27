@@ -33,8 +33,8 @@ export const MUC = {
  * airelay.js aiFetch đổi trường model ngay trước khi gửi Anthropic; mô hình chọn bị lỗi 400 (không hỗ trợ tham số…) → tự gửi lại bằng mô hình gốc. */
 export const MODELS = { haiku: 'claude-haiku-5-5', sonnet: 'claude-sonnet-5-5', opus: 'claude-opus-5-5' };
 /** Mô hình code đang dùng cho từng mục (để CRM hiện "Mặc định (…)"); 'mix' = trong mục có nhiều việc dùng mô hình khác nhau. */
-export const DEF = { chat: 'haiku', zalo: 'haiku', 'zalo-bai': 'sonnet', 'zalo-kh': 'sonnet', fanpage: 'haiku', 'fb-bai': 'sonnet', 'web-bai': 'opus', video: 'opus', insight: 'mix', offer: 'opus', chamdiem: 'opus', crm: 'haiku',
-  loikhach: 'haiku', youtube: 'sonnet', hoi: 'sonnet', giaoviec: 'haiku', 'tg-so': 'haiku', huongdan: 'haiku', tuyendung: 'sonnet', san: 'mix', ketoan: 'sonnet', 'insight-anh': 'sonnet', 'insight-big': 'opus', 'insight-kw': 'sonnet', 'fb-ca-nhan': 'opus' };
+export const DEF = { chat: 'haiku', zalo: 'haiku', 'zalo-bai': 'sonnet', 'zalo-kh': 'sonnet', fanpage: 'haiku', 'fb-bai': 'sonnet', 'web-bai': 'opus', video: 'sonnet', insight: 'mix', offer: 'opus', chamdiem: 'sonnet', crm: 'haiku',
+  loikhach: 'haiku', youtube: 'sonnet', hoi: 'sonnet', giaoviec: 'haiku', 'tg-so': 'haiku', huongdan: 'haiku', tuyendung: 'sonnet', san: 'mix', ketoan: 'sonnet', 'insight-anh': 'sonnet', 'insight-big': 'sonnet', 'insight-kw': 'sonnet', 'fb-ca-nhan': 'sonnet' };
 let pickCache = null, pickAt = 0;
 async function pickMap(db) {
   if (pickCache && Date.now() - pickAt < 60e3) return pickCache; // đọc lại sau 1 phút (mỗi máy chủ giữ bản riêng)

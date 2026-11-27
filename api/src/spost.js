@@ -14,7 +14,7 @@ import { imgLib, prodMap } from './zbot.js';
 import { offersLive } from './salemkt.js';
 import { insPick, insBlock, insParse, insLog, insRisk, insViet, insStyle, canIns, INS_HEAD, funOf } from './insight.js';
 
-const WRITER = 'claude-opus-5-5';
+const WRITER = 'claude-sonnet-5-5'; // 27/11/2026 anh Sơn: tối ưu chi phí Opus → Sonnet 5.5 (rẻ ½); muốn Opus lại thì chọn ở CRM → Cài đặt → 🤖 Chi phí AI → 🎛
 /** Lối ra của bình luận ghim: đường dẫn trên web (CRM tự gắn ?ref= của sale) + mô tả cho AI */
 export const SPF_TO = {
   nhom: ['/nhom-zalo/', 'Vào nhóm Zalo', 'vào nhóm Zalo "Sống khỏe cùng Thực Dưỡng Lành" (mẹo sống khỏe mỗi ngày, hỏi đáp, quà cho thành viên), miễn phí'],

@@ -23,7 +23,7 @@ import { crmVoc, vqPick, vqBlock } from './voc.js';
 import { crmGate } from './gate.js';
 import { crmYt } from './yt.js';
 
-const WRITER = 'claude-opus-5-5'; // việc cần nghĩ sâu, ít lượt: kịch bản video, big idea
+const WRITER = 'claude-sonnet-5-5'; // 27/11/2026 anh Sơn: tối ưu chi phí Opus → Sonnet 5.5 (rẻ ½); muốn Opus lại thì chọn ở CRM → Cài đặt → 🤖 Chi phí AI → 🎛 (kịch bản video, big idea)
 const LITE = 'claude-sonnet-5-5'; // 13/11/2026: việc đọc / lọc / liệt kê (nhập insight, câu lệnh ảnh, từ khoá) → Sonnet 5.5, rẻ ½
 export const CH = { web: '🌐 Web', zalo: '💬 Zalo', fb: '📘 Fanpage', video: '🎬 Video', fbcn: '📣 FB cá nhân' };
 

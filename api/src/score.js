@@ -13,7 +13,7 @@ import { skillOf, methodBlock, skUse } from './inskill.js';
 import { kb, TRUTH_RULES } from './chat.js';
 import { insBank, tenOf, FUN, FORMULA, LAW, VIET, insRisk, insStyle, funOf } from './insight.js';
 
-const WRITER = 'claude-opus-5-5';
+const WRITER = 'claude-sonnet-5-5'; // 27/11/2026 anh Sơn: tối ưu chi phí Opus → Sonnet 5.5 (rẻ ½); muốn Opus lại thì chọn ở CRM → Cài đặt → 🤖 Chi phí AI → 🎛
 const cut = (s, n) => String(s == null ? '' : s).trim().slice(0, n);
 /** 9 tiêu chí, tổng 100 (khoá K131 / K133 + K218). Đổi điểm tối đa thì tổng vẫn phải 100. */
 export const CRIT = [
