@@ -338,6 +338,7 @@ async function importOrders(x, src, shCfg, data, dry) {
     // Doanh thu sự kiện (29/10/2026, anh Sơn): tiền bán ở sự kiện chia đều cho các sale đi cùng, mỗi sale ghi 1 dòng "khách sự kiện" có ngày + số tiền, không có SĐT → vẫn tính doanh số cho sale
     const ev = !phone && amount > 0 && /su kien/.test(nrm(cell(r, m, 'name') + ' ' + cell(r, m, 'note') + ' ' + product + ' ' + cell(r, m, 'address')));
     if ((!phone && !ev) || !when || (!product && !amount)) { if (nonEmpty(r)) { skip++; if (codeRaw) skipCodes[codeRaw] = 1; } continue; }
+    if (when > Date.now() + DAY) { skip++; continue; } // 27/11/2026: ngày đặt ở tương lai (THUY261204 ghi 26/12, chưa có đơn) → không nhập; đơn đã nhập tự xoá ở bước "không còn trong file"
     if (D.far && far.length < 30) far.push({ row: ri + (shCfg.header || 1) + 1, code: codeRaw, date: fmtDate(D.old, 'dd/MM/yyyy') });
     const valid = CODE_RE.test(codeRaw) || /^\p{L}{2,}\d{5,}/u.test(codeRaw);
     const nkOf = t => { const hk = sale + '|' + fmtDate(t, 'yyyyMMdd') + '|' + (fp || 'SK') + '|' + amount + '|' + nrm(product); return ['NK' + hashKey(hk), 'NK' + hashKeyLegacy(hk)]; };
