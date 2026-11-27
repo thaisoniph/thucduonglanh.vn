@@ -3171,7 +3171,8 @@ details.dash-grp[open] > summary::after { transform: rotate(180deg); }
 .pma-fix { margin-top: 10px; } .pma-fix textarea { width: 100%; }
 .pma-hist { margin-top: 10px; font-size: 13px; } .pma-hist ul { margin: 4px 0; padding-left: 18px; } .pma-hist small { color: var(--muted); }
 .ait-h2 { font-size: 17px; margin: 4px 0 6px; }
-@media (max-width: 760px) { .pma-four { grid-template-columns: repeat(2, minmax(0, 1fr)); } /* 16/11/2026 Cài đặt → Nhân sự: thông tin lặt vặt thu gọn, quyền + lần đăng nhập nổi lên */
+@media (max-width: 760px) { .pma-four { grid-template-columns: repeat(2, minmax(0, 1fr)); } .pma-row { grid-template-columns: 1fr; } .pma-lead { min-width: 0; width: 100%; } .pma { padding: 12px; } }
+/* 16/11/2026 Cài đặt → Nhân sự: thông tin lặt vặt thu gọn, quyền + lần đăng nhập nổi lên */
 .edit-row.usr .usr-more { margin: 2px 0 0; }
 .edit-row.usr .usr-more > summary { cursor: pointer; color: var(--muted, #666); font-size: 13px; padding: 4px 0; }
 .edit-row.usr .usr-more-b { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 6px; }
@@ -4092,3 +4093,10 @@ table.cmp-sum.ev3 td small { white-space: nowrap; }
 /* 💰 bảng chiết khấu từng sản phẩm theo giá vốn (Cài đặt → 🏪 Đại lý → ⚙️) */
 table.dly-caps { width: 100%; white-space: normal; }
 table.dly-caps td:first-child { position: static; }
+
+/* 📣 Marketing 27/11/2026: dải 4 bước (dùng lại .pma-steps) + kết quả Phòng AI chờ đăng */
+.mk-flow { margin: 0 0 10px; } .mk-flow li .link { font-size: 13px; padding: 0; margin-top: 2px; } .mk-flow li > small:last-child { font-style: italic; }
+.mk-why-h { font-size: 17px; margin: 18px 0 2px; }
+.mk-pd { border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; margin: 8px auto; max-width: 780px; background: #fff; }
+.mk-pd summary { cursor: pointer; } .mk-pd summary small { display: block; color: var(--muted); font-size: 12.5px; }
+.mk-pd .pma-res { padding: 10px 4px; font-size: 15.5px; } .mk-pd .steps { justify-content: flex-end; }
