@@ -16237,7 +16237,7 @@
   /* ---------- ☀️ Gộp thẻ đầu trang (16/11/2026, anh Sơn "Gộp gọn lại"): lời chào, Việc tuần, điều văn hoá, thông báo, sinh nhật, cập nhật thông tin, tin vui
    * trước đây 6–7 thẻ chồng nhau đẩy 👉 Việc hôm nay xuống gần 1 màn điện thoại. Nay chỉ còn 1 dòng chào + nhãn nhỏ. Các khung giữ nguyên id (btBox, tbBox…) nên tự vẽ lại khi có số mới (MutationObserver).
    * 19/11/2026 Phương án C (anh Sơn: "để gọn thì đa số nhân sự sẽ không mở"):
-   *  1) Dòng xem trước: dưới lời chào hiện luôn 1 dòng chữ THẬT (điều hôm nay, lời chúc, tin vui, thông báo…), 7 giây đổi 1 tin, rê chuột / chạm thì dừng. Không bấm vẫn đọc được.
+   *  1) Dòng xem trước: dưới lời chào hiện luôn 1 dòng chữ THẬT (điều hôm nay, lời chúc, tin vui, thông báo…), 10 giây đổi 1 tin, rê chuột / chạm thì dừng. Không bấm vẫn đọc được.
    *  2) Tự mở khi có việc thật cho người đó: thông báo chưa đọc, thiếu thông tin cá nhân, việc tuần mới / quá hạn, sinh nhật đồng đội hôm nay.
    *     Tự mở chỉ hiện đúng thẻ cần làm (tf-focus), bấm "✅ Tôi đã đọc" / "Để sau" xong hết thì khung tự thu gọn. Bấm đóng = cả ngày không tự mở lại cho đúng việc đó (tf_shut).
    *  3) Đo: lượt tự mở / tự bấm mở ghi vào 📈 Mức dùng CRM như 1 màn hình ("☀️ Khung chào: tự mở" / "☀️ Khung chào: bấm mở"). */
@@ -16269,7 +16269,7 @@
     pk.ontouchstart = function () { TF.hold = 1; clearTimeout(TF.holdT); TF.holdT = setTimeout(function () { TF.hold = 0; }, 15000); };
     tfChips();
     if (TF.mo) TF.mo.disconnect(); if (window.MutationObserver) { TF.mo = new MutationObserver(function () { tfChips(); }); TF.mo.observe(body, { childList: true, subtree: true, characterData: true }); }
-    if (!TF.timer) TF.timer = setInterval(tfTick, 7000);
+    if (!TF.timer) TF.timer = setInterval(tfTick, 10000);
   }
   /** Việc thật cần người này làm, theo thứ tự: [id khung, chữ xem trước]. Rỗng = không có gì gấp. */
   function tfHot() {
