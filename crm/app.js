@@ -7752,8 +7752,9 @@
     return staffNames().filter(function (n) { var u = (S.d.users || []).filter(function (z) { return z.name === n; })[0]; return has[n] || (u && /sale/i.test(u.role || '')); });
   }
   /** Điểm thái độ 0–100 (null = chưa có gì để chấm). */
-  function kstAtt(sp, care, careAvg, m) {
+  function kstAtt(sp, care, careAvg, m, grow) {
     var v = [];
+    if (grow !== null && grow !== undefined) v.push(Math.min(1, grow)); // 27/11/2026: + trung bình việc mở rộng khách / ngày làm việc (5 việc = đủ)
     if (sp !== null && sp !== undefined) v.push(Math.min(1, sp / 80));
     if (careAvg >= 3) v.push(Math.min(1, care / careAvg));
     var mm = (m || []).filter(function (x) { return x !== null && x !== undefined; }); if (mm.length) v.push(mm.reduce(function (a, b) { return a + b; }, 0) / mm.length / 100);
@@ -7772,7 +7773,8 @@
         var mb = mk && mk.people ? mk.people[n] || null : null, row = pd.mo ? ksRow(pd.mo, n) : null, m = row && row.mgr && row.mgr.p;
         var r = pd.mo ? ksResult(n, pd.mo, mb, T) : ksCalcR(n, pd.R, mb, T, null), sp = mb ? smkSpeed(mb) : null;
         var c = r.c || perf(n, pd.R), act = c.orders || c.care || (mb && mb.n);
-        out.by[n] = act ? { r: r, tot: r.tot, gr: r.gr, att: kstAtt(sp, rows[n].care, careAvg, m), sp: sp, care: rows[n].care, m: m } : null;
+        var gw = act && selfOn() ? growAvg(n, pd.R) : null;
+        out.by[n] = act ? { r: r, tot: r.tot, gr: r.gr, att: kstAtt(sp, rows[n].care, careAvg, m, gw), sp: sp, care: rows[n].care, m: m, gw: gw } : null;
       });
       return out;
     });
@@ -7798,7 +7800,7 @@
     var av = P.map(function (pd, i) { return avgOf(i, names); });
     h += '<tr class="kst-avg"><th>Trung bình nhóm</th>' + av.map(function (v) { return '<td class="kst-c">' + (v === null ? '–' : '<b>' + Math.round(v) + '</b>') + '</td>'; }).join('') + '<td class="kst-tr">' + (trendOf(av) || '<small class="muted">chưa rõ</small>') + '</td></tr></tbody></table></div>';
     h += '<p class="small muted">' + (k === 'att'
-      ? '💪 Thái độ (100 điểm) = trung bình của: gọi ngay trong ngày nhận số (đủ điểm từ 80%) · lượt chăm sóc so với trung bình nhóm · quản lý chấm quy trình (chỉ có khi xem theo tháng). 🟢 ≥ 80 · 🟠 60–79 · 🔴 dưới 60.'
+      ? '💪 Thái độ (100 điểm) = trung bình của: gọi ngay trong ngày nhận số (đủ điểm từ 80%) · lượt chăm sóc so với trung bình nhóm · việc mở rộng khách mỗi ngày (đủ điểm khi làm đủ 5 việc) · quản lý chấm quy trình (chỉ có khi xem theo tháng). 🟢 ≥ 80 · 🟠 60–79 · 🔴 dưới 60.'
       : '📋 Cùng cách chấm phiếu KPI tháng (doanh số 60 · việc dẫn tới doanh số 20 · chất lượng 10 · quy trình 10). Tuần, quý: mục tiêu chia theo số ngày, chưa có điểm quản lý chấm. 🟢 A · 🟠 B / C · 🔴 D.') +
       ' Kỳ đang chạy so với tiến độ tới hôm nay, không tính vào xu hướng. Chạy thử, chưa tính vào lương.</p>';
     return h + '</div>';
@@ -7815,7 +7817,8 @@
     }).join('');
     body += '<div class="ks-sec"><h4>💪 Thái độ làm việc <span class="kpt-w">' + (x.att === null ? '–' : oneDec(x.att) + ' / 100') + '</span></h4>' +
       '<div class="ks-it"><span>Gọi ngay trong ngày nhận số</span><b>' + (x.sp === null ? 'không nhận số' : x.sp + '%') + '</b></div>' +
-      '<div class="ks-it"><span>Lượt chăm sóc<small>trung bình nhóm ' + Math.round(L.D[i].careAvg) + ' lượt</small></span><b>' + x.care + ' lượt</b></div></div>';
+      '<div class="ks-it"><span>Lượt chăm sóc<small>trung bình nhóm ' + Math.round(L.D[i].careAvg) + ' lượt</small></span><b>' + x.care + ' lượt</b></div>' +
+      (x.gw === null || x.gw === undefined ? '' : '<div class="ks-it"><span>Mở rộng khách<small>trung bình mỗi ngày làm việc, đủ điểm khi làm đủ 5 việc</small></span><b>' + oneDec(x.gw * 5) + '/5 việc</b></div>') + '</div>';
     modal('📈 KPI ' + esc(pd.tip), body, '<button class="btn" data-close>Đóng</button>');
   }
   document.addEventListener('click', function (e) {
@@ -15643,8 +15646,17 @@
     lines.push('KH cũ đã chăm sóc (kết nối): ' + cs.ok, 'Không nghe máy: ' + cs.knm);
     if (kq.called) lines.push('📞 Tỷ lệ gọi được: ' + kq.conn + '% (' + cs.ok + '/' + kq.called + ')');
     if (cs.ok) lines.push('🔁 Chốt khách cũ trong ngày: ' + kq.oldWon + '/' + cs.ok + ' khách kết nối · ' + kq.oldPct + '%');
-    var ef = effortStats(name, dayStart(day), dayStart(day) + DAY);
-    lines.push('🌱 Mở rộng khách: ' + ef.tot + ' việc (mời giới thiệu ' + ef.inv + ' · mời nhóm Zalo ' + ef.zl + ' · gọi lại khách cũ ' + ef.old + ' · khách tự tạo ' + ef.self + ' · nhận từ Kho ' + ef.pool + ' · bài Facebook ' + ef.fb + ') · hẹn gọi lại ' + ef.cb);
+    var ef = effortStats(name, dayStart(day), dayStart(day) + DAY), wk = dyWork(name, day);
+    if (ef.cb) lines.push('📅 Hẹn gọi lại: ' + ef.cb + ' khách');
+    lines.push('🌱 Mở rộng khách: ' + ef.tot + ' việc (mời giới thiệu ' + ef.inv + ' · mời nhóm Zalo ' + ef.zl + ' · gọi lại khách cũ ' + ef.old + ' · khách tự tạo ' + ef.self + ' · nhận từ Kho ' + ef.pool + ' · bài Facebook ' + ef.fb + ')');
+    if (name !== null) { // 27/11/2026 (anh Sơn): 💪 Việc đã làm – chỉ số "đã làm được", so với chính mình, không điểm, không so người khác
+      var sk = growStreak(name, day);
+      lines.push('💪 Việc đã làm:');
+      if (wk.called) lines.push('   📞 Đã gọi ' + wk.called + ' khách' + dyUp(wk.called, wk.prev));
+      if (selfOn()) lines.push('   🌱 Mở rộng khách ' + Math.min(5, growDone(ef)) + '/5 việc' + (sk >= 2 ? ' · 🔥 ' + sk + ' ngày liền đủ 5 việc' : ''));
+      if (wk.note !== null) lines.push('   📝 Ghi chú cuộc gọi: ' + wk.note + '%');
+      if (wk.span) lines.push('   🕘 Giờ làm trên CRM: ' + wk.span);
+    }
     effortCheer(name, day).forEach(function (t) { lines.push(t); });
     lines.push('Lý do từ chối:' + (cs.why.length ? '' : ' –')); if (cs.why.length) lines.push('📊 ' + whyGrpTxt(cs.why)); cs.why.slice(0, 12).forEach(function (w) { lines.push('- ' + w); });
     var T = d.tot, mrev = sum(T.newR) + sum(T.oldR), tg = name ? targetOf(name, month) : null;
@@ -15658,29 +15670,89 @@
     var d0 = dayStart(day), d1 = d0 + DAY;
     if (name !== null) {
       var e = effortStats(name, d0, d1), t = [];
-      if (e.inv) t.push('mời ' + e.inv + ' khách giới thiệu'); if (e.zl) t.push('mời ' + e.zl + ' khách vào nhóm Zalo'); if (e.old) t.push('gọi lại ' + e.old + ' khách cũ'); if (e.self) t.push('tự tạo ' + e.self + ' khách mới'); if (e.pool) t.push('nhận ' + e.pool + ' số từ Kho chung'); if (e.fb) t.push('đăng ' + e.fb + ' bài Facebook'); if (e.cb) t.push('hẹn gọi lại ' + e.cb + ' khách');
+      var wc = dyWork(name, day).called; if (wc) t.push('gọi ' + wc + ' khách');
+      if (e.inv) t.push('mời ' + e.inv + ' khách giới thiệu'); if (e.zl) t.push('mời ' + e.zl + ' khách vào nhóm Zalo'); if (e.old) t.push('gọi lại ' + e.old + ' khách cũ'); if (e.self) t.push('tự tạo ' + e.self + ' khách mới'); if (e.pool) t.push('nhận ' + e.pool + ' số từ Kho chung'); if (e.fb) t.push('đăng ' + e.fb + ' bài Facebook'); // 27/11/2026: bỏ "hẹn gọi lại" khỏi lời khen mở rộng khách (là kết quả gọi khách cũ, thường "khách còn hàng")
       return t.length ? ['🌟 Cảm ơn ' + name + ' hôm nay đã ' + t.join(', ') + '. Mỗi việc hôm nay là đơn hàng của những ngày sau!'] : [];
     }
     var top = userNames().map(function (n) { return { n: n, v: effortStats(n, d0, d1).tot }; }).filter(function (x) { return x.v > 0; }).sort(function (a, b) { return b.v - a.v; }).slice(0, 3);
-    return top.length ? ['🌟 Chăm mở rộng khách nhất hôm nay: ' + top.map(function (x) { return x.n + ' (' + x.v + ' việc)'; }).join(', ') + '. Cảm ơn cả nhà!'] : [];
+    var out = top.length ? ['🌟 Chăm mở rộng khách nhất hôm nay: ' + top.map(function (x) { return x.n + ' (' + x.v + ' việc)'; }).join(', ') + '. Cảm ơn cả nhà!'] : [];
+    var sk = staffNames().map(function (n) { return { n: n, v: growStreak(n, day) }; }).filter(function (x) { return x.v >= 2; }).sort(function (a, b) { return b.v - a.v; }); // 🔥 chuỗi ngày đủ 5 việc dài nhất (khen công khai, không nêu ai thấp)
+    if (sk.length && selfOn()) out.push('🔥 Giữ chuỗi dài nhất: ' + sk.filter(function (x) { return x.v === sk[0].v; }).map(function (x) { return x.n; }).join(', ') + ' – ' + sk[0].v + ' ngày liền đủ 5 việc mở rộng khách!');
+    return out;
   }
 
   function effortStats(name, from, to) {
-    var inv = {}, zl = {}, fbs = {}, cb = 0, pool = 0, old = 0;
+    return effortAcc(name, from, to, function () { return 'a'; }).a || { inv: 0, zl: 0, cb: 0, self: 0, pool: 0, old: 0, fb: 0, tot: 0 };
+  }
+  /** 27/11/2026: đếm công sức theo từng ngày trong 1 lượt đọc nhật ký (chuỗi ngày đủ 5 việc, điểm thái độ theo tuần / tháng / quý). key(t) = nhóm theo thời điểm. */
+  function effortDays(name, from, to) { return effortAcc(name, from, to, dayStart); }
+  function effortAcc(name, from, to, key) {
+    var M = {}, get = function (t) { var k = key(t); return M[k] || (M[k] = { inv: {}, zl: {}, fbs: {}, cb: 0, pool: 0, old: 0, self: 0 }); };
     (S.d.log || []).forEach(function (l) {
       if (!l.time || l.time < from || l.time >= to || (name !== null && l.by !== name)) return;
-      var ph = String(l.ref).replace(/^'/, '');
-      if (l.what === 'Mời giới thiệu') inv[ph] = 1;
-      else if (l.what === 'Mời nhóm Zalo') zl[ph] = 1;
-      else if (l.what === 'Nhận khách') pool++;
-      else if (l.what === 'Gọi lại khách cũ') old++;
-      else if (l.what === 'Đăng bài FB') fbs[l.result || 'x'] = 1;
-      else if ((l.what === 'Tư vấn' || isCareLog(l)) && (l.result === 'Hẹn gọi lại' || /hẹn (gọi lại |liên hệ lại )?\d{1,2}\/\d{1,2}/i.test(l.note || ''))) cb++;
+      var ph = String(l.ref).replace(/^'/, ''), a;
+      if (l.what === 'Mời giới thiệu') get(l.time).inv[ph] = 1;
+      else if (l.what === 'Mời nhóm Zalo') get(l.time).zl[ph] = 1;
+      else if (l.what === 'Nhận khách') get(l.time).pool++;
+      else if (l.what === 'Gọi lại khách cũ') get(l.time).old++;
+      else if (l.what === 'Đăng bài FB') get(l.time).fbs[l.result || 'x'] = 1;
+      else if ((l.what === 'Tư vấn' || isCareLog(l)) && (l.result === 'Hẹn gọi lại' || /hẹn (gọi lại |liên hệ lại )?\d{1,2}\/\d{1,2}/i.test(l.note || ''))) { a = get(l.time); a.cb++; }
     });
-    var self = (S.d.leads || []).filter(function (l) { return l.time >= from && l.time < to && l.by && (name === null ? l.by === l.owner : l.by === name) && !/^File/.test(l.channel || ''); }).length;
-    var o = { inv: Object.keys(inv).length, zl: Object.keys(zl).length, cb: cb, self: self, pool: pool, old: old, fb: Object.keys(fbs).length };
-    o.tot = o.inv + o.zl + o.old + o.pool + o.self + o.fb; // 13/11/2026: + bài Facebook cá nhân / hội nhóm (việc 5) // 🌱 số việc mở rộng khách (13/11/2026: + mời nhóm Zalo, gọi lại khách "Không mua")
-    return o;
+    (S.d.leads || []).forEach(function (l) { if (l.time >= from && l.time < to && l.by && (name === null ? l.by === l.owner : l.by === name) && !/^File/.test(l.channel || '')) get(l.time).self++; });
+    var out = {};
+    Object.keys(M).forEach(function (k) {
+      var m = M[k], o = { inv: Object.keys(m.inv).length, zl: Object.keys(m.zl).length, cb: m.cb, self: m.self, pool: m.pool, old: m.old, fb: Object.keys(m.fbs).length };
+      o.tot = o.inv + o.zl + o.old + o.pool + o.self + o.fb; // 🌱 số việc mở rộng khách (13/11/2026: + mời nhóm Zalo, gọi lại khách "Không mua", bài Facebook). cb (hẹn gọi lại) là chăm sóc khách cũ, không cộng vào đây
+      out[k] = o;
+    });
+    return out;
+  }
+  /** ↑ / ↓ so với ngày làm việc trước (chỉ ghi khi hôm trước có số). */
+  function dyUp(cur, prev) { if (!prev || cur === prev) return ''; return cur > prev ? ' (↑' + (cur - prev) + ' so với hôm trước)' : ''; } // chỉ ghi khi tăng: báo cáo sale gửi nhóm chung
+  function isSunday(d0) { return new Date(d0 + 7 * 3600e3).getUTCDay() === 0; }
+  /** 🔥 Số ngày làm việc liền nhau đủ 5 việc mở rộng khách, tính lùi từ ngày báo cáo (Chủ nhật không làm không bị đứt chuỗi; hôm nay chưa đủ thì tính từ hôm qua). */
+  function growStreak(name, day, D) {
+    var d0 = dayStart(day); D = D || effortDays(name, d0 - 60 * DAY, d0 + DAY);
+    var ok = function (t) { var e = D[t]; return !!e && growDone(e) >= 5; }, n = 0, t = d0;
+    if (!ok(t) && t === today()) t -= DAY;
+    for (var i = 0; i < 60; i++, t -= DAY) { if (ok(t)) n++; else if (!isSunday(t)) break; }
+    return n;
+  }
+  /** Trung bình số việc mở rộng khách / ngày làm việc trong khoảng R (bỏ Chủ nhật, chỉ tính tới hôm nay), 0–1 so với 5 việc. */
+  function growAvg(name, R) {
+    var to = Math.min(R[1], today() + DAY), D = effortDays(name, R[0], to), s = 0, n = 0;
+    for (var t = dayStart(R[0]); t < to; t += DAY) { var e = D[t]; if (isSunday(t) && !e) continue; n++; s += e ? Math.min(5, growDone(e)) : 0; }
+    return n ? s / n / 5 : null;
+  }
+  /** 💪 Việc đã làm trong ngày (sale thấy, chỉ số "đã làm được", không so với người khác):
+   *  called = số khách đã gọi (kết nối + không nghe máy) · prev = số đã gọi ngày làm việc trước · note = % lần chăm sóc khách nghe máy có ghi chú · span = giờ ghi việc đầu – cuối. */
+  function dyWork(name, day) {
+    var d0 = dayStart(day), cs = careStats(name, d0, d0 + DAY), p0 = d0 - DAY; if (isSunday(p0)) p0 -= DAY;
+    var pc = careStats(name, p0, p0 + DAY), care = 0, noted = 0, t1 = 0, t2 = 0;
+    (S.d.log || []).forEach(function (l) {
+      if (!l.time || l.time < d0 || l.time >= d0 + DAY || (name !== null && l.by !== name)) return;
+      if (!t1 || l.time < t1) t1 = l.time; if (l.time > t2) t2 = l.time;
+      if (isCareLog(l) && l.result !== NO_REPLY) { care++; if (String(l.note || '').trim().length >= 4) noted++; }
+    });
+    var hm = function (t) { var x = vnDate(t); return x.h + ':' + pad(x.mi); };
+    return { called: cs.ok + cs.knm, prev: pc.ok + pc.knm, note: care ? pct(noted, care) : null, span: name !== null && t1 && t2 - t1 >= 600e3 ? hm(t1) + ' – ' + hm(t2) : '' };
+  }
+  /** 🔒 Chỉ quản lý thấy (anh Sơn 27/11/2026: điểm phán xét để quản lý kèm riêng, không đưa ra nhóm): hẹn gọi lại đã quá hạn chưa gọi, khách hỏi chưa liên hệ, khách hỏi nhận trong ngày đã gọi trong ngày, số ngày trong tháng không làm việc mở rộng nào. */
+  function dyMgr(name, day) {
+    var d0 = dayStart(day), t0 = today(), R = monthRange(monthOf(day)), live = d0 === t0;
+    var late = live ? (S.d.customers || []).filter(function (c) { return c.callback && c.owner === name && dayStart(c.callback) < t0 && !isStopped(c); }).length : null;
+    var open = live ? (S.d.leads || []).filter(function (l) { return l.owner === name && isOpenLead(l) && !l.lastAt; }).length : null;
+    var got = (S.d.leads || []).filter(function (l) { return l.owner === name && l.time >= d0 && l.time < d0 + DAY; }), same = got.filter(function (l) { return l.lastAt && l.lastAt < d0 + DAY; }).length;
+    var D = effortDays(name, R[0], d0 + DAY), idle = 0, wd = 0;
+    for (var t = R[0]; t <= d0; t += DAY) { if (isSunday(t) && !D[t]) continue; wd++; if (!D[t] || !D[t].tot) idle++; }
+    return { late: late, open: open, got: got.length, same: same, idle: idle, wd: wd };
+  }
+  function dyMgrHtml(name, day) {
+    if (lvl() < 2) return '';
+    var L = name === null ? staffNames() : [name], d0 = dayStart(day), live = d0 === today();
+    var rows = L.map(function (n) { var m = dyMgr(n, day); return '<tr><td>' + esc(n) + '</td><td>' + (m.late === null ? '–' : m.late ? '<b class="dy-mgr-bad">' + m.late + '</b>' : '0') + '</td><td>' + (m.open === null ? '–' : m.open ? '<b class="dy-mgr-bad">' + m.open + '</b>' : '0') + '</td><td>' + (m.got ? m.same + '/' + m.got + ' · ' + pct(m.same, m.got) + '%' : '–') + '</td><td>' + (m.idle ? '<b class="dy-mgr-bad">' + m.idle + '</b>' : '0') + '/' + m.wd + '</td></tr>'; }).join('');
+    return '<details class="dy-mgr"><summary>🔒 Chỉ quản lý thấy: việc còn sót</summary><div class="bcdt-wrap"><table class="bcdt"><thead><tr><th>Sale</th><th>Hẹn gọi lại quá hạn</th><th>Khách hỏi chưa liên hệ</th><th>Khách hỏi hôm nay đã gọi trong ngày</th><th>Ngày không làm việc mở rộng (tháng)</th></tr></thead><tbody>' + rows + '</tbody></table></div>' +
+      '<p class="small muted" style="margin:6px 0 0">' + (live ? '' : 'Xem ngày cũ: 2 cột đầu chỉ có khi xem hôm nay. ') + 'Phần này không có trong ảnh / bản chữ gửi Zalo. Sale tự thấy các khách này ở tab Hôm nay dưới dạng việc cần làm. Điểm 💪 Thái độ theo tuần / tháng: Hiệu quả → 👥 Từng người → 📈 KPI theo thời gian.</p></details>';
   }
 
   /** Báo cáo ngày dạng bảng như Excel (góp ý chị Thuỷ 29/10/2026): cả nhóm = mỗi sale 1 dòng + dòng Tổng; 1 người = 2 cột Chỉ số | Số. Cột cả ngày bằng 0 thì ẩn. */
@@ -15689,7 +15761,7 @@
     var sum = function (o) { return BC_LINES.reduce(function (s0, l) { return s0 + o[l]; }, 0); };
     var adm = {}; (S.d.users || []).forEach(function (u) { if (u.role === 'Quản trị') adm[u.name] = 1; });
     var ents = (name === null ? [{ n: null, t: 'TỔNG cả nhóm' }].concat(userNames().map(function (n) { return { n: n, t: n }; })) : [{ n: name, t: name }]).map(function (e) {
-      var b = bcdtData(e.n, month); e.r = b.rows[idx] || b.rows[0]; e.T = b.tot; e.cs = careStats(e.n, d0, d0 + DAY); e.kq = dyKpi(e.n, day, e.r, e.T, e.cs); e.ef = effortStats(e.n, d0, d0 + DAY); e.tg = e.n ? targetOf(e.n, month) : null; return e;
+      var b = bcdtData(e.n, month); e.r = b.rows[idx] || b.rows[0]; e.T = b.tot; e.cs = careStats(e.n, d0, d0 + DAY); e.kq = dyKpi(e.n, day, e.r, e.T, e.cs); e.ef = effortStats(e.n, d0, d0 + DAY); e.wk = dyWork(e.n, day); e.tg = e.n ? targetOf(e.n, month) : null; return e;
     });
     var cols = [];
     BC_LINES.forEach(function (l) {
@@ -15702,8 +15774,10 @@
       ['Tỷ lệ chốt', 'Data QC hôm nay', function (e) { return dyRate(e.kq.cD) || '–'; }], ['Tỷ lệ chốt', 'Luỹ kế tháng', function (e) { return dyRate(e.kq.cM) || '–'; }], ['Tỷ lệ chốt', 'Data còn đang tư vấn', function (e) { return e.kq.cM.open; }],
       ['DT theo giờ lên đơn', 'Giờ hành chính', function (e) { return e.r.hrR['Trong giờ']; }, 1], ['DT theo giờ lên đơn', 'Tối / Chủ nhật', function (e) { return e.r.hrR['Ngoài giờ']; }, 1], ['DT theo giờ lên đơn', 'Ngày lễ', function (e) { return e.r.hrR['Ngày lễ']; }, 1], ['DT theo giờ lên đơn', 'Gõ vào file (không có giờ)', function (e) { return e.r.hrR['Không rõ giờ']; }, 1],
       ['Đơn hoàn', 'Số đơn', function (e) { return e.r.hoanN; }], ['Đơn hoàn', 'Giá trị', function (e) { return e.r.hoanV; }, 1],
-      ['Chăm sóc khách cũ', 'Kết nối', function (e) { return e.cs.ok; }], ['Chăm sóc khách cũ', 'Không nghe máy', function (e) { return e.cs.knm; }], ['Chăm sóc khách cũ', '% gọi được', function (e) { return e.kq.called ? e.kq.conn + '%' : ''; }], ['Chăm sóc khách cũ', 'Ra đơn trong ngày', function (e) { return e.cs.ok ? e.kq.oldWon + '/' + e.cs.ok + ' · ' + e.kq.oldPct + '%' : ''; }],
-      ['Mở rộng khách', 'Mời giới thiệu', function (e) { return e.ef.inv; }], ['Mở rộng khách', 'Mời nhóm Zalo', function (e) { return e.ef.zl; }], ['Mở rộng khách', 'Gọi lại khách cũ', function (e) { return e.ef.old; }], ['Mở rộng khách', 'Đăng bài FB', function (e) { return e.ef.fb; }], ['Mở rộng khách', 'Hẹn gọi lại', function (e) { return e.ef.cb; }], ['Mở rộng khách', 'Khách tự tạo', function (e) { return e.ef.self; }], ['Mở rộng khách', 'Nhận từ Kho', function (e) { return e.ef.pool; }],
+      ['Chăm sóc khách cũ', 'Đã gọi', function (e) { return e.wk.called ? e.wk.called + (e.n !== null ? dyUp(e.wk.called, e.wk.prev) : '') : ''; }], ['Chăm sóc khách cũ', 'Kết nối', function (e) { return e.cs.ok; }], ['Chăm sóc khách cũ', 'Không nghe máy', function (e) { return e.cs.knm; }], ['Chăm sóc khách cũ', '% gọi được', function (e) { return e.kq.called ? e.kq.conn + '%' : ''; }], ['Chăm sóc khách cũ', 'Ra đơn trong ngày', function (e) { return e.cs.ok ? e.kq.oldWon + '/' + e.cs.ok + ' · ' + e.kq.oldPct + '%' : ''; }], ['Chăm sóc khách cũ', 'Hẹn gọi lại', function (e) { return e.ef.cb; }],
+      ['Mở rộng khách', 'Mời giới thiệu', function (e) { return e.ef.inv; }], ['Mở rộng khách', 'Mời nhóm Zalo', function (e) { return e.ef.zl; }], ['Mở rộng khách', 'Gọi lại khách cũ', function (e) { return e.ef.old; }], ['Mở rộng khách', 'Đăng bài FB', function (e) { return e.ef.fb; }], ['Mở rộng khách', 'Khách tự tạo', function (e) { return e.ef.self; }], ['Mở rộng khách', 'Nhận từ Kho', function (e) { return e.ef.pool; }],
+      ['💪 Việc đã làm', 'Mở rộng khách', function (e) { var g = e.n !== null && selfOn() ? Math.min(5, growDone(e.ef)) : 0; return g ? g + '/5 việc' : ''; }], ['💪 Việc đã làm', 'Chuỗi ngày đủ 5 việc', function (e) { return e.n !== null && selfOn() ? growStreak(e.n, day) || '' : ''; }],
+      ['💪 Việc đã làm', 'Ghi chú cuộc gọi', function (e) { return e.wk.note !== null ? e.wk.note + '%' : ''; }], ['💪 Việc đã làm', 'Giờ làm trên CRM', function (e) { return e.wk.span; }],
       ['Luỹ kế ' + monthLabel(month), 'Doanh thu', function (e) { return sum(e.T.newR) + sum(e.T.oldR); }, 1, 0, 1], ['Luỹ kế ' + monthLabel(month), '% mục tiêu', function (e) { return e.tg && e.tg.amount ? pct(sum(e.T.newR) + sum(e.T.oldR), e.tg.amount) + '%' : ''; }]);
     cols = cols.filter(function (c) { return c[4] || ents.some(function (e) { return c[2](e); }); });
     if (name === null) ents = ents.filter(function (e, i) { return !i || !adm[e.n] || cols.some(function (c) { return c[2](e); }); }); // Quản trị không bán thì không hiện dòng trống
@@ -15730,7 +15804,7 @@
     img.why = wg.length ? ['📊 Gom nhóm: ' + wg.map(function (g) { return g[0] + ' ' + g[1]; }).join(' · ')] : []; ents.forEach(function (e, i) { if (name === null && !i) return; e.cs.why.slice(0, 12).forEach(function (w) { img.why.push((name === null ? e.t + ': ' : '') + w); }); });
     var cheer = effortCheer(name, day); img.cheer = cheer;
     return { img: img, html: (cheer.length ? '<div class="notice info" style="margin:0 0 10px">' + esc(cheer[0]) + '</div>' : '') + '<div class="bcdt-wrap">' + h + '</div>' + (name === null ? '<p class="small muted" style="margin:6px 0 0">Mỗi sale 1 dòng, xếp theo doanh thu trong ngày. Dòng mờ = chưa có đơn / chưa ghi chăm sóc. Số mới = số quảng cáo vào trong ngày. Cột cả ngày bằng 0 được ẩn cho gọn.</p>' : '') + ('<p class="small muted" style="margin:6px 0 0">Tỷ lệ chốt = data quảng cáo đã ra đơn ÷ data quảng cáo nhận (hôm nay / cả tháng). Ra đơn trong ngày = khách cũ gọi kết nối hôm nay đã lên đơn trong ngày. % gọi được = kết nối ÷ số khách đã gọi.</p>') +
-      '<h3 style="margin:12px 0 6px">💬 Lý do khách từ chối</h3>' + (wg.length ? '<div class="dy-whyg">' + wg.map(function (g) { return '<span>' + esc(g[0]) + ' <b>' + g[1] + '</b></span>'; }).join('') + '</div>' : '') + (why.length ? '<ul class="dy-why">' + why.map(function (w) { return '<li>' + w + '</li>'; }).join('') + '</ul>' : '<p class="small muted" style="margin:0">Chưa có.</p>'), csv: csv };
+      '<h3 style="margin:12px 0 6px">💬 Lý do khách từ chối</h3>' + (wg.length ? '<div class="dy-whyg">' + wg.map(function (g) { return '<span>' + esc(g[0]) + ' <b>' + g[1] + '</b></span>'; }).join('') + '</div>' : '') + (why.length ? '<ul class="dy-why">' + why.map(function (w) { return '<li>' + w + '</li>'; }).join('') + '</ul>' : '<p class="small muted" style="margin:0">Chưa có.</p>') + dyMgrHtml(name, day), csv: csv };
   }
   /** Vẽ bảng báo cáo ngày thành ảnh PNG (canvas, không cần thư viện) để dán / chia sẻ vào Zalo. */
   function dyImg(sp) {

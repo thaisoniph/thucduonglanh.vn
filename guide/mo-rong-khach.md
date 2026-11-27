@@ -187,8 +187,9 @@ Bấm **📋 Báo cáo cuối ngày** ở cuối tab Hôm nay.
 ![Báo cáo ngày có ghi nhận công sức](/huong-dan/img/mr-bao-cao.webp)
 
 1. Lời **cảm ơn** việc bạn đã làm hôm nay.
-2. Nhóm **Mở rộng khách**: mời giới thiệu, mời nhóm Zalo, gọi lại khách cũ, đăng bài Facebook, hẹn gọi lại, khách tự tạo, nhận từ Kho.
-3. Bấm **🖼️ Gửi ảnh vào Zalo** để gửi nhóm.
+2. Nhóm **Mở rộng khách**: mời giới thiệu, mời nhóm Zalo, gọi lại khách cũ, đăng bài Facebook, khách tự tạo, nhận từ Kho. (Từ 27/11/2026, **Hẹn gọi lại** chuyển sang nhóm Chăm sóc khách cũ.)
+3. Nhóm **💪 Việc đã làm**: số khách đã gọi (tăng hơn hôm trước thì có ↑), số việc mở rộng khách /5, **🔥 số ngày liền đủ 5 việc**, % cuộc gọi có ghi chú, giờ bắt đầu – kết thúc làm trên CRM. Chỉ ghi việc bạn đã làm, không so với người khác. Mục nào bằng 0 thì tự ẩn.
+4. Bấm **🖼️ Gửi ảnh vào Zalo** để gửi nhóm.
 
 Ngày chưa có đơn, bạn vẫn có cái để báo cáo.
 
