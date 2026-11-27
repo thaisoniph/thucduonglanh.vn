@@ -66,17 +66,17 @@ Vào CRM, bấm **Zalo** trên thanh menu. Quản trị thì vào **••• Th
 Trên cùng luôn có:
 
 1. **Ô trạng thái** 🟢 / 🔴.
-2. **👉 Việc hôm nay**: các việc đánh số 1, 2, 3 (khách đang chờ người thật, bài cần duyệt, chủ đề cần duyệt, lỗi). Bấm **Xem** là CRM tự mở đúng thẻ. Không có việc thì ô ghi 🎉 không có việc nào đang chờ.
+2. **Dải 4 bước** (từ 27/11/2026): ① Trợ lý soạn bài (theo kế hoạch 10 ngày) → ② Duyệt bài → ③ Trả lời ca khó → ④ Xem kết quả. Bước đang có việc tô xanh, bấm nút trong ô là tới đúng chỗ.
+3. **👉 Việc của [tên bạn] hôm nay**: các việc đánh số 1, 2, 3 (khách đang chờ người thật, bài cần duyệt, chủ đề cần duyệt, lỗi; với Marketing và Quản trị có thêm **📝 bài Phòng Marketing AI đã được duyệt chờ đăng**: bấm **Xem & copy**, đăng xong bấm **✅ Đã đăng**). Bấm **Xem** là CRM tự mở đúng thẻ. Không có việc thì ô ghi 🎉 không có việc nào đang chờ.
 
-Bên dưới là **các thẻ chia 3 nhóm theo việc** (từ 19/11/2026), mỗi lần xem 1 thẻ, đầu thẻ có ô xanh **📌 Dùng để** + các bước:
+Bên dưới là **4 thẻ chia 3 nhóm theo việc** (27/11/2026: thẻ Kế hoạch gộp vào Bài sắp đăng), mỗi lần xem 1 thẻ, đầu thẻ có ô xanh **📌 Dùng để** + các bước:
 
 | Nhóm | Thẻ | Dùng để |
 | --- | --- | --- |
-| **📝 Mỗi ngày** | 📝 Bài sắp đăng | Duyệt bài trước giờ đăng, tin nhân sự đã gửi, bài đã đăng gần đây |
+| **📝 Mỗi ngày** | 📝 Bài sắp đăng | Duyệt bài trước giờ đăng, tin nhân sự đã gửi, bài đã đăng gần đây; kéo xuống là 📋 Kế hoạch chủ đề 10 ngày tới |
 | | 🕘 Trợ lý vừa làm gì | Ca cần người thật, lỗi, dạy trợ lý trả lời |
 | **📊 Xem kết quả** (mỗi tuần) | 📊 Kết quả | Số 7 ngày qua, hiệu quả theo phễu, thử giờ đăng, giờ nhóm hay nhắn |
-| **🛠 Chuẩn bị** (khi cần) | 📋 Kế hoạch chủ đề | Chủ đề từng bài 10 ngày tới |
-| | ⚙️ Cài đặt | Bật / tắt trợ lý, nhóm chăm sóc, giờ đăng, chờ duyệt hay tự đăng |
+| **🛠 Chuẩn bị** (khi cần) | ⚙️ Cài đặt | Bật / tắt trợ lý, nhóm chăm sóc, giờ đăng, chờ duyệt hay tự đăng |
 
 ## Việc 1: Duyệt bài
 
@@ -147,7 +147,7 @@ Muốn xem các ngày cũ hơn thì bấm **Xem thêm các ngày trước** ở 
 
 **Cách xem chủ đề:** phần đầu mục chỉ là tóm tắt tỉ lệ. Chủ đề nằm **bên dưới**, chia theo tuần: bấm vào dòng **"Tuần …"** để mở, mỗi bài có 1 thẻ ghi chủ đề, nói với ai, sản phẩm. Nút **✅ Duyệt cả tuần** có hộp hỏi lại kèm danh sách chủ đề trước khi duyệt.
 
-Mục **📋 Kế hoạch chủ đề** (thẻ **📋 Kế hoạch chủ đề**, nhóm 🛠 Chuẩn bị) là danh sách **chủ đề của từng bài trong tuần / trong tháng**. Duyệt chủ đề là **tuỳ chọn** (từ 15/11): người phụ trách chỉ bắt buộc duyệt bài. Duyệt chủ đề trước thì trợ lý viết bài sớm hơn; không duyệt thì trợ lý vẫn tự viết, chậm nhất 24 tiếng trước giờ đăng. Chủ đề nào không hợp (ví dụ nói với con cái về bố mẹ, trong khi nhóm là các bậc cha mẹ) thì bấm **🔄 Đổi chủ đề**.
+Mục **📋 Kế hoạch chủ đề** (cuối thẻ **📝 Bài sắp đăng**) là danh sách **chủ đề của từng bài trong tuần / trong tháng**. Duyệt chủ đề là **tuỳ chọn** (từ 15/11): người phụ trách chỉ bắt buộc duyệt bài. Duyệt chủ đề trước thì trợ lý viết bài sớm hơn; không duyệt thì trợ lý vẫn tự viết, chậm nhất 24 tiếng trước giờ đăng. Chủ đề nào không hợp (ví dụ nói với con cái về bố mẹ, trong khi nhóm là các bậc cha mẹ) thì bấm **🔄 Đổi chủ đề**.
 
 Mỗi chủ đề có:
 

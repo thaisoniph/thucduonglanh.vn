@@ -52,7 +52,7 @@ Bình luận có **số điện thoại** sẽ được trợ lý **ẩn đi** �
 
 Trong CRM, bấm **FB** trên thanh menu. Quản trị bấm **••• Thêm → Fanpage**.
 
-Trên cùng luôn có **ô trạng thái** 🟢 và **👉 Việc hôm nay** (khách đang chờ người thật, bài cần duyệt, lỗi; bấm **Xem** là tự mở đúng thẻ). Bên dưới là **các thẻ chia 3 nhóm theo việc** (từ 19/11/2026):
+Trên cùng luôn có **ô trạng thái** 🟢, **dải 4 bước** (từ 27/11/2026: ① Trợ lý soạn bài → ② Duyệt bài → ③ Trả lời ca khó → ④ Xem kết quả; bước đang có việc tô xanh) và **👉 Việc của [tên bạn] hôm nay** (khách đang chờ người thật, bài cần duyệt, lỗi, và với Marketing / Quản trị: **📝 bài Phòng Marketing AI đã được duyệt chờ đăng**; bấm **Xem** là tự mở đúng thẻ). Bên dưới là **các thẻ chia 3 nhóm theo việc** (từ 19/11/2026):
 
 | Nhóm | Thẻ | Dùng để |
 | --- | --- | --- |
