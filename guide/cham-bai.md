@@ -33,7 +33,7 @@ Kết quả là **điểm trên 100**, kèm đèn màu:
 
 ## Mở ở đâu?
 
-CRM → **🎯 Insight** trên menu (không thấy thì **••• Thêm → 🎯 Insight & nội dung**) → thẻ **🧪 Chấm bài**. Các việc content khác xem trang [Content](/huong-dan/content/).
+CRM → **🎯 Insight** trên menu (không thấy thì **••• Thêm → 🎯 Insight & nội dung**) → thẻ **✍️ Tạo & chấm bài** → kéo xuống phần **🧪 Chấm bài**. Các việc content khác xem trang [Content](/huong-dan/content/).
 
 ## Bước 1: Dán bài, bấm Chấm điểm
 

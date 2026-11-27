@@ -34,7 +34,7 @@ Trước khi viết bất kỳ bài nào, trả lời 4 câu:
 
 **Mỗi ngày (khoảng 5 phút):**
 
-1. Mở **🎯 Insight & nội dung**, nhìn ô cam **👉 Nên làm ngay**. Có nút thì bấm.
+1. Mở **🎯 Insight & nội dung**, nhìn ô cam **👉 Việc của [tên bạn] hôm nay**. Có nút thì bấm (có cả dòng **📝 bài Phòng Marketing AI đã được duyệt chờ đăng** nếu bạn là Marketing / Quản trị).
 2. Duyệt bài trợ lý viết ở tab **Bài web**, **Zalo**, **Fanpage** theo [4 câu hỏi khi duyệt](#viec-1-duyet-bai-tro-ly-viet).
 3. Thấy chuyện cả mạng đang bàn tán thì [ghi vào ô 🔥](#viec-6-ghi-chuyen-dang-nong).
 
@@ -51,18 +51,16 @@ Trước khi viết bất kỳ bài nào, trả lời 4 câu:
 
 [[steps:ct-mo]]
 
-**Các thẻ chia 3 nhóm theo việc** (dưới tên thẻ có ghi khi nào dùng; đầu mỗi thẻ có 📌 Dùng để + các bước ① ② ③):
+Trên cùng là **dải 4 bước** (từ 27/11/2026): ① Dạy trợ lý hiểu khách → ② Trợ lý tự viết (web, Zalo, Fanpage theo lịch) → ③ Tự làm thêm & chấm → ④ Xem kết quả. Bấm **Mở ›** trong ô để tới đúng chỗ.
+
+**4 thẻ chia 3 nhóm theo việc** (27/11/2026 gộp từ 8 thẻ; dưới tên thẻ có ghi khi nào dùng; đầu mỗi thẻ có 📌 Dùng để + các bước ① ② ③):
 
 | Nhóm | Thẻ | Dùng để |
 | --- | --- | --- |
-| **📊 Xem kết quả** (mỗi tuần 1 lần) | 📊 Tổng quan | Xem 30 ngày qua có bao nhiêu bài cho từng nhóm khách, bài nào tốt / kém |
-| | 🛡 Câu bị giữ | Câu trả lời của trợ lý chat bị máy giữ lại vì nói sai (người gác cổng) |
-| **✍️ Tự làm thêm** (khi cần) | ✍️ Tạo nội dung | Viết kịch bản video, câu lệnh ảnh, bài Facebook cho sale, ưu đãi |
-| | 🧪 Chấm bài | AI chấm bài bạn làm trước khi đăng |
-| **🧠 Dạy trợ lý** (trợ lý đọc trước khi viết) | 👥 Nhóm khách | Mỗi nhóm khách mong gì, bị cản bởi gì, ý lớn đang chạy |
-| | 🗣 Lời khách | Câu nguyên văn của khách thật |
-| | 📅 Dịp & chuyện nóng | Dịp lễ sắp tới, chuyện cả mạng đang bàn tán |
-| | 📗 Tài liệu nền | 📗 [Sổ tay doanh nghiệp](/huong-dan/website/#viec-8-sua-so-tay-doanh-nghiep), từ khoá bài web, phương pháp viết |
+| **📊 Xem kết quả** (mỗi tuần 1 lần) | 📊 Kết quả | Xem 30 ngày qua có bao nhiêu bài cho từng nhóm khách, bài nào tốt / kém; cuối thẻ là **🛡 Câu bị giữ** (câu trả lời của trợ lý chat bị máy giữ lại vì nói sai) |
+| **✍️ Tự làm thêm** (khi cần) | ✍️ Tạo & chấm bài | Viết kịch bản video, câu lệnh ảnh, bài Facebook cho sale, ưu đãi; cuối thẻ là **🧪 Chấm bài** (AI chấm bài bạn làm trước khi đăng) |
+| **🧠 Dạy trợ lý** (trợ lý đọc trước khi viết) | 👥 Hiểu khách | Mỗi nhóm khách mong gì, bị cản bởi gì, ý lớn đang chạy; cuối thẻ là **🗣 Lời khách** (câu nguyên văn của khách thật) |
+| | 📅 Dịp & tài liệu | Dịp lễ sắp tới, chuyện cả mạng đang bàn tán; cuối thẻ là **📗 Tài liệu nền** ([Sổ tay doanh nghiệp](/huong-dan/website/#viec-8-sua-so-tay-doanh-nghiep), từ khoá bài web, phương pháp viết) |
 
 ## Việc 1: Duyệt bài trợ lý viết
 
@@ -89,7 +87,7 @@ Dùng cho TikTok, Reels, Shorts (video dọc), hoặc YouTube (chọn độ dài
 
 ## Việc 3: Chấm bài trước khi đăng
 
-Bạn tự viết bài hoặc quay video? Trước khi đăng hay chạy quảng cáo, cho AI chấm: thẻ **🧪 Chấm bài** → dán bài (hoặc link video trên Drive) → **🧪 Chấm điểm**. AI chấm 100 điểm, chỉ 3 chỗ cần sửa và viết sẵn bản sửa.
+Bạn tự viết bài hoặc quay video? Trước khi đăng hay chạy quảng cáo, cho AI chấm: thẻ **✍️ Tạo & chấm bài** → phần **🧪 Chấm bài** → dán bài (hoặc link video trên Drive) → **🧪 Chấm điểm**. AI chấm 100 điểm, chỉ 3 chỗ cần sửa và viết sẵn bản sửa.
 
 Hướng dẫn có hình: trang **[Chấm bài](/huong-dan/cham-bai/)**.
 
@@ -166,13 +164,13 @@ Dựng 1 ưu đãi "khó từ chối" cho 1 sản phẩm + 1 nỗi lòng khách.
 - Bài 🟠 ở nhóm Zalo xếp theo **số đơn** từ link trong bài, không theo lượt thích.
 - Xem xong, thấy bài 👍 giống nhau ở điểm nào thì ghi vào **📝 Ghi chú** của nhóm khách (thẻ 👥 → ✏️ Sửa). Trợ lý sẽ viết theo.
 
-**▶️ Câu hỏi trên YouTube** (cuối thẻ 🗣 Lời khách): sáng thứ Hai máy tự tìm video ngành đang "nổ", lấy câu người xem hỏi mà chưa ai trả lời. Thấy chủ đề hay thì bấm **➕ Thêm** để trợ lý bài web viết trước.
+**▶️ Câu hỏi trên YouTube** (cuối phần 🗣 Lời khách, thẻ 👥 Hiểu khách): sáng thứ Hai máy tự tìm video ngành đang "nổ", lấy câu người xem hỏi mà chưa ai trả lời. Thấy chủ đề hay thì bấm **➕ Thêm** để trợ lý bài web viết trước.
 
 ## Từ khoá cho bài web (làm 1 lần)
 
 Có khoảng **100 từ khoá** người ta thật sự gõ lên Google hoặc hỏi ChatGPT. Mỗi bài web viết 1 từ khoá thì Google và các AI dễ gợi ý Thực Dưỡng Lành hơn.
 
-1. Thẻ **📗 Tài liệu nền** → ô **🔑 Từ khoá cho bài web** → bấm **✨ AI lập 100 từ khoá** (khoảng 1 phút).
+1. Thẻ **📅 Dịp & tài liệu** → phần **📗 Tài liệu nền** → ô **🔑 Từ khoá cho bài web** → bấm **✨ AI lập 100 từ khoá** (khoảng 1 phút).
 2. Bấm **Xem danh sách từ khoá** để đọc. Từ nào không hợp thì **✏️ Sửa danh sách**, xoá dòng đó, **💾 Lưu**.
 3. Xong. Trợ lý bài web tự lấy từ chưa viết. Từ đã viết có dấu ✅.
 
@@ -232,7 +230,7 @@ Có 6 ô, mỗi ô là 1 bước của hệ thống content. Ô đã tải skill
 | 🎬 Kịch bản video | sieu-tro-ly-video | nút 🎬 Viết kịch bản |
 | 🧪 Chấm bài | he-thong-content-ai | nút 🧪 Chấm bài |
 
-1. Thẻ **📗 Tài liệu nền** → mở **🧩 Skill khoá học**.
+1. Thẻ **📅 Dịp & tài liệu** → phần **📗 Tài liệu nền** → mở **🧩 Skill khoá học**.
 2. Bấm **📦 Tải nhanh** → chọn file **.skill**, **.zip** hoặc **SKILL.md**. CRM đọc tên skill rồi tự xếp vào đúng ô. Muốn tự chọn ô thì bấm **📤 Tải skill lên** ở dòng ô đó.
 3. Mỗi dòng ghi **đã dùng bao nhiêu lần**. Bấm **👁 Xem** để đọc lại nội dung skill.
 
@@ -247,7 +245,7 @@ Tải bản mới là thay bản cũ. Bấm **🗑 Gỡ** để ô quay về cá
 3. Ô tìm kiếm gõ **YouTube Data API v3** → bấm kết quả → **Bật**.
 4. **API và dịch vụ** → **Thông tin xác thực** → **+ Tạo thông tin xác thực** → **Khoá API**. Khoá bắt đầu bằng **AIza…**
 5. **Chỉnh sửa khoá API** → **Hạn chế khoá** → tích **YouTube Data API v3** → **Lưu**.
-6. Copy khoá → CRM → **🎯** → **🗣 Lời khách** → ô **▶️ Câu hỏi trên YouTube** → dán vào **Dán khoá YouTube** → **💾 Lưu khoá**. Máy báo ✓ là xong.
+6. Copy khoá → CRM → **🎯** → thẻ **👥 Hiểu khách** → phần **🗣 Lời khách** → ô **▶️ Câu hỏi trên YouTube** → dán vào **Dán khoá YouTube** → **💾 Lưu khoá**. Máy báo ✓ là xong.
 
 > **Không gửi khoá qua Zalo, Messenger hay chat.** Chỉ dán thẳng vào CRM. Miễn phí 10.000 đơn vị/ngày, 1 báo cáo dùng khoảng 1.000. Muốn chạy thử thì bấm **▶️ Chạy ngay** (tối đa 3 lần/ngày).
 
