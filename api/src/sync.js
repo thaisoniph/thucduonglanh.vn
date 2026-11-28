@@ -856,10 +856,19 @@ export async function adsSync(x, u, dry, fast) { // fast: lượt 1 phút (cron.
   (await allIn(x.db, 'SELECT id FROM leads WHERE id IN (SELECT value FROM json_each(?))', scan.map(s => s.id))).forEach(r => { ids[r.id] = 1; });
   const phones = [...new Set(scan.map(s => s.phone))];
   const fbOpen = {}; (await allIn(x.db, "SELECT phone, owner, by_name, time FROM leads WHERE status IN ('Mới hỏi', 'Đang tư vấn') AND phone IN (SELECT value FROM json_each(?))", phones)).forEach(r => { openBy[r.phone] = r.owner || ''; if (r.by_name === 'Form FB' && Date.now() - (r.time || 0) < 5 * DAY) fbOpen[r.phone] = 1; });
-  const owners = await ownersOf(x, phones), pool = users.filter(y => y.recv && y.alias).map(y => y.name); let dutyP = null;
+  const owners = await ownersOf(x, phones), pool = users.filter(y => y.recv && y.alias).map(y => y.name); let dutyP = null; const assign = [];
   for (const s of scan) {
     const { sc, m, hr, r, i, when, phone, id } = s; if (ids[id] || qd[id]) continue; // qd: dòng do ⚡ Nhập số nhanh ghi (đã tạo khách hỏi + báo sale)
     if (fbOpen[phone]) { merged++; ids[id] = 1; continue; } // số biểu mẫu Facebook đã vào CRM (fblead.js), người trực chép lại vào file → không tạo trùng
+    if (openBy[phone] === '') { // 🤖 29/11/2026: khách hỏi đã vào CRM trước (trợ lý Fanpage / web) nhưng chưa ai phụ trách → sale điền tên ở ô Sale thì giao khách đó cho sale, không tạo trùng
+      const st0 = String(cell(r, m, 'sale') || '').trim(); let o = keep[phone] || who(st0);
+      if (!o && !st0 && cfg.mode === 'crm' && pool.length) { // khi bật CRM tự chia (sau họp sale): chia nhóm A/B/C như số khác
+        o = (owners[phone] && owners[phone].owner) || ''; if (!o) { if (!dutyP) dutyP = (await adsDutyPool(x, pool, users)).pool; o = await pickW(dutyP); }
+        const ux = o && users.find(y => y.name === o); if (ux) writes.push({ sheet: sc.name, row: hr + 1 + i, col: m.sale, val: String(ux.alias || '').split(',')[0].trim() || o });
+      }
+      if (o) { assign.push({ phone, owner: o, name: String(cell(r, m, 'name') || '').trim(), src: String(cell(r, m, 'src') || sc.name).trim() }); openBy[phone] = o; }
+      merged++; ids[id] = 1; continue; // chưa điền Sale → chờ (cảnh báo số chưa giao: salemkt.js adsNoOwnerCheck)
+    }
     if (openBy[phone] !== undefined && cfg.mode !== 'crm') { merged++; ids[id] = 1; continue; } // số này đang được chăm sóc (tiềm năng còn mở) → không tạo trùng
     const saleTxt = String(cell(r, m, 'sale') || '').trim(); let owner = keep[phone] || who(saleTxt);
     if (cfg.mode === 'crm' && !saleTxt && !keep[phone]) { // CRM chia
@@ -878,6 +887,13 @@ export async function adsSync(x, u, dry, fast) { // fast: lượt 1 phút (cron.
   }
   const res = { ok: true, newLeads: rows.length, merged, perSale, perSheet, skipped, writes: writes.length, mode: cfg.mode, since };
   res.keep = kres; if (missing.length) { res.missing = missing; console.error('ads', 'Không thấy tab: ' + missing.join(', ')); }
+  if (!dry && assign.length) { res.assigned = 0; for (const a of assign) {
+    const ch = await run(x.db, "UPDATE leads SET owner = ?, own_at = ? WHERE phone = ? AND owner = '' AND status IN ('Mới hỏi', 'Đang tư vấn')", a.owner, Date.now(), a.phone);
+    if (!ch.meta || !ch.meta.changes) continue; res.assigned++;
+    try { await telegramUser(x, a.owner, '🙋 <b>Số mới cho bạn</b> (bạn đã nhận trong file số quảng cáo)\n👤 ' + esc(a.name || 'Khách') + ' – <a href="https://zalo.me/' + a.phone + '">' + a.phone + '</a> · ' + esc(a.src) + '\n👉 ' + CRM_URL + '/#tiem-nang'); } catch (e) { console.error('ads assign tg', e.message); }
+  } }
+  if (!dry && !rows.length && writes.length) { try { await sheetWrite(x.env, cfg.fileId, writes.filter(w => w.col !== undefined).map(w => ({ range: a1(w.sheet, colLetter(w.col) + w.row), values: [[w.val]] }))); } catch (e) { res.writeError = e.message; } } // chỉ có lượt giao khách trợ lý (CRM tự chia) → vẫn ghi tên sale vào file
+  if (!dry && !rows.length && wrr && wrr.dirty) { const { tier, dirty, ...st } = wrr; await kvSet(x.db, 'ads_wrr', JSON.stringify(st)); }
   if (dry || !rows.length) return res;
   await insertMany(x.db, 'leads', LEAD_COLS, rows, 'ON CONFLICT(id) DO NOTHING');
   const wd = []; writes.forEach(w => { if (w.col !== undefined) wd.push({ range: a1(w.sheet, colLetter(w.col) + w.row), values: [[w.val]] }); if (w.dupCol !== undefined) wd.push({ range: a1(w.sheet, colLetter(w.dupCol) + w.row), values: [[w.val]] }); });
@@ -943,6 +959,31 @@ async function qcQuick(x, u, d) {
     try { await telegramUser(x, realOwner, msg); } catch (e) { console.error('qcQuick tg', e.message); }
     await crmLog(x, u, 'Nhập số nhanh', phone, name, 'Giao ' + realOwner + (old ? ' (khách cũ)' : manual ? ' (chọn tay)' : ''), sc.name + ' · dòng ' + row);
     return { ok: true, owner: realOwner, old: !!old, merged: !!ld.merged, row, tab: sc.name, fileErr };
+  } finally { await kvDel(x.db, 'qc_lock'); }
+}
+/** 🤖 29/11/2026 (anh Sơn): khách để số qua trợ lý Fanpage → ghi 1 dòng vào file số quảng cáo (ngày, tên, SĐT, ghi chú), ô Sale ĐỂ TRỐNG cho sale tự nhận
+ *  (khách cũ thì điền sẵn sale đang phụ trách). Sale điền tên → adsSync giao khách hỏi (đã do trợ lý tạo) cho sale đó. Chọn tab theo sản phẩm (hint: chiến dịch, câu khách hỏi, tên trang). */
+const QC_TABS = [[/gafo|fucoidan|progomax/, /gafo|fucoidan/], [/che vang|dilvang|dinh lang/, /che vang|dilvang/], [/curcumin|nghe/, /curcumin/], [/bua an|ngu coc|sua hat|vitagreen|vtg/, /bua an|vtg/]];
+export function qcTabOf(tabs, hints) {
+  for (const h of hints.map(t => nrm(t || ''))) for (const [k, t] of QC_TABS) if (k.test(h)) { const f = tabs.find(n => t.test(nrm(n))); if (f) return f; }
+  return tabs.find(n => /bua an|vtg/.test(nrm(n))) || tabs[0] || '';
+}
+export async function qcBotRow(x, o) {
+  const cfg = await adsCfg(x); if (!cfg || !cfg.fileId) return { ok: false, error: 'Chưa kết nối file số quảng cáo.' };
+  const ons = (cfg.sheets || []).filter(s => s.on), tab = qcTabOf(ons.map(s => s.name), o.hints || []), sc = ons.find(s => s.name === tab); if (!sc) return { ok: false, error: 'Không có tab nào đang bật.' };
+  const m = sc.map || cfg.map || {}, hr = sc.header || 1, fp = toPhone(o.phone); if (!fp || m.phone === undefined) return { ok: false, error: 'Thiếu SĐT / cột SĐT.' };
+  for (let i = 0; i < 10 && await kvGet(x.db, 'qc_lock'); i++) await new Promise(r => setTimeout(r, 400));
+  await kvSet(x.db, 'qc_lock', '1', 15e3);
+  try {
+    const now = Date.now(), vals = await sheetValues(x.env, cfg.fileId, a1(sc.name, 'A' + (hr + 1) + ':' + colLetter(neededCols({ map: m }) - 1)), 'UNFORMATTED_VALUE');
+    let last = -1, dup = false; const today = fmtDate(now, 'yyyyMMdd'), days = adsDays(vals.map(r => cell(r, m, 'date')));
+    vals.forEach((r, i) => { if (toPhone(cell(r, m, 'phone'))) { last = i; if (toPhone(cell(r, m, 'phone')) === fp && days[i] && fmtDate(days[i], 'yyyyMMdd') === today) dup = true; } });
+    if (dup) return { ok: true, tab, dup: true }; // người trực đã chép số này hôm nay
+    let alias = ''; if (o.owner) { const ux = (await crmUsers(x)).find(y => y.name === o.owner); alias = (ux && String(ux.alias || '').split(',')[0].trim()) || o.owner; }
+    const row = hr + 2 + last, w = [], put = (k, v) => { if (m[k] !== undefined && v) w.push({ range: a1(sc.name, colLetter(m[k]) + row), values: [[v]] }); };
+    put('date', fmtDate(now, 'dd/MM/yyyy')); put('name', String(o.name || '').slice(0, 80)); put('phone', "'" + fp); put('note', String(o.note || '').slice(0, 300)); if (alias) { put('sale', alias); put('dup', alias); }
+    await sheetWrite(x.env, cfg.fileId, w, 'USER_ENTERED');
+    return { ok: true, tab, row, owner: alias };
   } finally { await kvDel(x.db, 'qc_lock'); }
 }
 export async function srcAutoTick(x, force) {

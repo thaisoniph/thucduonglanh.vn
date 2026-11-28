@@ -22,7 +22,8 @@ import { botRef } from './partner.js';
 import { prodMap, zbotLead, zCfg } from './zbot.js';
 import { edAdd, edBlock, edCount } from './edlearn.js';
 import { gate } from './gate.js';
-import { flHook } from './fblead.js'; // 📋 biểu mẫu Facebook → CRM (18/11/2026)
+import { flHook } from './fblead.js';
+import { qcBotRow } from './sync.js'; // 🤖 số khách → file số quảng cáo (29/11/2026) // 📋 biểu mẫu Facebook → CRM (18/11/2026)
 
 let GRAPH = 'https://graph.facebook.com/v23.0/';
 const useEnv = x => { if (x.env.FB_GRAPH) GRAPH = x.env.FB_GRAPH; }; // chạy thử trên máy: wrangler dev đặt FB_GRAPH = Facebook giả
@@ -459,10 +460,16 @@ async function saveLead(x, p, o) {
   if (o.psid) await run(x.db, 'UPDATE fp_users SET phone = ?, lead = ? WHERE psid = ?', o.phone, ld.id, o.psid);
   if (o.psid) await run(x.db, 'UPDATE chats SET phone = ?, name = ?, lead = ? WHERE sid = ?', o.phone, o.name || '', ld.id, 'fb' + o.psid);
   x.later(zbotLead(x, { phone: o.phone, name: o.name, lead: ld.id, what: o.gift ? 'quà cẩm nang “Sống khỏe chủ động”' : '', announce: !!o.gift })); // trợ lý nhóm Zalo: tìm Zalo theo số để tự duyệt vào nhóm, chúc mừng nếu đã nhận quà
+  let qc = null; try { // 🤖 29/11/2026 (anh Sơn): ghi số vào file số quảng cáo, ô Sale để trống → sale tự nhận, CRM giao khách theo tên sale điền (sync.js adsSync)
+    let camp = ''; if (o.psid) { const r = await first(x.db, 'SELECT camp FROM mk_adref WHERE psid = ?', o.psid).catch(() => null); camp = (r && r.camp) || ''; }
+    qc = await qcBotRow(x, { phone: o.phone, name: o.name, owner: ld.owner || '', hints: [camp, asks.join(' '), o.cmt, p.name],
+      note: '🤖 Trợ lý Fanpage · ' + o.how + (camp ? ' · QC: ' + camp.slice(0, 60) : '') + (asks.length ? ' · Hỏi: ' + asks.slice(-2).join(' | ').replace(PHONE_RE, '[SĐT]').slice(0, 120) : '') });
+  } catch (e) { qc = { ok: false, error: e.message }; console.error('fp qc row', e.message); }
   const w = workNow(Date.now());
   const m = '📘 <b>KHÁCH ĐỂ LẠI SỐ QUA FANPAGE</b> – ' + esc(p.name) + '\n👤 ' + esc(o.name || 'Chưa có tên') + ' – <b>' + esc(o.phone) + '</b>\n📍 ' + esc(o.how) + (asks.length ? '\n💬 ' + esc(asks.slice(-3).join(' | ')) : '')
     + '\n👉 ' + (w.on ? 'Gọi / nhắn Zalo cho khách ngay khi còn nóng' : 'Ngoài giờ: nhắn Zalo chào khách, gọi lúc 8h sáng');
-  await telegram(x.env, m + (ld.owner ? '\n\n👤 Giao cho: ' + esc(ld.owner) : '\n\n⚠️ Chưa có người phụ trách – vào CRM để giao'));
+  const qcTxt = qc && qc.ok ? (qc.dup ? '\n📝 Số này đã có trong file số QC hôm nay (tab ' + esc(qc.tab) + ')' : '\n📝 Đã ghi vào file số QC, tab <b>' + esc(qc.tab) + '</b>' + (qc.row ? ' dòng ' + qc.row : '')) : '\n⚠️ Chưa ghi được vào file số QC' + (qc && qc.error ? ': ' + esc(qc.error) : '') + ' – chép tay giúp';
+  await telegram(x.env, m + qcTxt + (ld.owner ? '\n\n👤 Giao cho: ' + esc(ld.owner) : '\n\n🙋 <b>Chưa có sale nhận</b>: sale nhận số điền tên mình vào ô Sale ở dòng này trong file, CRM tự giao khách (khoảng 1 phút).'));
   if (ld.owner) await telegramUser(x, ld.owner, m + '\n\n👉 Khách tiềm năng mới của bạn: ' + CRM_URL + '/#tiem-nang');
 }
 

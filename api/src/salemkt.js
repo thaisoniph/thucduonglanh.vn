@@ -1,7 +1,7 @@
 // 📣 Từ quảng cáo (tab Hiệu quả của sale): sale thấy marketing đã đem về bao nhiêu số, mỗi số tốn bao nhiêu, công ty đã chi cho mình bao nhiêu,
 // mình chốt từng sản phẩm thế nào so với cả nhóm, gọi lại số mới nhanh hay chậm, và ưu đãi / thông điệp quảng cáo đang chạy (marketing ghi).
 // Nhân viên chỉ nhận số của chính mình + số tổng cả nhóm (không có tên người khác). Quản lý / Quản trị nhận đủ từng người.
-import { all, allIn, kvGet, kvJson, kvSet, normPhone, nrm, isVoid, startOfDay, randHex, DAY } from './lib.js';
+import { all, allIn, esc, kvGet, kvJson, kvSet, normPhone, nrm, isVoid, startOfDay, randHex, DAY } from './lib.js';
 import { ddOffer } from './ngaydoi.js';
 import { caCfg, caOf, crmUsers, SUPER_ADMIN } from './crm.js';
 
@@ -173,6 +173,7 @@ export async function dutyTick(x, send) {
     await send(x, dp, '☀️ <b>Hôm nay bạn phụ trách nhặt số quảng cáo ban ngày</b> (8h – ' + (ca.evening || '17:30') + ')\nKhách nhắn page để lại số → dán ngày, tên, số điện thoại vào file, <b>để trống ô Sale</b>, CRM tự chia. Trả lời khách sớm, đừng để tin nhắn chờ nhé 💚');
   }
   try { await adsSlowCheck(x, send, D, ca, now, hm, allDay, evM); } catch (e) { console.error('adsSlow', e.message); }
+  try { await adsNoOwnerCheck(x, send, D, now, hm); } catch (e) { console.error('adsNoOwner', e.message); }
   try { await adsCrmAt(x, send, D, now); } catch (e) { console.error('adsCrmAt', e.message); }
   const kb = 'duty_wk_' + vnKey(now);
   if (D.boss && vn.getUTCDay() === 5 && hm >= 9 * 60 && hm < 9 * 60 + 30 && !(await kvGet(x.db, kb))) {
@@ -211,6 +212,23 @@ async function adsSlowCheck(x, send, D, ca, now, hm, allDay, evM) {
     for (const n of to) await send(x, n, txt + (who.indexOf(n) >= 0 ? '' : '\n(Đang phụ trách: ' + (who.join(', ') || 'chưa xếp ai') + ')'));
   }
   await kvSet(x.db, 'ads_slow', JSON.stringify(S));
+}
+/** 🚨 Số khách chưa có sale nhận (29/11/2026, anh Sơn: "ra 1 số mới rất tốn kém, không được bỏ sót khách"): khách hỏi 'Mới hỏi', chưa ai phụ trách, vào CRM ≥ 15 phút (3 ngày gần đây)
+ *  → Telegram anh Sơn + Quản lý + người phụ trách chia số. 7h–22h, báo khi có số mới chưa nhận hoặc 30 phút / lần nếu vẫn còn. kv ads_noown { at, ids }. */
+const NOOWN_WAIT = 15 * 60e3, NOOWN_EVERY = 30 * 60e3;
+export async function adsNoOwnerCheck(x, send, D, now, hm) {
+  if (hm < 7 * 60 || hm > 22 * 60) return; // đêm không báo; sáng 7h báo gộp
+  const L = await all(x.db, "SELECT id, time, name, phone, channel, by_name FROM leads WHERE owner = '' AND status = 'Mới hỏi' AND time > ? AND time < ? ORDER BY time LIMIT 30", now - 3 * DAY, now - NOOWN_WAIT);
+  const S = (await kvJson(x.db, 'ads_noown', null)) || { at: 0, ids: [] }, seen = new Set(S.ids || []);
+  if (!L.length) { if ((S.ids || []).length) await kvSet(x.db, 'ads_noown', JSON.stringify({ at: S.at, ids: [] })); return; }
+  const fresh = L.some(r => !seen.has(r.id)); if (!fresh && now - (S.at || 0) < NOOWN_EVERY) return;
+  await kvSet(x.db, 'ads_noown', JSON.stringify({ at: now, ids: L.map(r => r.id) }));
+  const ago = t => { const m = Math.round((now - t) / 60e3); return m < 60 ? m + ' phút' : m < 1440 ? Math.floor(m / 60) + ' giờ ' + (m % 60) + ' phút' : Math.floor(m / 1440) + ' ngày'; };
+  const txt = '🚨 <b>' + L.length + ' số khách CHƯA có sale nhận</b> (mỗi số quảng cáo rất tốn tiền, đừng để khách nguội)\n' +
+    L.slice(0, 12).map(r => '• ' + esc(r.name || 'Khách') + ' – <a href="https://zalo.me/' + r.phone + '">' + r.phone + '</a> · ' + esc(String(r.channel || r.by_name || '').slice(0, 40)) + ' · chờ <b>' + ago(r.time) + '</b>').join('\n') + (L.length > 12 ? '\n… và ' + (L.length - 12) + ' số nữa' : '') +
+    '\n\n👉 Sale nhận số: điền tên mình vào ô <b>Sale</b> ở dòng số đó trong file số quảng cáo (CRM tự giao trong 1 phút). Quản lý giao nhanh: CRM → Hôm nay → 🧺 Kho chung.';
+  const us = await crmUsers(x), to = new Set(us.filter(y => y.active && (y.email === SUPER_ADMIN || y.role === 'Quản lý')).map(y => y.name)); if (D && D.boss) to.add(D.boss);
+  for (const n of to) await send(x, n, txt);
 }
 async function first0(db, q, ...a) { const r = await all(db, q, ...a); return r[0] || null; }
 function dutyLbl(t, ca) { const d = new Date(t + 7 * 3600e3), dm = d.getUTCDate() + '/' + (d.getUTCMonth() + 1), w = d.getUTCDay(); return (w === 0 ? 'CN ' : 'Tối T' + (w + 1) + ' ') + dm; }

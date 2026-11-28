@@ -25,7 +25,8 @@ Mở tab **Fanpage**, nhìn ô **👉 Việc hôm nay** và làm từ bước 1.
 
 | Telegram báo | Bạn làm |
 | --- | --- |
-| 📘 KHÁCH ĐỂ LẠI SỐ QUA FANPAGE | Khách đã vào tab **Khách hỏi** (kênh Facebook), sale gọi như khách hỏi thường |
+| 📘 KHÁCH ĐỂ LẠI SỐ QUA FANPAGE | Trợ lý đã ghi số vào CRM **và vào file số quảng cáo** (dòng có ghi chú 🤖 Trợ lý Fanpage, ô Sale để trống). Sale nhận số thì **điền tên mình vào ô Sale** ở dòng đó. Khoảng 1 phút sau CRM giao khách cho bạn và Telegram báo "Số mới cho bạn" |
+| 🚨 N SỐ KHÁCH CHƯA CÓ SALE NHẬN | Gửi anh Sơn, Quản lý, người phụ trách chia số. Số đã vào CRM 15 phút mà chưa ai nhận. Quản lý giao ngay: điền tên sale vào ô Sale trong file, hoặc CRM → Hôm nay → 🧺 Kho chung. Còn số chưa nhận thì 30 phút báo lại (7h–22h) |
 | 📘 FANPAGE CẦN NGƯỜI THẬT | Mở hộp thư trang trả lời khách, rồi bấm **✅ Đã xử lý** ([Việc 2](#viec-2-ca-can-nguoi-that)) |
 | 🛡 NGƯỜI GÁC CỔNG ĐÃ CHẶN 1 CÂU · Fanpage | Nhắn lại khách câu đúng, rồi CRM → 🎯 → **🛡 Câu bị giữ** → **✅ Đã xử lý** ([Việc 3](#viec-3-khi-nguoi-gac-cong-chan-1-cau)) |
 
@@ -41,6 +42,8 @@ Khi khách bình luận dưới bài đăng hoặc bài quảng cáo, trợ lý 
 Sau đó:
 
 - Khách hiện trong tab **Khách hỏi** (kênh Facebook). Telegram báo **"📘 KHÁCH ĐỂ LẠI SỐ QUA FANPAGE"**.
+- Trợ lý **ghi số vào file số quảng cáo**, đúng tab sản phẩm (đoán theo quảng cáo khách bấm và câu khách hỏi; không rõ thì vào tab Bữa Ăn), ô **Sale để trống**. Khách cũ thì điền sẵn sale đang chăm sóc.
+- Sale nhận số **điền tên mình vào ô Sale**, CRM tự giao khách cho người đó (không tạo khách trùng). Số chưa ai nhận sau 15 phút thì Telegram **🚨** nhắc Quản lý và anh Sơn.
 - Trợ lý Zalo tìm khách theo số, rồi tự duyệt khách vào nhóm.
 - Khách hỏi về sản phẩm thì An Lành trả lời bằng đúng thông tin trên web, giống khung chat trên web.
 - Khách đã nhắn nhưng chưa để số thì **3 tiếng sau** trợ lý nhắc nhận quà **1 lần**.
