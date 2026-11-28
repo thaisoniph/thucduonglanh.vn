@@ -1092,6 +1092,49 @@ collections:
                   - { label: "Giải thích khi trả lời đúng", name: why, widget: string, required: false }
               - { label: "Nguồn tham khảo", name: sources, widget: list, field: { label: "Nguồn", name: x, widget: string } }
 
+      - name: thanh_vien
+        label: "Gói Thành viên Gian Bếp Lành"
+        file: data/thanh-vien.json
+        format: json
+        description: "Trang thucduonglanh.vn/thanh-vien/: gói trả trước, giao Bữa Ăn theo đợt. Đổi giá / số hộp thì báo sale (mẫu tin trong CRM ghi giá). Không ghi công dụng chữa bệnh."
+        fields:
+          - { label: "Bật trang", name: enabled, widget: boolean, default: true }
+          - { label: "Bản nháp (ẩn khỏi Google, không gắn link)", name: draft, widget: boolean, default: false }
+          - { label: "Đường link", name: path, widget: hidden }
+          - { label: "Sản phẩm hiện lời mời (mã sản phẩm)", name: for_slug, widget: string, required: false }
+          - { label: "Tên", name: title, widget: string }
+          - { label: "Tiêu đề lớn", name: headline, widget: string }
+          - { label: "Lời giới thiệu", name: sub, widget: text }
+          - { label: "Ảnh", name: image, widget: image, required: false }
+          - label: "Các gói"
+            name: plans
+            widget: list
+            summary: "{{fields.name}} – {{fields.price}}đ"
+            fields:
+              - { label: "Mã gói (không dấu)", name: key, widget: string }
+              - { label: "Tên gói", name: name, widget: string }
+              - { label: "Giá (đồng)", name: price, widget: number, value_type: int }
+              - { label: "Số hộp 500g", name: boxes, widget: number, value_type: int }
+              - { label: "Số đợt giao", name: deliveries, widget: number, value_type: int }
+              - { label: "Mô tả ngắn", name: note, widget: string }
+              - { label: "Quà tặng", name: gifts, widget: list, field: { label: "Quà", name: x, widget: string } }
+              - { label: "Nhãn nổi bật", name: tag, widget: string, required: false }
+          - label: "Quyền lợi"
+            name: perks
+            widget: list
+            summary: "{{fields.t}}"
+            fields:
+              - { label: "Ý chính", name: t, widget: string }
+              - { label: "Giải thích", name: d, widget: text }
+          - { label: "Các bước bắt đầu", name: steps, widget: list, field: { label: "Bước", name: x, widget: string } }
+          - label: "Câu hỏi thường gặp"
+            name: faq
+            widget: list
+            summary: "{{fields.q}}"
+            fields:
+              - { label: "Câu hỏi", name: q, widget: string }
+              - { label: "Trả lời", name: a, widget: text }
+
       - name: chatbot
         label: "Trợ lý chat An Lành"
         file: data/chatbot.json

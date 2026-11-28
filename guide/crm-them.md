@@ -428,6 +428,7 @@ Một số khách tự để lại số trên web. Họ vào tab **Khách hỏi*
   1. **Đợt 1:** lên đơn **đủ tiền cả gói**, sản phẩm chỉ ghi **3 hộp Bữa ăn + quà** (kho trừ đúng hàng đi). Ghi chú: *"🌟 Thành viên 6 tháng – đợt 1/3, đã thu đủ, còn 6 hộp"*.
   2. **Các đợt sau:** CRM tự nhắc ở việc **⏰ Sắp hết sản phẩm**. Hỏi khách rồi lên đơn **0đ**, 3 hộp, ghi chú *"🌟 Thành viên – đợt 2/3 (đã trả trước)"*. Miễn phí giao mọi đợt.
   3. Khách muốn đổi 1 đợt sang **Sữa Hạt Curcumin** cùng giá trị thì đổi sản phẩm trong đơn đợt đó.
+  4. Mẫu tin có sẵn trong nhóm **"Thành viên Gian Bếp Lành"**: **Mời lên thành viên** (gửi khách đã mua Bữa ăn 2 lần trở lên hoặc gói Mua 3 tặng 1) và **Giao đợt tiếp**. Link trang: thucduonglanh.vn/thanh-vien/
 - **Kênh "Chatbot (Website)"**: khách hỏi trợ lý chat **An Lành** trên web rồi để lại số nhận quà (hoặc tự gõ số trong khung chat). Ghi chú có các câu khách đã hỏi và dòng **🤖 Tóm tắt chat** (khách là ai, quan tâm gì, nên nói gì). **Đọc tóm tắt trước khi gọi**, đừng hỏi lại điều khách đã hỏi bot. Khách đã nhận cẩm nang + mã SONGLANH5.
 - Ghi chú có **"🖐 Trò chơi: còn 6/10 ngón"**: khách vừa chơi trò chơi thói quen trên web. Hỏi thăm đúng thói quen khách muốn sửa.
 - Khung **🎁 Ưu đãi đang chạy** ở đầu tab Khách hỏi: ưu đãi trên quảng cáo hiện nay. **Đọc trước khi gọi** để nói đúng điều khách đã thấy.

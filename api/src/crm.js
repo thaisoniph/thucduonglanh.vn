@@ -52,7 +52,7 @@ import { wbQueue, wbOrderQueue, wbStatusQueue, wbEditQueue, wbDeleteQueue, wbInf
 
 let schemaDone = false, deltaOk = false; // deltaOk: đã có cột upd + trigger → cho CRM tải phần thay đổi
 const NOW_MS = "CAST((julianday('now') - 2440587.5) * 86400000 AS INTEGER)"; // giờ của máy chủ dữ liệu (ms)
-const SCHEMA_V = '2026-11-28b'; // + fp_pages.token2 (app Messenger riêng 28/11/2026) · + 4 mẫu tin 🎓 Khách học khoá Giải Mã Dinh Dưỡng (28/11/2026) · + customers.pool_from/pool_at (khách đã mua tự trả về Kho chung, 18/11/2026) · orders.entered_at (🕐 giờ lên đơn thật khi sale chọn giờ chốt sớm hơn, 16/11/2026) · + users.gvsee (👀 theo dõi việc của ai, 16/11/2026) · users.gv (✅ Việc tuần) + sessions.seen / ua
+const SCHEMA_V = '2026-11-28c'; // + 2 mẫu tin 🌟 Thành viên Gian Bếp Lành (28/11/2026) · + fp_pages.token2 (app Messenger riêng 28/11/2026) · + 4 mẫu tin 🎓 Khách học khoá Giải Mã Dinh Dưỡng (28/11/2026) · + customers.pool_from/pool_at (khách đã mua tự trả về Kho chung, 18/11/2026) · orders.entered_at (🕐 giờ lên đơn thật khi sale chọn giờ chốt sớm hơn, 16/11/2026) · + users.gvsee (👀 theo dõi việc của ai, 16/11/2026) · users.gv (✅ Việc tuần) + sessions.seen / ua
 export async function ensureSchema(db) {
   if (schemaDone) return;
   // Đã kiểm tra với bản này rồi → chỉ hỏi 1 lần. Trước đây mỗi lần Cloudflare bật máy mới (rất thường xuyên) phải chạy ~25 lệnh nối tiếp, mất 3–5 giây.
@@ -184,6 +184,7 @@ export async function ensureSchema(db) {
     await fbSchema(db); // 📘 trợ lý Fanpage Facebook (api/src/fb.js)
     await mkSchSchema(db); // 🕛 lệnh sửa quảng cáo chờ áp lúc 0h (api/src/mksch.js)
     await mkCampSchema(db); // 🎯 khách bấm quảng cáo nào (Messenger) → số thật theo chiến dịch (api/src/mkcamp.js)
+    await tplMemberSeed(db); // 28/11/2026: 2 mẫu tin 🌟 Thành viên Gian Bếp Lành (mời lên thành viên, giao đợt tiếp)
     await tplCourseSeed(db); // 28/11/2026: 4 mẫu tin 🎓 chăm khách học khoá trên web (ngày 0 / 2 / 5 / 10)
     await tplRefSeed(db); // 14/11/2026: 2 mẫu tin 🌱 Mời giới thiệu bạn bè (1 lần, xoá ở Cài đặt → Mẫu tin thì không thêm lại)
     schemaDone = true;
@@ -274,6 +275,17 @@ async function tplRefSeed(db) {
 }
 /** 28/11/2026 anh Sơn (phễu Bữa ăn chủ lực): khách để số ở khoá học /khoa-hoc-dinh-duong/ → sale chăm theo 4 mốc: ngày 0 chào + link, ngày 2 hỏi việc làm ngay,
  *  ngày 5 mời gói thử (Bữa ăn 5 gói / Gói 10 ngày), ngày 10 hỏi tiến độ + mời gói Mua 3 tặng 1. Chạy 1 lần (kv tpl_course_seed); xoá ở Cài đặt → Mẫu tin thì không thêm lại. */
+/** 28/11/2026 anh Sơn duyệt gói Thành viên Gian Bếp Lành (/thanh-vien/, tầng 4 phễu Bữa ăn): mời khách đã dùng Bữa ăn đều lên gói + nhắn giao đợt tiếp (đơn 0đ). Chạy 1 lần (kv tpl_member_seed). */
+async function tplMemberSeed(db) {
+  if (await kvGet(db, 'tpl_member_seed')) return;
+  const W = 'Thành viên Gian Bếp Lành', U = 'https://thucduonglanh.vn/thanh-vien/';
+  const T = [
+    [W, 'Mời lên thành viên', 'Dạ [Tên] ơi, em thấy nhà mình dùng Bữa Ăn Dinh Dưỡng đều rồi ạ 🌿 Bên em có gói Thành viên Gian Bếp Lành: trả trước 1 lần, giao tận nhà theo đợt, miễn phí giao mọi đợt, có quà trà DILVANG và xì dầu 2S.\n• Gói 6 tháng 2.700.000đ: 9 hộp, khoảng 15.000đ một bữa sáng\n• Gói 12 tháng 4.950.000đ: 18 hộp, khoảng 14.000đ một bữa sáng\nChi tiết ở đây: ' + U + '\n[Tên] thấy gói nào hợp với nhà mình ạ?'],
+    [W, 'Giao đợt tiếp', 'Dạ [Tên] ơi, theo lịch thì Bữa Ăn Dinh Dưỡng đợt này của mình sắp hết rồi ạ. Em chuẩn bị giao đợt tiếp theo (3 hộp, đã trả trước, miễn phí giao) về địa chỉ cũ được không ạ? Muốn đổi đợt này sang Sữa Hạt Curcumin hoặc đổi địa chỉ, [Tên] nhắn em nhé 🌿']
+  ];
+  for (const t of T) if (!await first(db, 'SELECT 1 FROM templates WHERE when_txt = ? AND purpose = ?', t[0], t[1])) await run(db, 'INSERT INTO templates (when_txt, purpose, text) VALUES (?, ?, ?)', t[0], t[1], t[2]);
+  await kvSet(db, 'tpl_member_seed', '1');
+}
 async function tplCourseSeed(db) {
   if (await kvGet(db, 'tpl_course_seed')) return;
   const W = 'Khách học khoá Giải Mã Dinh Dưỡng', U = 'https://thucduonglanh.vn/khoa-hoc-dinh-duong/';

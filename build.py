@@ -1297,6 +1297,7 @@ def page_course():
     <div class="kh-next-body"><span class="kh-next-k">🌱 {esc(KH.get("next_title", "Bước tiếp theo"))}</span><b>{esc(nx["name"])}</b>
       <p>{esc(KH.get("next_sub", ""))}</p>
       <div class="kh-next-act"><span class="kh-next-price">{money(nx["price"])}</span><button type="button" class="btn btn-buy" data-buy-now="{nx["slug"]}" data-cta="khoahoc_next_buy">🛒 Đặt nhanh</button><a href="/san-pham/{nx["slug"]}/?tu=khoa_hoc" data-cta="khoahoc_next_view">Xem trong gói có gì →</a></div>
+      {tv_callout(None, "khoa_hoc")}
       <small>Mã chào mừng ở trên tự trừ khi đặt. Sản phẩm là thực phẩm, không phải là thuốc và không có tác dụng thay thế thuốc chữa bệnh.</small></div>
   </div>''' if nx and nx.get("price") else ""
     toc = "".join(f'<li><a href="#bai-{i}" data-kh-toc="{i}"><span class="kh-tn">{i}</span><span>{esc(x["title"])}</span></a></li>' for i, x in enumerate(L, 1))
@@ -1367,6 +1368,15 @@ def page_course():
           "offers": {"@type": "Offer", "price": 0, "priceCurrency": "VND", "category": "Free"},
           "hasCourseInstance": {"@type": "CourseInstance", "courseMode": "online", "courseWorkload": f"PT{10 * n}M"}}
     return layout(KH_PATH, f'{KH.get("title", "")} – học miễn phí {n} bài', KH.get("sub", ""), body, og=f"{KH_IMG}/og.jpg", jsonld=[ld], body_class="page-ebook page-camnang page-khoahoc", preload=f"{KH_IMG}/bia.webp")
+
+
+def tv_callout(p, where="sp"):
+    """Dòng mời gói thành viên (tầng 4) ở trang sản phẩm chủ lực + thẻ gợi ý sau khoá học."""
+    if not (TV_PATH and IS_VI and not TV.get("draft") and (where != "sp" or p.get("slug") == TV.get("for_slug"))):
+        return ""
+    best = min(TV["plans"], key=lambda pl: pl["price"] / pl["boxes"])
+    per = f'{round(best["price"] / (best["boxes"] * 20) / 1000):.0f}.000đ'
+    return f'<a class="tv-call" href="{TV_PATH}?tu={where}" data-cta="tv_from_{where}">🌟 <span>Dùng mỗi sáng? <b>Thành viên Gian Bếp Lành</b> chỉ từ ~{per} một bữa, miễn phí giao, có quà</span> →</a>'
 
 
 def page_member():
@@ -2897,6 +2907,7 @@ def page_product(p):
   <div class="buy-btns"><button class="btn btn-lg btn-buy" data-buy-now="{p["slug"]}">{ic("bolt")} {t("Mua ngay")}</button>
   <button class="btn btn-outline btn-lg" data-add-detail="{p["slug"]}">{ic("cart")} {t("Thêm vào giỏ hàng")}</button></div>
   <a class="btn btn-lg btn-zalo buy-zalo" href="{zalo_link()}" target="_blank" rel="noopener">{ic("zalo")} {t("Hỏi tư vấn qua Zalo")}</a>
+  {tv_callout(p)}
 </div>'''
     else:
         buy = f'''<div class="contact-price"><p>{t("Sản phẩm đang cập nhật giá trên website. Anh/chị vui lòng liên hệ để được báo giá và ưu đãi tốt nhất.")}</p></div>
