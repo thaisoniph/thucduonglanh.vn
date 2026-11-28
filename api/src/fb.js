@@ -50,7 +50,7 @@ const PCFG0 = {
 };
 /** Chủ đề theo thứ trong tuần (0 = Chủ nhật), có tầng phễu (10/11/2026). Fanpage nhiều người lạ → TOFU 4 · MOFU 2 · BOFU 1 bài / tuần. Trang nhiều bài / ngày thì bài sau lệch chủ đề (+3) */
 export const FP_THEME = [
-  { f: 'TOFU', t: 'Tâm an cuối tuần: 1 suy ngẫm ngắn về sống chậm, biết ơn, gia đình (không bịa chuyện khách hàng)' },
+  { f: 'TOFU', t: 'Tâm an: 1 suy ngẫm ngắn về sống chậm, biết ơn, gia đình (không bịa chuyện khách hàng; chỉ nói "cuối tuần" khi bài đăng Thứ 7 / Chủ nhật)' }, // 29/11/2026: bài thứ 2 trong ngày lệch +3 nên khung này rơi cả Thứ 5
   { f: 'TOFU', t: 'Kiến thức dinh dưỡng nền tảng: 1 điều dễ hiểu, áp dụng được ngay trong bữa ăn gia đình' },
   { f: 'MOFU', t: 'Hiểu về nguyên liệu: 1–3 nguyên liệu có trong 1 sản phẩm (đúng thành phần trong tài liệu), nguồn gốc, vị, cách người Việt quen dùng' },
   { f: 'TOFU', t: 'Bếp lành: 1 món ăn / thức uống lành, dễ làm, nguyên liệu dễ mua (có thể là món chay)' },
