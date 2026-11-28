@@ -424,6 +424,10 @@ Một số khách tự để lại số trên web. Họ vào tab **Khách hỏi*
   - Quan tâm ghi **"Khoá học Giải Mã Dinh Dưỡng"**: khách vừa đăng ký khoá học miễn phí trên web. Nhắn khách theo 4 mẫu tin trong nhóm **"Khách học khoá Giải Mã Dinh Dưỡng"** (Cài đặt → Mẫu tin): **Ngày 0** chào + gửi link học, **Ngày 2** hỏi đã thử đổi bữa sáng chưa, **Ngày 5** mời Gói trải nghiệm Bữa ăn 139k / Gói 10 ngày 349k, **Ngày 10** hỏi học tới đâu + mời gói Mua 3 tặng 1. Mỗi lần nhắn xong thì hẹn gọi lại đúng mốc tiếp theo.
   - Ghi chú có **"Đã học xong 5 bài"**: khách học hết khoá, đã nhận giấy chứng nhận. Gọi chúc mừng, hỏi khách đổi được thói quen nào, mời gói Bữa ăn.
   - Nguồn **"offline / goi-hang / shopee"**: khách quét thẻ cảm ơn trong đơn Shopee. Đây là khách đã mua trên sàn, nói chuyện như khách quen.
+- **Kênh "Thành viên (Website)"** 🌟: khách đăng ký **gói Thành viên Gian Bếp Lành** (6 tháng 2.700.000đ = 9 hộp Bữa ăn giao 3 đợt, 12 tháng 4.950.000đ = 18 hộp giao 6 đợt, kèm quà). Gọi xác nhận trong ngày rồi:
+  1. **Đợt 1:** lên đơn **đủ tiền cả gói**, sản phẩm chỉ ghi **3 hộp Bữa ăn + quà** (kho trừ đúng hàng đi). Ghi chú: *"🌟 Thành viên 6 tháng – đợt 1/3, đã thu đủ, còn 6 hộp"*.
+  2. **Các đợt sau:** CRM tự nhắc ở việc **⏰ Sắp hết sản phẩm**. Hỏi khách rồi lên đơn **0đ**, 3 hộp, ghi chú *"🌟 Thành viên – đợt 2/3 (đã trả trước)"*. Miễn phí giao mọi đợt.
+  3. Khách muốn đổi 1 đợt sang **Sữa Hạt Curcumin** cùng giá trị thì đổi sản phẩm trong đơn đợt đó.
 - **Kênh "Chatbot (Website)"**: khách hỏi trợ lý chat **An Lành** trên web rồi để lại số nhận quà (hoặc tự gõ số trong khung chat). Ghi chú có các câu khách đã hỏi và dòng **🤖 Tóm tắt chat** (khách là ai, quan tâm gì, nên nói gì). **Đọc tóm tắt trước khi gọi**, đừng hỏi lại điều khách đã hỏi bot. Khách đã nhận cẩm nang + mã SONGLANH5.
 - Ghi chú có **"🖐 Trò chơi: còn 6/10 ngón"**: khách vừa chơi trò chơi thói quen trên web. Hỏi thăm đúng thói quen khách muốn sửa.
 - Khung **🎁 Ưu đãi đang chạy** ở đầu tab Khách hỏi: ưu đãi trên quảng cáo hiện nay. **Đọc trước khi gọi** để nói đúng điều khách đã thấy.

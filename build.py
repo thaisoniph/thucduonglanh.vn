@@ -266,6 +266,9 @@ PRODUCTS.sort(key=lambda p: (p.get("order") or 999, p["name"]))
 
 # Ưu đãi chỉ có trên web (Cài đặt → Ưu đãi website): giá nhập trong /admin là giá gốc, web tự giảm X% và gạch giá gốc.
 WEB_OFFER = (lambda o: {**o, "enabled_pct": bool(o.get("enabled")), "percent": (num(o.get("percent")) or 0) if o.get("enabled") else 0})(SITE.get("web_offer") or {})
+_tvf = DATA / "thanh-vien.json"
+TV = json.loads(_tvf.read_text("utf-8")) if _tvf.exists() else {}
+TV_PATH = TV.get("path", "") if TV.get("enabled") and TV.get("plans") else ""  # tầng 4 (VIP) phễu Bữa ăn: gói thành viên trả trước, giao theo đợt (28/11/2026); draft = ẩn, chưa vào menu / sitemap
 _khf = DATA / "khoa-hoc.json"
 KH = json.loads(_khf.read_text("utf-8")) if _khf.exists() else {}
 KH_PATH = KH.get("path", "") if KH.get("enabled") and KH.get("lessons") else ""  # khoá học quà tặng (28/11/2026): bài 1 xem tự do, bài 2–5 mở bằng tên + số Zalo
@@ -1364,6 +1367,55 @@ def page_course():
           "offers": {"@type": "Offer", "price": 0, "priceCurrency": "VND", "category": "Free"},
           "hasCourseInstance": {"@type": "CourseInstance", "courseMode": "online", "courseWorkload": f"PT{10 * n}M"}}
     return layout(KH_PATH, f'{KH.get("title", "")} – học miễn phí {n} bài', KH.get("sub", ""), body, og=f"{KH_IMG}/og.jpg", jsonld=[ld], body_class="page-ebook page-camnang page-khoahoc", preload=f"{KH_IMG}/bia.webp")
+
+
+def page_member():
+    """Trang gói thành viên Gian Bếp Lành (data/thanh-vien.json): 2 gói trả trước, giao theo đợt. Không bán qua giỏ (kho trừ theo từng đợt giao):
+    khách để tên + số + chọn gói → khách hỏi kênh "Thành viên (Website)" (api kind member) → sale gọi xác nhận, lên đơn đợt 1 đủ tiền, các đợt sau 0đ."""
+    plans = TV["plans"]
+    def per(pl):
+        return f'{round(pl["price"] / (pl["boxes"] * 20) / 1000):.0f}.000đ'
+    cards = ""
+    for pl in plans:
+        gifts = "".join(f"<li>🎁 {esc(g)}</li>" for g in pl.get("gifts", []))
+        cards += f'''<article class="tv-plan{" tv-best" if pl.get("tag") else ""}">
+  {f'<span class="tv-tag">{esc(pl["tag"])}</span>' if pl.get("tag") else ""}<h3>{esc(pl["name"])}</h3>
+  <p class="tv-price">{money(pl["price"])}</p><p class="tv-per">≈ {per(pl)} một bữa sáng</p>
+  <ul><li>🥣 {esc(pl["note"])}</li><li>🚚 Miễn phí giao cả {pl["deliveries"]} đợt</li>{gifts}</ul>
+  <a class="btn btn-buy" href="#dang-ky" data-tv-pick="{esc(pl["key"])}" data-cta="tv_pick_{esc(pl["key"])}">Chọn {esc(pl["name"].lower())} →</a>
+</article>'''
+    perks = "".join(f'<li><b>{esc(x["t"])}</b><span>{esc(x["d"])}</span></li>' for x in TV.get("perks", []))
+    steps = "".join(f"<li>{esc(x)}</li>" for x in TV.get("steps", []))
+    faq = "".join(f'<details class="cn-q"><summary>{esc(x["q"])}</summary><p>{esc(x["a"])}</p></details>' for x in TV.get("faq", []))
+    opts = "".join(f'<label class="cn-chip"><input type="radio" name="plan" value="{esc(pl["key"])}"{" checked" if i == len(plans) - 1 else ""}><span>{esc(pl["name"])} · {money(pl["price"])}</span></label>' for i, pl in enumerate(plans))
+    body = f'''<section class="section tv-hero"><div class="container tv-hero-in">
+  <div><span class="eyebrow">🌟 Tầng cao nhất · dành cho khách đã quen Bữa Ăn VitaGreen</span>
+    <h1>{bv_nw(TV.get("headline", TV.get("title", "")))}</h1><p class="ebh-sub">{esc(TV.get("sub", ""))}</p>
+    <a class="btn btn-lg btn-buy" href="#goi" data-cta="tv_hero">Xem 2 gói thành viên ↓</a></div>
+  <img src="{pimg(TV.get("image", ""))}" alt="Bữa Ăn Dinh Dưỡng VitaGreen" width="520" height="520">
+</div></section>
+<section class="section" id="goi"><div class="container"><h2 class="sec-title">Chọn gói thành viên</h2><div class="tv-plans">{cards}</div>
+  <p class="eb-disc center">So với mua lẻ 450.000đ / hộp (22.500đ một bữa). Bữa Ăn Dinh Dưỡng là thực phẩm, không phải là thuốc và không có tác dụng thay thế thuốc chữa bệnh.</p></div></section>
+<section class="section bg-soft"><div class="container narrow"><h2 class="sec-title">Thành viên được gì?</h2><ul class="tv-perks">{perks}</ul></div></section>
+<section class="section"><div class="container narrow"><h2 class="sec-title">Bắt đầu thế nào?</h2><ol class="tv-steps">{steps}</ol></div></section>
+<section class="section bg-soft" id="dang-ky"><div class="container narrow">
+  <div class="ebf card cnf" id="tvBox">
+    <form id="tvForm" novalidate>
+      <h2>🌟 Đăng ký thành viên</h2><p class="ebf-note">Để lại tên và số Zalo, chuyên viên gọi xác nhận trong ngày làm việc. Chưa thu tiền ở bước này.</p>
+      <fieldset class="cn-chips"><legend>Gói anh/chị chọn</legend>{opts}</fieldset>
+      <label>Họ và tên *<input name="name" required autocomplete="name" placeholder="Ví dụ: Nguyễn Thị Lan"></label>
+      <label>Số điện thoại (Zalo) *<input name="phone" type="tel" required autocomplete="tel" inputmode="tel" placeholder="Ví dụ: 0912 345 678"></label>
+      <label class="cn-ask">Ghi chú <small>(không bắt buộc)</small><textarea name="ask" rows="2" maxlength="400" placeholder="Ví dụ: nhà 2 người dùng, muốn giao vào cuối tuần"></textarea></label>
+      <input type="text" name="website" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <button class="btn btn-lg btn-buy" type="submit">🌟 Gửi đăng ký</button>
+      <p class="form-msg" role="status"></p>
+      <p class="ebf-legal">Khi gửi, anh/chị đồng ý để {BRAND} gọi điện / nhắn Zalo xác nhận gói thành viên, theo <a href="/chinh-sach-bao-mat/" target="_blank">Chính sách bảo mật</a>.</p>
+    </form>
+    <div class="ebf-done" hidden><h2>✅ Đã nhận đăng ký!</h2><p class="ebf-note">Chuyên viên {BRAND} sẽ gọi cho anh/chị trong ngày làm việc. Cần gấp, gọi / Zalo {esc(SITE["hotline"])}.</p></div>
+  </div>
+</div></section>
+<section class="section"><div class="container narrow"><h2 class="sec-title">Câu hỏi thường gặp</h2><div class="cn-faq">{faq}</div></div></section>'''
+    return layout(TV_PATH, TV.get("title", "Thành viên"), TV.get("sub", "")[:158], body, og=pimg(TV.get("image", "")), body_class="page-ebook page-tv", noindex=bool(TV.get("draft")))
 
 
 def hub_items():
@@ -3631,6 +3683,8 @@ def main():
         routes.append(write(CN_PATH, page_camnang()))
     if KH_PATH and IS_VI:
         routes.append(write(KH_PATH, page_course()))
+    if TV_PATH and IS_VI:
+        (write(TV_PATH, page_member()) if TV.get("draft") else routes.append(write(TV_PATH, page_member())))  # bản nháp: có trang nhưng không vào sitemap
     if gift_list():
         routes.append(write(GIFT_PATH, page_gifts()))
     if IS_VI:

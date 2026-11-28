@@ -1757,6 +1757,25 @@
     });
     paint();
   }
+  /* ---------- gói thành viên Gian Bếp Lành /thanh-vien/ (28/11/2026): chọn gói + tên + SĐT → khách hỏi kênh "Thành viên (Website)", sale gọi xác nhận ---------- */
+  function initMember() {
+    var box = $('#tvBox'); if (!box) return;
+    var form = $('#tvForm', box), done = $('.ebf-done', box);
+    document.addEventListener('click', function (e) { var b = e.target.closest('[data-tv-pick]'); if (!b) return; var r = $('input[name=plan][value="' + b.getAttribute('data-tv-pick') + '"]', form); if (r) r.checked = true; });
+    var lead = giftLead(); if (lead) { form.elements.name.value = lead.name || ''; form.elements.phone.value = lead.phone || ''; }
+    form.addEventListener('submit', function (e) {
+      e.preventDefault(); var msg = $('.form-msg', form); msg.className = 'form-msg';
+      if (form.elements.website.value) return;
+      if (!validate(form)) { msg.className = 'form-msg err'; msg.textContent = 'Vui lòng điền họ tên và số điện thoại đúng (10 số).'; return; }
+      var pl = $('input[name=plan]:checked', form), plan = pl ? pl.closest('label').innerText.trim() : '', name = form.elements.name.value.trim(), phone = normPhone(form.elements.phone.value), ask = form.elements.ask.value.trim(), src = sourceLabel(), btn = $('button[type=submit]', form);
+      btn.disabled = true;
+      send({ type: 'contact', kind: 'member', plan: plan, name: name, phone: phone, email: '', ask: ask, pos: qs('tu') || '', source: src.last, created: new Date().toISOString(), page: location.href,
+        message: '🌟 Đăng ký Thành viên Gian Bếp Lành – ' + plan + (ask ? ' · Ghi chú: ' + ask : '') + ' · Nguồn: ' + src.last })
+        .then(function () { track('generate_lead', { form: 'thanh_vien', plan: pl ? pl.value : '' }); save('tdl_lead', { name: name, phone: phone, concern: (giftLead() || {}).concern || [], gifts: (giftLead() || {}).gifts || [], t: Date.now() }); form.hidden = true; done.hidden = false; box.scrollIntoView({ behavior: 'smooth', block: 'start' }); })
+        .catch(function () { msg.className = 'form-msg err'; msg.textContent = 'Gửi chưa thành công, vui lòng gọi ' + CFG.hotline + '.'; })
+        .then(function () { btn.disabled = false; });
+    });
+  }
   /* trang /qua-tang/ + khối quà trang chủ: quà đã nhận → "Đọc lại"; khách đã đăng ký → quà còn lại "Nhận ngay 1 chạm" */
   function initGiftStatus() {
     var lead = giftLead();
@@ -2038,7 +2057,7 @@
     captureSource(); initConsent(); trackPageEvents();
     renderCounts(); renderMini(); markWish();
     initHeader(); initClicks(); initRail(); initLightbox(); initProduct(); initCerts(); initProof(); initTabs(); initReadmore(); initSort();
-    initDD(); initVoucherLink(); initCartPage(); initCartUpsell(); initCheckout(); initThanks(); renderWishPage(); initSearchPage(); initContact(); initGiftForm(); initCourse(); initGiftStatus(); initGiftPop(); initFloat(); initFlipbook(); initJourney(); initJourneyMap(); initPledge(); initRef(); initCtv(); initCtvJoin(); initDlJoin(); initDlOrder(); initWall(); initWallStrip(); initQuiz(); initGiftDock(); initZaloGate(); initOcx(); initQtet(); initMusic(); initBrandVideo(); initChat(); initLc();
+    initDD(); initVoucherLink(); initCartPage(); initCartUpsell(); initCheckout(); initThanks(); renderWishPage(); initSearchPage(); initContact(); initGiftForm(); initCourse(); initMember(); initGiftStatus(); initGiftPop(); initFloat(); initFlipbook(); initJourney(); initJourneyMap(); initPledge(); initRef(); initCtv(); initCtvJoin(); initDlJoin(); initDlOrder(); initWall(); initWallStrip(); initQuiz(); initGiftDock(); initZaloGate(); initOcx(); initQtet(); initMusic(); initBrandVideo(); initChat(); initLc();
     window.addEventListener('storage', function (e) { if (e.key === 'tdl_cart') { cart = load('tdl_cart', []); cleanCart(); renderCounts(); renderMini(); } });
   }
   // ===== Hành trình 10 triệu người Việt sống khỏe hơn: bộ đếm [data-jr] + trang "Tôi chọn sống lành" /toi-chon-song-lanh/ (api journey.js) =====

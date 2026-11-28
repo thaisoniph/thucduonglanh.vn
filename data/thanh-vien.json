@@ -1,0 +1,50 @@
+{
+  "enabled": true,
+  "draft": true,
+  "path": "/thanh-vien/",
+  "title": "Thành viên Gian Bếp Lành",
+  "headline": "Thành viên Gian Bếp Lành: bữa sáng lành cả năm, giá tốt nhất",
+  "sub": "Trả trước một lần, nhận Bữa Ăn Dinh Dưỡng VitaGreen giao tận nhà theo đợt, giá tốt nhất và có chuyên viên riêng đồng hành. Dành cho gia đình đã quen bữa sáng từ hạt.",
+  "image": "/assets/img/products/bua-an-dinh-duong-1.webp",
+  "plans": [
+    {
+      "key": "6-thang",
+      "name": "Gói 6 tháng",
+      "price": 2700000,
+      "boxes": 9,
+      "deliveries": 3,
+      "note": "9 hộp 500g = 180 bữa sáng, giao 3 đợt (mỗi đợt 3 hộp)",
+      "gifts": ["1 hộp Trà DILVANG", "1 chai Xì Dầu 2S Đỗ Đen Ngưu Bàng"],
+      "tag": ""
+    },
+    {
+      "key": "12-thang",
+      "name": "Gói 12 tháng",
+      "price": 4950000,
+      "boxes": 18,
+      "deliveries": 6,
+      "note": "18 hộp 500g = 360 bữa sáng, giao 6 đợt (mỗi đợt 3 hộp)",
+      "gifts": ["2 hộp Trà DILVANG", "2 chai Xì Dầu 2S Đỗ Đen Ngưu Bàng", "1 hũ Ruốc Rong Biển chay vào tháng sinh nhật"],
+      "tag": "Tiết kiệm nhất"
+    }
+  ],
+  "perks": [
+    {"t": "Giá tốt nhất, chốt một lần cho cả kỳ", "d": "Tính ra chỉ từ khoảng 14.000đ một bữa sáng, rẻ hơn mọi gói mua lẻ. Trả trước một lần, các đợt sau không thu thêm."},
+    {"t": "Miễn phí giao hàng mọi đợt", "d": "Hàng giao tận nhà, không lo hết giữa chừng."},
+    {"t": "Chuyên viên riêng đồng hành", "d": "Một người phụ trách gọi hỏi thăm mỗi đợt, nhắc trước khi hết hàng, trả lời mọi thắc mắc qua Zalo."},
+    {"t": "Đổi linh hoạt", "d": "Muốn đổi 1 đợt sang Sữa Hạt Dinh Dưỡng Curcumin cùng giá trị cho người lớn tuổi trong nhà cũng được."},
+    {"t": "Quà tặng gian bếp", "d": "Trà DILVANG, xì dầu 2S và quà tháng sinh nhật (gói 12 tháng) để cả nhà cùng ăn lành."}
+  ],
+  "steps": [
+    "Để lại tên, số Zalo và chọn gói ở cuối trang.",
+    "Chuyên viên gọi xác nhận địa chỉ, cách thanh toán (chuyển khoản hoặc COD đợt đầu).",
+    "Nhận đợt 1 kèm quà. Gần hết hàng, chuyên viên nhắn trước để giao đợt tiếp.",
+    "Cần giao sớm, lùi lịch hay đổi sản phẩm, chỉ cần nhắn chuyên viên."
+  ],
+  "faq": [
+    {"q": "Một hộp dùng được bao lâu?", "a": "Hộp 500g có 20 gói. Mỗi sáng 1 gói thì 1 hộp dùng khoảng 20 ngày. Gói 6 tháng có 9 hộp, đủ khoảng 180 bữa sáng cho 1 người."},
+    {"q": "Nhà 2 người dùng thì sao?", "a": "Hàng dùng nhanh hơn thì chuyên viên giao đợt tiếp sớm hơn. Hết gói, anh/chị có thể gia hạn với giá thành viên."},
+    {"q": "Thanh toán thế nào?", "a": "Chuyển khoản trước toàn bộ, hoặc trả tiền khi nhận đợt 1 (COD). Các đợt sau không thu thêm."},
+    {"q": "Bữa Ăn Dinh Dưỡng có phải là thuốc không?", "a": "Không. Đây là thực phẩm, không phải là thuốc và không có tác dụng thay thế thuốc chữa bệnh. Người có bệnh nền nên hỏi ý kiến bác sĩ về chế độ ăn."}
+  ]
+}
