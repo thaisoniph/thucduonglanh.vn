@@ -85,7 +85,16 @@ async function orderAdd(x, data) {
   return { ok: true, id: d.id, total: d.total };
 }
 
-const RATE = { order: 30, order_add: 10, contact: 30, chat_lead: 20, apply: 6, dl_apply: 6, ctv_apply: 6 }; // lượt / giờ / địa chỉ IP (nhiều khách dùng chung mạng 4G vẫn đủ)
+/** 💚 Khách tự bấm "Có, nhắc tôi" ở trang cảm ơn (28/11/2026): ghi đồng ý nhận tin cho đơn + khách. Chỉ đúng mã đơn + số điện thoại, trong 7 ngày. */
+async function orderConsent(x, data) {
+  const p = await first(x.db, 'SELECT rid, phone, time FROM orders WHERE id = ?', String(data.id || '')), phone = await mainPhone(x, data.phone);
+  if (!p || p.phone !== phone || Date.now() - Number(p.time) > 7 * 864e5) return { ok: false, error: 'Chưa ghi nhận được, anh/chị nhắn Zalo 0966 326 522 giúp em nhé.' };
+  await run(x.db, 'UPDATE orders SET consent = 1 WHERE rid = ?', p.rid);
+  await run(x.db, 'UPDATE customers SET consent = 1 WHERE phone = ?', phone);
+  return { ok: true };
+}
+
+const RATE = { order: 30, order_add: 10, order_consent: 10, contact: 30, chat_lead: 20, apply: 6, dl_apply: 6, ctv_apply: 6 }; // lượt / giờ / địa chỉ IP (nhiều khách dùng chung mạng 4G vẫn đủ)
 async function website(x, data) {
   if (data.website) return { ok: true }; // chống spam (honeypot)
   // 25/11/2026 (rà soát bảo mật): trước đây chỉ có ô bẫy → 1 đoạn mã tự động tạo được hàng nghìn khách giả, hồ sơ 2 MB làm đầy kho dữ liệu, email liên hệ dùng hết lượt gửi trong ngày (không ai nhận được mã đăng nhập)
@@ -109,6 +118,7 @@ async function website(x, data) {
   if (data.type === 'zbot') { await ensureSchema(x.db); return await zbot(x, data); } // 🤖 chương trình Zalo "Trợ lý An Lành" (zbot.js, zalo-bot/); bảng mới (zb_act…) tạo cả khi chưa ai mở CRM
   if (data.type === 'zsale') { await ensureSchema(x.db); return await zsale(x, data); } // 👀 người đọc Zalo của sale (zsale.js, zalo-bot/sale-manager.js): chỉ lưu tin, không gửi
   if (data.type === 'order_add') { await ensureSchema(x.db); return await orderAdd(x, data); }
+  if (data.type === 'order_consent') return await orderConsent(x, data);
   if (data.type === 'order') {
     try {
       // đơn gửi lại (mạng chập chờn) đã lưu rồi thì không kiểm tra lại mã (mã 1 lần sẽ báo "đã dùng") và không tính lại suất quà Ngày Đôi

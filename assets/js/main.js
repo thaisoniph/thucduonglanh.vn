@@ -1022,7 +1022,7 @@
       '<input type="text" name="website" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">' +
       '<div class="of-f"><span class="of-lbl">' + T('Thanh toán||payment') + '</span><div class="pay-opts">' + pay + '</div></div>' +
       '<label class="of-save"><input type="checkbox" name="remember" checked> ' + T('Lưu thông tin cho lần mua sau') + '</label>' +
-      '<label class="of-save"><input type="checkbox" name="marketing"> ' + T('Tôi đồng ý nhận tư vấn, nhắc lịch dùng sản phẩm và ưu đãi qua Zalo, điện thoại, Facebook') + '</label>' +
+      '<label class="of-save of-mk"><input type="checkbox" name="marketing"><span>' + T('🎁 Nhắc tôi khi sắp hết sản phẩm và gửi ưu đãi riêng') + '<small>' + T('Qua Zalo, điện thoại, Facebook. Muốn dừng lúc nào chỉ cần nhắn 1 câu.') + '</small></span></label>' + // không tích sẵn: Luật 91/2025, ô tích sẵn không tính là đồng ý (28/11/2026)
       '</div>';
   }
   /* phương thức thanh toán: chỉ lưu khi khách TỰ bấm chọn (tdl_pay); chưa từng chọn → COD */
@@ -1585,8 +1585,19 @@
       dd + zaloNote + qr + '<div class="order-box">' + rows + (o.voucher ? '<div class="row"><span>🎟 ' + T('Mã ưu đãi') + ' ' + esc(o.voucher) + '</span><b>' + (o.discount ? '−' + money(o.discount) : T('Áp dụng')) + '</b></div>' : '') + '<div class="row"><span>' + T('Giao hàng') + '</span><span>' + (o.shipping ? money(o.shipping) : ((+CFG.shipping_fee && +CFG.free_ship_threshold) ? T('Miễn phí') : T('Báo khi xác nhận'))) + '</span></div><div class="row"><span><b>' + T('Tổng cộng') + '</b></span><b style="color:var(--primary-2)">' + money(o.total) + '</b></div>' +
       '<div class="row"><span>' + T('Người nhận') + '</span><span>' + esc(o.customer.name) + ' – ' + esc(o.customer.phone) + '</span></div><div class="row"><span>' + T('Địa chỉ') + '</span><span>' + esc(addr + ', ' + o.customer.district + ', ' + o.customer.province) + '</span></div>' +
       '<div class="row"><span>' + T('Thanh toán||payment') + '</span><span>' + (o.payment === 'bank' ? T('Chuyển khoản') : T('Thanh toán khi nhận hàng (COD)')) + '</span></div></div>' +
+      (LANG === 'vi' && o.sent && !o.marketing_consent && CFG.endpoint ? '<div class="rf-thanks mk-thanks"><b>💚 Để ' + esc(CFG.brand) + ' nhắc bạn khi sắp hết sản phẩm nhé?</b><p>Nhắc lịch dùng, cách dùng đúng và ưu đãi riêng cho khách đã mua, qua Zalo, điện thoại, Facebook. Muốn dừng lúc nào chỉ cần nhắn 1 câu.</p><button type="button" class="btn" data-mk-yes>💚 Có, nhắc tôi</button></div>' : '') +
       (LANG === 'vi' && CFG.ref_path && o.sent ? '<div class="rf-thanks"><b>🎁 Giới thiệu bạn bè, cùng nhận quà</b><p>Bạn bè của bạn được giảm giá đơn đầu, bạn nhận voucher cảm ơn cho lần mua sau.</p><button type="button" class="btn" data-rf-get>Lấy link giới thiệu của tôi</button><div data-rf-out hidden></div><a class="rf-more" href="' + esc(CFG.ref_path) + '">Xem thể lệ</a></div>' : '') + (CFG.zalo_group ? '<div class="oa-cta"><b>👥 Mời anh/chị vào nhóm Zalo Sống khỏe cùng ' + esc(CFG.brand) + '</b><p>' + (CFG.gift ? '🎁 Quà tặng thành viên: <strong>' + esc(CFG.gift) + '</strong>. ' : '') + 'Nhận hướng dẫn dùng sản phẩm, thực đơn lành mỗi ngày và ưu đãi riêng cho thành viên.</p><a class="btn btn-zalo" href="' + esc(CFG.zalo_group) + '" target="_blank" rel="noopener" data-cta="zalo_group_thanks">Vào nhóm Zalo</a>' + (CFG.zalo_oa ? '<a class="oa-link" href="' + esc(CFG.zalo_oa) + '" target="_blank" rel="noopener" data-cta="zalo_oa_thanks">hoặc Quan tâm Zalo OA</a>' : '') + '</div>' : CFG.zalo_oa ? '<div class="oa-cta"><b>📲 Quan tâm Zalo OA Thực Dưỡng Lành</b><p>Để nhận hướng dẫn dùng sản phẩm, lịch nhắc và ưu đãi dành riêng cho khách đã mua.</p><a class="btn btn-zalo" href="' + esc(CFG.zalo_oa) + '" target="_blank" rel="noopener">Quan tâm Zalo OA</a></div>' : '') + '<a class="btn btn-outline" href="' + U('/san-pham/') + '">' + T('Tiếp tục mua sắm') + '</a>';
     initAddon(el, o);
+    var mk = el.querySelector('[data-mk-yes]'); // 💚 hỏi lại sự đồng ý sau khi đặt xong (28/11/2026): khách tự bấm mới tính
+    if (mk) { track('consent_view', { location: 'cam_on' }); mk.addEventListener('click', function () {
+      mk.disabled = true; mk.textContent = 'Đang ghi nhận…';
+      fetch(CFG.endpoint, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ type: 'order_consent', id: o.id, phone: o.customer.phone }) })
+        .then(function (r) { return r.json(); }).then(function (j) {
+          if (!j || !j.ok) throw new Error(j && j.error || '');
+          o.marketing_consent = true; save('tdl_last_order', o); track('consent_yes', { location: 'cam_on' });
+          mk.parentNode.innerHTML = '<b>💚 Đã ghi nhận, cảm ơn bạn!</b><p>Khi sản phẩm sắp hết, ' + esc(CFG.brand) + ' sẽ nhắn nhắc bạn.</p>';
+        }).catch(function (er) { mk.disabled = false; mk.textContent = '💚 Có, nhắc tôi'; toast(er.message || 'Chưa ghi nhận được, bạn thử lại giúp em nhé.', 'err'); });
+    }); }
     var rg = el.querySelector('[data-rf-get]');
     if (rg) rg.addEventListener('click', function () { track('ref_thanks', {}); rg.hidden = true; refLoad(normPhone(o.customer.phone), el.querySelector('.rf-thanks [data-rf-out]'), null, null); });
     var z = $('#sendZalo');
