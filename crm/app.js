@@ -12071,6 +12071,15 @@
         '<p class="zb-sub"><b>Bước 4.</b> Kết nối fanpage (đăng nhập Facebook bằng tài khoản quản trị các trang, tích chọn tất cả trang cần dùng).</p>' +
         '<div class="lq-btns"><button class="btn pri" data-fp="connect">🔗 Kết nối fanpage</button></div>' +
         '<details class="small"><summary>Không đăng nhập được? Dán mã truy cập trang</summary><p class="muted">Lấy ở ứng dụng → Messenger → Cài đặt API → Tạo mã truy cập cho từng trang.</p><label class="f"><input class="zb-text" id="fpPtk" autocomplete="off" placeholder="EAA…"></label><button class="btn sm" data-fp="ptoken">Kết nối bằng mã</button></details>' : '');
+    var A2 = j.app2 || {}, n2 = ps.filter(function (p) { return p.t2; });
+    h += '<details class="small"' + (A2.id && !n2.length ? ' open' : '') + '><summary><b>💬 App Messenger riêng</b> · ' + (A2.id && A2.secret ? (n2.length ? '✅ ' + n2.length + ' trang nhắn tin qua app này' : '⏳ đã lưu app, chưa dán mã trang') : 'chưa dùng') + '</summary>' +
+      '<p class="muted">Dùng khi app chính bị Meta chặn quyền nhắn tin. App “Tin nhắn Thực Dưỡng Lành” (doanh nghiệp Thực Dưỡng Lành 2) chỉ lo tin nhắn; bình luận, bài đăng, biểu mẫu vẫn chạy app chính. Webhook của app này dùng cùng Callback URL + Verify token ở bước 2, tích <b>messages</b>, <b>messaging_postbacks</b>, <b>message_echoes</b>.</p>' +
+      '<div class="row2c"><label class="f"><span>App ID (app Messenger)</span><input id="fpApp2Id" inputmode="numeric" value="' + esc(A2.id || '') + '"></label>' +
+      '<label class="f"><span>App Secret ' + (A2.secret ? '(đã lưu, để trống nếu không đổi)' : '') + '</span><input id="fpApp2Sec" type="password" autocomplete="off" placeholder="' + (A2.secret ? '••••••••' : '32 ký tự') + '"></label></div>' +
+      '<button class="btn sm" data-fp="app2">💾 Lưu app Messenger</button>' +
+      (A2.id ? '<p>Mã trang (app Messenger → Cài đặt API Messenger → Tạo mã), mỗi trang dán 1 lần:</p><label class="f"><input class="zb-text" id="fpPtk2" autocomplete="off" placeholder="EAA…"></label><button class="btn sm" data-fp="ptoken2">Dán mã trang</button>' +
+        (n2.length ? '<p>Đang nhắn qua app này: ' + n2.map(function (p) { return esc(p.name); }).join(', ') + '</p>' : '') + ' <button class="link" data-fp="app2off">Gỡ app Messenger riêng</button>' : '') +
+      '</details>';
     return h + '</details>';
   }
   /** 📌 Quản trị chọn trang CRM theo dõi (fp_track). Bỏ trang đang bật trợ lý thì trợ lý trang đó tắt. */
@@ -12221,6 +12230,9 @@
     if (v[0] === 'teach') return aiTeachOpen('fp', (FP.d.log || []).concat(FP.more || [], FP.d.open || []).filter(function (l) { return String(l.rid) === id; })[0], fpFetch);
     if (v[0] === 'logmore') { var al = (FP.d.log || []).concat(FP.more || []), mn = al.reduce(function (m, l) { return Math.min(m, l.rid || 1e15); }, 1e15); t.disabled = true; t.textContent = '⏳ Đang tải…'; return api('fp_logmore', { before: mn }).then(function (r) { FP.more = (FP.more || []).concat(r.log || []); if ((r.log || []).length < 100) FP.moreEnd = 1; render(); }, fail); }
     if (v[0] === 'app') { t.disabled = true; return api('fp_app', { appId: $('#fpAppId').value.trim(), secret: $('#fpSecret').value.trim(), config: $('#fpConfig').value.trim() }).then(after('Đã lưu ✓ Làm tiếp bước 2.'), fail); }
+    if (v[0] === 'app2') { t.disabled = true; return api('fp_app2', { appId: $('#fpApp2Id').value.trim(), secret: $('#fpApp2Sec').value.trim() }).then(after('Đã lưu app Messenger ✓ Giờ dán mã trang.'), fail); }
+    if (v[0] === 'app2off') { if (!confirm('Gỡ app Messenger riêng? Tin nhắn sẽ quay về app chính.')) return; t.disabled = true; return api('fp_app2', { off: 1 }).then(after('Đã gỡ app Messenger riêng'), fail); }
+    if (v[0] === 'ptoken2') { t.disabled = true; return api('fp_ptoken2', { ptk: $('#fpPtk2').value.trim() }).then(function (j) { if (j.err || j.miss) alert('Đã lưu mã cho “' + j.name + '”' + (j.err ? '\n⚠️ ' + j.err : '') + (j.miss ? '\n⚠️ Mã chưa có quyền pages_messaging.' : '')); else toast('Đã nối “' + j.name + '” với app Messenger ✓'); fpFetch(); }, fail); }
     if (v[0] === 'connect') { t.disabled = true; return api('fp_connect', {}).then(function (j) { t.disabled = false; location.href = j.url; }, fail); }
     if (v[0] === 'ptoken') { t.disabled = true; return api('fp_ptoken', { ptk: $('#fpPtk').value.trim() }).then(function (j) { if (j.miss && j.miss.length) alert('Đã kết nối ' + j.pages.length + ' trang, nhưng mã còn THIẾU quyền: ' + j.miss.join(', ') + '.\n\nVào ứng dụng Meta thêm các quyền này (Trường hợp sử dụng → Quyền), rồi tạo mã mới và dán lại. Thiếu quyền thì trợ lý chưa trả lời bình luận / đăng bài được.'); else toast('Đã kết nối ' + j.pages.length + ' trang ✓'); fpFetch(); }, fail); }
     if (v[0] === 'page') {

@@ -69,6 +69,7 @@ export async function fbSchema(db) {
   await run(db, `CREATE TABLE IF NOT EXISTS fp_pages (id TEXT PRIMARY KEY, name TEXT DEFAULT '', token TEXT DEFAULT '', active INTEGER DEFAULT 0, cfg TEXT DEFAULT '{}',
     at INTEGER, err TEXT DEFAULT '', last_ev INTEGER)`); // fanpage đã kết nối (token = mã truy cập trang, không bao giờ gửi về CRM)
   try { await run(db, 'ALTER TABLE fp_pages ADD COLUMN on_at INTEGER'); } catch (e) { } // lúc bật trợ lý (quét bình luận chỉ lấy bình luận sau lúc này)
+  try { await run(db, "ALTER TABLE fp_pages ADD COLUMN token2 TEXT DEFAULT ''"); } catch (e) { } // 28/11/2026: mã trang của app Messenger riêng (fp_app2), không gửi về CRM
   await run(db, `CREATE TABLE IF NOT EXISTS fp_users (psid TEXT PRIMARY KEY, page TEXT, name TEXT DEFAULT '', phone TEXT DEFAULT '', lead TEXT DEFAULT '', src TEXT DEFAULT '',
     last_in INTEGER, pause INTEGER DEFAULT 0, gift INTEGER DEFAULT 0, nudged INTEGER DEFAULT 0, mid TEXT DEFAULT '', at INTEGER)`); // người nhắn fanpage (psid theo từng trang). gift: 1 đã xin số, 2 đã gửi quà
   await run(db, 'CREATE INDEX IF NOT EXISTS fp_users_in ON fp_users(last_in)');
@@ -94,6 +95,11 @@ export async function fpTracked(x) {
   return new Set((await all(x.db, 'SELECT id, name, active FROM fp_pages')).filter(r => r.active || TDL_RE.test(nrm(r.name))).map(r => String(r.id)));
 }
 async function appCfg(x) { return Object.assign({ id: '', secret: '', verify: '', config: '' }, await kvJson(x.db, 'fp_app', {})); }
+/** 💬 App Messenger riêng (28/11/2026): app chính bị Meta chặn pages_messaging (BM Thucduonglanh1 dính app CAPI 939451732460777) → app "Tin nhắn Thực Dưỡng Lành" ở BM Thực Dưỡng Lành 2 chỉ lo tin nhắn.
+ *  kv fp_app2 = { id, secret }; mã trang của app này ở fp_pages.token2. Có app 2 thì tin nhắn (webhook messaging + gửi tin) đi app 2, bình luận / bài đăng / biểu mẫu vẫn app chính. */
+async function app2Cfg(x) { return Object.assign({ id: '', secret: '' }, await kvJson(x.db, 'fp_app2', {})); }
+const mt = p => p.token2 || p.token; // mã dùng cho Messenger
+const MSG_FIELDS = 'messages,messaging_postbacks,message_echoes,messaging_referrals';
 function pageCfg(raw) { let c = {}; try { c = JSON.parse(raw || '{}'); } catch (e) { } c = Object.assign({}, PCFG0, c); if (!Array.isArray(c.replies) || !c.replies.length) c.replies = PCFG0.replies; if (!Array.isArray(c.slots)) c.slots = PCFG0.slots; return c; }
 const PG = new Map(); // giữ trang trong bộ nhớ 60 giây (mỗi tin nhắn / bình luận đỡ 1 lần đọc D1)
 async function pageGet(x, id) {
@@ -135,24 +141,26 @@ export async function fbRoute(x, req, path, url) {
     return new Response('forbidden', { status: 403 });
   }
   if (path === '/fb/hook' && req.method === 'POST') {
-    const buf = await req.arrayBuffer(), app = await appCfg(x);
-    if (!await sigOk(app.secret, buf, req.headers.get('X-Hub-Signature-256'))) return new Response('bad signature', { status: 403 });
+    const buf = await req.arrayBuffer(), app = await appCfg(x), app2 = await app2Cfg(x), sig = req.headers.get('X-Hub-Signature-256');
+    const src = await sigOk(app.secret, buf, sig) ? 1 : app2.secret && await sigOk(app2.secret, buf, sig) ? 2 : 0;
+    if (!src) return new Response('bad signature', { status: 403 });
     let d = null; try { d = JSON.parse(new TextDecoder().decode(buf)); } catch (e) { }
-    if (d && d.object === 'page') x.later(hook(x, d, app));
+    if (d && d.object === 'page') x.later(hook(x, d, app, app2, src));
     return new Response('EVENT_RECEIVED');
   }
   if (path === '/fb/cb') return await oauthCb(x, url);
   return null;
 }
 
-async function hook(x, d, app) {
+async function hook(x, d, app, app2, src) {
+  const two = !!(app2 && app2.id && app2.secret), useCh = !two || src === 1, useMsg = !two || src === 2; // có app 2: tin nhắn chỉ lấy từ app 2, bình luận / biểu mẫu chỉ từ app chính (không xử lý 2 lần)
   await Promise.all((d.entry || []).map(async e => {
     const p = await pageGet(x, String(e.id)); if (!p) return;
     const now = Date.now();
     if (!p.last_ev || now - p.last_ev > 5 * 60e3) { p.last_ev = now; await run(x.db, 'UPDATE fp_pages SET last_ev = ? WHERE id = ?', now, p.id); } // CRM biết trang đang nhận sự kiện (ghi 5 phút / lần)
-    for (const c of e.changes || []) if (c.field === 'leadgen') await flHook(x, p, c.value || {}); // 📋 khách điền biểu mẫu quảng cáo → CRM ngay
-    for (const c of e.changes || []) if (c.field === 'feed') { try { await onComment(x, p, c.value || {}); } catch (err) { console.error('fp cmt', err.message); await flog(x, p.id, 'error', { text: 'Bình luận: ' + err.message }); await pageErr(x, p, err); } }
-    for (const m of e.messaging || []) { try { await onMessage(x, p, m, app); } catch (err) { console.error('fp msg', err.message); await flog(x, p.id, 'error', { text: 'Tin nhắn: ' + err.message }); await pageErr(x, p, err); } }
+    for (const c of useCh ? e.changes || [] : []) if (c.field === 'leadgen') await flHook(x, p, c.value || {}); // 📋 khách điền biểu mẫu quảng cáo → CRM ngay
+    for (const c of useCh ? e.changes || [] : []) if (c.field === 'feed') { try { await onComment(x, p, c.value || {}); } catch (err) { console.error('fp cmt', err.message); await flog(x, p.id, 'error', { text: 'Bình luận: ' + err.message }); await pageErr(x, p, err); } }
+    for (const m of useMsg ? e.messaging || [] : []) { try { await onMessage(x, p, m, app, app2); } catch (err) { console.error('fp msg', err.message); await flog(x, p.id, 'error', { text: 'Tin nhắn: ' + err.message }); await pageErr(x, p, err); } }
   }));
 }
 
@@ -184,8 +192,8 @@ async function onComment(x, p, v) {
     const opener = await commentOpener(x, p, name, text, post, hasPhone);
     await tryDo('dm', async () => {
       let r;
-      try { r = await graph(p.id + '/messages', p.token, { recipient: { comment_id: cid }, message: { text: opener, quick_replies: QR_START } }); }
-      catch (e) { if (e.code !== 100) throw e; r = await graph(p.id + '/messages', p.token, { recipient: { comment_id: cid }, message: { text: opener } }); } // tin nhắn riêng không nhận nút → gửi chữ
+      try { r = await graph(p.id + '/messages', mt(p), { recipient: { comment_id: cid }, message: { text: opener, quick_replies: QR_START } }); }
+      catch (e) { if (e.code !== 100) throw e; r = await graph(p.id + '/messages', mt(p), { recipient: { comment_id: cid }, message: { text: opener } }); } // tin nhắn riêng không nhận nút → gửi chữ
       const psid = String(r.recipient_id || '');
       if (psid) await run(x.db, `INSERT INTO fp_users (psid, page, name, phone, src, at) VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT(psid) DO UPDATE SET src = excluded.src, phone = CASE WHEN fp_users.phone = '' THEN excluded.phone ELSE fp_users.phone END, name = CASE WHEN fp_users.name = '' THEN excluded.name ELSE fp_users.name END`,
         psid, p.id, name, hasPhone ? ph : '', JSON.stringify({ post, cid, text: text.slice(0, 300) }), now);
@@ -274,7 +282,7 @@ async function sendProofs(x, p, psid, code, prods, t0) {
   for (const it of show) {
     if (BUDGET - (Date.now() - t0) < 1500) break;
     await act(p, psid, 'typing_on'); await sleep(rnd(700, 1400));
-    try { await graph('me/messages', p.token, { recipient: { id: psid }, messaging_type: 'RESPONSE', message: { attachment: { type: 'image', payload: { url: it.url, is_reusable: true } }, metadata: 'anlanh' } }); } catch (e) { console.error('fp proof img', e.message); return 0; }
+    try { await graph('me/messages', mt(p), { recipient: { id: psid }, messaging_type: 'RESPONSE', message: { attachment: { type: 'image', payload: { url: it.url, is_reusable: true } }, metadata: 'anlanh' } }); } catch (e) { console.error('fp proof img', e.message); return 0; }
   }
   if (prods[code]) await send(x, p, psid, (list.length > show.length ? 'Còn ' + (list.length - show.length) + ' giấy nữa, mình xem đủ ở mục Hồ sơ chất lượng trên trang sản phẩm nha: ' : 'Mình xem rõ hơn ở mục Hồ sơ chất lượng trên trang sản phẩm nha: ') + prods[code].url);
   return show.length;
@@ -283,9 +291,9 @@ async function send(x, p, psid, text, qr) {
   const parts = []; let t = String(text || '').trim();
   while (t.length > 1990) { const cut = t.lastIndexOf('\n', 1990) > 800 ? t.lastIndexOf('\n', 1990) : 1990; parts.push(t.slice(0, cut)); t = t.slice(cut).trim(); }
   if (t) parts.push(t);
-  for (let i = 0; i < parts.length; i++) await graph('me/messages', p.token, { recipient: { id: psid }, messaging_type: 'RESPONSE', message: Object.assign({ text: parts[i], metadata: 'anlanh' }, qr && i === parts.length - 1 ? { quick_replies: qr } : {}) });
+  for (let i = 0; i < parts.length; i++) await graph('me/messages', mt(p), { recipient: { id: psid }, messaging_type: 'RESPONSE', message: Object.assign({ text: parts[i], metadata: 'anlanh' }, qr && i === parts.length - 1 ? { quick_replies: qr } : {}) });
 }
-const act = (p, psid, a) => graph('me/messages', p.token, { recipient: { id: psid }, sender_action: a }).catch(() => { }); // mark_seen = "Đã xem", typing_on = "đang gõ"
+const act = (p, psid, a) => graph('me/messages', mt(p), { recipient: { id: psid }, sender_action: a }).catch(() => { }); // mark_seen = "Đã xem", typing_on = "đang gõ"
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const rnd = (a, b) => a + Math.floor(Math.random() * (b - a));
 const BUDGET = 25e3; // xử lý xong trong 25 giây kể từ lúc nhận tin (Cloudflare cho chạy tiếp tối đa 30 giây sau khi trả lời Facebook)
@@ -311,11 +319,11 @@ async function sendHuman(x, p, psid, text, qr, t0, spent) {
 const PAUSE_MS = 12 * 3600e3, AUTO_MS = 20e3; // nhân sự nhắn tay → bot nhường 12 tiếng; tin trang gửi trong 20 giây sau tin khách = tự động của Meta
 const ASK_PHONE = 'Dạ em gửi quà liền ạ 🎁 Mình cho em xin số điện thoại (có Zalo) để em gửi quà và mời mình vào nhóm Sống khỏe trên Zalo nha. Mình bấm số bên dưới cho nhanh, hoặc gõ số cũng được ạ.';
 
-async function onMessage(x, p, m, app) {
+async function onMessage(x, p, m, app, app2) {
   const now = Date.now(), msg = m.message || null;
   await mkAdRef(x, p, m); // 🎯 khách đến từ quảng cáo nào + SĐT gõ trong Messenger (chạy cả khi trợ lý tắt)
   if (msg && msg.is_echo) { // tin trang gửi đi
-    if (String(msg.app_id || '') === String(app.id) || msg.metadata === 'anlanh') return; // của bot
+    if ([String(app.id), String(app2 && app2.id || '')].includes(String(msg.app_id || '')) && msg.app_id || msg.metadata === 'anlanh') return; // của bot
     const psid = String((m.recipient || {}).id || ''); if (!psid) return;
     const ou = await first(x.db, 'SELECT last_in FROM fp_users WHERE psid = ?', psid);
     if (ou && ou.last_in && now - ou.last_in < AUTO_MS) return; // trả lời tức thì / câu hỏi thường gặp của Meta Business Suite (gửi ngay sau tin khách) – không phải nhân sự
@@ -330,7 +338,7 @@ async function onMessage(x, p, m, app) {
   const payload = String(msg && msg.quick_reply && msg.quick_reply.payload || m.postback && m.postback.payload || '');
   let text = String(msg && msg.text || m.postback && m.postback.title || '').replace(/\s+/g, ' ').trim().slice(0, 600);
   if (!u) {
-    let nm = ''; try { const pr = await graph(psid + '?fields=name', p.token); nm = String(pr.name || ''); } catch (e) { }
+    let nm = ''; try { const pr = await graph(psid + '?fields=name', mt(p)); nm = String(pr.name || ''); } catch (e) { }
     await run(x.db, 'INSERT INTO fp_users (psid, page, name, at) VALUES (?, ?, ?, ?) ON CONFLICT(psid) DO NOTHING', psid, p.id, nm.slice(0, 80), now);
     u = await first(x.db, 'SELECT * FROM fp_users WHERE psid = ?', psid);
   }
@@ -632,18 +640,18 @@ export async function crmFp(x, u, d, crmLog) {
   useEnv(x);
   if (u.level < 2 && u.role !== 'Marketing') return { ok: false, error: 'Chỉ Quản lý, Quản trị và Marketing dùng được Trợ lý Fanpage.' };
   const a = d.action, now = Date.now(), admin = u.level >= 3;
-  if (['fp_app', 'fp_connect', 'fp_ptoken', 'fp_del', 'fp_track'].includes(a) && !admin) return { ok: false, error: 'Chỉ Quản trị kết nối / gỡ fanpage được.' };
+  if (['fp_app', 'fp_app2', 'fp_ptoken2', 'fp_connect', 'fp_ptoken', 'fp_del', 'fp_track'].includes(a) && !admin) return { ok: false, error: 'Chỉ Quản trị kết nối / gỡ fanpage được.' };
   if (a === 'fp_view') {
     const app = await appCfg(x), from = fmtDate(now - DAY, 'yyyyMMdd');
     const tk = await fpTracked(x), trackSet = Array.isArray(await kvJson(x.db, 'fp_track', null));
-    const pages = (await all(x.db, 'SELECT id, name, active, cfg, at, err, last_ev FROM fp_pages ORDER BY name')).map(r => Object.assign({}, r, { cfg: pageCfg(r.cfg), track: tk.has(String(r.id)) }));
+    const pages = (await all(x.db, "SELECT id, name, active, cfg, at, err, last_ev, (token2 != '') AS t2 FROM fp_pages ORDER BY name")).map(r => Object.assign({}, r, { cfg: pageCfg(r.cfg), track: tk.has(String(r.id)) }));
     const posts = await all(x.db, 'SELECT id, page, day, slot, topic, text, link, prod, status, by_name, at, sent_at, fb_id, err, funnel, ins FROM fp_posts WHERE day >= ? ORDER BY day, slot, page', from);
     const log = await all(x.db, 'SELECT rid, at, page, kind, name, text, reply, done_at, done_by FROM fp_log ORDER BY rid DESC LIMIT 80');
     const open = await all(x.db, "SELECT rid, at, page, kind, name, text, reply, done_at, done_by FROM fp_log WHERE kind = 'handoff' AND done_at IS NULL AND at > ? ORDER BY rid DESC LIMIT 30", now - 7 * DAY); // ca cần người thật chưa xử lý: ghim lên đầu
     const stats = await all(x.db, 'SELECT kind, count(*) AS n FROM fp_log WHERE at > ? GROUP BY kind', now - 7 * DAY);
     const talk = await first(x.db, "SELECT count(*) AS n FROM fp_users WHERE last_in > ?", now - 7 * DAY);
     const insG = (await insBank(x)).map(g => ({ id: g.id, name: g.name, on: g.on }));
-    return { ok: true, learnEd: await edCount(x, 'fb'), edR: (await edCount(x, 'reply')).ids, insG, app: { id: app.id, secret: !!app.secret, verify: admin ? app.verify : '', config: app.config, hook: HOOK_URL, cb: CB_URL, verified: Number(await kvGet(x.db, 'fp_verified')) || 0 },
+    return { ok: true, learnEd: await edCount(x, 'fb'), edR: (await edCount(x, 'reply')).ids, insG, app: { id: app.id, secret: !!app.secret, verify: admin ? app.verify : '', config: app.config, hook: HOOK_URL, cb: CB_URL, verified: Number(await kvGet(x.db, 'fp_verified')) || 0 }, app2: await (async () => { const a2 = await app2Cfg(x); return { id: a2.id, secret: !!a2.secret }; })(),
       pages, trackSet, posts, grp: await fbgList(x, now), log, open, stats, talk: talk ? talk.n : 0, err: await kvGet(x.db, 'fp_write_err'), aiOn: !!x.env.ANTHROPIC_API_KEY, admin, now };
   }
   if (a === 'fp_gdone') { // 👥 đánh dấu đã đăng bài vào nhóm Facebook (giữ 14 ngày)
@@ -664,6 +672,32 @@ export async function crmFp(x, u, d, crmLog) {
     await kvSet(x.db, 'fp_app', JSON.stringify(app));
     await crmLog(x, u, 'Cài đặt ứng dụng Facebook', '', '', 'App ' + id, sec ? 'Đổi App Secret' : '');
     return { ok: true };
+  }
+  if (a === 'fp_app2') { // 💬 app Messenger riêng: App ID + App Secret (trống cả 2 + off = gỡ)
+    if (d.off) { await kvDel(x.db, 'fp_app2'); await run(x.db, "UPDATE fp_pages SET token2 = ''"); PG.clear(); await crmLog(x, u, 'Cài đặt ứng dụng Facebook', '', '', 'Gỡ app Messenger riêng', ''); return { ok: true }; }
+    const a2 = await app2Cfg(x), id = String(d.appId || '').replace(/\D/g, ''), sec = String(d.secret || '').trim();
+    if (!id) return { ok: false, error: 'Thiếu App ID của app Messenger.' };
+    if (sec && !/^[a-f0-9]{32}$/i.test(sec)) return { ok: false, error: 'App Secret chưa đúng (32 ký tự chữ và số).' };
+    if (!sec && !a2.secret) return { ok: false, error: 'Thiếu App Secret của app Messenger.' };
+    if (id === (await appCfg(x)).id) return { ok: false, error: 'Đây là App ID của app chính. Dán App ID của app “Tin nhắn Thực Dưỡng Lành”.' };
+    a2.id = id; if (sec) a2.secret = sec;
+    await kvSet(x.db, 'fp_app2', JSON.stringify(a2));
+    await crmLog(x, u, 'Cài đặt ứng dụng Facebook', '', '', 'App Messenger ' + id, sec ? 'Đổi App Secret' : '');
+    return { ok: true };
+  }
+  if (a === 'fp_ptoken2') { // 💬 dán mã trang tạo ở app Messenger (Cài đặt API Messenger → Tạo mã) → token2 + đăng ký nhận tin nhắn qua app này
+    const tk = String(d.ptk || '').trim(); if (tk.length < 40) return { ok: false, error: 'Mã truy cập chưa đúng.' };
+    const a2 = await app2Cfg(x); if (!a2.id || !a2.secret) return { ok: false, error: 'Lưu App ID và App Secret của app Messenger trước.' };
+    let dbg; try { dbg = (await graph('debug_token?input_token=' + encodeURIComponent(tk), a2.id + '|' + a2.secret)).data || {}; } catch (e) { return { ok: false, error: 'Facebook không nhận mã này: ' + e.message }; }
+    if (!dbg.is_valid) return { ok: false, error: 'Mã đã hết hạn hoặc không đúng. Tạo mã mới rồi dán lại.' };
+    if (String(dbg.app_id) !== String(a2.id)) return { ok: false, error: 'Mã này của ứng dụng khác (không phải app Messenger ' + a2.id + ').' };
+    if (dbg.type !== 'PAGE') return { ok: false, error: 'Cần mã TRANG (tạo ở app Messenger → Cài đặt API Messenger → Tạo mã cho trang).' };
+    const id = String(dbg.profile_id || ''), r = await first(x.db, 'SELECT id, name FROM fp_pages WHERE id = ?', id);
+    if (!r) return { ok: false, error: 'Trang ' + id + ' chưa kết nối ở app chính. Kết nối fanpage trước (bước 4).' };
+    let err = ''; try { await graph(id + '/subscribed_apps', tk, { subscribed_fields: MSG_FIELDS }); } catch (e) { err = 'Chưa đăng ký nhận tin nhắn: ' + e.message; }
+    await run(x.db, 'UPDATE fp_pages SET token2 = ? WHERE id = ?', tk, id); PG.delete(id);
+    await crmLog(x, u, 'Kết nối fanpage', id, '', 'Mã app Messenger', r.name + (err ? ' · ' + err : ''));
+    return { ok: true, name: r.name, err, miss: (dbg.scopes || []).indexOf('pages_messaging') < 0 };
   }
   if (a === 'fp_connect') { // link đăng nhập Facebook để chọn trang
     const app = await appCfg(x); if (!app.id || !app.secret) return { ok: false, error: 'Nhập App ID và App Secret trước.' };

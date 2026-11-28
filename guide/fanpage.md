@@ -199,6 +199,18 @@ Trong CRM bấm **🔗 Kết nối fanpage** → đăng nhập Facebook → **t�
 
 **Chạy thử ngay:** khi Facebook chưa duyệt, trợ lý chỉ phản hồi người **có vai trò trong ứng dụng**. Anh thêm vài nhân sự vào **Vai trò ứng dụng → Người thử nghiệm**, rồi nhờ họ bình luận vào một bài để xem trợ lý trả lời thế nào.
 
+**Bước 4b. App Messenger riêng (khi app chính bị chặn quyền nhắn tin)**
+
+Từ 28/11/2026, app chính bị Meta chặn quyền nhắn tin vì doanh nghiệp Thucduonglanh1 còn dính một app cũ. Vì vậy phần **tin nhắn** chạy qua app riêng **“Tin nhắn Thực Dưỡng Lành”** (thuộc doanh nghiệp Thực Dưỡng Lành 2). Bình luận, bài đăng và biểu mẫu vẫn chạy app chính.
+
+1. Trong app “Tin nhắn Thực Dưỡng Lành” → **Cài đặt ứng dụng → Thông tin cơ bản**: chép **App ID** và **App Secret**. Mở CRM → **📘 Fanpage** → **🔗 Kết nối Facebook** → **💬 App Messenger riêng**, dán 2 mã → **💾 Lưu app Messenger**.
+2. Trong app đó → **Trường hợp sử dụng → Tùy chỉnh → Cài đặt API Messenger**:
+   - Phần Webhook: dán đúng **Callback URL** và **Verify token** như bước 2, tích **messages**, **messaging_postbacks**, **message_echoes**.
+   - Phần **Tạo mã truy cập**: bấm **Thêm trang**, chọn fanpage, bấm **Tạo mã**, chép mã.
+3. Dán mã vào ô **Mã trang** ở CRM → **Dán mã trang**. Mỗi trang làm 1 lần. CRM hiện “Đang nhắn qua app này: …” là xong.
+
+Muốn quay về dùng 1 app thì bấm **Gỡ app Messenger riêng**.
+
 **Bước 5. Xin Facebook duyệt (để trợ lý trả lời mọi khách)**
 
 **5a. Xác minh doanh nghiệp**: ✅ đã xong (Thucduonglanh1 đã xác minh 01/11/2026). Xem lại ở business.facebook.com/settings → **Trung tâm bảo mật**.

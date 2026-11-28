@@ -52,7 +52,7 @@ import { wbQueue, wbOrderQueue, wbStatusQueue, wbEditQueue, wbDeleteQueue, wbInf
 
 let schemaDone = false, deltaOk = false; // deltaOk: đã có cột upd + trigger → cho CRM tải phần thay đổi
 const NOW_MS = "CAST((julianday('now') - 2440587.5) * 86400000 AS INTEGER)"; // giờ của máy chủ dữ liệu (ms)
-const SCHEMA_V = '2026-11-28a'; // + 4 mẫu tin 🎓 Khách học khoá Giải Mã Dinh Dưỡng (28/11/2026) · + customers.pool_from/pool_at (khách đã mua tự trả về Kho chung, 18/11/2026) · orders.entered_at (🕐 giờ lên đơn thật khi sale chọn giờ chốt sớm hơn, 16/11/2026) · + users.gvsee (👀 theo dõi việc của ai, 16/11/2026) · users.gv (✅ Việc tuần) + sessions.seen / ua
+const SCHEMA_V = '2026-11-28b'; // + fp_pages.token2 (app Messenger riêng 28/11/2026) · + 4 mẫu tin 🎓 Khách học khoá Giải Mã Dinh Dưỡng (28/11/2026) · + customers.pool_from/pool_at (khách đã mua tự trả về Kho chung, 18/11/2026) · orders.entered_at (🕐 giờ lên đơn thật khi sale chọn giờ chốt sớm hơn, 16/11/2026) · + users.gvsee (👀 theo dõi việc của ai, 16/11/2026) · users.gv (✅ Việc tuần) + sessions.seen / ua
 export async function ensureSchema(db) {
   if (schemaDone) return;
   // Đã kiểm tra với bản này rồi → chỉ hỏi 1 lần. Trước đây mỗi lần Cloudflare bật máy mới (rất thường xuyên) phải chạy ~25 lệnh nối tiếp, mất 3–5 giây.
