@@ -266,6 +266,10 @@ PRODUCTS.sort(key=lambda p: (p.get("order") or 999, p["name"]))
 
 # Ưu đãi chỉ có trên web (Cài đặt → Ưu đãi website): giá nhập trong /admin là giá gốc, web tự giảm X% và gạch giá gốc.
 WEB_OFFER = (lambda o: {**o, "enabled_pct": bool(o.get("enabled")), "percent": (num(o.get("percent")) or 0) if o.get("enabled") else 0})(SITE.get("web_offer") or {})
+_khf = DATA / "khoa-hoc.json"
+KH = json.loads(_khf.read_text("utf-8")) if _khf.exists() else {}
+KH_PATH = KH.get("path", "") if KH.get("enabled") and KH.get("lessons") else ""  # khoá học quà tặng (28/11/2026): bài 1 xem tự do, bài 2–5 mở bằng tên + số Zalo
+KH_IMG = "/assets/img/brand/khoa-hoc"
 
 
 def web_price(x, pct):
@@ -490,7 +494,8 @@ def uu_dai_html():
     if WEB_OFF_MAX:
         out.append(f"<li><strong>{t('Một số sản phẩm giảm thêm ') if w.get('headline') else t('Giảm ')}{upto(WEB_OFF_MAX)}</strong>{t(' khi đặt trên website (mức giảm ghi ở từng sản phẩm, đã trừ trực tiếp vào giá).')}</li>")
     if w.get("gift_enabled") and w.get("gift_title"):
-        link = f' – <a href="{ZALO_GATE}?tu=uu_dai">{t("tham gia tại đây")}</a>' if SITE.get("zalo_group") and w.get("gift_how") else ""
+        link = (f' – <a href="{KH_PATH}?tu=uu_dai">{t("học thử bài 1 tại đây")}</a>' if KH_PATH and IS_VI  # quà = khoá học trên web (28/11/2026)
+                else f' – <a href="{ZALO_GATE}?tu=uu_dai">{t("tham gia tại đây")}</a>' if SITE.get("zalo_group") and w.get("gift_how") else "")
         out.append(f"<li><strong>{t('Tặng')} {esc(w['gift_title'])}</strong>" + (f" {t('trị giá')} {esc(w['gift_value'])}" if w.get("gift_value") else "") + (f" {esc(w['gift_how'])}" if w.get("gift_how") else "") + link + ".</li>")
     return f'<ul class="uu-dai">{"".join(out)}</ul>' if out else ""
 
@@ -560,7 +565,7 @@ NAV = [
 if not POSTS["posts"] and not IS_VI:
     NAV = [x for x in NAV if x[1] != "/goc-song-lanh/"]  # ngôn ngữ khác chưa có bài viết nào thì ẩn mục
 if (SITE.get("camnang") or {}).get("url") or (SITE.get("ebook") or {}).get("url"):
-    NAV.insert(-1, ("Quà Tặng", "/qua-tang/", [("🎁 Tất cả quà tặng", "/qua-tang/", [])] + ([("📖 Cẩm nang sống khỏe", SITE["camnang"]["url"], [])] if (SITE.get("camnang") or {}).get("url") else []) + ([("🦴 Ebook cơ xương khớp", SITE["ebook"]["url"], [])] if (SITE.get("ebook") or {}).get("url") else [])
+    NAV.insert(-1, ("Quà Tặng", "/qua-tang/", [("🎁 Tất cả quà tặng", "/qua-tang/", [])] + ([("🎓 Khoá học dinh dưỡng", KH_PATH, [])] if KH_PATH and IS_VI else []) + ([("📖 Cẩm nang sống khỏe", SITE["camnang"]["url"], [])] if (SITE.get("camnang") or {}).get("url") else []) + ([("🦴 Ebook cơ xương khớp", SITE["ebook"]["url"], [])] if (SITE.get("ebook") or {}).get("url") else [])
                     + ([("🖐 Trò chơi: Bạn còn mấy ngón tay?", "/ngon-tay-song-lanh/", []), ("🌱 Tôi chọn sống lành", "/toi-chon-song-lanh/", [])] if IS_VI else [])))  # trang gom quà tặng + trò chơi + lời cam kết (17/10/2026)
 
 
@@ -1013,8 +1018,11 @@ CN_CONCERNS = ["Ăn uống lành mạnh cho cả nhà", "Đường huyết", "Hu
 
 
 def gift_list():
-    """Các món quà đang bật, cẩm nang (mới) đứng trước."""
+    """Các món quà đang bật: khoá học, cẩm nang, ebook."""
     out = []
+    if KH_PATH and IS_VI:
+        out.append({"key": "khoahoc", "href": KH_PATH, "title": KH.get("title", "Khoá học dinh dưỡng"), "sub": KH.get("card_sub", ""), "button": "Học thử bài 1 miễn phí",
+                    "image": f"{KH_IMG}/bia.webp", "tag": f"Mới · {len(KH['lessons'])} bài · có video", "for": "Người nấu ăn cho cả nhà, muốn ăn lành mà không kiêng khem"})
     if CN_PATH:
         out.append({"key": "camnang", "href": CN_READ, "title": CN.get("title") or "Cẩm nang sống khỏe", "sub": CN.get("sub", ""), "button": "Đọc thử 5 trang miễn phí",
                     "image": CN.get("image") or f"{CN_IMG}/cover-art.webp", "tag": "Mới · 32 trang · có sách nói", "for": "Ăn uống & sống khỏe cho cả nhà, nhất là từ tuổi 45"})
@@ -1111,6 +1119,10 @@ def gift_form(key, ctx=""):
         title, book, opener, concerns = CN.get("title", "Cẩm nang sống khỏe"), "Cẩm nang sống khỏe", CN.get("reader", ""), CN_CONCERNS
         h2, sub, btn, open_lbl, done_note = "Nhận cẩm nang miễn phí", "Điền thông tin dưới đây để mở sách ngay. Không mất phí.", "📖 Mở cẩm nang miễn phí", "📖 Mở cẩm nang ngay", "Bước 1: bấm nút để mở sách. Bấm “Mở sách”, rồi bật 🎧 Sách nói nếu muốn nghe."
         ph = "Ví dụ: Bố tôi 70 tuổi, đường huyết cao, nên ăn gạo lứt thế nào?"
+    elif key == "khoahoc":  # mở khoá ngay trên trang (opener "#bai-2"), không mở tab mới
+        title, book, opener, concerns = KH.get("title", "Khoá học dinh dưỡng"), KH.get("title", "Khoá học dinh dưỡng"), "#bai-2", CN_CONCERNS
+        h2, sub, btn, open_lbl, done_note = f"🔓 Mở khoá trọn {len(KH['lessons'])} bài", "Để lại tên và số Zalo để học tiếp, hoàn toàn miễn phí. Học xong nhận giấy chứng nhận.", "🔓 Mở khoá miễn phí", "▶ Học tiếp bài 2", "Đã mở khoá cả khoá học. Mỗi ngày học 1 bài, bấm “Đã học xong” để lưu tiến độ."
+        ph = "Ví dụ: Con tôi lười ăn rau, làm sao cho bé ăn?"
     else:
         eb = SITE.get("ebook") or {}
         title, book, opener, concerns = eb.get("title", "Ebook"), "Ebook Dinh Dưỡng cho Cơ Xương Khớp", eb.get("flipbook", ""), EB_CONCERNS
@@ -1159,7 +1171,7 @@ def gift_form(key, ctx=""):
     <div class="ebf-done" hidden>
       <h2>✅ Quà đã sẵn sàng!</h2>
       <p class="ebf-note">{esc(done_note)}</p>
-      <a class="btn btn-lg btn-buy" data-gift-open href="{esc(opener)}" target="_blank" rel="noopener" data-cta="{key}_open">{esc(open_lbl)}</a>
+      <a class="btn btn-lg btn-buy" data-gift-open href="{esc(opener)}"{"" if opener.startswith("#") else ' target="_blank" rel="noopener"'} data-cta="{key}_open">{esc(open_lbl)}</a>
       {zalo_box}
       {wvc_box()}
       <div class="gpx" data-gift-prods hidden></div>
@@ -1268,6 +1280,77 @@ def page_camnang():
 {other_html}'''
     desc = "Tặng miễn phí cẩm nang Thực Dưỡng Lành 32 trang có sách nói: mâm cơm Việt cân bằng, gạo lứt và ngũ cốc nguyên hạt, giữ cơ giữ sức sau tuổi 45, nhật ký 7 ngày. Nguồn WHO, Bộ Y tế."
     return layout(CN_PATH, "Tặng cẩm nang Sống khỏe chủ động – Thực Dưỡng Lành", desc, body, og=f"{CN_IMG}/og.jpg", body_class="page-ebook page-camnang", preload=f"{CN_IMG}/bia-3d.webp")
+
+
+def page_course():
+    """Trang khoá học quà tặng (data/khoa-hoc.json): bài 1 học tự do, bài 2–5 hiện mờ đến khi khách để tên + số Zalo (form quà chung, key khoahoc).
+    Mỗi bài: video (nếu có) + 3 ý chính + việc làm ngay + câu hỏi ôn + nút Đã học xong; xong cả khoá → giấy chứng nhận + báo CRM (main.js initCourse).
+    shortcut: nội dung bài khoá vẫn nằm trong HTML (chỉ che bằng CSS), đủ cho quà tặng miễn phí; cần khoá thật thì chuyển nội dung sang api."""
+    L = KH["lessons"]
+    n = len(L)
+    toc = "".join(f'<li><a href="#bai-{i}" data-kh-toc="{i}"><span class="kh-tn">{i}</span><span>{esc(x["title"])}</span></a></li>' for i, x in enumerate(L, 1))
+    arts = ""
+    for i, x in enumerate(L, 1):
+        vid = x.get("video", "")
+        video = (f'''<div class="v-frame kh-v" data-yt="{esc(vid)}" data-title="{esc(x["title"])}"><img src="https://i.ytimg.com/vi/{esc(vid)}/hqdefault.jpg" alt="Video bài {i}: {esc(x["title"])}" width="480" height="360" loading="lazy">
+  <button class="v-play" aria-label="Phát video bài {i}">{I["play"]}</button>{f'<span class="bv-dur">{I["play"]}{esc(x["video_dur"])}</span>' if x.get("video_dur") else ""}</div>'''
+                 + (f'<p class="kh-vnote">{esc(x["video_note"])}</p>' if x.get("video_note") else "")) if vid else ""
+        pts = "".join(f'<li><b>{esc(p["t"])}</b><p>{esc(p["d"])}</p></li>' for p in x["points"])
+        q = x["quiz"]
+        opts = "".join(f'<label><input type="radio" name="kh-q{i}" value="{j}"><span>{esc(a)}</span></label>' for j, a in enumerate(q["a"]))
+        lock = "" if i == 1 else f'<div class="kh-lockbar"><b>🔒 Bài {i} dành cho người đã mở khoá</b><span>Miễn phí, chỉ cần tên và số Zalo</span><a class="btn btn-buy" href="#nhan-khoa-hoc" data-cta="khoahoc_unlock_{i}">🔓 Mở khoá miễn phí</a></div>'
+        arts += f'''<article class="kh-lesson{"" if i == 1 else " kh-locked"}" id="bai-{i}" data-n="{i}">
+  <header class="kh-lh"><span class="kh-num">Bài {i}/{n} · {x.get("minutes", 10)} phút{" · <em>học thử miễn phí</em>" if i == 1 else ""}</span><h2>{esc(x["title"])}</h2></header>
+  <div class="kh-body">
+    {video}
+    <p class="kh-intro">{esc(x["intro"])}</p>
+    <h3 class="kh-h3">3 điều cần nhớ</h3>
+    <ol class="kh-points">{pts}</ol>
+    <div class="kh-todo"><b>✅ Việc làm ngay hôm nay</b><p>{esc(x["todo"])}</p></div>
+    <div class="kh-quiz" data-ok="{q["ok"]}"><b>🧠 Ôn nhanh: {esc(q["q"])}</b><div class="kh-opts">{opts}</div><p class="kh-ans" hidden data-why="{esc(q.get("why", ""))}"></p></div>
+    <p class="kh-src">Nguồn tham khảo: {esc("; ".join(x.get("sources", [])))}</p>
+    <button type="button" class="btn btn-lg kh-done" data-kh-done="{i}">✓ Tôi đã học xong bài {i}</button>
+  </div>
+  {lock}
+</article>'''
+    cert = f'''<section class="section kh-cert" id="chung-nhan" hidden><div class="container narrow">
+  <div class="kh-cert-card">
+    <img src="/assets/img/brand/logo.webp" alt="{BRAND}" height="64">
+    <span class="kh-cert-k">Giấy chứng nhận</span>
+    <h2><span data-kh-name>Anh/chị</span></h2>
+    <p>đã hoàn thành <b>{esc(KH.get("title", ""))}</b> ({n} bài) cùng {BRAND}</p>
+    <p class="kh-cert-d" data-kh-date></p>
+  </div>
+  <p class="center kh-cert-tip">📸 Chụp màn hình giấy chứng nhận để khoe với người thân nhé!</p>
+  {wvc_box()}
+  {f'<div class="ebz"><b>👥 Học tiếp cùng mọi người</b><p>Vào nhóm Zalo “Sống khỏe cùng {BRAND}”: thực đơn lành mỗi tuần, hỏi đáp với đội ngũ {BRAND}.</p><a class="btn btn-lg btn-zalo" href="{esc(SITE["zalo_group"])}" target="_blank" rel="noopener" data-cta="zalo_group_khoahoc">Vào nhóm Zalo miễn phí →</a></div>' if SITE.get("zalo_group") else ""}
+</div></section>'''
+    other_html = f'''<section class="section pt-0"><div class="container narrow"><h2 class="sec-title">Quà tặng khác cho anh/chị</h2><div class="gf-grid gf-n1">{gift_cards("khoahoc", skip="khoahoc")}</div></div></section>''' if len(gift_list()) > 1 else ""
+    body = f'''<section class="ebh cnh kh-hero" id="nhan-khoa-hoc"><div class="container ebh-in">
+  <div class="ebh-head">
+    <span class="eyebrow">🎁 Quà tặng miễn phí · {n} bài · có video</span>
+    <h1>{bv_nw(KH.get("headline", KH.get("title", "")))}</h1>
+    <a class="btn btn-lg cn-try" href="#bai-1" data-cta="khoahoc_try">▶ Học thử bài 1 ngay, miễn phí →</a>
+    <p class="ebh-sub">{esc(KH.get("sub", ""))}</p>
+  </div>
+  <div class="ebh-cover"><img src="{KH_IMG}/bia.webp" alt="Bìa {esc(KH.get("title", ""))}" width="480" height="720" fetchpriority="high"></div>
+  <ul class="ebh-list">{"".join(f"<li><b>Bài {i}:</b> {esc(x['title'])}</li>" for i, x in enumerate(L, 1))}</ul>
+  {gift_form("khoahoc")}
+</div></section>
+
+<section class="section kh-wrap"><div class="container narrow">
+  <div class="kh-prog" aria-live="polite"><span>Tiến độ của anh/chị: <b data-kh-count>0</b>/{n} bài</span><span class="kh-bar"><i data-kh-bar></i></span></div>
+  <ol class="kh-toc">{toc}</ol>
+  {arts}
+  <p class="eb-disc">{esc(KH.get("source_note", ""))} Khoá học là kiến thức dinh dưỡng phổ thông, không thay thế chẩn đoán hay tư vấn của bác sĩ. Người có bệnh nền, đang dùng thuốc nên hỏi ý kiến bác sĩ trước khi thay đổi chế độ ăn.</p>
+</div></section>
+{cert}
+{other_html}'''
+    ld = {"@context": "https://schema.org", "@type": "Course", "name": KH.get("title", ""), "description": KH.get("sub", ""), "inLanguage": "vi",
+          "provider": {"@type": "Organization", "name": BRAND, "sameAs": DOMAIN},
+          "offers": {"@type": "Offer", "price": 0, "priceCurrency": "VND", "category": "Free"},
+          "hasCourseInstance": {"@type": "CourseInstance", "courseMode": "online", "courseWorkload": f"PT{10 * n}M"}}
+    return layout(KH_PATH, f'{KH.get("title", "")} – học miễn phí {n} bài', KH.get("sub", ""), body, og=f"{KH_IMG}/og.jpg", jsonld=[ld], body_class="page-ebook page-camnang page-khoahoc", preload=f"{KH_IMG}/bia.webp")
 
 
 def hub_items():
@@ -1420,7 +1503,7 @@ def bv_info():
 def bv_nw(text):
     """Câu gợi tò mò: giữ các cụm có nghĩa trên cùng 1 dòng (không ngắt "đồng / hành", "Thực Dưỡng / Lành")."""
     h = esc(text)
-    for x in ("Thực Dưỡng Lành", "đồng hành", "lâu dài", "khắt khe", "nghệ sĩ", "Vì sao"):
+    for x in ("Thực Dưỡng Lành", "đồng hành", "lâu dài", "khắt khe", "nghệ sĩ", "Vì sao", "Giải Mã Dinh Dưỡng:", "5 bài học", "khoẻ cả nhà"):
         h = h.replace(x, f'<span class="nw">{x}</span>')
     return h
 
@@ -2562,7 +2645,8 @@ def offer_box(p=None):
     elif p is None and WEB_OFF_MAX and not w.get("headline"):
         items.append(f'<li>{ic("check","wo-ic")}<span>{tf("Giá trên web đã giảm <b>{pct}</b> – trừ trực tiếp vào giá", pct=upto(WEB_OFF_MAX))}</span></li>')
     if gift_text():
-        join = f' <a href="{ZALO_GATE}?tu=uu_dai_sp" data-cta="zalo_group_offer">Tham gia nhóm →</a>' if SITE.get("zalo_group") and not compact else ""
+        join = ("" if compact else f' <a href="{KH_PATH}?tu=uu_dai_sp" data-cta="khoahoc_offer">Học thử bài 1 →</a>' if KH_PATH and IS_VI
+                else f' <a href="{ZALO_GATE}?tu=uu_dai_sp" data-cta="zalo_group_offer">Tham gia nhóm →</a>' if SITE.get("zalo_group") else "")
         items.append(f'<li>{ic("check","wo-ic")}<span>{gift_text()}{join}</span></li>')
     if not items:
         return ""
@@ -3532,6 +3616,8 @@ def main():
         routes.append(write(EBOOK_PATH, page_ebook()))
     if CN_PATH:
         routes.append(write(CN_PATH, page_camnang()))
+    if KH_PATH and IS_VI:
+        routes.append(write(KH_PATH, page_course()))
     if gift_list():
         routes.append(write(GIFT_PATH, page_gifts()))
     if IS_VI:
@@ -3907,7 +3993,7 @@ def chat_kb():
     if wv.get("enabled") and wv.get("code"):
         out.append(f"- Khách để lại tên và số Zalo để nhận quà thì được thêm mã {wv['code']} ({wv.get('label', '')} tổng tiền hàng khi đặt trên web): không cần đơn tối thiểu, không giới hạn số tiền giảm, mỗi số điện thoại dùng 1 lần; mã tự lưu và tự trừ lúc đặt hàng, không cần nhập. Miễn phí ship vẫn tính theo tiền hàng trước khi giảm (đơn từ {money(SITE.get('free_ship_threshold') or 0)}).")
     if WEB_OFFER.get("gift_enabled") and WEB_OFFER.get("gift_title"):
-        out.append(f"- Quà khi vào nhóm Zalo / mua trên web: {WEB_OFFER['gift_title']}")
+        out.append(f"- Quà khi vào nhóm Zalo / mua trên web: {WEB_OFFER['gift_title']}" + (f" (học thử bài 1 miễn phí tại {DOMAIN}{KH_PATH}, để tên + số Zalo là mở cả {len(KH['lessons'])} bài)" if KH_PATH else ""))
     out.append("")
     for pg in PAGES:
         if pg["slug"] in ("chinh-sach-giao-hang", "chinh-sach-doi-tra", "chinh-sach-thanh-toan", "chinh-sach-kiem-hang", "huong-dan-mua-hang"):

@@ -1654,7 +1654,7 @@
 
   /* ---------- form nhận quà (/cam-nang-song-khoe/, /ebook/): tên + SĐT + vấn đề quan tâm + câu hỏi thêm ----------
      Khách đã nhận 1 quà (tdl_lead lưu tên, SĐT, quà đã nhận) → sang quà kia chỉ cần bấm 1 nút, vẫn báo về CRM để ghi thêm. */
-  var GIFT_KEY = { camnang: 'tdl_camnang', ebook: 'tdl_ebook' };
+  var GIFT_KEY = { camnang: 'tdl_camnang', ebook: 'tdl_ebook', khoahoc: 'tdl_khoahoc' };
   function giftUrl(key, url) { return key === 'camnang' && url ? url + (url.indexOf('?') < 0 ? '?' : '&') + 'ma=' + Date.now().toString(36) : url; } // trang sách cẩm nang cần ?ma= mới cho đọc
   function giftLead() { var l = load('tdl_lead', null); return l && l.phone ? l : null; }
   /* 🛍 sau khi nhận quà (28/11/2026, ý "trạm dừng nghỉ"): 1–2 sản phẩm theo vấn đề khách vừa chọn ở form.
@@ -1694,6 +1694,7 @@
       var gifts = (giftLead() || {}).gifts || []; if (gifts.indexOf(key) < 0) gifts.push(key);
       save('tdl_lead', { name: lead.name, phone: lead.phone, concern: cs.length ? cs : (giftLead() || {}).concern || [], gifts: gifts, t: Date.now() });
       show('done'); box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      if (openUrl.charAt(0) === '#') { document.dispatchEvent(new CustomEvent('gift:done', { detail: key })); return; } // khoá học: mở khoá ngay trên trang
       try { window.open(open.href, '_blank', 'noopener'); } catch (x) { } // mở quà ngay ở tab mới; trình duyệt chặn thì khách bấm nút Mở
     }
     var lead = giftLead();
@@ -1713,15 +1714,58 @@
       finish({ name: form.elements.name.value.trim(), phone: normPhone(form.elements.phone.value) }, cs, form.elements.ask.value.trim(), false);
     });
   }
+  /* ---------- khoá học quà tặng (/khoa-hoc-dinh-duong/, 28/11/2026) ----------
+     Bài 1 học tự do; đã để số (tdl_khoahoc) → mở bài 2–5. Tiến độ lưu máy khách (tdl_kh_done); xong hết → giấy chứng nhận + báo CRM 1 lần (tdl_kh_sent). */
+  function initCourse() {
+    var wrap = $('.kh-wrap'); if (!wrap) return;
+    var arts = $$('.kh-lesson', wrap), n = arts.length, done = load('tdl_kh_done', []) || [];
+    function unlock() { arts.forEach(function (a) { a.classList.remove('kh-locked'); }); }
+    function paint() {
+      $('[data-kh-count]').textContent = done.length; $('[data-kh-bar]').style.width = Math.round(done.length * 100 / n) + '%';
+      arts.forEach(function (a) {
+        var i = +a.getAttribute('data-n'), ok = done.indexOf(i) >= 0, b = $('[data-kh-done]', a);
+        a.classList.toggle('kh-ok', ok); b.textContent = ok ? '✓ Đã học xong bài ' + i : '✓ Tôi đã học xong bài ' + i;
+        var tl = $('[data-kh-toc="' + i + '"]'); if (tl) tl.classList.toggle('kh-ok', ok);
+      });
+      var cert = $('#chung-nhan'); if (!cert || done.length < n) return;
+      var lead = giftLead() || {}; $('[data-kh-name]', cert).textContent = lead.name || 'Anh/chị';
+      var t = load('tdl_kh_sent', null), d = new Date(t && t.t || Date.now());
+      $('[data-kh-date]', cert).textContent = 'Ngày ' + d.getDate() + '/' + (d.getMonth() + 1) + '/' + d.getFullYear();
+      cert.hidden = false; grantWvc();
+      if (!t && lead.phone) { // báo CRM 1 lần: sale biết khách đã học xong, gọi hỏi thăm đúng chủ đề
+        save('tdl_kh_sent', { t: Date.now() }); track('course_complete', { lessons: n });
+        var src = sourceLabel();
+        send({ type: 'contact', kind: 'ebook', book: 'khoahoc', book_title: 'Đã học xong ' + n + ' bài khoá học dinh dưỡng', again: true, concern: '', ask: '', ctx: 'Học xong cả khoá', created: new Date().toISOString(), name: lead.name, phone: lead.phone, email: '', pos: 'hoc_xong', source: src.last,
+          message: '🎓 Học xong ' + n + ' bài Khoá học Giải Mã Dinh Dưỡng trên web · Nguồn: ' + src.last, page: location.href }).catch(function () { });
+      }
+    }
+    if (load(GIFT_KEY.khoahoc, null)) unlock();
+    document.addEventListener('gift:done', function (e) { if (e.detail === 'khoahoc') { unlock(); paint(); } });
+    wrap.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-kh-done]'); if (!b) return;
+      var i = +b.getAttribute('data-kh-done'), k = done.indexOf(i);
+      if (k >= 0) done = done.filter(function (x) { return x !== i; }); else { done.push(i); track('course_lesson_done', { lesson: i }); }
+      save('tdl_kh_done', done); paint();
+      if (k >= 0) return;
+      var nx = arts.filter(function (a) { return done.indexOf(+a.getAttribute('data-n')) < 0; })[0], to = nx || $('#chung-nhan');
+      if (to) setTimeout(function () { to.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 300);
+    });
+    wrap.addEventListener('change', function (e) {
+      var r = e.target; if (r.type !== 'radio') return;
+      var q = r.closest('.kh-quiz'), ok = +r.value === +q.getAttribute('data-ok'), a = $('.kh-ans', q);
+      a.hidden = false; a.className = 'kh-ans ' + (ok ? 'ok' : 'no'); a.textContent = ok ? '🎉 Chính xác! ' + a.getAttribute('data-why') : 'Chưa đúng rồi, anh/chị thử lại nhé.';
+    });
+    paint();
+  }
   /* trang /qua-tang/ + khối quà trang chủ: quà đã nhận → "Đọc lại"; khách đã đăng ký → quà còn lại "Nhận ngay 1 chạm" */
   function initGiftStatus() {
     var lead = giftLead();
     if (lead) $$('a[data-cn-read]').forEach(function (a) { a.href = giftUrl('camnang', a.getAttribute('href')); }); // khách đã để số trên web → trang sách mở trọn bộ, không hỏi lại
     $$('.gf-card').forEach(function (c) {
-      var key = c.className.indexOf('gf-camnang') >= 0 ? 'camnang' : c.className.indexOf('gf-ebook') >= 0 ? 'ebook' : ''; if (!key) return;
+      var key = c.className.indexOf('gf-camnang') >= 0 ? 'camnang' : c.className.indexOf('gf-ebook') >= 0 ? 'ebook' : c.className.indexOf('gf-khoahoc') >= 0 ? 'khoahoc' : ''; if (!key) return;
       var btn = $('.gf-btn', c); if (!btn) return;
-      if (load(GIFT_KEY[key], null)) { c.classList.add('gf-got'); btn.textContent = '✓ Đã nhận · Đọc lại →'; }
-      else if (lead) btn.textContent = key === 'camnang' ? 'Đọc trọn bộ →' : 'Nhận ngay 1 chạm →';
+      if (load(GIFT_KEY[key], null)) { c.classList.add('gf-got'); btn.textContent = key === 'khoahoc' ? '✓ Đã mở khoá · Học tiếp →' : '✓ Đã nhận · Đọc lại →'; }
+      else if (lead) btn.textContent = key === 'camnang' ? 'Đọc trọn bộ →' : key === 'khoahoc' ? 'Mở khoá 1 chạm →' : 'Nhận ngay 1 chạm →';
     });
   }
 
@@ -1994,7 +2038,7 @@
     captureSource(); initConsent(); trackPageEvents();
     renderCounts(); renderMini(); markWish();
     initHeader(); initClicks(); initRail(); initLightbox(); initProduct(); initCerts(); initProof(); initTabs(); initReadmore(); initSort();
-    initDD(); initVoucherLink(); initCartPage(); initCartUpsell(); initCheckout(); initThanks(); renderWishPage(); initSearchPage(); initContact(); initGiftForm(); initGiftStatus(); initGiftPop(); initFloat(); initFlipbook(); initJourney(); initJourneyMap(); initPledge(); initRef(); initCtv(); initCtvJoin(); initDlJoin(); initDlOrder(); initWall(); initWallStrip(); initQuiz(); initGiftDock(); initZaloGate(); initOcx(); initQtet(); initMusic(); initBrandVideo(); initChat(); initLc();
+    initDD(); initVoucherLink(); initCartPage(); initCartUpsell(); initCheckout(); initThanks(); renderWishPage(); initSearchPage(); initContact(); initGiftForm(); initCourse(); initGiftStatus(); initGiftPop(); initFloat(); initFlipbook(); initJourney(); initJourneyMap(); initPledge(); initRef(); initCtv(); initCtvJoin(); initDlJoin(); initDlOrder(); initWall(); initWallStrip(); initQuiz(); initGiftDock(); initZaloGate(); initOcx(); initQtet(); initMusic(); initBrandVideo(); initChat(); initLc();
     window.addEventListener('storage', function (e) { if (e.key === 'tdl_cart') { cart = load('tdl_cart', []); cleanCart(); renderCounts(); renderMini(); } });
   }
   // ===== Hành trình 10 triệu người Việt sống khỏe hơn: bộ đếm [data-jr] + trang "Tôi chọn sống lành" /toi-chon-song-lanh/ (api journey.js) =====
