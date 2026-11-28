@@ -16,73 +16,182 @@
       "video_note": "Ghi chú khi xem: chỉ số GI của cơm trắng dao động khoảng 70–90 tuỳ loại gạo và cách nấu; ngô ngọt luộc thực ra có GI ở mức thấp đến trung bình. Video nhắc tới bệnh tiểu đường để giải thích đường huyết lên xuống, không phải lời khuyên điều trị.",
       "intro": "Ăn một bát bún, bát phở lúc 7 giờ, đến 10 giờ đã đói, mỏi, buồn ngủ? Thường không phải vì ăn ít, mà vì bữa sáng toàn tinh bột trắng, thiếu đạm và chất xơ.",
       "points": [
-        {"t": "Tinh bột trắng làm đường huyết lên nhanh, xuống nhanh", "d": "Bún, phở, mì ăn liền, bánh mì trắng được tiêu hoá rất nhanh. Đường trong máu tăng vọt rồi hạ xuống, nên giữa buổi sáng dễ đói, mệt và thèm đồ ngọt."},
-        {"t": "Chỉ số GI: đèn xanh, vàng, đỏ", "d": "GI cho biết món ăn làm đường huyết tăng nhanh hay chậm. Đèn xanh (GI từ 55 trở xuống): yến mạch, gạo lứt, khoai lang luộc, các loại đậu, táo. Đèn vàng (56–69): dứa, chuối chín kỹ, bánh mì đen. Đèn đỏ (từ 70 trở lên): cơm trắng, bánh mì trắng, mì ăn liền, bánh gạo. Không cần bỏ hẳn món đèn đỏ, chỉ cần ăn ít đi và ăn kèm rau, đạm."},
-        {"t": "Bữa sáng đủ 3 phần, ăn đúng thứ tự", "d": "Một phần tinh bột ít tinh chế (yến mạch, khoai, bánh mì đen), một phần đạm (trứng, sữa, đậu phụ, sữa đậu nành), một phần rau hoặc quả. Ăn rau và đạm trước, tinh bột sau giúp đường huyết lên từ từ, no lâu hơn."}
+        {
+          "t": "Tinh bột trắng làm đường huyết lên nhanh, xuống nhanh",
+          "d": "Bún, phở, mì ăn liền, bánh mì trắng được tiêu hoá rất nhanh. Đường trong máu tăng vọt rồi hạ xuống, nên giữa buổi sáng dễ đói, mệt và thèm đồ ngọt."
+        },
+        {
+          "t": "Chỉ số GI: đèn xanh, vàng, đỏ",
+          "d": "GI cho biết món ăn làm đường huyết tăng nhanh hay chậm. Đèn xanh (GI từ 55 trở xuống): yến mạch, gạo lứt, khoai lang luộc, các loại đậu, táo. Đèn vàng (56–69): dứa, chuối chín kỹ, bánh mì đen. Đèn đỏ (từ 70 trở lên): cơm trắng, bánh mì trắng, mì ăn liền, bánh gạo. Không cần bỏ hẳn món đèn đỏ, chỉ cần ăn ít đi và ăn kèm rau, đạm."
+        },
+        {
+          "t": "Bữa sáng đủ 3 phần, ăn đúng thứ tự",
+          "d": "Một phần tinh bột ít tinh chế (yến mạch, khoai, bánh mì đen), một phần đạm (trứng, sữa, đậu phụ, sữa đậu nành), một phần rau hoặc quả. Ăn rau và đạm trước, tinh bột sau giúp đường huyết lên từ từ, no lâu hơn."
+        }
       ],
       "todo": "Sáng mai thay bát mì tôm hoặc bún bằng: 1 bát yến mạch hoặc 1 củ khoai lang luộc, 1 quả trứng, vài lát táo hoặc dưa chuột.",
-      "quiz": {"q": "Món nào thường có chỉ số GI thấp nhất?", "a": ["Cơm trắng", "Yến mạch", "Bánh mì trắng"], "ok": 1, "why": "Yến mạch nhiều chất xơ, tiêu hoá chậm, nên đường huyết lên từ từ."},
-      "sources": ["WHO – Healthy diet (2020)", "Cơ sở dữ liệu chỉ số đường huyết quốc tế – Đại học Sydney"]
+      "quiz": {
+        "q": "Món nào thường có chỉ số GI thấp nhất?",
+        "a": [
+          "Cơm trắng",
+          "Yến mạch",
+          "Bánh mì trắng"
+        ],
+        "ok": 1,
+        "why": "Yến mạch nhiều chất xơ, tiêu hoá chậm, nên đường huyết lên từ từ."
+      },
+      "sources": [
+        "WHO – Healthy diet (2020)",
+        "Cơ sở dữ liệu chỉ số đường huyết quốc tế – Đại học Sydney"
+      ]
     },
     {
       "slug": "can-bep",
       "title": "Calo và căn bếp: đổi cách nấu, không cần nhịn ăn",
       "minutes": 10,
-      "video": "",
+      "video": "jBUdNCauEHo",
       "intro": "Cân nặng phụ thuộc vào năng lượng ăn vào và năng lượng cơ thể dùng đi. Tin vui là chỉ cần đổi cách nấu, bữa cơm đã nhẹ đi nhiều mà cả nhà vẫn no, vẫn ngon.",
       "points": [
-        {"t": "Biết con số của mình", "d": "Mỗi người cần lượng năng lượng khác nhau tuỳ tuổi, chiều cao, cân nặng và mức vận động. Người trưởng thành ít vận động thường cần khoảng 1.600–2.400 kcal mỗi ngày. Ăn dư đều đặn, dù chỉ 100–200 kcal mỗi ngày, lâu dần cũng tăng cân."},
-        {"t": "Cùng một con cá, cách nấu quyết định", "d": "Mỗi thìa canh dầu ăn đã có khoảng 120 kcal, nên món chiên ngấm dầu nặng hơn nhiều so với món hấp, luộc, nấu canh. Một bát phở bò có thể tới 400–500 kcal, gấp đôi một bát cơm trắng (khoảng 200 kcal)."},
-        {"t": "Bớt dần, không cấm", "d": "Giảm từ từ đồ chiên rán, đồ ngọt, nước ngọt có ga, đồ ăn nhanh. WHO khuyên mỗi người ăn dưới 5 g muối mỗi ngày (khoảng 1 thìa cà phê), ít nhất 400 g rau và trái cây, đường tự do dưới 10% năng lượng, và vận động 150–300 phút mỗi tuần."}
+        {
+          "t": "Biết con số của mình",
+          "d": "Mỗi người cần lượng năng lượng khác nhau tuỳ tuổi, chiều cao, cân nặng và mức vận động. Người trưởng thành ít vận động thường cần khoảng 1.600–2.400 kcal mỗi ngày. Ăn dư đều đặn, dù chỉ 100–200 kcal mỗi ngày, lâu dần cũng tăng cân."
+        },
+        {
+          "t": "Cùng một con cá, cách nấu quyết định",
+          "d": "Mỗi thìa canh dầu ăn đã có khoảng 120 kcal, nên món chiên ngấm dầu nặng hơn nhiều so với món hấp, luộc, nấu canh. Một bát phở bò có thể tới 400–500 kcal, gấp đôi một bát cơm trắng (khoảng 200 kcal)."
+        },
+        {
+          "t": "Bớt dần, không cấm",
+          "d": "Giảm từ từ đồ chiên rán, đồ ngọt, nước ngọt có ga, đồ ăn nhanh. WHO khuyên mỗi người ăn dưới 5 g muối mỗi ngày (khoảng 1 thìa cà phê), ít nhất 400 g rau và trái cây, đường tự do dưới 10% năng lượng, và vận động 150–300 phút mỗi tuần."
+        }
       ],
       "todo": "Tối nay đổi 1 món kho hoặc chiên sang hấp hoặc luộc (ví dụ cá hấp gừng thay cá rán), thêm 1 đĩa rau, và rót nước mắm ra bát nhỏ để chấm vừa đủ.",
-      "quiz": {"q": "Với cùng một con cá, cách nấu nào thường ít calo nhất?", "a": ["Chiên giòn", "Kho đặc nhiều đường", "Hấp"], "ok": 2, "why": "Hấp không cần dầu, không thêm đường, nên giữ được vị ngọt tự nhiên mà nhẹ bụng."},
-      "sources": ["WHO – Healthy diet (2020)", "WHO – Hướng dẫn hoạt động thể lực (2020)"]
+      "quiz": {
+        "q": "Với cùng một con cá, cách nấu nào thường ít calo nhất?",
+        "a": [
+          "Chiên giòn",
+          "Kho đặc nhiều đường",
+          "Hấp"
+        ],
+        "ok": 2,
+        "why": "Hấp không cần dầu, không thêm đường, nên giữ được vị ngọt tự nhiên mà nhẹ bụng."
+      },
+      "sources": [
+        "WHO – Healthy diet (2020)",
+        "WHO – Hướng dẫn hoạt động thể lực (2020)"
+      ],
+      "video_dur": "4:51"
     },
     {
       "slug": "chat-dam",
       "title": "Chất đạm: ăn đủ, chọn đa dạng, nấu nhẹ nhàng",
       "minutes": 10,
-      "video": "",
+      "video": "9n2M6LqoB2s",
       "intro": "Đạm (protein) là nguyên liệu để cơ thể xây và sửa cơ, da, tóc, men tiêu hoá, kháng thể. Sau tuổi 45, ăn đủ đạm còn giúp giữ cơ, giữ sức để đi lại vững vàng.",
       "points": [
-        {"t": "Mỗi ngày cần bao nhiêu?", "d": "Người trưởng thành khoẻ mạnh cần khoảng 1 g đạm cho mỗi kg cân nặng: người nặng 50 kg cần khoảng 50 g mỗi ngày. Người lớn tuổi có thể cần nhiều hơn một chút. Người có bệnh thận nên hỏi bác sĩ trước khi tăng đạm."},
-        {"t": "Ví dụ dễ nhớ", "d": "1 quả trứng có khoảng 6 g đạm; 100 g thịt gà hoặc cá khoảng 20 g; 1 bìa đậu phụ (100 g) khoảng 8–10 g; 1 cốc sữa 200 ml khoảng 6–7 g. Cơ thể hấp thu tốt phần lớn lượng đạm này, nên chỉ cần chia đều vào các bữa, nhất là bữa sáng hay bị thiếu."},
-        {"t": "Đa dạng nguồn, nấu nhẹ nhàng", "d": "Xen kẽ cá, trứng, thịt gà, tôm, đậu, đỗ; thịt đỏ (bò, lợn) ăn vừa phải; hạn chế xúc xích, thịt hun khói, đồ nướng cháy cạnh. Hấp, luộc, nấu canh tốt hơn rán kỹ hay kho thật mặn."}
+        {
+          "t": "Mỗi ngày cần bao nhiêu?",
+          "d": "Người trưởng thành khoẻ mạnh cần khoảng 1 g đạm cho mỗi kg cân nặng: người nặng 50 kg cần khoảng 50 g mỗi ngày. Người lớn tuổi có thể cần nhiều hơn một chút. Người có bệnh thận nên hỏi bác sĩ trước khi tăng đạm."
+        },
+        {
+          "t": "Ví dụ dễ nhớ",
+          "d": "1 quả trứng có khoảng 6 g đạm; 100 g thịt gà hoặc cá khoảng 20 g; 1 bìa đậu phụ (100 g) khoảng 8–10 g; 1 cốc sữa 200 ml khoảng 6–7 g. Cơ thể hấp thu tốt phần lớn lượng đạm này, nên chỉ cần chia đều vào các bữa, nhất là bữa sáng hay bị thiếu."
+        },
+        {
+          "t": "Đa dạng nguồn, nấu nhẹ nhàng",
+          "d": "Xen kẽ cá, trứng, thịt gà, tôm, đậu, đỗ; thịt đỏ (bò, lợn) ăn vừa phải; hạn chế xúc xích, thịt hun khói, đồ nướng cháy cạnh. Hấp, luộc, nấu canh tốt hơn rán kỹ hay kho thật mặn."
+        }
       ],
       "todo": "Bữa sáng mai thêm 1 quả trứng hoặc 1 cốc sữa đậu nành; bữa trưa và tối mỗi bữa có 1 phần cá, thịt gà hoặc đậu phụ cỡ lòng bàn tay.",
-      "quiz": {"q": "Người nặng 55 kg, khoẻ mạnh, cần khoảng bao nhiêu gam đạm mỗi ngày?", "a": ["Khoảng 15 g", "Khoảng 55 g", "Khoảng 200 g"], "ok": 1, "why": "Khoảng 1 g đạm cho mỗi kg cân nặng, tức khoảng 55 g, chia đều vào 3 bữa."},
-      "sources": ["WHO/FAO/UNU – Nhu cầu protein và axit amin của con người (2007)", "Viện Dinh dưỡng Quốc gia – Nhu cầu dinh dưỡng khuyến nghị cho người Việt Nam (2016)"]
+      "quiz": {
+        "q": "Người nặng 55 kg, khoẻ mạnh, cần khoảng bao nhiêu gam đạm mỗi ngày?",
+        "a": [
+          "Khoảng 15 g",
+          "Khoảng 55 g",
+          "Khoảng 200 g"
+        ],
+        "ok": 1,
+        "why": "Khoảng 1 g đạm cho mỗi kg cân nặng, tức khoảng 55 g, chia đều vào 3 bữa."
+      },
+      "sources": [
+        "WHO/FAO/UNU – Nhu cầu protein và axit amin của con người (2007)",
+        "Viện Dinh dưỡng Quốc gia – Nhu cầu dinh dưỡng khuyến nghị cho người Việt Nam (2016)"
+      ],
+      "video_dur": "5:59"
     },
     {
       "slug": "chat-beo",
       "title": "Dầu mỡ trong bếp: chọn đúng, nấu đúng",
       "minutes": 10,
-      "video": "",
+      "video": "fC1QJljArK0",
       "intro": "Chất béo không phải kẻ thù. Cơ thể cần chất béo để có năng lượng, xây màng tế bào và hấp thu vitamin A, D, E, K. Điều quan trọng là chọn loại nào và nấu ra sao.",
       "points": [
-        {"t": "Ưu tiên chất béo tốt", "d": "Chất béo từ cá (cá thu, cá trích, cá hồi), các loại hạt (óc chó, lạc, vừng) và dầu thực vật (dầu đậu nành, dầu lạc, dầu ô liu). Nhiều khuyến nghị dinh dưỡng gợi ý ăn cá khoảng 2 lần mỗi tuần."},
-        {"t": "Bớt mỡ bão hoà, tránh chất béo chuyển hoá", "d": "WHO khuyên chất béo bão hoà (mỡ động vật, bơ, dầu dừa) dưới 10% năng lượng, chất béo chuyển hoá (bánh quy, bánh ngọt công nghiệp, đồ chiên ngoài hàng, bơ thực vật cứng) dưới 1%. Mỡ lợn không cần cấm, nhưng nên dùng ít."},
-        {"t": "Đừng làm hỏng dầu", "d": "Dầu đun quá nóng đến bốc khói, hoặc chiên đi chiên lại, sẽ bị biến chất. Chiên một lần rồi bỏ dầu. Mua chai dầu nhỏ, đậy kín, cất nơi tối và mát, xa bếp. Ăn salad thì rưới dầu ô liu hoặc dầu vừng, không cần đun."}
+        {
+          "t": "Ưu tiên chất béo tốt",
+          "d": "Chất béo từ cá (cá thu, cá trích, cá hồi), các loại hạt (óc chó, lạc, vừng) và dầu thực vật (dầu đậu nành, dầu lạc, dầu ô liu). Nhiều khuyến nghị dinh dưỡng gợi ý ăn cá khoảng 2 lần mỗi tuần."
+        },
+        {
+          "t": "Bớt mỡ bão hoà, tránh chất béo chuyển hoá",
+          "d": "WHO khuyên chất béo bão hoà (mỡ động vật, bơ, dầu dừa) dưới 10% năng lượng, chất béo chuyển hoá (bánh quy, bánh ngọt công nghiệp, đồ chiên ngoài hàng, bơ thực vật cứng) dưới 1%. Mỡ lợn không cần cấm, nhưng nên dùng ít."
+        },
+        {
+          "t": "Đừng làm hỏng dầu",
+          "d": "Dầu đun quá nóng đến bốc khói, hoặc chiên đi chiên lại, sẽ bị biến chất. Chiên một lần rồi bỏ dầu. Mua chai dầu nhỏ, đậy kín, cất nơi tối và mát, xa bếp. Ăn salad thì rưới dầu ô liu hoặc dầu vừng, không cần đun."
+        }
       ],
       "todo": "Hôm nay đổ bỏ phần dầu chiên còn thừa trong bếp, cất chai dầu vào tủ tối, và tuần này thay 1 bữa đồ chiên bằng 1 bữa cá hấp.",
-      "quiz": {"q": "Cách nào giữ dầu ăn ít bị biến chất nhất?", "a": ["Giữ dầu đã chiên để chiên lần sau", "Chiên một lần, không để dầu bốc khói", "Để chai dầu ngay cạnh bếp cho tiện"], "ok": 1, "why": "Nhiệt độ quá cao, chiên lại nhiều lần, ánh sáng và hơi nóng đều làm dầu nhanh hỏng."},
-      "sources": ["WHO – Healthy diet (2020)", "WHO – Loại bỏ chất béo chuyển hoá công nghiệp (REPLACE)"]
+      "quiz": {
+        "q": "Cách nào giữ dầu ăn ít bị biến chất nhất?",
+        "a": [
+          "Giữ dầu đã chiên để chiên lần sau",
+          "Chiên một lần, không để dầu bốc khói",
+          "Để chai dầu ngay cạnh bếp cho tiện"
+        ],
+        "ok": 1,
+        "why": "Nhiệt độ quá cao, chiên lại nhiều lần, ánh sáng và hơi nóng đều làm dầu nhanh hỏng."
+      },
+      "sources": [
+        "WHO – Healthy diet (2020)",
+        "WHO – Loại bỏ chất béo chuyển hoá công nghiệp (REPLACE)"
+      ],
+      "video_dur": "5:21"
     },
     {
       "slug": "axit-kiem",
       "title": "Chuyện axit – kiềm: hiểu đúng để chọn món đúng",
       "minutes": 10,
-      "video": "",
+      "video": "EVSGvdmaaYw",
       "intro": "Nhiều người nghe rằng phải ăn đồ “kiềm” để máu bớt axit. Bài này giúp anh/chị hiểu đúng: cơ thể tự lo phần pH, còn mâm cơm nhiều rau, quả, đậu, ngũ cốc nguyên hạt thì tốt vì những lý do khác.",
       "points": [
-        {"t": "Độ pH là gì?", "d": "pH là thang đo từ 0 đến 14: dưới 7 là axit (chanh, giấm), bằng 7 là trung tính (nước tinh khiết), trên 7 là kiềm (xà phòng). Máu người luôn giữ ở mức kiềm nhẹ, khoảng 7,35–7,45."},
-        {"t": "Cơ thể tự cân bằng pH máu", "d": "Phổi, thận và các hệ đệm trong máu giữ pH ổn định suốt ngày đêm. Thức ăn không làm thay đổi pH máu của người khoẻ mạnh; pH nước tiểu có thể đổi theo bữa ăn, đó là cách thận làm việc bình thường. Nếu pH máu lệch là tình trạng cần bác sĩ, không tự xử lý bằng ăn uống."},
-        {"t": "Vậy nên ăn gì?", "d": "Những món hay được gọi là “thực phẩm kiềm” như rau xanh, trái cây, đậu đỗ, ngũ cốc nguyên hạt, các loại hạt thật sự tốt, vì giàu chất xơ, kali, vitamin. Thịt chế biến sẵn, đồ chiên, nước ngọt nên hạn chế vì nhiều muối, đường, chất béo không tốt. Chọn món theo lý do đúng, và thay đổi từng bước."}
+        {
+          "t": "Độ pH là gì?",
+          "d": "pH là thang đo từ 0 đến 14: dưới 7 là axit (chanh, giấm), bằng 7 là trung tính (nước tinh khiết), trên 7 là kiềm (xà phòng). Máu người luôn giữ ở mức kiềm nhẹ, khoảng 7,35–7,45."
+        },
+        {
+          "t": "Cơ thể tự cân bằng pH máu",
+          "d": "Phổi, thận và các hệ đệm trong máu giữ pH ổn định suốt ngày đêm. Thức ăn không làm thay đổi pH máu của người khoẻ mạnh; pH nước tiểu có thể đổi theo bữa ăn, đó là cách thận làm việc bình thường. Nếu pH máu lệch là tình trạng cần bác sĩ, không tự xử lý bằng ăn uống."
+        },
+        {
+          "t": "Vậy nên ăn gì?",
+          "d": "Những món hay được gọi là “thực phẩm kiềm” như rau xanh, trái cây, đậu đỗ, ngũ cốc nguyên hạt, các loại hạt thật sự tốt, vì giàu chất xơ, kali, vitamin. Thịt chế biến sẵn, đồ chiên, nước ngọt nên hạn chế vì nhiều muối, đường, chất béo không tốt. Chọn món theo lý do đúng, và thay đổi từng bước."
+        }
       ],
       "todo": "Tuần này: thay 1 chai nước ngọt bằng nước lọc, thay 1 bữa bánh mì trắng bằng bánh mì đen hoặc khoai, và thêm 1 bát rau vào mỗi bữa tối.",
-      "quiz": {"q": "Điều nào ĐÚNG về pH máu?", "a": ["Ăn chanh làm máu bị axit", "Cơ thể tự giữ pH máu ổn định khoảng 7,35–7,45", "Uống nước kiềm làm máu kiềm hơn"], "ok": 1, "why": "Phổi và thận luôn giữ pH máu trong khoảng hẹp này, dù mình ăn gì."},
-      "sources": ["Cẩm nang MSD – Cân bằng axit – bazơ", "WHO – Healthy diet (2020)"]
+      "quiz": {
+        "q": "Điều nào ĐÚNG về pH máu?",
+        "a": [
+          "Ăn chanh làm máu bị axit",
+          "Cơ thể tự giữ pH máu ổn định khoảng 7,35–7,45",
+          "Uống nước kiềm làm máu kiềm hơn"
+        ],
+        "ok": 1,
+        "why": "Phổi và thận luôn giữ pH máu trong khoảng hẹp này, dù mình ăn gì."
+      },
+      "sources": [
+        "Cẩm nang MSD – Cân bằng axit – bazơ",
+        "WHO – Healthy diet (2020)"
+      ],
+      "video_dur": "5:37"
     }
   ]
 }
