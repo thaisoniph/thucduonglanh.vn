@@ -1,6 +1,6 @@
 ---
-title: Trợ lý Fanpage Facebook
-nav: Fanpage
+title: Trợ lý Fanpage
+nav: Trợ lý Fanpage
 group: marketing
 short: Trợ lý trả lời Facebook, Messenger
 order: 7
@@ -14,9 +14,9 @@ Trang này dành cho bạn **làm marketing**, **quản lý** và **anh Sơn** (
 
 ## Việc của bạn mỗi ngày
 
-Mở tab **Fanpage**, nhìn ô **👉 Việc hôm nay** và làm từ bước 1. Ô này tự gom mọi việc đang chờ bạn; bấm **Xem** để tới đúng chỗ. Thường là 3 việc:
+Mở tab **Trợ lý Fanpage**, nhìn ô **👉 Việc hôm nay** và làm từ bước 1. Ô này tự gom mọi việc đang chờ bạn; bấm **Xem** để tới đúng chỗ. Thường là 3 việc:
 
-1. Duyệt bài AI soạn cho hôm nay và ngày mai ([Việc 1](#viec-1-duyet-bai-dang)).
+1. Duyệt chủ đề trong **📋 Kế hoạch chủ đề** (mỗi tuần 1 lần) và duyệt bài AI soạn cho 2 ngày tới ([Việc 1](#viec-1-duyet-bai-dang)).
 2. Telegram báo ca cần người thật thì trả lời khách ngay ([bảng bên dưới](#telegram-bao-gi-thi-lam-gi)).
 3. Lướt **🕘 Trợ lý vừa làm gì**, câu nào trả lời chưa đúng ý thì dạy lại ([Việc 5](#viec-5-xem-tro-ly-vua-lam-gi-va-day-tro-ly)).
 4. Dán bài vào nhóm Facebook **Sống khỏe cùng thực dưỡng lành mạnh** ([Việc 6](#viec-6-dan-bai-vao-nhom-facebook)). Mỗi tuần làm 1 lần, hẹn giờ cho cả tuần là đủ.
@@ -67,7 +67,17 @@ Trên cùng luôn có **ô trạng thái** 🟢, **dải 4 bước** (từ 27/11
 
 ## Việc 1: Duyệt bài đăng
 
-AI soạn sẵn bài cho **hôm nay** và **ngày mai**, mỗi trang một bài riêng. Bài **cần duyệt** nằm trên cùng, có **viền vàng** và ghi "⏳ Cần duyệt trước … giờ". Khung trắng bên dưới là **bài sẽ hiện trên Facebook**. Nhiều trang thì bấm tên trang ở hàng nút phía trên để xem riêng từng trang (số đỏ = số bài đang chờ duyệt).
+Trợ lý Fanpage làm việc giống Trợ lý Zalo:
+
+1. **Lập kế hoạch chủ đề 7 ngày** cho từng trang (theo lịch trong tuần + ngày lễ, rằm, mùng 1). Telegram báo "📋 Kế hoạch chủ đề Fanpage…".
+2. Bạn mở thẻ **📝 Bài sắp đăng** → khung **📋 Kế hoạch chủ đề**. Chủ đề ổn thì bấm **✅ Duyệt** (hoặc **✅ Duyệt cả … chủ đề**). Chưa ưng thì **✏️ Sửa chủ đề** (gõ chủ đề của bạn), **🔄 Đổi chủ đề khác** (trợ lý nghĩ hướng mới, có thể gõ ý muốn) hoặc **⏸ Bỏ bài này**. Muốn lập lại cả tuần: **📋 Lập 7 ngày tới**.
+3. **Trợ lý soạn bài trước 2 ngày** đúng chủ đề đã duyệt, kèm ảnh thật. Chủ đề chưa duyệt thì trợ lý vẫn viết theo chủ đề nháp.
+4. Bài bán hàng (🟠) dùng đúng **ưu đãi đang chạy** ở tab Marketing → 🎁 Ưu đãi. Không có ưu đãi thì trợ lý chỉ nhắc freeship và kiểm hàng.
+5. Trợ lý **học từ số đo**: bài nào nhiều thích, bình luận, chia sẻ thì phát huy, bài ít thì tránh. Mỗi bài đã đăng hiện 👍 💬 ↗ và 🛒 số đơn từ link trong bài.
+
+Fanpage là trang công khai nên trợ lý **không dùng cảm nhận khách hàng** như nhóm Zalo.
+
+AI soạn sẵn bài cho **2 ngày tới**, mỗi trang một bài riêng. Bài **cần duyệt** nằm trên cùng, có **viền vàng** và ghi "⏳ Cần duyệt trước … giờ". Khung trắng bên dưới là **bài sẽ hiện trên Facebook**. Nhiều trang thì bấm tên trang ở hàng nút phía trên để xem riêng từng trang (số đỏ = số bài đang chờ duyệt).
 
 ![Bài cần duyệt: 1 Duyệt bài này, 2 Sửa chữ, 3 Đăng ngay, 4 Viết lại, 5 Bỏ bài này](/huong-dan/img/fp-duyet.webp)
 
@@ -204,7 +214,7 @@ Anh làm trên **máy tính**, đăng nhập Facebook bằng tài khoản **qu�
    - URL chính sách quyền riêng tư: `https://thucduonglanh.vn/chinh-sach-bao-mat/`
    - Xoá dữ liệu người dùng: chọn **URL hướng dẫn xoá dữ liệu** và dán cùng link trên.
    - Biểu tượng ứng dụng: logo 1024×1024. Hạng mục: **Mua sắm** hoặc **Doanh nghiệp**. Bấm **Lưu**.
-6. Mở CRM → **📘 Fanpage** → **🔗 Kết nối Facebook** (khi đã kết nối xong, mục này nằm cuối thẻ **📄 Fanpage & cài đặt**), dán App ID và App Secret → **💾 Lưu mã ứng dụng**.
+6. Mở CRM → **📘 Trợ lý Fanpage** → **🔗 Kết nối Facebook** (khi đã kết nối xong, mục này nằm cuối thẻ **📄 Fanpage & cài đặt**), dán App ID và App Secret → **💾 Lưu mã ứng dụng**.
 
 **Bước 2. Webhook (để Facebook báo bình luận, tin nhắn cho trợ lý)**
 
@@ -227,7 +237,7 @@ Trong CRM bấm **🔗 Kết nối fanpage** → đăng nhập Facebook → **t�
 
 Từ 28/11/2026, app chính bị Meta chặn quyền nhắn tin vì doanh nghiệp Thucduonglanh1 còn dính một app cũ. Vì vậy phần **tin nhắn** chạy qua app riêng **“Tin nhắn Thực Dưỡng Lành”** (thuộc doanh nghiệp Thực Dưỡng Lành 2). Bình luận, bài đăng và biểu mẫu vẫn chạy app chính.
 
-1. Trong app “Tin nhắn Thực Dưỡng Lành” → **Cài đặt ứng dụng → Thông tin cơ bản**: chép **App ID** và **App Secret**. Mở CRM → **📘 Fanpage** → **🔗 Kết nối Facebook** → **💬 App Messenger riêng**, dán 2 mã → **💾 Lưu app Messenger**.
+1. Trong app “Tin nhắn Thực Dưỡng Lành” → **Cài đặt ứng dụng → Thông tin cơ bản**: chép **App ID** và **App Secret**. Mở CRM → **📘 Trợ lý Fanpage** → **🔗 Kết nối Facebook** → **💬 App Messenger riêng**, dán 2 mã → **💾 Lưu app Messenger**.
 2. Trong app đó → **Trường hợp sử dụng → Tùy chỉnh → Cài đặt API Messenger**:
    - Phần Webhook: dán đúng **Callback URL** và **Verify token** như bước 2, tích **messages**, **messaging_postbacks**, **message_echoes**.
    - Phần **Tạo mã truy cập**: bấm **Thêm trang**, chọn fanpage, bấm **Tạo mã**, chép mã.
@@ -243,7 +253,7 @@ Muốn quay về dùng 1 app thì bấm **Gỡ app Messenger riêng**.
 
 Quay bằng QuickTime trên Mac: **File → Bản ghi màn hình mới**. Nói tiếng Việt cũng được, Facebook chỉ xem thao tác.
 
-1. Mở CRM → **📘 Fanpage**: cho thấy danh sách trang đã kết nối, bấm mở **⚙️ Cài đặt trang** (khoảng 10 giây).
+1. Mở CRM → **📘 Trợ lý Fanpage**: cho thấy danh sách trang đã kết nối, bấm mở **⚙️ Cài đặt trang** (khoảng 10 giây).
 2. Mở fanpage "Thực Dưỡng Lành - Giải Pháp Sống Khỏe Tự Nhiên", **bình luận "quan tâm"** vào 1 bài.
 3. Quay lại CRM, bấm **🔄 Quét bình luận ngay**. Mở lại bài viết: bình luận đã được **thích** và có **câu trả lời** của trang.
 4. Bình luận thử 1 câu có số điện thoại giả (vd `0900000000`): bình luận bị **ẩn**.

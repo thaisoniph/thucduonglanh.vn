@@ -18,7 +18,7 @@ description: Nhờ AI (Claude, ChatGPT, Gemini) làm việc thay bạn mà khôn
 
 1. **Cấp 1 – Hỏi rồi vẫn phải sửa.** Bạn gõ 1 câu ngắn, AI trả lời chung chung, bạn sửa lại gần hết. *Ví dụ: "viết tin nhắn chăm sóc khách".*
 2. **Cấp 2 – Giao một lần là dùng được ngay.** Bạn viết đủ 3 phần (công thức ở dưới). AI làm đúng ý ngay lần đầu, bạn chỉ đọc lại và bấm gửi.
-3. **Cấp 3 – Rời máy mà việc vẫn chạy.** Câu lệnh tốt được lưu lại thành trợ lý (ví dụ trợ lý Zalo An Lành, trợ lý viết bài web). Bạn tắt máy đi ngủ, trợ lý vẫn trả lời khách, vẫn viết bài.
+3. **Cấp 3 – Rời máy mà việc vẫn chạy.** Câu lệnh tốt được lưu lại thành trợ lý (ví dụ Trợ lý Zalo, Trợ lý Website). Bạn tắt máy đi ngủ, trợ lý vẫn trả lời khách, vẫn viết bài.
 4. **Cấp 4 – Không cần nhớ mà việc vẫn chạy.** Việc tự chạy theo lịch, có báo cáo về Telegram. Ví dụ: 8h sáng danh sách việc tự gửi, thứ Hai báo cáo YouTube tự về. Bạn chỉ đọc kết quả.
 
 **Việc của bạn:** đưa việc mình hay làm từ cấp 1 lên cấp 2. Câu lệnh nào dùng tốt nhiều lần thì gửi anh Sơn để đưa lên cấp 3, cấp 4.

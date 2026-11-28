@@ -4115,3 +4115,7 @@ table.dly-caps td:first-child { position: static; }
 .fpo-of small { color: var(--muted, #666); }
 .fpo-no { font-size: .9rem; color: var(--muted, #666); }
 .fpo-row .btn { flex: none; }
+
+/* 📋 Kế hoạch chủ đề Fanpage (29/11/2026) */
+.fp-plan > summary { cursor: pointer; }
+.fp-plan-r { border-top: 1px solid var(--line, #e5e7eb); padding: 10px 0 4px; }

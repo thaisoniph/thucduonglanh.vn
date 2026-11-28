@@ -255,8 +255,8 @@ async function write(x, cfg, day, row) {
     console.error('blog write', e.message);
     const r = await first(x.db, 'SELECT tries FROM bl_posts WHERE day = ?', day);
     await run(x.db, "UPDATE bl_posts SET status = ?, err = ?, at = ? WHERE day = ?", row && row.md ? 'wait' : 'error', String(e.message).slice(0, 300), Date.now(), day);
-    if (row && row.md) await telegram(x.env, '⚠️ <b>Trợ lý viết bài web</b> chưa viết lại được bài ' + esc(row.title) + ' (' + esc(String(e.message).slice(0, 150)) + '). Bản cũ vẫn chờ duyệt, link duyệt cũ vẫn dùng được.');
-    else if (r && r.tries >= 3) await telegram(x.env, '⚠️ <b>Trợ lý viết bài web</b> không viết được bài đăng ' + dayTxt(day) + ' sau 3 lần thử: ' + esc(String(e.message).slice(0, 200)));
+    if (row && row.md) await telegram(x.env, '⚠️ <b>Trợ lý Website</b> chưa viết lại được bài ' + esc(row.title) + ' (' + esc(String(e.message).slice(0, 150)) + '). Bản cũ vẫn chờ duyệt, link duyệt cũ vẫn dùng được.');
+    else if (r && r.tries >= 3) await telegram(x.env, '⚠️ <b>Trợ lý Website</b> không viết được bài đăng ' + dayTxt(day) + ' sau 3 lần thử: ' + esc(String(e.message).slice(0, 200)));
   }
 }
 

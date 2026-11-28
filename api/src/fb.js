@@ -23,6 +23,8 @@ import { prodMap, zbotLead, zCfg, imgLib, zImgSave } from './zbot.js';
 import { edAdd, edBlock, edCount } from './edlearn.js';
 import { gate } from './gate.js';
 import { flHook } from './fblead.js';
+import { fpPlanSchema, fpPlanGet, fpPlanTick, fpFrame, fpOffers, crmFpPlan } from './fbplan.js'; // 📋 kế hoạch chủ đề + dịp lễ + ưu đãi (29/11/2026)
+import { lunar } from './lunar.js';
 import { qcBotRow } from './sync.js'; // 🤖 số khách → file số quảng cáo (29/11/2026) // 📋 biểu mẫu Facebook → CRM (18/11/2026)
 
 let GRAPH = 'https://graph.facebook.com/v23.0/';
@@ -47,7 +49,7 @@ const PCFG0 = {
   aud: [] // nhóm khách (id trong ngân hàng insight) trang này nhắm tới; trống = mọi nhóm, xoay vòng
 };
 /** Chủ đề theo thứ trong tuần (0 = Chủ nhật), có tầng phễu (10/11/2026). Fanpage nhiều người lạ → TOFU 4 · MOFU 2 · BOFU 1 bài / tuần. Trang nhiều bài / ngày thì bài sau lệch chủ đề (+3) */
-const FP_THEME = [
+export const FP_THEME = [
   { f: 'TOFU', t: 'Tâm an cuối tuần: 1 suy ngẫm ngắn về sống chậm, biết ơn, gia đình (không bịa chuyện khách hàng)' },
   { f: 'TOFU', t: 'Kiến thức dinh dưỡng nền tảng: 1 điều dễ hiểu, áp dụng được ngay trong bữa ăn gia đình' },
   { f: 'MOFU', t: 'Hiểu về nguyên liệu: 1–3 nguyên liệu có trong 1 sản phẩm (đúng thành phần trong tài liệu), nguồn gốc, vị, cách người Việt quen dùng' },
@@ -61,7 +63,7 @@ let client = null;
 function ai(env) { if (!client) client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY, maxRetries: 2, timeout: 60e3, fetch: aiFetch(env), defaultHeaders: { 'x-tdl-muc': 'fanpage' } }); return client; } // qua trạm Bắc Mỹ (airelay.js)
 const textOf = res => res.content.filter(b => b.type === 'text').map(b => b.text).join('\n').trim();
 const vnHour = t => { const d = new Date(t + TZ_MS); return d.getUTCHours() + d.getUTCMinutes() / 60; };
-const slotTime = (day, at) => { const [h, m] = String(at || '19:30').split(':').map(Number); return new Date(day.slice(0, 4) + '-' + day.slice(4, 6) + '-' + day.slice(6, 8) + 'T00:00:00+07:00').getTime() + ((h || 0) * 60 + (m || 0)) * 60e3; };
+export const slotTime = (day, at) => { const [h, m] = String(at || '19:30').split(':').map(Number); return new Date(day.slice(0, 4) + '-' + day.slice(4, 6) + '-' + day.slice(6, 8) + 'T00:00:00+07:00').getTime() + ((h || 0) * 60 + (m || 0)) * 60e3; };
 const given = n => String(n || '').trim().split(/\s+/).pop() || 'anh/chị'; // tên gọi tiếng Việt = chữ cuối
 const pick = a => a[Math.floor(Math.random() * a.length)];
 const plain = s => String(s || '').replace(/<br\s*\/?>/gi, '\n').replace(/<\/?[a-z][^>]*>/gi, '').replace(/\*\*/g, '').replace(/^#+\s*/gm, '').replace(/\n{3,}/g, '\n\n').trim(); // Facebook không hiện chữ đậm / tiêu đề markdown / thẻ HTML
@@ -80,6 +82,7 @@ export async function fbSchema(db) {
     status TEXT DEFAULT 'draft', by_name TEXT DEFAULT '', at INTEGER, sent_at INTEGER, fb_id TEXT DEFAULT '', err TEXT DEFAULT '')`); // id = trang_yyyyMMdd_HHmm
   for (const c of ["img TEXT DEFAULT ''", "funnel TEXT DEFAULT ''", "ins TEXT DEFAULT ''", 'eng_react INTEGER DEFAULT 0', 'eng_cmt INTEGER DEFAULT 0', 'eng_share INTEGER DEFAULT 0', 'eng_at INTEGER DEFAULT 0', 'eng_reach INTEGER DEFAULT 0', 'eng_fan INTEGER DEFAULT 0']) { try { await run(db, 'ALTER TABLE fp_posts ADD COLUMN ' + c); } catch (e) { } } // 10/11/2026: tầng phễu + nhóm khách / tension (insight.js, JSON)
   await run(db, 'CREATE INDEX IF NOT EXISTS fp_posts_day ON fp_posts(day)');
+  await fpPlanSchema(db);
   await run(db, `CREATE TABLE IF NOT EXISTS fp_log (rid INTEGER PRIMARY KEY AUTOINCREMENT, at INTEGER, page TEXT DEFAULT '', kind TEXT, name TEXT DEFAULT '', text TEXT DEFAULT '', reply TEXT DEFAULT '')`);
   await run(db, 'CREATE INDEX IF NOT EXISTS fp_log_at ON fp_log(at)');
   for (const c of ['done_at INTEGER', "done_by TEXT DEFAULT ''"]) { try { await run(db, 'ALTER TABLE fp_log ADD COLUMN ' + c); } catch (e) { } } // 05/11/2026: ca cần người thật → ai xử lý, lúc nào (giống Trợ lý Zalo)
@@ -576,8 +579,9 @@ export async function fpTick(x) {
   // soạn trước: mỗi lần chạy tối đa 2 bài liền nhau (💸 25/11/2026: trước 1 bài / lượt 10 phút → cache AI 5 phút của phần TÀI LIỆU hết hạn, bài nào cũng trả tiền ghi mới; nay bài thứ 2 đọc lại cache của bài đầu, như zbotTick). Bài lỗi thì dừng lượt.
   if (!x.env.ANTHROPIC_API_KEY) return;
   let wrote = 0;
-  const have = new Set((await all(x.db, 'SELECT id FROM fp_posts WHERE day IN (?, ?)', day, fmtDate(now + DAY, 'yyyyMMdd'))).map(r => r.id));
-  for (const d of [day, fmtDate(now + DAY, 'yyyyMMdd')]) for (const p of Object.values(P)) {
+  const days = [day, fmtDate(now + DAY, 'yyyyMMdd'), fmtDate(now + 2 * DAY, 'yyyyMMdd')]; // 29/11/2026: soạn trước 2 ngày như nhóm Zalo, nhân sự kịp duyệt
+  const have = new Set((await all(x.db, 'SELECT id FROM fp_posts WHERE day IN (?, ?, ?)', ...days)).map(r => r.id));
+  for (const d of days) for (const p of Object.values(P)) {
     if (!p.cfg.post) continue;
     for (const sl of p.cfg.slots) {
       const id = p.id + '_' + d + '_' + sl.replace(':', '');
@@ -586,6 +590,7 @@ export async function fpTick(x) {
       if (++wrote >= 2) return;
     }
   }
+  if (!wrote) await fpPlanTick(x, P, now); // 📋 không còn bài cần soạn → lập kế hoạch chủ đề các ngày sau
 }
 async function publish(x, p, r) {
   const now = Date.now();
@@ -609,18 +614,29 @@ async function publish(x, p, r) {
 const absImg = u => !u ? '' : /^https?:/.test(u) ? u : 'https://thucduonglanh.vn' + u; // Facebook tải ảnh theo link đầy đủ
 async function fpWrite(x, p, day, slot, hint, by, grp, fid) { // fid: viết lại bài đã đổi giờ thì giữ mã bài cũ
   const know = await kb(), prods = prodMap(know), wd = new Date(slotTime(day, '12:00') + TZ_MS).getUTCDay(), c = p.cfg;
-  const si = Math.max(0, c.slots.indexOf(slot)), theme = FP_THEME[(wd + si * 3) % 7], id = fid || p.id + '_' + day + '_' + slot.replace(':', '');
+  const si = Math.max(0, c.slots.indexOf(slot)), id = fid || p.id + '_' + day + '_' + slot.replace(':', '');
+  // 📅 29/11/2026 (như nhóm Zalo): khung theo thứ + ngày lễ / rằm / mùng 1 (zday.js) · 📋 chủ đề trong kế hoạch (đã duyệt / nháp) · 🎁 ưu đãi đang chạy cho bài bán
+  const live = await fpOffers(x, p.id, slotTime(day, '12:00')), fr = fpFrame(day, slot, si, live.length > 0), pl = await fpPlanGet(x, id);
+  const theme = pl && FUN[pl.f] ? Object.assign({}, fr, { f: pl.f }) : fr, lu = lunar(day), hh = Number(slot.slice(0, 2));
+  const tod = hh < 9 ? 'sáng sớm' : hh < 11 ? 'buổi sáng' : hh < 13 ? 'buổi trưa' : hh < 18 ? 'buổi chiều' : 'buổi tối';
+  // 📊 học từ số đo: bài cùng tầng của trang này nhiều / ít tương tác nhất trong 45 ngày (bình luận, chia sẻ nặng hơn thích)
+  const scored = await all(x.db, "SELECT topic, eng_react + 3 * eng_cmt + 5 * eng_share AS sc FROM fp_posts WHERE page = ? AND status = 'sent' AND eng_at > 0 AND sent_at >= ? AND funnel = ? ORDER BY sc DESC", p.id, Date.now() - 45 * DAY, theme.f);
+  const learn = scored.length >= 4 ? 'Bài cùng loại trên trang này được hưởng ứng nhiều nhất (học cách đặt vấn đề, cách hỏi):\n' + scored.slice(0, 3).map(r => '- ' + r.topic + ' (' + r.sc + ' điểm)').join('\n') + '\nBài ít hưởng ứng (tránh kiểu này):\n' + scored.slice(-2).map(r => '- ' + r.topic + ' (' + r.sc + ' điểm)').join('\n') : '';
   // 🎯 nhóm khách + tension (insight.js): chỉ trong nhóm trang nhắm tới (cfg.aud), viết lại theo ý kiến thì giữ nhóm cũ
   const old = await first(x.db, 'SELECT ins FROM fp_posts WHERE id = ?', id); let og = ''; try { og = hint && old && old.ins ? JSON.parse(old.ins).g || '' : ''; } catch (e) { }
-  const ip = await insPick(x, 'fb', grp || og, { only: c.aud, f: theme.f });
+  const ip = await insPick(x, 'fb', grp || og || (pl ? pl.g : ''), Object.assign({ only: c.aud, f: theme.f }, pl && pl.sp ? { prod: pl.sp } : {}));
+  const plTn = pl && pl.tn && ip.g && ip.g.id === pl.g ? pl.tn : '';
   const recent = await all(x.db, "SELECT page, day, topic, img FROM fp_posts WHERE topic != '' AND day >= ? ORDER BY day DESC LIMIT 30", fmtDate(Date.now() - 8 * DAY, 'yyyyMMdd'));
   const used = new Set(recent.map(r => r.img).filter(Boolean)), lib = (await imgLib()).filter(i => !used.has(i.url)); // 🖼 29/11/2026 (anh Sơn): kèm ảnh thật như bài nhóm Zalo, không lặp ảnh đã dùng gần đây
   const ask = [
     'Viết 1 bài đăng cho fanpage Facebook "' + p.name + '" của Thực Dưỡng Lành.',
     c.voice ? 'Trang này: ' + c.voice : 'Người theo dõi phần lớn là cô chú trung niên, mẹ bỉm, người ăn chay, dân văn phòng quan tâm sống khỏe.',
-    'Ngày: ' + ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'][wd] + ' ' + day.slice(6, 8) + '/' + day.slice(4, 6) + ', đăng lúc ' + slot + '.',
-    'Chủ đề: ' + theme.t + ' (tầng phễu: ' + FUN[theme.f].name + ')' + (hint ? '\nYêu cầu thêm của nhân sự: ' + hint : ''),
-    '', insBlock(ip, theme.f), 'Chủ đề là khung bắt buộc: giữ đúng chủ đề, chỉ chọn góc viết (món, mẹo, nguyên liệu, câu hỏi, sản phẩm) chạm đúng tension của nhóm khách trên.', '',
+    'Ngày: ' + ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'][wd] + ' ' + day.slice(6, 8) + '/' + day.slice(4, 6) + (theme.ev && !theme.moved ? ' (âm lịch: ' + lu.text + ') · dịp: ' + theme.ev : '') + ', đăng lúc ' + slot.replace(':', 'h') + ' (' + tod + ', lời chào hợp buổi).',
+    pl ? 'Chủ đề ' + (pl.status === 'ok' ? 'ĐÃ DUYỆT' : 'đã lên') + ' trong kế hoạch nội dung (viết đúng chủ đề này): ' + pl.topic + ' (tầng phễu: ' + FUN[theme.f].name + ')' + (pl.idea ? '\nGóc viết / câu mở gợi ý: ' + pl.idea : '') + (pl.cta ? '\nLối ra của bài: ' + pl.cta : '') + (pl.sp ? '\nSản phẩm của bài: mã ' + pl.sp : '') + '\nKhung chủ đề theo thứ / dịp: ' + fr.t + (hint ? '\nYêu cầu thêm của nhân sự: ' + hint : '')
+      : 'Chủ đề: ' + theme.t + ' (tầng phễu: ' + FUN[theme.f].name + ')' + (hint ? '\nYêu cầu thêm của nhân sự: ' + hint : ''),
+    '', insBlock(ip, theme.f), plTn ? 'TENSION ĐÃ CHỌN TRONG KẾ HOẠCH (dùng đúng tension này): ' + plTn : '',
+    theme.f === 'BOFU' ? (live.length ? 'ƯU ĐÃI ĐANG CHẠY (chỉ nói đúng như sau):\n' + live.map(o => '- ' + [o.title, o.prod ? 'sản phẩm: ' + o.prod : '', o.text, o.until ? 'hạn đến ' + o.until : ''].filter(Boolean).join(' · ')).join('\n') : 'Hiện không có ưu đãi riêng: không bịa khuyến mãi, chỉ nhắc freeship đơn từ 300k và được kiểm hàng trước khi nhận.') : '',
+    learn, 'Chủ đề là khung bắt buộc: giữ đúng chủ đề, chỉ chọn góc viết (món, mẹo, nguyên liệu, câu hỏi, sản phẩm) chạm đúng tension của nhóm khách trên.', '',
     await edBlock(x, 'fb'), // ✍️ 12/11/2026: học từ bài nhân sự đã sửa
     recent.length ? 'Các bài gần đây của mọi fanpage (KHÔNG lặp lại chủ đề / nguyên liệu / món / sản phẩm đã viết):\n' + recent.map(r => '- ' + r.day.slice(6, 8) + '/' + r.day.slice(4, 6) + ': ' + r.topic).join('\n') : '',
     '',
@@ -648,8 +664,7 @@ async function fpWrite(x, p, day, slot, hint, by, grp, fid) { // fid: viết l�
   const code = ((head.match(/SẢN PHẨM:\s*([a-z0-9-]+)/) || [])[1] || '');
   const pick = lib[Number((head.match(/ẢNH:\s*(\d+)/) || [])[1]) - 1], img = absImg(prods[code] && prods[code].img ? prods[code].img : pick ? pick.url : '');
   if (!body) throw new Error('AI chưa viết được bài');
-  const camp = nrm(p.name).replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40) || 'fanpage';
-  const link = prods[code] ? prods[code].url + '?utm_source=facebook&utm_medium=fanpage&utm_campaign=' + camp : '';
+  const link = prods[code] ? prods[code].url + '?utm_source=facebook&utm_medium=fanpage&utm_campaign=' + id : ''; // 🛒 29/11/2026: mã bài (như nhóm Zalo) → đơn ghi nguồn "facebook / fanpage / <mã bài>", CRM đếm đơn từng bài
   const now = Date.now(), ins = Object.assign(insParse(head, ip.bank, ip.g), { w: insRisk(body), v: insStyle(body), b: ip.big ? ip.big.t : '' }); if (ip.angle) ins.a = ip.angle;
   await run(x.db, `INSERT INTO fp_posts (id, page, day, slot, topic, text, link, prod, status, by_name, at, funnel, ins, img) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'draft', ?, ?, ?, ?, ?)
     ON CONFLICT(id) DO UPDATE SET topic = excluded.topic, text = excluded.text, link = excluded.link, prod = excluded.prod, img = excluded.img, status = 'draft', by_name = excluded.by_name, at = excluded.at, err = '', funnel = excluded.funnel, ins = excluded.ins`,
@@ -682,19 +697,23 @@ export async function crmFp(x, u, d, crmLog) {
   useEnv(x);
   if (u.level < 2 && u.role !== 'Marketing') return { ok: false, error: 'Chỉ Quản lý, Quản trị và Marketing dùng được Trợ lý Fanpage.' };
   const a = d.action, now = Date.now(), admin = u.level >= 3;
+  if (/^fp_plan_/.test(a)) return crmFpPlan(x, u, d, crmLog, pageGet); // 📋 kế hoạch chủ đề (fbplan.js)
   if (['fp_app', 'fp_app2', 'fp_ptoken2', 'fp_connect', 'fp_ptoken', 'fp_del', 'fp_track'].includes(a) && !admin) return { ok: false, error: 'Chỉ Quản trị kết nối / gỡ fanpage được.' };
   if (a === 'fp_view') {
     const app = await appCfg(x), from = fmtDate(now - DAY, 'yyyyMMdd');
     const tk = await fpTracked(x), trackSet = Array.isArray(await kvJson(x.db, 'fp_track', null));
     const pages = (await all(x.db, "SELECT id, name, active, cfg, at, err, last_ev, (token2 != '') AS t2 FROM fp_pages ORDER BY name")).map(r => Object.assign({}, r, { cfg: pageCfg(r.cfg), track: tk.has(String(r.id)) }));
-    const posts = await all(x.db, 'SELECT id, page, day, slot, topic, text, link, prod, status, by_name, at, sent_at, fb_id, err, funnel, ins, img FROM fp_posts WHERE day >= ? ORDER BY day, slot, page', from);
+    const posts = await all(x.db, 'SELECT id, page, day, slot, topic, text, link, prod, status, by_name, at, sent_at, fb_id, err, funnel, ins, img, eng_react, eng_cmt, eng_share FROM fp_posts WHERE day >= ? ORDER BY day, slot, page', from);
+    const plan = await all(x.db, "SELECT * FROM fp_plan WHERE day >= ? AND status != 'skip' AND id NOT IN (SELECT id FROM fp_posts) ORDER BY day, slot LIMIT 120", fmtDate(now, 'yyyyMMdd')); // 📋 chủ đề chưa thành bài
+    const ordN = {}; for (const o of await all(x.db, "SELECT source, first_source, status FROM orders WHERE time >= ? AND (source LIKE 'facebook / fanpage / %' OR first_source LIKE 'facebook / fanpage / %')", now - 30 * DAY)) { const m = !isVoid(o.status) && (String(o.source).match(/^facebook \/ fanpage \/ (\S+)/) || String(o.first_source).match(/^facebook \/ fanpage \/ (\S+)/)); if (m) ordN[m[1]] = (ordN[m[1]] || 0) + 1; }
+    for (const r of posts) if (ordN[r.id]) r.orders = ordN[r.id];
     const log = await all(x.db, 'SELECT rid, at, page, kind, name, text, reply, done_at, done_by FROM fp_log ORDER BY rid DESC LIMIT 80');
     const open = await all(x.db, "SELECT rid, at, page, kind, name, text, reply, done_at, done_by FROM fp_log WHERE kind = 'handoff' AND done_at IS NULL AND at > ? ORDER BY rid DESC LIMIT 30", now - 7 * DAY); // ca cần người thật chưa xử lý: ghim lên đầu
     const stats = await all(x.db, 'SELECT kind, count(*) AS n FROM fp_log WHERE at > ? GROUP BY kind', now - 7 * DAY);
     const talk = await first(x.db, "SELECT count(*) AS n FROM fp_users WHERE last_in > ?", now - 7 * DAY);
     const insG = (await insBank(x)).map(g => ({ id: g.id, name: g.name, on: g.on }));
     return { ok: true, learnEd: await edCount(x, 'fb'), edR: (await edCount(x, 'reply')).ids, insG, app: { id: app.id, secret: !!app.secret, verify: admin ? app.verify : '', config: app.config, hook: HOOK_URL, cb: CB_URL, verified: Number(await kvGet(x.db, 'fp_verified')) || 0 }, app2: await (async () => { const a2 = await app2Cfg(x); return { id: a2.id, secret: !!a2.secret }; })(),
-      pages, trackSet, camps: await fpCamps(x), posts, lib: (await imgLib()).map(i => ({ url: i.url, thumb: i.thumb || i.url, alt: i.alt })), grp: await fbgList(x, now), log, open, stats, talk: talk ? talk.n : 0, err: await kvGet(x.db, 'fp_write_err'), aiOn: !!x.env.ANTHROPIC_API_KEY, admin, now };
+      pages, trackSet, camps: await fpCamps(x), posts, plan, lib: (await imgLib()).map(i => ({ url: i.url, thumb: i.thumb || i.url, alt: i.alt })), grp: await fbgList(x, now), log, open, stats, talk: talk ? talk.n : 0, err: await kvGet(x.db, 'fp_write_err'), aiOn: !!x.env.ANTHROPIC_API_KEY, admin, now };
   }
   if (a === 'fp_gdone') { // 👥 đánh dấu đã đăng bài vào nhóm Facebook (giữ 14 ngày)
     const id = String(d.id || ''); if (!/^\d{8}_(sang|toi)$/.test(id)) return { ok: false, error: 'Không tìm thấy bài.' };

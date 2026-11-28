@@ -35,7 +35,7 @@ Trước khi viết bất kỳ bài nào, trả lời 4 câu:
 **Mỗi ngày (khoảng 5 phút):**
 
 1. Mở **🎯 Insight & nội dung**, nhìn ô cam **👉 Việc của [tên bạn] hôm nay**. Có nút thì bấm (có cả dòng **📝 bài Phòng Marketing AI đã được duyệt chờ đăng** nếu bạn là Marketing / Quản trị).
-2. Duyệt bài trợ lý viết ở tab **Bài web**, **Zalo**, **Fanpage** theo [4 câu hỏi khi duyệt](#viec-1-duyet-bai-tro-ly-viet).
+2. Duyệt bài trợ lý viết ở tab **Trợ lý Website**, **Trợ lý Zalo**, **Trợ lý Fanpage** theo [4 câu hỏi khi duyệt](#viec-1-duyet-bai-tro-ly-viet).
 3. Thấy chuyện cả mạng đang bàn tán thì [ghi vào ô 🔥](#viec-6-ghi-chuyen-dang-nong).
 
 **Mỗi sáng thứ Hai (khoảng 20 phút):**

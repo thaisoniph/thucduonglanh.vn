@@ -158,7 +158,7 @@ async function zPoll(x, d) {
   const now = Date.now(), cfg = await zCfg(x), old = await kvJson(x.db, 'zb_status', null);
   const st = { at: now, me: d.me || null, groups: (d.groups || []).slice(0, 50), ver: String(d.ver || '') };
   if (!old || now - old.at > 4 * 60e3 || old.ver !== st.ver || JSON.stringify(old.groups) !== JSON.stringify(st.groups) || (old.down && !st.down)) await kvSet(x.db, 'zb_status', JSON.stringify(st)); // ghi 4 phút / lần cho đỡ tốn
-  if (old && old.down) x.later(telegram(x.env, '✅ <b>Trợ lý Zalo An Lành đã chạy lại</b>'));
+  if (old && old.down) x.later(telegram(x.env, '✅ <b>Trợ lý Zalo đã chạy lại</b>'));
   for (const a of (Array.isArray(d.act) ? d.act : []).slice(0, 6)) if (/^\d{10}$/.test(String(a.dh))) // tin nhắn thành viên theo giờ (chương trình Zalo đếm, gửi số cộng dồn của giờ đó)
     try { await run(x.db, 'INSERT INTO zb_act (dh, msgs, people) VALUES (?, ?, ?) ON CONFLICT(dh) DO UPDATE SET msgs = max(zb_act.msgs, excluded.msgs), people = max(zb_act.people, excluded.people)', String(a.dh), Number(a.msgs) || 0, Number(a.people) || 0); } catch (e) { console.error('zb_act', e.message); } // lỗi đếm giờ không được chặn việc đăng bài
   for (const t of (Array.isArray(d.stats) ? d.stats : []).slice(0, 20)) // tương tác 2 tiếng sau khi đăng bài (chương trình Zalo đếm)
@@ -543,7 +543,7 @@ async function zFriendOk(x, d) { // đã đồng ý kết bạn → ghi lại đ
 
 async function zLogin(x, d) {
   const k = 'zb_login_' + fmtDate(Date.now(), 'yyMMddHH');
-  if (!await kvGet(x.db, k)) { await kvSet(x.db, k, '1', 2 * 3600e3); await telegram(x.env, '⚠️ <b>Trợ lý Zalo An Lành bị đăng xuất</b>' + (d.reason ? ' (' + esc(String(d.reason).slice(0, 120)) + ')' : '') + '\n👉 Cần mở máy đang chạy trợ lý, quét mã QR bằng Zalo của điện thoại "Trợ lý An Lành" (xem zalo-bot/README.md).'); }
+  if (!await kvGet(x.db, k)) { await kvSet(x.db, k, '1', 2 * 3600e3); await telegram(x.env, '⚠️ <b>Trợ lý Zalo bị đăng xuất</b>' + (d.reason ? ' (' + esc(String(d.reason).slice(0, 120)) + ')' : '') + '\n👉 Cần mở máy đang chạy trợ lý, quét mã QR bằng Zalo của điện thoại "Trợ lý An Lành" (xem zalo-bot/README.md).'); }
   return { ok: true };
 }
 
@@ -554,7 +554,7 @@ export async function zbotTick(x) {
   const cfg = await zCfg(x), now = Date.now(), st = await kvJson(x.db, 'zb_status', null);
   if (st && !st.down && now - st.at > 20 * 60e3) { // chương trình Zalo im lặng > 20 phút → báo 1 lần
     st.down = 1; await kvSet(x.db, 'zb_status', JSON.stringify(st));
-    await telegram(x.env, '⚠️ <b>Trợ lý Zalo An Lành mất kết nối</b> từ ' + fmtDate(st.at, 'HH:mm dd/MM') + '.\n👉 Kiểm tra máy đang chạy trợ lý (bật máy, có mạng), xem zalo-bot/README.md.');
+    await telegram(x.env, '⚠️ <b>Trợ lý Zalo mất kết nối</b> từ ' + fmtDate(st.at, 'HH:mm dd/MM') + '.\n👉 Kiểm tra máy đang chạy trợ lý (bật máy, có mạng), xem zalo-bot/README.md.');
   }
   if (!cfg.on || !st || !x.env.ANTHROPIC_API_KEY) return; // chưa từng chạy chương trình Zalo → chưa soạn
   // soạn trước cfg.lead ngày (10/11/2026: 3 ngày, trước đây hôm nay + ngày mai) để nhân sự có 2–3 ngày duyệt

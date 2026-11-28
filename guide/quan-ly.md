@@ -508,7 +508,7 @@ Màn **••• Thêm** chia 4 nhóm:
 
 - **Việc của sale**: Hôm nay, Khách hỏi, Khách đã mua
 - **Tiền & hàng**: Kế toán, Kho, Sàn
-- **Kênh marketing**: Link & QR, Trợ lý Zalo, Fanpage, Insight & nội dung, Bài web
+- **Kênh marketing**: Link & QR, Trợ lý Zalo, Trợ lý Fanpage, Insight & nội dung, Trợ lý Website
 - **Công cụ**: ✨ Hỏi số liệu (anh Sơn, anh Hiếu), Cài đặt, Hướng dẫn sử dụng, 💡 Góp ý, Tải lại dữ liệu
 
 Số đỏ trên nút Thêm không cộng việc gọi khách của sale.

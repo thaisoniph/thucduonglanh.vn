@@ -23,7 +23,7 @@ const HAIKU_BIG = ['claude-haiku-5-5', 0.50, 2.50, 0.05, 0.625];
 /** Nhãn mục (header x-tdl-muc mỗi client AI gửi kèm). */
 export const MUC = {
   chat: '💬 Chat An Lành trên web', zalo: '🤖 Trợ lý Zalo trả lời, chào, nhắn riêng', 'zalo-bai': '📝 Soạn bài nhóm Zalo', 'zalo-kh': '📋 Kế hoạch chủ đề nhóm Zalo',
-  fanpage: '📘 Trợ lý Fanpage trả lời', 'fb-bai': '📝 Soạn bài Fanpage', 'web-bai': '📰 Trợ lý viết bài web', video: '🎬 Kịch bản video', insight: '🔍 Tìm / đọc insight', offer: '🎁 Viết offer', chamdiem: '🧪 Chấm bài trước khi đăng', crm: '✨ AI trong CRM (tóm tắt khách, gợi ý tin)',
+  fanpage: '📘 Trợ lý Fanpage trả lời', 'fb-bai': '📝 Soạn bài Fanpage', 'fb-kh': '📋 Kế hoạch chủ đề Fanpage', 'web-bai': '📰 Trợ lý Website viết bài', video: '🎬 Kịch bản video', insight: '🔍 Tìm / đọc insight', offer: '🎁 Viết offer', chamdiem: '🧪 Chấm bài trước khi đăng', crm: '✨ AI trong CRM (tóm tắt khách, gợi ý tin)',
   loikhach: '🗣 Kho lời khách (phân loại câu)', youtube: '▶️ Báo cáo tuần YouTube', hoi: '📊 Hỏi số liệu CRM', giaoviec: '✅ Bot giao việc đọc tin Telegram', 'tg-so': '📊 Hỏi số quảng cáo qua Telegram', huongdan: '📖 Hỏi trợ lý ở trang hướng dẫn', tuyendung: '🧑‍💼 AI đọc CV ứng viên', san: '🛒 Trợ lý sàn Shopee (sức khoẻ shop, đối thủ)', ketoan: '🧾 AI đọc chứng từ nhà cung cấp',
   'insight-anh': '📸 Câu lệnh tạo ảnh', 'insight-big': '💡 Big idea', 'insight-kw': '🔑 Lập từ khoá bài web', 'fb-ca-nhan': '👤 Bài Facebook cá nhân cho sale', khac: 'Khác',
 };
@@ -33,7 +33,7 @@ export const MUC = {
  * airelay.js aiFetch đổi trường model ngay trước khi gửi Anthropic; mô hình chọn bị lỗi 400 (không hỗ trợ tham số…) → tự gửi lại bằng mô hình gốc. */
 export const MODELS = { haiku: 'claude-haiku-5-5', sonnet: 'claude-sonnet-5-5', opus: 'claude-opus-5-5' };
 /** Mô hình code đang dùng cho từng mục (để CRM hiện "Mặc định (…)"); 'mix' = trong mục có nhiều việc dùng mô hình khác nhau. */
-export const DEF = { chat: 'haiku', zalo: 'haiku', 'zalo-bai': 'sonnet', 'zalo-kh': 'sonnet', fanpage: 'haiku', 'fb-bai': 'sonnet', 'web-bai': 'opus', video: 'sonnet', insight: 'mix', offer: 'opus', chamdiem: 'sonnet', crm: 'haiku',
+export const DEF = { chat: 'haiku', zalo: 'haiku', 'zalo-bai': 'sonnet', 'zalo-kh': 'sonnet', fanpage: 'haiku', 'fb-bai': 'sonnet', 'fb-kh': 'sonnet', 'web-bai': 'opus', video: 'sonnet', insight: 'mix', offer: 'opus', chamdiem: 'sonnet', crm: 'haiku',
   loikhach: 'haiku', youtube: 'sonnet', hoi: 'sonnet', giaoviec: 'haiku', 'tg-so': 'haiku', huongdan: 'haiku', tuyendung: 'sonnet', san: 'mix', ketoan: 'sonnet', 'insight-anh': 'sonnet', 'insight-big': 'sonnet', 'insight-kw': 'sonnet', 'fb-ca-nhan': 'sonnet' };
 let pickCache = null, pickAt = 0;
 async function pickMap(db) {

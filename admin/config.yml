@@ -1167,7 +1167,7 @@ collections:
               - { label: "Mã (không dấu)", name: slug, widget: string }
 
       - name: blog_auto
-        label: "🤖 Trợ lý viết bài tự động"
+        label: "🤖 Trợ lý Website (viết bài tự động)"
         file: data/blog-auto.json
         format: json
         description: "Trợ lý tự viết bài cho Góc Sống Lành. Trước ngày đăng 1 ngày, trợ lý viết bài nháp rồi nhắn Telegram cho người duyệt (Quản trị, Quản lý, người được bật “Sửa website”). Bấm ✅ Đăng là bài tự lên web đúng giờ đăng. Chưa ai duyệt thì bài không lên."

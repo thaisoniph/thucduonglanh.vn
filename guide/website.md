@@ -72,7 +72,7 @@ Trợ lý tự viết bài cho Góc Sống Lành. **Bài chỉ lên web khi có 
 
 **Thẻ 📚 Đã viết** hiện số lượt đọc, thời gian đọc, lần bấm mua và số đơn của từng bài.
 
-**Giao chủ đề kèm trải nghiệm thật:** ở /admin → Cài đặt website → 🤖 Trợ lý viết bài tự động → Chủ đề chờ viết, có thêm ô **🌿 Trải nghiệm thật**. Ghi chuyện thật vào đó: trợ lý nhắc lại đúng ý trong bài (không thêm thắt) và web hiện riêng trong khung xanh đầu bài.
+**Giao chủ đề kèm trải nghiệm thật:** ở /admin → Cài đặt website → 🤖 Trợ lý Website (viết bài tự động) → Chủ đề chờ viết, có thêm ô **🌿 Trải nghiệm thật**. Ghi chuyện thật vào đó: trợ lý nhắc lại đúng ý trong bài (không thêm thắt) và web hiện riêng trong khung xanh đầu bài.
 
 **✍️ Trợ lý học từ bạn:** ý kiến bạn ghi khi bấm **✍️ Viết lại theo ý kiến** được trợ lý nhớ cho cả các bài sau, không chỉ bài đó. Bài bạn **tự sửa trong /admin** rồi bật hiển thị cũng vậy: khoảng 6 tiếng sau, trợ lý so bản nó viết với bản bạn sửa để học cách viết. Vì vậy hãy ghi ý kiến cụ thể, ví dụ "mở bài bằng tình huống thật, bớt số liệu", "câu ngắn hơn".
 
@@ -243,11 +243,11 @@ Web có bản tiếng Anh tại [thucduonglanh.vn/en/](https://thucduonglanh.vn/
 3. Nội dung phải theo [5 điều không được làm](/huong-dan/#5-dieu-khong-duoc-lam).
 4. Muốn sửa chính trang hướng dẫn này: trong trang quản trị chọn **Hướng dẫn nội bộ**.
 
-## Trợ lý viết bài: hiệu quả và cài đặt
+## Trợ lý Website: hiệu quả và cài đặt
 
-Trang **📰 Bài web** chia thẻ (từ 19/11/2026): **📝 Bài sắp đăng** · **📊 Kết quả**, **📚 Đã viết** · **💡 Chủ đề chờ viết**.
+Trang **📰 Trợ lý Website** chia thẻ (từ 19/11/2026): **📝 Bài sắp đăng** · **📊 Kết quả**, **📚 Đã viết** · **💡 Chủ đề chờ viết**.
 
-**Xem hiệu quả:** CRM → 📰 Bài web → thẻ **📊 Kết quả** → 📊 Hiệu quả bài viết (chọn 7, 30 hoặc 90 ngày):
+**Xem hiệu quả:** CRM → 📰 Trợ lý Website → thẻ **📊 Kết quả** → 📊 Hiệu quả bài viết (chọn 7, 30 hoặc 90 ngày):
 
 - **Lượt xem, thời gian đọc, bấm mua trong bài**: lấy từ Google Analytics, chỉ đếm người bấm Đồng ý cookie nên số thật cao hơn.
 - **Đơn sau khi đọc**: khách đọc bài rồi đặt hàng trên web trong 7 ngày (tính cho bài đọc gần nhất, không tính đơn huỷ, hoàn).
@@ -256,7 +256,7 @@ Trang **📰 Bài web** chia thẻ (từ 19/11/2026): **📝 Bài sắp đăng**
 
 **📈 Trợ lý tự học từ số đọc:** trước khi viết bài mới, trợ lý xem các bài web cùng loại (🔵 thu hút, ⚪ tạo niềm tin, 🟠 bán hàng) đã đăng trong 60 ngày. Trợ lý học theo bài được đọc nhiều, đọc lâu, nhiều người bấm mua, và tránh kiểu bài ít người đọc. Xem danh sách này ở CRM → 🎯 Insight & nội dung → **📈 Học từ tương tác** (dòng 🌐 Bài web). Mỗi loại cần ít nhất 3 bài đã đăng hơn 2 ngày mới bắt đầu so.
 
-**Cài đặt:** CRM → 📰 Bài web → ⚙️ Cài đặt và ➕ Thêm chủ đề. Sửa ở /admin → Cài đặt website → 🤖 Trợ lý viết bài tự động cũng được, hai chỗ dùng chung một bản.
+**Cài đặt:** CRM → 📰 Trợ lý Website → ⚙️ Cài đặt và ➕ Thêm chủ đề. Sửa ở /admin → Cài đặt website → 🤖 Trợ lý Website (viết bài tự động) cũng được, hai chỗ dùng chung một bản.
 
 - **Số bài mỗi tuần** (1–7) và **Giờ đăng**.
 - **Chủ đề chờ viết**: thêm chủ đề muốn viết, trợ lý lấy chủ đề trên cùng trước. Bài đăng xong, chủ đề tự chuyển sang "Đã đăng" kèm link.

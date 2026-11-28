@@ -1,5 +1,5 @@
 ---
-title: Trợ lý Zalo An Lành
+title: Trợ lý Zalo
 nav: Trợ lý Zalo
 group: marketing
 short: Trợ lý An Lành trong nhóm Zalo

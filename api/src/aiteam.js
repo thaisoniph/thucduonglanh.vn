@@ -68,7 +68,7 @@ export async function aiTeam(x, u) {
     const ho = await k(['handoff', 'dm_handoff'], d7), wel = await k(['welcome'], d7), posts = await k(POST, d7);
     const r = await leadRes(x, ['Zalo nhóm', 'Zalo Trợ lý An Lành'], d7);
     const down = st && (st.down || now - st.at > 20 * 60e3);
-    cards.push({ id: 'zalo', ic: '🤖', name: 'Trợ lý Zalo An Lành (nhóm + tin riêng)', what: 'Trả lời câu hỏi trong nhóm Zalo và tin nhắn riêng, chào thành viên mới, đăng bài hằng ngày, chuyển ca khó cho người thật.',
+    cards.push({ id: 'zalo', ic: '🤖', name: 'Trợ lý Zalo (nhóm + tin riêng)', what: 'Trả lời câu hỏi trong nhóm Zalo và tin nhắn riêng, chào thành viên mới, đăng bài hằng ngày, chuyển ca khó cho người thật.',
       when: 'Cả ngày (máy chủ riêng chạy 24/7), bài đăng theo khung giờ đã đặt', last: Math.max(Number(last && last.at) || 0, 0) || null, alive: st ? st.at : null, down: !!down,
       today: N(await k(ANS, d0)), d7: N(await k(ANS, d7)), unit: 'câu trả lời',
       res: [['Bài đã đăng', N(posts)], ['Chào thành viên mới', N(wel)], ['Ca chuyển người thật', N(ho)], ['Khách để lại số', r.leads], ['Đơn từ khách đó', r.orders], ['Doanh số', r.money, 'd']],
@@ -89,7 +89,7 @@ export async function aiTeam(x, u) {
       when: 'Mỗi khi có bình luận / tin nhắn (Facebook báo về ngay), bài đăng theo lịch', off: !N(pages), offTxt: 'Chưa nối trang nào (hoặc đang chờ Facebook duyệt quyền)',
       last: last && last.at, today: N(ct) + N(mt), d7: N(cw) + N(mw), unit: 'bình luận + cuộc nhắn',
       res: [['Khách để lại số', N(lw)], ['Đơn từ khách đó', o ? N(o) : 0], ['Doanh số', o ? Number(o.t) || 0 : 0, 'd'], ['Bài đã đăng', N(pw)]],
-      cost: costOf(['fanpage', 'fb-bai']), err: newest([er && { at: er.at, txt: String(er.text || '').slice(0, 220) }, errOf(await kvGet(x.db, 'fp_write_err')), errOf(await kvGet(x.db, 'fp_nf_err'))]), link: 'fanpage' });
+      cost: costOf(['fanpage', 'fb-bai', 'fb-kh']), err: newest([er && { at: er.at, txt: String(er.text || '').slice(0, 220) }, errOf(await kvGet(x.db, 'fp_write_err')), errOf(await kvGet(x.db, 'fp_nf_err'))]), link: 'fanpage' });
   }
 
   /* 📰 Trợ lý viết bài web (bl_posts: day = ngày đăng; bl_conv = đơn đặt trong 7 ngày sau khi khách đọc bài) */
@@ -98,7 +98,7 @@ export async function aiTeam(x, u) {
     const pub = await q1(x, 'SELECT count(*) n FROM bl_posts WHERE pub_at >= ?', d30), last = await q1(x, 'SELECT max(at) at FROM bl_posts');
     const er = await q1(x, "SELECT at, err, title FROM bl_posts WHERE err <> '' ORDER BY at DESC LIMIT 1");
     const cv = await q1(x, 'SELECT count(*) n, coalesce(sum(total), 0) t FROM bl_conv WHERE at >= ?', d30);
-    cards.push({ id: 'blog', ic: '📰', name: 'Trợ lý viết bài web (Góc Sống Lành)', what: 'Viết bài theo từ khoá khách hay tìm, gửi Telegram để duyệt, duyệt xong tự đăng lên website.',
+    cards.push({ id: 'blog', ic: '📰', name: 'Trợ lý Website (viết bài Góc Sống Lành)', what: 'Viết bài theo từ khoá khách hay tìm, gửi Telegram để duyệt, duyệt xong tự đăng lên website.',
       when: 'Theo lịch ở tab Bài web (đang đặt 3 bài / tuần, 9h sáng)',
       last: last && last.at, today: N(wt), d7: N(wr), unit: 'bài viết',
       res: [['Bài đã đăng (30 ngày)', N(pub)], ['Đơn sau khi khách đọc bài (30 ngày)', cv ? N(cv) : 0], ['Doanh số', cv ? Number(cv.t) || 0 : 0, 'd']],
@@ -174,7 +174,7 @@ export async function aiTeam(x, u) {
   /* Các trợ lý khác trong CRM: chỉ có số lượt gọi AI + chi phí (chưa ghi nhật ký riêng) */
   {
     const OTHER = ['crm', 'hoi', 'video', 'insight', 'insight-anh', 'insight-big', 'insight-kw', 'offer', 'khac'];
-    const known = new Set(['chat', 'zalo', 'zalo-bai', 'zalo-kh', 'fanpage', 'fb-bai', 'web-bai', 'loikhach', 'giaoviec', 'youtube', 'chamdiem', 'huongdan'].concat(OTHER));
+    const known = new Set(['chat', 'zalo', 'zalo-bai', 'zalo-kh', 'fanpage', 'fb-bai', 'fb-kh', 'web-bai', 'loikhach', 'giaoviec', 'youtube', 'chamdiem', 'huongdan'].concat(OTHER));
     const extra = Object.keys(cost).filter(k => !known.has(k)), mucs = OTHER.concat(extra);
     const c = costOf(mucs);
     cards.push({ id: 'other', ic: '✨', name: 'AI trong CRM (tóm tắt khách, hỏi số liệu, kịch bản video, tìm insight, viết offer)', what: 'Các nút ✨ nhân sự tự bấm trong CRM.',
