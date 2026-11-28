@@ -2,8 +2,27 @@
   "enabled": true,
   "path": "/khoa-hoc-dinh-duong/",
   "title": "Khoá học Giải Mã Dinh Dưỡng",
+  "eyebrow": "🎁 Không bán lẻ · chỉ tặng người đăng ký",
   "headline": "Giải Mã Dinh Dưỡng: 5 bài học cho mâm cơm khoẻ cả nhà",
   "sub": "5 bài ngắn, mỗi bài khoảng 10 phút: bữa sáng, calo, chất đạm, chất béo và chuyện axit – kiềm. Mỗi bài có 1 việc làm được ngay trong bếp nhà mình.",
+  "stats": [
+    {
+      "n": "4 giờ+",
+      "t": "Zoom chuyên đề, chắt lọc còn 30 phút"
+    },
+    {
+      "n": "5",
+      "t": "bài video ngắn, xem trên điện thoại"
+    },
+    {
+      "n": "15",
+      "t": "điều cần nhớ + 5 việc làm ngay"
+    },
+    {
+      "n": "1",
+      "t": "giấy chứng nhận mang tên anh/chị"
+    }
+  ],
   "card_sub": "5 bài ngắn có video: bữa sáng no lâu, đổi cách nấu, ăn đủ đạm, chọn dầu mỡ, hiểu đúng axit – kiềm.",
   "source_note": "Biên soạn từ chuỗi Zoom chia sẻ “Giải Mã Dinh Dưỡng” của Thực Dưỡng Lành (tháng 5–7/2026), đối chiếu khuyến nghị của Tổ chức Y tế Thế giới (WHO) và Viện Dinh dưỡng Quốc gia.",
   "lessons": [

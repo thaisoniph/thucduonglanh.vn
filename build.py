@@ -1325,10 +1325,12 @@ def page_course():
   {wvc_box()}
   {f'<div class="ebz"><b>👥 Học tiếp cùng mọi người</b><p>Vào nhóm Zalo “Sống khỏe cùng {BRAND}”: thực đơn lành mỗi tuần, hỏi đáp với đội ngũ {BRAND}.</p><a class="btn btn-lg btn-zalo" href="{esc(SITE["zalo_group"])}" target="_blank" rel="noopener" data-cta="zalo_group_khoahoc">Vào nhóm Zalo miễn phí →</a></div>' if SITE.get("zalo_group") else ""}
 </div></section>'''
+    stats_li = "".join(f"<li><b>{esc(x['n'])}</b>{esc(x['t'])}</li>" for x in KH.get("stats") or [])
+    stats_html = f'<section class="cn-stats kh-stats"><div class="container"><ul>{stats_li}</ul></div></section>' if stats_li else ""
     other_html = f'''<section class="section pt-0"><div class="container narrow"><h2 class="sec-title">Quà tặng khác cho anh/chị</h2><div class="gf-grid gf-n1">{gift_cards("khoahoc", skip="khoahoc")}</div></div></section>''' if len(gift_list()) > 1 else ""
     body = f'''<section class="ebh cnh kh-hero" id="nhan-khoa-hoc"><div class="container ebh-in">
   <div class="ebh-head">
-    <span class="eyebrow">🎁 Quà tặng miễn phí · {n} bài · có video</span>
+    <span class="eyebrow">{esc(KH.get("eyebrow") or f"🎁 Quà tặng miễn phí · {n} bài · có video")}</span>
     <h1>{bv_nw(KH.get("headline", KH.get("title", "")))}</h1>
     <a class="btn btn-lg cn-try" href="#bai-1" data-cta="khoahoc_try">▶ Học thử bài 1 ngay, miễn phí →</a>
     <p class="ebh-sub">{esc(KH.get("sub", ""))}</p>
@@ -1337,6 +1339,8 @@ def page_course():
   <ul class="ebh-list">{"".join(f"<li><b>Bài {i}:</b> {esc(x['title'])}</li>" for i, x in enumerate(L, 1))}</ul>
   {gift_form("khoahoc")}
 </div></section>
+
+{stats_html}
 
 <section class="section kh-wrap"><div class="container narrow">
   <div class="kh-prog" aria-live="polite"><span>Tiến độ của anh/chị: <b data-kh-count>0</b>/{n} bài</span><span class="kh-bar"><i data-kh-bar></i></span></div>

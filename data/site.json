@@ -110,8 +110,8 @@
     "headline_short": "Chính hãng, ưu đãi riêng",
     "gift_enabled": true,
     "gift_title": "Khoá học online Giải Mã Dinh Dưỡng (5 bài)",
-    "gift_value": "999.000đ",
-    "gift_how": "học miễn phí ngay trên web"
+    "gift_value": "",
+    "gift_how": "chỉ dành cho người đăng ký, không bán lẻ"
   },
   "welcome_voucher": {
     "enabled": true,

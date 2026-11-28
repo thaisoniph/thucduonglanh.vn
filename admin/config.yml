@@ -786,7 +786,7 @@ collections:
               - { label: "Câu quảng bá bản ngắn (điện thoại)", name: headline_short, i18n: true, widget: string, required: false, hint: "Tối đa khoảng 25 ký tự, ví dụ: Chính hãng, ưu đãi riêng" }
               - { label: "Bật quà tặng", name: gift_enabled, widget: boolean, default: true }
               - { label: "Tên quà tặng", name: gift_title, widget: string, required: false }
-              - { label: "Trị giá quà", name: gift_value, widget: string, required: false, hint: "Ví dụ: 999.000đ" }
+              - { label: "Trị giá quà", name: gift_value, widget: string, required: false, hint: "Để trống nếu quà không có giá bán thật (ghi giá tự đặt dễ bị coi là khuyến mại không trung thực)." }
               - { label: "Điều kiện nhận quà", name: gift_how, widget: string, required: false, hint: "Ví dụ: khi tham gia nhóm Zalo Cộng đồng Sống khỏe cùng Thực Dưỡng Lành" }
           - label: "Mã ưu đãi tặng sau khi nhận quà"
             name: welcome_voucher
@@ -1044,8 +1044,18 @@ collections:
           - { label: "Bật trang", name: enabled, widget: boolean, default: true }
           - { label: "Đường link", name: path, widget: hidden }
           - { label: "Tên khoá học", name: title, widget: string, hint: "Hiện ở thẻ quà, giấy chứng nhận." }
+          - { label: "Dòng nhỏ trên tiêu đề", name: eyebrow, widget: string, required: false, hint: "Ví dụ: 🎁 Không bán lẻ · chỉ tặng người đăng ký. Không ghi giá trị tiền tự đặt." }
           - { label: "Tiêu đề lớn đầu trang", name: headline, widget: string }
           - { label: "Lời giới thiệu", name: sub, widget: text }
+          - label: "Dải số liệu dưới đầu trang"
+            name: stats
+            widget: list
+            required: false
+            summary: "{{fields.n}} {{fields.t}}"
+            hint: "Tối đa 4 ô. Chỉ ghi số đúng sự thật."
+            fields:
+              - { label: "Số", name: n, widget: string }
+              - { label: "Chữ", name: t, widget: string }
           - { label: "Mô tả ngắn trên thẻ quà", name: card_sub, widget: string }
           - { label: "Ghi chú nguồn (cuối trang)", name: source_note, widget: text }
           - label: "Các bài học"
