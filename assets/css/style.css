@@ -2555,3 +2555,10 @@ body.ch-on .float-widget,body.ch-on .gd-btn,body.ch-on .bvb,body.ch-on .to-top{o
 .kh-cert-tip{font-size:14px;color:var(--muted)}
 .kh-cert .wvc,.kh-cert .ebz{margin-top:14px}
 @media (max-width:600px){.kh-lesson{padding:16px 14px;border-radius:14px}.kh-lh h2{font-size:20px}.kh-cert-card h2{font-size:24px}}
+.kh-next{display:grid;grid-template-columns:120px minmax(0,1fr);gap:16px;align-items:start;margin-top:14px;padding:16px;border:2px solid #cfe0c4;border-radius:16px;background:#fff}
+.kh-next-img img{width:120px;height:120px;object-fit:cover;border-radius:12px}
+.kh-next-body{display:flex;flex-direction:column;gap:6px;min-width:0}
+.kh-next-k{font-size:13px;font-weight:700;color:var(--primary)}.kh-next-body b{font-size:18px;color:var(--primary-2)}.kh-next-body p{margin:0;font-size:15px}
+.kh-next-act{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:4px}.kh-next-price{font-size:20px;font-weight:700;color:#b45309}.kh-next-act a{font-size:14px}
+.kh-next small{font-size:12px;color:var(--muted)}
+@media (max-width:600px){.kh-next{grid-template-columns:80px minmax(0,1fr);gap:12px;padding:12px}.kh-next-img img{width:80px;height:80px}}

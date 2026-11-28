@@ -1288,6 +1288,14 @@ def page_course():
     shortcut: nội dung bài khoá vẫn nằm trong HTML (chỉ che bằng CSS), đủ cho quà tặng miễn phí; cần khoá thật thì chuyển nội dung sang api."""
     L = KH["lessons"]
     n = len(L)
+    nx = next((q for q in PRODUCTS if q["slug"] == KH.get("next_slug")), None)  # tầng 2 (sản phẩm giá thấp) sau khi học xong: gói dùng thử
+    next_html = f'''<div class="kh-next">
+    <a class="kh-next-img" href="/san-pham/{nx["slug"]}/?tu=khoa_hoc" data-cta="khoahoc_next_img"><img src="{pimg(nx["images"][0], True)}" alt="{esc(nx["name"])}" width="160" height="160" loading="lazy"></a>
+    <div class="kh-next-body"><span class="kh-next-k">🌱 {esc(KH.get("next_title", "Bước tiếp theo"))}</span><b>{esc(nx["name"])}</b>
+      <p>{esc(KH.get("next_sub", ""))}</p>
+      <div class="kh-next-act"><span class="kh-next-price">{money(nx["price"])}</span><button type="button" class="btn btn-buy" data-buy-now="{nx["slug"]}" data-cta="khoahoc_next_buy">🛒 Đặt nhanh</button><a href="/san-pham/{nx["slug"]}/?tu=khoa_hoc" data-cta="khoahoc_next_view">Xem trong gói có gì →</a></div>
+      <small>Mã chào mừng ở trên tự trừ khi đặt. Sản phẩm là thực phẩm, không phải là thuốc và không có tác dụng thay thế thuốc chữa bệnh.</small></div>
+  </div>''' if nx and nx.get("price") else ""
     toc = "".join(f'<li><a href="#bai-{i}" data-kh-toc="{i}"><span class="kh-tn">{i}</span><span>{esc(x["title"])}</span></a></li>' for i, x in enumerate(L, 1))
     arts = ""
     for i, x in enumerate(L, 1):
@@ -1323,6 +1331,7 @@ def page_course():
   </div>
   <p class="center kh-cert-tip">📸 Chụp màn hình giấy chứng nhận để khoe với người thân nhé!</p>
   {wvc_box()}
+  {next_html}
   {f'<div class="ebz"><b>👥 Học tiếp cùng mọi người</b><p>Vào nhóm Zalo “Sống khỏe cùng {BRAND}”: thực đơn lành mỗi tuần, hỏi đáp với đội ngũ {BRAND}.</p><a class="btn btn-lg btn-zalo" href="{esc(SITE["zalo_group"])}" target="_blank" rel="noopener" data-cta="zalo_group_khoahoc">Vào nhóm Zalo miễn phí →</a></div>' if SITE.get("zalo_group") else ""}
 </div></section>'''
     stats_li = "".join(f"<li><b>{esc(x['n'])}</b>{esc(x['t'])}</li>" for x in KH.get("stats") or [])

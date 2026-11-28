@@ -1058,6 +1058,9 @@ collections:
               - { label: "Chữ", name: t, widget: string }
           - { label: "Mô tả ngắn trên thẻ quà", name: card_sub, widget: string }
           - { label: "Ghi chú nguồn (cuối trang)", name: source_note, widget: text }
+          - { label: "Gói gợi ý sau khi học xong (mã sản phẩm / gói)", name: next_slug, widget: string, required: false, hint: "Ví dụ: thu-thach-10-ngay-song-lanh. Hiện dưới giấy chứng nhận, có nút Đặt nhanh." }
+          - { label: "Tiêu đề gợi ý", name: next_title, widget: string, required: false }
+          - { label: "Câu dẫn gợi ý", name: next_sub, widget: string, required: false, hint: "Nói về thói quen, không nói công dụng chữa bệnh." }
           - label: "Các bài học"
             name: lessons
             widget: list
