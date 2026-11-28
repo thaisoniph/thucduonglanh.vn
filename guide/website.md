@@ -214,6 +214,7 @@ Cột trái chọn **Cài đặt website**. Các mục hay dùng:
 - **📗 Sổ tay doanh nghiệp**: đã chuyển sang CRM, xem [Việc 8](#viec-8-sua-so-tay-doanh-nghiep).
   - Bot trả lời sai hoặc thiếu thì báo anh Sơn, hoặc sửa phần **Hỏi đáp** của sản phẩm đó.
 - **Trò chơi Bạn còn mấy ngón tay**: câu hỏi và kết quả. Sửa trong CRM (**⚙ Cài đặt → 🖐 Trò chơi**) dễ hơn trên điện thoại.
+- **Khoá học quà tặng Giải Mã Dinh Dưỡng** ([thucduonglanh.vn/khoa-hoc-dinh-duong/](https://thucduonglanh.vn/khoa-hoc-dinh-duong/)): sửa chữ từng bài, câu hỏi ôn, gắn **mã video YouTube** khi có video mới. Bài đầu là bài học thử, các bài sau khách để tên + số Zalo mới xem được. Chỉ viết điều đúng theo WHO / Viện Dinh dưỡng, không ghi công dụng chữa bệnh. Khách mở khoá hoặc học xong cả khoá thì hiện ở **Khách hỏi** (kênh *Ebook – quà tặng (Website)*).
 - **Hồ sơ thương hiệu (brochure)**: sách lật, file PDF, ảnh bìa.
 - **Danh mục sản phẩm, Chuyên mục bài viết**: thêm, đổi tên. **Không đổi ô "Mã"** của danh mục đang có sản phẩm.
 - **Trang chính sách / hỗ trợ** (cột trái): giao hàng, đổi trả, bảo mật… Gõ {hotline}, {email}, {address} thì web tự thay bằng thông tin công ty.

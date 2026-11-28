@@ -1035,6 +1035,50 @@ collections:
               - { label: "Danh hiệu", name: title, widget: string }
               - { label: "Lời nhắn", name: text, widget: text }
 
+      - name: khoa_hoc
+        label: "Khoá học quà tặng Giải Mã Dinh Dưỡng"
+        file: data/khoa-hoc.json
+        format: json
+        description: "Trang thucduonglanh.vn/khoa-hoc-dinh-duong/: bài 1 học thử, bài 2 trở đi khách để tên + số Zalo mới mở. Chỉ có bản tiếng Việt. Chỉ viết điều đúng theo WHO / Viện Dinh dưỡng, không ghi công dụng chữa bệnh, không quảng cáo sản phẩm trong bài."
+        fields:
+          - { label: "Bật trang", name: enabled, widget: boolean, default: true }
+          - { label: "Đường link", name: path, widget: hidden }
+          - { label: "Tên khoá học", name: title, widget: string, hint: "Hiện ở thẻ quà, giấy chứng nhận." }
+          - { label: "Tiêu đề lớn đầu trang", name: headline, widget: string }
+          - { label: "Lời giới thiệu", name: sub, widget: text }
+          - { label: "Mô tả ngắn trên thẻ quà", name: card_sub, widget: string }
+          - { label: "Ghi chú nguồn (cuối trang)", name: source_note, widget: text }
+          - label: "Các bài học"
+            name: lessons
+            widget: list
+            summary: "{{fields.title}}"
+            hint: "Bài đầu tiên là bài học thử miễn phí. Mỗi bài khoảng 10 phút đọc."
+            fields:
+              - { label: "Mã bài (không dấu)", name: slug, widget: string }
+              - { label: "Tên bài", name: title, widget: string }
+              - { label: "Số phút", name: minutes, widget: number, value_type: int, default: 10 }
+              - { label: "Mã video YouTube", name: video, widget: string, required: false, hint: "11 ký tự sau watch?v= (ví dụ ma9MR6K6MaM). Để trống nếu bài chưa có video." }
+              - { label: "Thời lượng video", name: video_dur, widget: string, required: false, hint: "Ví dụ 6:39" }
+              - { label: "Ghi chú khi xem video", name: video_note, widget: text, required: false }
+              - { label: "Mở bài", name: intro, widget: text }
+              - label: "3 điều cần nhớ"
+                name: points
+                widget: list
+                summary: "{{fields.t}}"
+                fields:
+                  - { label: "Ý chính", name: t, widget: string }
+                  - { label: "Giải thích", name: d, widget: text }
+              - { label: "Việc làm ngay hôm nay", name: todo, widget: text }
+              - label: "Câu hỏi ôn bài"
+                name: quiz
+                widget: object
+                fields:
+                  - { label: "Câu hỏi", name: q, widget: string }
+                  - { label: "Các đáp án", name: a, widget: list, field: { label: "Đáp án", name: x, widget: string } }
+                  - { label: "Đáp án đúng là số mấy (đếm từ 0)", name: ok, widget: number, value_type: int, min: 0, hint: "Đáp án đầu tiên là 0, thứ hai là 1…" }
+                  - { label: "Giải thích khi trả lời đúng", name: why, widget: string, required: false }
+              - { label: "Nguồn tham khảo", name: sources, widget: list, field: { label: "Nguồn", name: x, widget: string } }
+
       - name: chatbot
         label: "Trợ lý chat An Lành"
         file: data/chatbot.json
