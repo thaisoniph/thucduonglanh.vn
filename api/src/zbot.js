@@ -44,7 +44,8 @@ const CFG0 = {
 };
 /** 15/11/2026 (Thủy góp ý): người đọc nhóm là chính các bậc cha mẹ, cô chú → không viết như con cái nói với bố mẹ */
 const AUD_RULE = `# ĐỐI TƯỢNG ĐỌC (bắt buộc)
-Người đọc nhóm là chính các bậc cha mẹ, cô chú trung niên, mẹ bỉm sữa. KHÔNG viết như con cái nói với bố mẹ (cấm: "hãy gọi điện cho bố mẹ", "bố mẹ của bạn", "bố mẹ bạn", gọi người đọc là "bạn trẻ"). Chủ đề về con cháu / gia đình thì viết từ góc người làm cha mẹ, ông bà ("con cháu", "các cháu", "gia đình mình"), nói thẳng với người đọc. Xưng "em" hoặc "Thực Dưỡng Lành", gọi "cô chú, anh chị, các mẹ"; giữ cách xưng hô nhất quán từ đầu đến cuối bài.`;
+Người đọc nhóm là chính các bậc cha mẹ, cô chú trung niên, mẹ bỉm sữa. KHÔNG viết như con cái nói với bố mẹ (cấm: "hãy gọi điện cho bố mẹ", "bố mẹ của bạn", "bố mẹ bạn", gọi người đọc là "bạn trẻ"). Chủ đề về con cháu / gia đình thì viết từ góc người làm cha mẹ, ông bà ("con cháu", "các cháu", "gia đình mình"), nói thẳng với người đọc. Xưng "em" hoặc "Thực Dưỡng Lành", gọi "cô chú, anh chị, các mẹ"; giữ cách xưng hô nhất quán từ đầu đến cuối bài.
+Bữa ăn: người Việt thường ăn sáng nhanh, mỗi người 1 bát / 1 suất (phở, xôi, cháo, bánh mì); "mâm cơm", cả nhà quây quần bên bàn ăn là BỮA TỐI (hoặc bữa trưa cuối tuần). Bài buổi sáng không viết cảnh cả nhà bày mâm ăn sáng.`;
 const SLOT_NAME = { sang: 'Bài sáng', toi: 'Bài tối' };
 /** 🧪 Thử giờ đăng bài sáng (anh Sơn duyệt 05/11/2026): mỗi khung 1 tuần, cùng chủ đề theo thứ → so người tương tác trung bình rồi chốt 1 giờ */
 export const TIME_TRIAL = [{ from: '20261110', to: '20261116', slot: 'sang', at: '06:15' }, { from: '20261117', to: '20261123', slot: 'sang', at: '09:00' }];
@@ -69,9 +70,10 @@ const THEME = {
     { f: 'TOFU', t: 'Bếp lành: 1 món ăn / thức uống lành, dễ làm, nguyên liệu dễ mua (có thể là món chay)' },
     { f: 'MOFU', t: 'Mở đầu bằng ĐÁP ÁN câu đố tối qua (giải thích ngắn, cảm ơn mọi người đã trả lời), rồi hỏi đáp: chọn 1 câu khách hay hỏi trong phần hỏi đáp của 1 sản phẩm và trả lời rõ ràng, gần gũi', quiz: 1 },
     { f: 'TOFU', t: 'Thói quen sống lành: ngủ, vận động nhẹ, uống nước, thở, ăn chậm… 1 việc nhỏ làm được hôm nay' },
-    { f: 'TOFU', t: 'Sáng cuối tuần: mời mọi người khoe bữa sáng / mâm cơm lành cuối tuần của nhà mình, hoặc rủ cả nhà cùng nấu 1 món lành hôm nay' }],
+    // 28/11/2026 (anh Sơn): mâm cơm cả nhà là bữa tối, không phải bữa sáng → chuyển "khoe mâm cơm" sang tối Chủ nhật
+    { f: 'TOFU', t: 'Sáng cuối tuần: rủ cả nhà 1 việc lành hôm nay (đi bộ, đi chợ cùng nhau, cùng con nấu bữa tối), hỏi nhà mình định làm gì; KHÔNG viết về mâm cơm / bàn ăn buổi sáng' }],
   toi: [
-    { f: 'TOFU', t: 'Chúc cả nhà tuần mới bình an + 1 câu hỏi nhỏ để mọi người chia sẻ' },
+    { f: 'TOFU', t: 'Tối Chủ nhật: mời mọi người khoe mâm cơm tối cuối tuần của nhà mình (ảnh hoặc kể vài món) + chúc cả nhà tuần mới bình an' },
     { f: 'TOFU', t: 'Câu hỏi tương tác: hỏi thói quen ăn uống / sinh hoạt của mọi người, dễ trả lời 1 dòng' },
     { f: 'BOFU', t: 'Nhắc nhẹ giữa tuần: ưu đãi đang chạy (nếu có) hoặc hướng dẫn đặt hàng trên web 3 bước (được kiểm hàng trước khi nhận, freeship từ 300k), không thúc ép; để 1 link sản phẩm hợp nhất', link: 1 },
     { f: 'TOFU', q: 1, t: 'Mini đố vui về dinh dưỡng (1 câu, 3 lựa chọn A/B/C, đáp án là kiến thức phổ thông chắc chắn đúng), mời mọi người trả lời bằng 1 chữ cái, hẹn sáng mai công bố đáp án' },
