@@ -303,6 +303,8 @@ Tài khoản Marketing **không thấy tên, số điện thoại khách** (Ngh�
 
 Muốn biết chính xác khách đến từ kênh nào: khi đăng Zalo, gửi tin, in tờ rơi thì dùng **link có mã** ở tab **📍 Link & QR**.
 
+- **Mã "shopee"** (28/11/2026): thẻ cảm ơn bỏ trong mọi đơn Shopee, quét ra trang khoá học Giải Mã Dinh Dưỡng. File in ở Drive → 03_Marketing & Truyền thông → 05_Ấn phẩm in ấn. Thẻ không ghi giá, không mời mua ngoài sàn (Shopee có thể phạt). Kế hoạch phễu và 3 mẫu quảng cáo khoá học: Drive → 01_Kế hoạch & KPI → "2026-11-28_Phễu Bữa ăn chủ lực…".
+
 ### 🎯 Mục tiêu & ngân sách tháng
 
 - **🎯 Mục tiêu & ngân sách tháng** (thẻ 🎯 Mục tiêu): tiến độ mục tiêu của từng bạn, từ 2 người có mục tiêu trở lên thì có bảng thi đua xếp theo **% mục tiêu** (vượt mức chi phí thì không đứng hạng 1); thanh ngân sách đã chi so với ngân sách (chỉ Quản trị đặt).

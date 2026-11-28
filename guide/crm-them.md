@@ -421,6 +421,9 @@ Một số khách tự để lại số trên web. Họ vào tab **Khách hỏi*
 
 - **Kênh "Nhóm Zalo (Website)"**: khách muốn vào nhóm Zalo. Trong 24 giờ, kết bạn Zalo, nhắn chào mừng, hỏi khách quan tâm gì.
 - **Kênh "Ebook – quà tặng (Website)"**: khách nhận quà cẩm nang hoặc ebook. Ghi chú có ghi khách quan tâm vấn đề gì. Ví dụ *"📖 Đọc thử 5 trang rồi để lại số"* là khách đã đọc thử và muốn đọc tiếp, thường quan tâm thật.
+  - Quan tâm ghi **"Khoá học Giải Mã Dinh Dưỡng"**: khách vừa đăng ký khoá học miễn phí trên web. Nhắn khách theo 4 mẫu tin trong nhóm **"Khách học khoá Giải Mã Dinh Dưỡng"** (Cài đặt → Mẫu tin): **Ngày 0** chào + gửi link học, **Ngày 2** hỏi đã thử đổi bữa sáng chưa, **Ngày 5** mời Gói trải nghiệm Bữa ăn 139k / Gói 10 ngày 349k, **Ngày 10** hỏi học tới đâu + mời gói Mua 3 tặng 1. Mỗi lần nhắn xong thì hẹn gọi lại đúng mốc tiếp theo.
+  - Ghi chú có **"Đã học xong 5 bài"**: khách học hết khoá, đã nhận giấy chứng nhận. Gọi chúc mừng, hỏi khách đổi được thói quen nào, mời gói Bữa ăn.
+  - Nguồn **"offline / goi-hang / shopee"**: khách quét thẻ cảm ơn trong đơn Shopee. Đây là khách đã mua trên sàn, nói chuyện như khách quen.
 - **Kênh "Chatbot (Website)"**: khách hỏi trợ lý chat **An Lành** trên web rồi để lại số nhận quà (hoặc tự gõ số trong khung chat). Ghi chú có các câu khách đã hỏi và dòng **🤖 Tóm tắt chat** (khách là ai, quan tâm gì, nên nói gì). **Đọc tóm tắt trước khi gọi**, đừng hỏi lại điều khách đã hỏi bot. Khách đã nhận cẩm nang + mã SONGLANH5.
 - Ghi chú có **"🖐 Trò chơi: còn 6/10 ngón"**: khách vừa chơi trò chơi thói quen trên web. Hỏi thăm đúng thói quen khách muốn sửa.
 - Khung **🎁 Ưu đãi đang chạy** ở đầu tab Khách hỏi: ưu đãi trên quảng cáo hiện nay. **Đọc trước khi gọi** để nói đúng điều khách đã thấy.

@@ -52,7 +52,7 @@ import { wbQueue, wbOrderQueue, wbStatusQueue, wbEditQueue, wbDeleteQueue, wbInf
 
 let schemaDone = false, deltaOk = false; // deltaOk: đã có cột upd + trigger → cho CRM tải phần thay đổi
 const NOW_MS = "CAST((julianday('now') - 2440587.5) * 86400000 AS INTEGER)"; // giờ của máy chủ dữ liệu (ms)
-const SCHEMA_V = '2026-11-18c'; // + customers.pool_from/pool_at (khách đã mua tự trả về Kho chung, 18/11/2026) · orders.entered_at (🕐 giờ lên đơn thật khi sale chọn giờ chốt sớm hơn, 16/11/2026) · + users.gvsee (👀 theo dõi việc của ai, 16/11/2026) · users.gv (✅ Việc tuần) + sessions.seen / ua
+const SCHEMA_V = '2026-11-28a'; // + 4 mẫu tin 🎓 Khách học khoá Giải Mã Dinh Dưỡng (28/11/2026) · + customers.pool_from/pool_at (khách đã mua tự trả về Kho chung, 18/11/2026) · orders.entered_at (🕐 giờ lên đơn thật khi sale chọn giờ chốt sớm hơn, 16/11/2026) · + users.gvsee (👀 theo dõi việc của ai, 16/11/2026) · users.gv (✅ Việc tuần) + sessions.seen / ua
 export async function ensureSchema(db) {
   if (schemaDone) return;
   // Đã kiểm tra với bản này rồi → chỉ hỏi 1 lần. Trước đây mỗi lần Cloudflare bật máy mới (rất thường xuyên) phải chạy ~25 lệnh nối tiếp, mất 3–5 giây.
@@ -184,6 +184,7 @@ export async function ensureSchema(db) {
     await fbSchema(db); // 📘 trợ lý Fanpage Facebook (api/src/fb.js)
     await mkSchSchema(db); // 🕛 lệnh sửa quảng cáo chờ áp lúc 0h (api/src/mksch.js)
     await mkCampSchema(db); // 🎯 khách bấm quảng cáo nào (Messenger) → số thật theo chiến dịch (api/src/mkcamp.js)
+    await tplCourseSeed(db); // 28/11/2026: 4 mẫu tin 🎓 chăm khách học khoá trên web (ngày 0 / 2 / 5 / 10)
     await tplRefSeed(db); // 14/11/2026: 2 mẫu tin 🌱 Mời giới thiệu bạn bè (1 lần, xoá ở Cài đặt → Mẫu tin thì không thêm lại)
     schemaDone = true;
     if (deltaOk) await run(db, "INSERT INTO kv (k, v) VALUES ('schema_v', ?) ON CONFLICT(k) DO UPDATE SET v = excluded.v, exp = NULL", SCHEMA_V);
@@ -270,6 +271,20 @@ async function tplRefSeed(db) {
   ];
   for (const t of T) if (!await first(db, 'SELECT 1 FROM templates WHERE when_txt = ? AND purpose = ?', t[0], t[1])) await run(db, 'INSERT INTO templates (when_txt, purpose, text) VALUES (?, ?, ?)', t[0], t[1], t[2]);
   await kvSet(db, 'tpl_ref_seed', '1');
+}
+/** 28/11/2026 anh Sơn (phễu Bữa ăn chủ lực): khách để số ở khoá học /khoa-hoc-dinh-duong/ → sale chăm theo 4 mốc: ngày 0 chào + link, ngày 2 hỏi việc làm ngay,
+ *  ngày 5 mời gói thử (Bữa ăn 5 gói / Gói 10 ngày), ngày 10 hỏi tiến độ + mời gói Mua 3 tặng 1. Chạy 1 lần (kv tpl_course_seed); xoá ở Cài đặt → Mẫu tin thì không thêm lại. */
+async function tplCourseSeed(db) {
+  if (await kvGet(db, 'tpl_course_seed')) return;
+  const W = 'Khách học khoá Giải Mã Dinh Dưỡng', U = 'https://thucduonglanh.vn/khoa-hoc-dinh-duong/';
+  const T = [
+    [W, 'Ngày 0 – Chào, gửi link học', 'Dạ em chào [Tên] ạ, em là nhân viên Thực Dưỡng Lành. Cảm ơn [Tên] đã đăng ký khoá học Giải Mã Dinh Dưỡng 🌿 Cả 5 bài đã mở sẵn cho mình ở đây: ' + U + '\nMỗi ngày 1 bài khoảng 10 phút là vừa. [Tên] đang muốn bữa ăn nhà mình thay đổi điều gì nhất ạ, để em gợi ý bài nên xem trước?'],
+    [W, 'Ngày 2 – Hỏi việc làm ngay', 'Dạ [Tên] ơi, mấy hôm nay mình đã thử đổi bữa sáng theo bài 1 chưa ạ? Nhiều cô chú bên em bắt đầu bằng 1 bát yến mạch hoặc khoai lang + 1 quả trứng, thấy đến trưa không còn cồn cào. [Tên] vướng chỗ nào cứ nhắn em nhé 🌿'],
+    [W, 'Ngày 5 – Mời gói dùng thử', 'Dạ [Tên] ơi, để giữ thói quen bữa sáng nhanh mà đủ chất, bên em có Gói trải nghiệm Bữa Ăn Dinh Dưỡng VitaGreen 5 gói (139.000đ) hoặc Gói Khởi Động 10 Ngày (349.000đ: bữa ăn, sữa hạt Curcumin và trà DILVANG). Học viên khoá học có mã SONGLANH5 giảm thêm. [Tên] muốn em giữ 1 gói cho mình không ạ? Đặt nhanh ở đây: [Link]'],
+    [W, 'Ngày 10 – Hỏi tiến độ, mời gói chính', 'Dạ [Tên] ơi, mình học tới bài mấy rồi ạ? Học xong 5 bài là nhận giấy chứng nhận có tên mình đó ạ 🎓 Nếu [Tên] đã quen bữa sáng từ hạt, gói Bữa Ăn Dinh Dưỡng Mua 3 tặng 1 (80 gói, 1.350.000đ) dùng được 80 bữa sáng, tính ra khoảng 17.000đ một bữa. Em lên đơn giúp mình nhé? [Link]']
+  ];
+  for (const t of T) if (!await first(db, 'SELECT 1 FROM templates WHERE when_txt = ? AND purpose = ?', t[0], t[1])) await run(db, 'INSERT INTO templates (when_txt, purpose, text) VALUES (?, ?, ?)', t[0], t[1], t[2]);
+  await kvSet(db, 'tpl_course_seed', '1');
 }
 export async function assignMode(x) { if (!x._mode) x._mode = (await kvGet(x.db, 'assign_mode')) || 'pool'; return x._mode; }
 export function groupOf(orders, spent, last, R) {
