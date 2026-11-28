@@ -12007,7 +12007,7 @@
         var p = it.p, pg = fpPageOf(p.page);
         var st = p.status === 'sent' ? '📤 ' + fDateTime(p.sent_at) : p.status === 'sending' ? '⏳ Đang đăng' : p.status === 'skip' ? '⏸ Đã bỏ' : p.status === 'err' ? '⚠️ Không đăng được' : '⌛ Quá giờ, chưa đăng';
         h += '<details class="box zb-donei"><summary><span class="zb-donel"><b>' + zbDay(it.d) + ' · ' + p.slot + ' · ' + esc(pg.name) + '</b> <span class="muted small">' + st + '</span></span><span class="zb-donet">' + esc(p.topic) + '</span>' +
-          (p.fb_id ? '<a class="btn sm" href="https://facebook.com/' + esc(p.fb_id) + '" target="_blank" rel="noopener">👁 Xem trên Facebook</a>' : '') + '</summary>' +
+          (p.fb_id ? '<a class="btn sm" href="https://facebook.com/' + esc(p.fb_id) + '" target="_blank" rel="noopener">👁 Xem trên Facebook</a>' + fbgShareBtn(p.fb_id) : '') + '</summary>' +
           '<div style="margin-top:10px">' + fpPreview(p, pg) + '</div>' + (p.status === 'err' ? '<p class="small err">' + esc(p.err) + '</p>' : '') +
           (p.status === 'skip' ? '<div class="lq-btns" style="margin-top:8px"><button class="btn sm" data-fp="draft|' + esc(p.id) + '">▶️ Dùng lại bài này</button></div>' : p.status !== 'sent' && p.status !== 'sending' ? '<div class="lq-btns" style="margin-top:8px"><button class="btn sm" data-fp="now|' + esc(p.id) + '">📤 Đăng ngay</button></div>' : '') + '</details>';
       });
@@ -12032,10 +12032,16 @@
   /* 👥 Bài cho nhóm Facebook (28/11/2026, api/src/fb.js fbgList): bài nhóm Zalo đã duyệt, link đã đổi mã theo dõi sang Facebook */
   function fbgT(p) { return new Date(p.day.slice(0, 4) + '-' + p.day.slice(4, 6) + '-' + p.day.slice(6, 8) + 'T' + (p.at || '12:00') + ':00+07:00').getTime(); }
   function fbgTodo(j) { var d0 = today(); return ((j.grp && j.grp.posts) || []).filter(function (p) { return !p.done && fbgT(p) >= d0 && fbgT(p) < d0 + 3 * DAY; }); }
+  /** 🔁 chia sẻ bài fanpage đã đăng vào nhóm (28/11/2026): Meta cấm app tự chia sẻ vào nhóm → mở hộp Chia sẻ của Facebook, người bấm chọn "Chia sẻ lên nhóm" */
+  function fbgShareBtn(fbId) { return '<a class="btn sm pri" href="https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent('https://www.facebook.com/' + fbId) + '" target="_blank" rel="noopener" title="Mở hộp Chia sẻ của Facebook → chọn Chia sẻ lên nhóm">🔁 Chia sẻ vào nhóm</a>'; }
   function fbgHtml(j) {
     var G = j.grp || { posts: [] }, ps = G.posts || [];
+    var sh = (j.posts || []).filter(function (p) { return p.status === 'sent' && p.fb_id; }).sort(function (a, b) { return b.sent_at - a.sent_at; }).slice(0, 6);
     var h = '<div class="zb-done-h"><h2 class="zb-h" id="fpGrp">👥 Bài cho nhóm Facebook</h2><a class="btn pri" href="' + esc(G.url || '') + '" target="_blank" rel="noopener">👥 Mở nhóm</a></div>' +
       '<details class="zb-info small"><summary>ⓘ Để bài đăng bằng tên trang Thực Dưỡng Lành</summary><p>Trong nhóm → <b>Thành viên</b> → mời fanpage Thực Dưỡng Lành vào nhóm và cho làm <b>quản trị viên</b>. Khi viết bài, bấm ảnh đại diện ở ô viết để chọn đăng bằng tên trang. Trong nhóm bấm ⚙️ <b>Hỗ trợ quản trị viên</b> để Facebook tự duyệt bài và chào thành viên mới.</p></details>';
+    if (sh.length) h += '<h3 class="zb-h" style="font-size:1rem">🔁 Bài fanpage vừa đăng <span class="muted small">· chia sẻ nhanh vào nhóm: bấm 🔁 → chọn <b>Chia sẻ lên nhóm</b> → chọn nhóm → Đăng</span></h3>' +
+      sh.map(function (p) { return '<div class="box zb-donei" style="display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center"><span class="zb-donel"><b>' + esc(fpPageOf(p.page).name) + '</b> <span class="muted small">📤 ' + fDateTime(p.sent_at) + '</span></span><span class="zb-donet" style="flex:1">' + esc(p.topic || String(p.text || '').slice(0, 80)) + '</span>' + fbgShareBtn(p.fb_id) + '</div>'; }).join('') +
+      '<h3 class="zb-h" style="font-size:1rem">📝 Bài viết thẳng trong nhóm <span class="muted small">· được nhiều người thấy hơn bài chia sẻ</span></h3>';
     if (!ps.length) return h + '<div class="box"><p class="muted">Chưa có bài. Bài hiện ở đây khi bài nhóm Zalo được ✅ Duyệt (tab 🤖 Trợ lý Zalo).</p></div>';
     ps.slice().sort(function (a, b) { return (!!a.done - !!b.done) || (fbgT(a) - fbgT(b)); }).forEach(function (p) {
       var img = spfAbs(p.img), past = fbgT(p) < Date.now();

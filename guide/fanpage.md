@@ -116,6 +116,8 @@ Facebook **không cho trợ lý tự đăng vào nhóm** (Meta bỏ quyền này
 
 [[steps:fp-nhom]]
 
+**Chia sẻ nhanh bài fanpage vào nhóm:** bài trợ lý đã đăng lên fanpage có nút **🔁 Chia sẻ vào nhóm** (ở đầu thẻ 👥 Nhóm Facebook và trong mục 📤 Đã đăng gần đây). Bấm nút → Facebook mở hộp Chia sẻ → chọn **Chia sẻ lên nhóm** → chọn nhóm **Sống khỏe cùng thực dưỡng lành mạnh** → **Đăng**. Facebook không cho trợ lý tự bấm bước này. Bài chia sẻ thường ít người thấy hơn bài viết thẳng trong nhóm, nên vẫn ưu tiên dán bài như các bước trên.
+
 **Làm 1 lần cho nhóm:** mời fanpage Thực Dưỡng Lành vào nhóm và cho làm **quản trị viên**, để bài đăng bằng tên trang. Trong nhóm bấm ⚙️ **Hỗ trợ quản trị viên** để Facebook tự duyệt bài và tự chào thành viên mới.
 
 ## Chọn trang theo dõi (Quản trị)
