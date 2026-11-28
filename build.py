@@ -1078,7 +1078,26 @@ def cn_cta(medium):
 
 
 def gift_popup():
-    """Popup tặng cẩm nang khi khách sắp rời web mà chưa mua (JS initGiftPop quyết định có hiện hay không)."""
+    """Popup tặng quà khi khách sắp rời web mà chưa mua (JS initGiftPop quyết định có hiện hay không).
+    28/11/2026 (phễu Bữa ăn chủ lực): có khoá học thì mời khoá học, không thì cẩm nang."""
+    if KH_PATH and IS_VI:
+        L = KH["lessons"]
+        lis = "".join(f"<li>{esc(x['title'])}</li>" for x in L[:3])
+        return f'''<div class="gp" id="giftPop" hidden role="dialog" aria-modal="true" aria-labelledby="gpTitle" data-href="{esc(KH_PATH)}">
+  <div class="gp-box">
+    <button type="button" class="gp-x" data-gp-close aria-label="Đóng">{I["close"]}</button>
+    <div class="gp-img"><img src="{KH_IMG}/bia.webp" alt="Bìa {esc(KH.get("title", ""))}" width="320" height="480" loading="lazy"></div>
+    <div class="gp-body">
+      <span class="gp-eye">🎁 Khoan đã, có quà cho anh/chị</span>
+      <h2 id="gpTitle">Tặng miễn phí {esc(KH.get("title", ""))}</h2>
+      <ul>{lis}</ul>
+      <p class="gp-meta">{len(L)} bài video ngắn · có câu hỏi ôn · học xong nhận giấy chứng nhận</p>
+      <a class="btn btn-lg btn-buy gp-go" href="{esc(KH_PATH)}?tu=popup" data-cta="khoahoc_popup">▶ Học thử bài 1 miễn phí →</a>
+      {f'<a class="gp-quiz" href="{QUIZ_PATH}?tu=popup" data-cta="quiz_popup">Hoặc chơi thử 1 phút: 🖐 Bạn còn mấy ngón tay? →</a>' if QUIZ.get("questions") else ""}
+      <button type="button" class="gp-no" data-gp-close>Để sau</button>
+    </div>
+  </div>
+</div>'''
     if not CN_PATH or CN.get("popup") is False:
         return ""
     return f'''<div class="gp" id="giftPop" hidden role="dialog" aria-modal="true" aria-labelledby="gpTitle" data-href="{esc(CN_PATH)}">
@@ -3942,7 +3961,7 @@ def chat_cfg():
     return {"name": CHAT.get("name") or "An Lành", "role": CHAT.get("role") or "", "greet": CHAT.get("greeting") or "",
             "quick": [q for q in (CHAT.get("quick") or []) if q][:6], "after": max(1, int(num(CHAT.get("gift_after")) or 2)),
             "gtitle": CHAT.get("gift_title") or "🎁 Quà tặng", "gtext": CHAT.get("gift_text") or "",
-            "cn": CN.get("reader", "") if CN_PATH else "", "eb": eb.get("flipbook", ""),
+            "cn": CN.get("reader", "") if CN_PATH else "", "eb": eb.get("flipbook", ""), "kh": KH_PATH if IS_VI else "",  # 28/11/2026: quà mặc định = khoá học
             "wvc": wv.get("code", "") if wv.get("enabled") else "", "wvp": num((re.search(r"(\d+)\s*%", wv.get("label") or "") or [0, 0])[1]) or 0,
             "fs": SITE.get("free_ship_threshold") or 0, "hours": SITE.get("opening_hours", ""),
             "privacy": "/chinh-sach-bao-mat/"}

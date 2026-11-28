@@ -1795,7 +1795,7 @@
     var pop = $('#giftPop'); if (!pop) return;
     var path = location.pathname, href = pop.getAttribute('data-href') || '';
     if (/^\/(gio-hang|thanh-toan|dat-hang-thanh-cong|qua-tang|ebook|bo-o-cu)\//.test(path) || (href && path.indexOf(href) === 0)) return;
-    function blocked() { return cart.length || load('tdl_last_order', null) || load('tdl_camnang', null) || load('tdl_ebook', null) || (Date.now() - (load('tdl_gp_off', 0) || 0) < 7 * 864e5) || sessionStorage.getItem('tdl_gp') === '1'; }
+    function blocked() { return cart.length || load('tdl_last_order', null) || load('tdl_camnang', null) || load('tdl_ebook', null) || load('tdl_khoahoc', null) || (Date.now() - (load('tdl_gp_off', 0) || 0) < 7 * 864e5) || sessionStorage.getItem('tdl_gp') === '1'; }
     try { if (blocked()) return; } catch (e) { return; }
     var t0 = Date.now(), armed = false, lastY = scrollY, lastT = Date.now(), maxY = 0;
     setTimeout(function () { armed = true; }, 12000);
@@ -1954,12 +1954,13 @@
       scroll();
     }
     function hours() { var d = new Date(Date.now() + 7 * 36e5), h = d.getUTCHours(), w = d.getUTCDay(); return w >= 1 && w <= 6 && h >= 8 && h < 17; }
-    function giftKey() { return C.eb && /khớp|xương|gout|gút|thoái hóa|thoái hoá|loãng xương|đau gối|đau lưng/i.test(st.msgs.map(function (m) { return m.r === 'u' ? m.t : ''; }).join(' ')) ? 'ebook' : 'camnang'; }
+    function giftKey() { return C.eb && /khớp|xương|gout|gút|thoái hóa|thoái hoá|loãng xương|đau gối|đau lưng/i.test(st.msgs.map(function (m) { return m.r === 'u' ? m.t : ''; }).join(' ')) ? 'ebook' : C.kh ? 'khoahoc' : 'camnang'; } // 28/11/2026: quà mặc định = khoá học Giải Mã Dinh Dưỡng
+    var GIFT_WHAT = { ebook: 'Ebook “Dinh Dưỡng cho Cơ Xương Khớp” + video thực đơn 7 ngày', khoahoc: 'Khoá học online “Giải Mã Dinh Dưỡng” (5 bài video ngắn, học xong nhận giấy chứng nhận)', camnang: 'Cẩm nang “Sống khỏe chủ động” (32 trang, có sách nói)' };
     function giftCard(why) {
       var old = $('.ch-gift', body); if (old) old.remove();
-      var l = giftLead(), key = giftKey(), what = key === 'ebook' ? 'Ebook “Dinh Dưỡng cho Cơ Xương Khớp” + video thực đơn 7 ngày' : 'Cẩm nang “Sống khỏe chủ động” (32 trang, có sách nói)';
+      var l = giftLead(), key = giftKey(), what = GIFT_WHAT[key];
       var txt = why === 'call' ? 'Anh/chị để lại tên và số Zalo, chuyên viên sẽ ' + (hours() ? 'liên hệ ngay' : 'liên hệ từ 8h sáng') + ' ạ. Kèm quà: ' + what + (C.wvc && C.wvp ? ' + mã giảm thêm ' + C.wvp + '% tổng tiền hàng' : '') + '.'
-        : (key === 'camnang' && C.gtext ? C.gtext : what + (C.wvc && C.wvp ? ' + mã giảm thêm ' + C.wvp + '% tổng tiền hàng' : '') + ' + chuyên viên tư vấn riêng qua Zalo. Hoàn toàn miễn phí.');
+        : (key !== 'ebook' && C.gtext ? C.gtext : what + (C.wvc && C.wvp ? ' + mã giảm thêm ' + C.wvp + '% tổng tiền hàng' : '') + ' + chuyên viên tư vấn riêng qua Zalo. Hoàn toàn miễn phí.');
       var d = bubble('a ch-gift', '<b class="ch-gt">' + esc(C.gtitle) + '</b><p>' + esc(txt) + '</p>' + (l
         ? '<p class="ch-gq">Em gửi quà vào số <b>' + esc(l.phone.replace(/^(\d{4})\d+(\d{3})$/, '$1***$2')) + '</b> của ' + esc(l.name || 'anh/chị') + ' nhé?</p><button type="button" class="btn btn-buy ch-gbtn" data-ch-quick="' + key + '">🎁 Nhận quà 1 chạm</button><button type="button" class="ch-link" data-ch-other>Dùng số khác</button>'
         : leadForm(key)));
@@ -1970,8 +1971,8 @@
         + '<button type="submit" class="btn btn-buy ch-gbtn">🎁 Nhận quà miễn phí</button><small>Bấm nhận quà là anh/chị đồng ý để Thực Dưỡng Lành liên hệ tư vấn qua số này. <a href="' + esc(C.privacy) + '" target="_blank" rel="noopener">Chính sách bảo mật</a></small><p class="ch-err" hidden></p></form>';
     }
     function doneCard() {
-      var key = st.done || 'camnang', url = key === 'ebook' ? C.eb : giftUrl('camnang', C.cn);
-      bubble('a ch-gift ch-done', '<b class="ch-gt">✅ Em đã gửi quà cho anh/chị</b>' + (url ? '<a class="btn btn-buy ch-gbtn" href="' + esc(url) + '" target="_blank" rel="noopener" data-cta="chat_gift_open">📖 Mở ' + (key === 'ebook' ? 'ebook' : 'cẩm nang') + ' ngay</a>' : '')
+      var key = st.done || 'camnang', url = key === 'ebook' ? C.eb : key === 'khoahoc' ? C.kh + '?tu=chat' : giftUrl('camnang', C.cn);
+      bubble('a ch-gift ch-done', '<b class="ch-gt">✅ Em đã gửi quà cho anh/chị</b>' + (url ? '<a class="btn btn-buy ch-gbtn" href="' + esc(url) + '" target="_blank" rel="noopener" data-cta="chat_gift_open">' + (key === 'khoahoc' ? '▶ Vào học ngay (đã mở khoá cả 5 bài)' : '📖 Mở ' + (key === 'ebook' ? 'ebook' : 'cẩm nang') + ' ngay') + '</a>' : '')
         + (C.wvc ? '<div class="ch-wvc"><b>🎟 Mã ' + esc(C.wvc) + (C.wvp ? ': giảm thêm ' + C.wvp + '% tổng tiền hàng' : '') + '</b><ul>'
           + (C.wvp ? '<li>Ví dụ đơn ' + money(400000) + ' được giảm ' + money(4000 * C.wvp) + '.</li>' : '')
           + '<li>Mã đã tự lưu trên máy này, <b>tự trừ khi đặt hàng trên web</b>, không cần nhập.</li><li>Dùng 1 lần cho mỗi số điện thoại, không cần đơn tối thiểu.</li>'
@@ -1992,7 +1993,7 @@
     }
     function sendLead(name, phone, key, again, btn) {
       btn.disabled = true; btn.textContent = 'Đang gửi…';
-      var title = key === 'ebook' ? 'Ebook Dinh Dưỡng cho Cơ Xương Khớp' : 'Cẩm nang Sống khỏe chủ động', why = (btn.closest('.ch-gift') || box).getAttribute('data-why') || 'gift';
+      var title = key === 'ebook' ? 'Ebook Dinh Dưỡng cho Cơ Xương Khớp' : key === 'khoahoc' ? 'Khoá học Giải Mã Dinh Dưỡng' : 'Cẩm nang Sống khỏe chủ động', why = (btn.closest('.ch-gift') || box).getAttribute('data-why') || 'gift';
       fetch(CFG.endpoint, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ type: 'chat_lead', sid: st.sid, name: name, phone: phone, gift: title + (C.wvc ? ' + mã ' + C.wvc : ''), again: again, source: sourceLabel().last }) })
         .then(function (r) { return r.json(); })
         .then(function (j) {
@@ -2022,7 +2023,7 @@
       };
       fetch(CFG.endpoint, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ type: 'chat', sid: st.sid, text: q, page: location.pathname + ' – ' + document.title, source: sourceLabel().last }) })
         .then(function (r) { return r.json(); })
-        .then(function (j) { if (j && j.lead) { st.gift = 1; st.done = st.done || 'camnang'; } done(j && j.reply ? j.reply : 'Dạ em chưa trả lời được lúc này, anh/chị nhắn Zalo cho chuyên viên giúp em nhé. [[zalo]]'); })
+        .then(function (j) { if (j && j.lead) { st.gift = 1; st.done = st.done || giftKey(); } done(j && j.reply ? j.reply : 'Dạ em chưa trả lời được lúc này, anh/chị nhắn Zalo cho chuyên viên giúp em nhé. [[zalo]]'); })
         .catch(function () { done('Dạ mạng đang chập chờn, anh/chị gửi lại câu hỏi giúp em nhé. Cần gấp thì nhắn Zalo cho chuyên viên ạ. [[zalo]]'); });
     }
     function open(trigger, prefill) {

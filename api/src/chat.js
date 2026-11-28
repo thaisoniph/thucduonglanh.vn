@@ -175,7 +175,7 @@ async function chatLeadSave(x, o) {
     note: (o.typed ? 'Khách tự gõ số trong khung chat trên web' : (o.again ? 'Nhận quà trong khung chat (đã có số từ trước)' : 'Để lại số trong khung chat để nhận quà')) + (asks.length ? ' · Đã hỏi: ' + asks.slice(-5).join(' | ') : '') + ' · Nguồn: ' + String(o.source || '') + rf.note,
     by: 'Website', auto: true });
   if (o.sid) await run(x.db, 'UPDATE chats SET phone = ?, name = ?, lead = ? WHERE sid = ?', o.phone, o.name || '', ld.id, o.sid);
-  x.later(zbotLead(x, { phone: o.phone, name: o.name, lead: ld.id, what: o.gift ? 'quà cẩm nang “Sống khỏe chủ động”' : '', announce: !!o.gift && !o.again })); // trợ lý nhóm Zalo (zbot.js)
+  x.later(zbotLead(x, { phone: o.phone, name: o.name, lead: ld.id, what: o.gift ? (/Khoá học/i.test(o.gift) ? 'quà khoá học “Giải Mã Dinh Dưỡng”' : /Ebook/i.test(o.gift) ? 'quà ebook Cơ Xương Khớp' : 'quà cẩm nang “Sống khỏe chủ động”') : '', announce: !!o.gift && !o.again })); // trợ lý nhóm Zalo (zbot.js)
   x.later((async () => {
     let sum = '';
     if (msgs.length && x.env.ANTHROPIC_API_KEY) {
