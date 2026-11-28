@@ -240,6 +240,8 @@ Mỗi đơn đi qua 4 bước: **Mới → Đã xác nhận → Đang giao → �
 1. **Gọi khách xác nhận.** Bấm **📞** để gọi. Hỏi lại địa chỉ cho đúng. Xong bấm **✅ Xác nhận**.
 2. **Nếu khách chuyển khoản:** mở tài khoản ngân hàng VCB của công ty. Thấy tiền về **đúng số tiền**, nội dung có **mã đơn** (ví dụ TDL2609271234), thì mở đơn, bấm **💳 Xác nhận đã nhận tiền**.
 3. **Gửi hàng:** bạn lên đơn sang Misa như thường lệ. **Trên Misa, chọn sản phẩm có sẵn trong danh sách và gõ số lượng vào ô SL.** Không dán cả dòng chữ (ví dụ *Fucoidan PRO 900g x7*) vào ô tên hàng: dán như vậy phiếu in ra *"1 x 7 Sữa hạt…"*, dài, bị cắt chữ, kho không đọc được. Kho in phiếu trên Best / Viettel Post, đóng hàng và gửi. **Bấm Xác nhận là máy đã trừ kho**, bạn không phải báo kho. Có **mã vận đơn** thì bấm **📦 Nhập mã VĐ** để tra hành trình (không bắt buộc).
+
+> **➕ Khách mua thêm sau khi đặt** (từ 28/11/2026): trong 30 phút sau khi đặt trên web, khách được thêm món nhỏ vào đơn vừa đặt ngay ở trang cảm ơn. Máy tạo **1 đơn nhỏ đi kèm**, ghi chú **"➕ Mua thêm cho đơn TDL… – GIAO CHUNG 1 kiện, không tính ship"**, đơn chính cũng ghi **"➕ Khách mua thêm đơn TDL…"**. Bạn **gọi khách 1 lần**, bấm **✅ Xác nhận** cả 2 đơn, rồi **lên Misa thành 1 phiếu** (gộp hàng 2 đơn, tiền thu = tổng 2 đơn) để kho đóng 1 kiện. Khách chuyển khoản thì món thêm có mã đơn riêng.
 4. **Khách đã nhận hàng:** bấm **📬 Đã giao**. Thường bạn không phải bấm:
    - Đơn **Viettel Post**: máy tự chuyển ngay khi Viettel Post báo.
    - Đơn **Best**: kế toán tải phiếu đối soát (thứ 2, 4, 6) thì máy tự chuyển các đơn trong phiếu sang **Đã giao**.

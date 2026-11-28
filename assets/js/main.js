@@ -1517,6 +1517,50 @@
       });
     }, function () { msg.textContent = 'Mạng chập chờn, bạn tải lại trang nhé.'; });
   }
+  /* ➕ mua thêm trên trang cảm ơn (28/11/2026, ý "trạm dừng nghỉ" của anh Hiếu): trong 30 phút sau khi đặt, thêm món nhỏ vào đơn vừa đặt,
+     giao chung 1 kiện, không thêm ship. Máy chủ (api order_add) tạo đơn nhỏ đi kèm + ghi chú chéo 2 đơn để kho đóng chung. Chỉ bản tiếng Việt. */
+  var ADD_MIN = 30;
+  function smallOpt(p) { return (p.variants && p.variants.length ? p.variants.map(function (v, k) { return { vi: k, price: v.price, name: v.name, reg: v.regular_price }; }) : [{ vi: -1, price: p.price, name: p.unit || '', reg: p.regular }]).filter(function (x) { return x.price != null; }).sort(function (a, b) { return a.price - b.price; })[0]; }
+  function addonList(o) {
+    var got = {}, paired = []; o.items.concat(o.addons || []).forEach(function (i) { got[i.slug] = 1; });
+    o.items.forEach(function (i) { ((BY[i.slug] || {}).upsell || []).forEach(function (s) { if (paired.indexOf(s) < 0) paired.push(s); }); });
+    return paired.concat(UP_FIRST).filter(function (s, k, a) { var p = BY[s]; return a.indexOf(s) === k && p && !got[s] && !p.combo && !p.hide && smallOpt(p); }).slice(0, 3).map(function (s) {
+      var p = BY[s], v = smallOpt(p), by = o.items.filter(function (i) { return ((BY[i.slug] || {}).upsell || []).indexOf(s) >= 0; })[0], b = by && BY[by.slug];
+      return { slug: s, vi: v.vi, price: v.price, reg: v.reg, variant: v.name, name: p.short || p.name, img: p.img, why: b ? 'Hợp dùng cùng ' + (b.short || b.name) + ' bạn vừa đặt' : 'Món nhỏ, giao chung 1 kiện với đơn vừa đặt' };
+    });
+  }
+  function addonHTML(o) {
+    var left = ADD_MIN - Math.floor((Date.now() - Date.parse(o.created)) / 6e4), done = o.addons || [], L = left > 0 ? addonList(o) : [];
+    var h = done.map(function (a) { var b = CFG.bank;
+      return '<p class="oad-ok">✓ Đã thêm <b>' + esc(a.name) + (a.variant ? ' – ' + esc(a.variant) : '') + '</b> · ' + money(a.total) + ' (đơn ' + esc(a.id) + ', giao chung 1 kiện)</p>' +
+        (o.payment === 'bank' && b ? '<p class="oad-qr"><img src="https://img.vietqr.io/image/' + encodeURIComponent(b.bank_id) + '-' + encodeURIComponent(b.account_no) + '-compact2.png?amount=' + a.total + '&addInfo=' + encodeURIComponent(a.id) + '&accountName=' + encodeURIComponent(b.account_name) + '" alt="Mã QR chuyển khoản món thêm" width="180" height="207"><span>Chuyển thêm <b>' + money(a.total) + '</b>, nội dung <b>' + esc(a.id) + '</b></span></p>' : '');
+    }).join('');
+    if (!L.length && !h) return '';
+    return '<div class="up oad">' + (L.length ? '<div class="up-h"><b>➕ Thêm vào đơn vừa đặt: giao chung, <span class="nw">không thêm phí ship</span></b><span>Còn ' + left + ' phút để thêm. Bấm Thêm, rồi bấm lần nữa để xác nhận.</span></div>' : '') + h + L.map(function (c) { return upItemHTML(c, 'data-oadd'); }).join('') + '</div>';
+  }
+  function initAddon(el, o) {
+    if (LANG !== 'vi' || !o.sent || !CFG.endpoint || !o.created) return;
+    var box = el.querySelector('.order-box'), html = addonHTML(o); if (!box || !html) return;
+    box.insertAdjacentHTML('afterend', html);
+    var ob = el.querySelector('.oad'); if (!ob.querySelector('[data-oadd]')) return;
+    track('upsell_impression', { location: 'cam_on' });
+    ob.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-oadd]'); if (!b || b.disabled) return;
+      var v = b.getAttribute('data-oadd').split('|'), it = itemLine(v[0], +v[1], 1), why = b.getAttribute('data-reason') || '';
+      if (!b.getAttribute('data-ok')) { b.setAttribute('data-ok', '1'); b.textContent = '✓ Thêm ' + money(it.price); return; } // bấm 2 lần: thêm tiền vào đơn thật nên hỏi lại
+      b.disabled = true; b.textContent = 'Đang thêm…';
+      fetch(CFG.endpoint, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ type: 'order_add', parent: o.id, phone: o.customer.phone, items: [{ slug: it.slug, name: it.name, variant: it.variant, qty: 1, price: it.price, subtotal: it.price }] }) })
+        .then(function (r) { return r.json(); }).then(function (j) {
+          if (!j || !j.ok) throw new Error(j && j.error || '');
+          o.addons = (o.addons || []).concat({ id: j.id, slug: it.slug, name: it.name, variant: it.variant, total: j.total || it.price }); save('tdl_last_order', o);
+          var gi = gaItem(it.slug, it.vi, 1);
+          track('upsell_add', { currency: 'VND', value: it.price, quantity: 1, location: 'cam_on', reason: why, items: gi ? [gi] : [] });
+          track('purchase', { transaction_id: j.id, currency: 'VND', value: j.total || it.price, shipping: 0, payment_type: o.payment, items: gi ? [gi] : [] });
+          toast('Đã thêm vào đơn, giao chung 1 kiện', 'ok'); initThanks();
+        }).catch(function (er) { b.disabled = false; b.removeAttribute('data-ok'); b.textContent = T('+ Thêm'); toast(er.message || 'Chưa thêm được, anh/chị gọi / Zalo 0966 326 522 giúp em nhé.', 'err'); });
+    });
+  }
+
   function initThanks() {
     var el = $('#thanksPage'); if (!el) return;
     var o = load('tdl_last_order', null);
@@ -1542,6 +1586,7 @@
       '<div class="row"><span>' + T('Người nhận') + '</span><span>' + esc(o.customer.name) + ' – ' + esc(o.customer.phone) + '</span></div><div class="row"><span>' + T('Địa chỉ') + '</span><span>' + esc(addr + ', ' + o.customer.district + ', ' + o.customer.province) + '</span></div>' +
       '<div class="row"><span>' + T('Thanh toán||payment') + '</span><span>' + (o.payment === 'bank' ? T('Chuyển khoản') : T('Thanh toán khi nhận hàng (COD)')) + '</span></div></div>' +
       (LANG === 'vi' && CFG.ref_path && o.sent ? '<div class="rf-thanks"><b>🎁 Giới thiệu bạn bè, cùng nhận quà</b><p>Bạn bè của bạn được giảm giá đơn đầu, bạn nhận voucher cảm ơn cho lần mua sau.</p><button type="button" class="btn" data-rf-get>Lấy link giới thiệu của tôi</button><div data-rf-out hidden></div><a class="rf-more" href="' + esc(CFG.ref_path) + '">Xem thể lệ</a></div>' : '') + (CFG.zalo_group ? '<div class="oa-cta"><b>👥 Mời anh/chị vào nhóm Zalo Sống khỏe cùng ' + esc(CFG.brand) + '</b><p>' + (CFG.gift ? '🎁 Quà tặng thành viên: <strong>' + esc(CFG.gift) + '</strong>. ' : '') + 'Nhận hướng dẫn dùng sản phẩm, thực đơn lành mỗi ngày và ưu đãi riêng cho thành viên.</p><a class="btn btn-zalo" href="' + esc(CFG.zalo_group) + '" target="_blank" rel="noopener" data-cta="zalo_group_thanks">Vào nhóm Zalo</a>' + (CFG.zalo_oa ? '<a class="oa-link" href="' + esc(CFG.zalo_oa) + '" target="_blank" rel="noopener" data-cta="zalo_oa_thanks">hoặc Quan tâm Zalo OA</a>' : '') + '</div>' : CFG.zalo_oa ? '<div class="oa-cta"><b>📲 Quan tâm Zalo OA Thực Dưỡng Lành</b><p>Để nhận hướng dẫn dùng sản phẩm, lịch nhắc và ưu đãi dành riêng cho khách đã mua.</p><a class="btn btn-zalo" href="' + esc(CFG.zalo_oa) + '" target="_blank" rel="noopener">Quan tâm Zalo OA</a></div>' : '') + '<a class="btn btn-outline" href="' + U('/san-pham/') + '">' + T('Tiếp tục mua sắm') + '</a>';
+    initAddon(el, o);
     var rg = el.querySelector('[data-rf-get]');
     if (rg) rg.addEventListener('click', function () { track('ref_thanks', {}); rg.hidden = true; refLoad(normPhone(o.customer.phone), el.querySelector('.rf-thanks [data-rf-out]'), null, null); });
     var z = $('#sendZalo');
@@ -1601,11 +1646,33 @@
   var GIFT_KEY = { camnang: 'tdl_camnang', ebook: 'tdl_ebook' };
   function giftUrl(key, url) { return key === 'camnang' && url ? url + (url.indexOf('?') < 0 ? '?' : '&') + 'ma=' + Date.now().toString(36) : url; } // trang sách cẩm nang cần ?ma= mới cho đọc
   function giftLead() { var l = load('tdl_lead', null); return l && l.phone ? l : null; }
+  /* 🛍 sau khi nhận quà (28/11/2026, ý "trạm dừng nghỉ"): 1–2 sản phẩm theo vấn đề khách vừa chọn ở form.
+     Câu dẫn nói về thói quen bữa ăn, không nói công dụng; vấn đề sức khoẻ (đường huyết, khớp…) chỉ nhận gợi ý chung. Dưới trò chơi không hiện (trò chơi đã có gợi ý riêng). */
+  var GP_PICK = { 'Ăn chay – thực dưỡng': ['ruoc-rong-bien-vi-suon-non', 'xi-dau-2s-do-den-nguu-bang'], 'Ăn uống lành mạnh cho cả nhà': ['ruoc-rong-bien-vi-suon-non', 'bua-an-dinh-duong-vitagreen'],
+    'Chăm sóc cha mẹ lớn tuổi': ['bua-an-dinh-duong-vitagreen', 'dinh-duong-tu-hat-va-curcumin'], 'Cân nặng – vóc dáng': ['bua-an-dinh-duong-vitagreen', 'tra-hoa-tan-dilvang-dinh-lang-che-vang'] };
+  var GP_DEF = ['bua-an-dinh-duong-vitagreen', 'tra-hoa-tan-dilvang-dinh-lang-che-vang'];
+  var GP_LEAD = { 'bua-an-dinh-duong-vitagreen': 'Sáng nào cũng vội? Pha 1 phút là có bữa sáng', 'tra-hoa-tan-dilvang-dinh-lang-che-vang': 'Muốn đổi vị cho ly nước mỗi ngày?', 'ruoc-rong-bien-vi-suon-non': 'Rắc cơm cho bữa chay thêm đậm đà', 'xi-dau-2s-do-den-nguu-bang': 'Chấm, kho, xào món chay', 'dinh-duong-tu-hat-va-curcumin': 'Bữa phụ từ hạt cho bố mẹ' };
+  function giftProds(box) {
+    var el = $('[data-gift-prods]', box); if (!el || el.getAttribute('data-done') || box.getAttribute('data-pos') === 'quiz') return;
+    var L = []; ((giftLead() || {}).concern || []).concat(['']).forEach(function (c) { (c ? GP_PICK[c] || [] : GP_DEF).forEach(function (s) { if (L.indexOf(s) < 0 && BY[s] && !BY[s].hide && smallOpt(BY[s])) L.push(s); }); });
+    L = L.slice(0, 2); if (!L.length) return;
+    var wv = $('[data-wvc]', box);
+    el.innerHTML = '<p class="gpx-h">🌿 Có thể anh/chị cần thêm cho bữa ăn hằng ngày</p>' + L.map(function (s) { var p = BY[s], v = smallOpt(p);
+      return '<div class="gpx-i"><a href="' + p.url + '" data-cta="gift_prod"><img src="' + p.img + '" alt="" width="64" height="64" loading="lazy"></a><div class="gpx-t"><small>' + esc(GP_LEAD[s] || '') + '</small><a href="' + p.url + '" data-cta="gift_prod"><b>' + esc(p.short || p.name) + '</b></a><span>' + money(v.price) + ' · ' + esc(v.name) + '</span></div>' +
+        '<button type="button" class="up-add" data-gpx="' + s + '|' + v.vi + '" aria-label="' + esc('Thêm ' + (p.short || p.name) + ' vào giỏ') + '">+ Thêm vào giỏ</button></div>'; }).join('') +
+      '<p class="gpx-note">' + (wv && !wv.hidden ? 'Mã ưu đãi ở trên tự trừ khi đặt hàng. ' : '') + 'Sản phẩm là thực phẩm, không phải là thuốc và không có tác dụng thay thế thuốc chữa bệnh.</p>';
+    el.hidden = false; el.setAttribute('data-done', '1'); track('upsell_impression', { location: 'sau_qua' });
+    el.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-gpx]'); if (!b) return;
+      var v = b.getAttribute('data-gpx').split('|');
+      if (addToCart(v[0], 1, +v[1])) { var gi = gaItem(v[0], +v[1], 1); track('upsell_add', { currency: 'VND', value: gi ? gi.price : 0, quantity: 1, location: 'sau_qua', reason: 'quan_tam', items: gi ? [gi] : [] }); toast(T('Đã thêm vào giỏ hàng'), 'ok'); b.textContent = '✓ Đã thêm'; }
+    });
+  }
   function initGiftForm() {
     var box = $('#giftBox'); if (!box) return;
     var key = box.getAttribute('data-key'), form = $('#giftForm', box), done = $('.ebf-done', box), quick = $('.gq', box), open = $('[data-gift-open]', box);
     var openUrl = box.getAttribute('data-open') || '', title = box.getAttribute('data-title') || '', book = box.getAttribute('data-book') || title;
-    function show(state) { form.hidden = state !== 'form'; done.hidden = state !== 'done'; quick.hidden = state !== 'quick'; if (state === 'done') { open.href = giftUrl(key, openUrl); grantWvc(); } }
+    function show(state) { form.hidden = state !== 'form'; done.hidden = state !== 'done'; quick.hidden = state !== 'quick'; if (state === 'done') { open.href = giftUrl(key, openUrl); grantWvc(); giftProds(box); } }
     function finish(lead, cs, ask, again) {
       var src = sourceLabel(), bp = box.getAttribute('data-pos') || '', pos = qs('tu') || bp, ctx = box.getAttribute('data-ctx') || ''; // ctx: kết quả trò chơi / lời cam kết → sale đọc trong CRM
       send({ type: 'contact', kind: 'ebook', book: key, book_title: book, again: again, concern: cs.join(', '), ask: ask, ctx: ctx, created: new Date().toISOString(), name: lead.name, phone: lead.phone, email: '', pos: pos, source: src.last,

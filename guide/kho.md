@@ -112,6 +112,8 @@ Màu ở đầu mỗi dòng:
 Xong. **Không cần bấm gì trên CRM**: sale lên đơn là máy đã trừ kho. Đơn bị huỷ thì máy tự cộng lại.
 
 > Đơn **khách tự đặt trên web** chỉ trừ kho sau khi sale gọi khách và bấm **✅ Xác nhận**. Chưa xác nhận thì đơn chưa sang Misa, kho chưa có phiếu để in.
+>
+> Đơn ghi chú **"➕ Mua thêm cho đơn TDL… – GIAO CHUNG"** là món khách thêm ngay sau khi đặt: sale đã gộp vào **1 phiếu**, bạn đóng **chung 1 kiện** với đơn chính.
 
 ### 🛒 Khi máy báo sắp hết
 

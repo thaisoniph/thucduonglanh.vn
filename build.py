@@ -1162,6 +1162,7 @@ def gift_form(key, ctx=""):
       <a class="btn btn-lg btn-buy" data-gift-open href="{esc(opener)}" target="_blank" rel="noopener" data-cta="{key}_open">{esc(open_lbl)}</a>
       {zalo_box}
       {wvc_box()}
+      <div class="gpx" data-gift-prods hidden></div>
       {next_box}
       <button type="button" class="ebf-again" data-gift-again>Đăng ký cho người thân</button>
     </div>
