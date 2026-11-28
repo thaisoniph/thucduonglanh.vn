@@ -4,7 +4,7 @@ nav: Fanpage
 group: marketing
 short: Trợ lý trả lời Facebook, Messenger
 order: 7
-updated: 2026-11-19
+updated: 2026-11-28
 description: Trợ lý An Lành trả lời bình luận, nhắn Messenger, tặng quà, xin số Zalo và soạn bài cho các fanpage. Bạn duyệt bài và lo ca khó. Mỗi việc có hình.
 roles: [mkt, ql]
 ---
@@ -19,6 +19,7 @@ Mở tab **Fanpage**, nhìn ô **👉 Việc hôm nay** và làm từ bước 1.
 1. Duyệt bài AI soạn cho hôm nay và ngày mai ([Việc 1](#viec-1-duyet-bai-dang)).
 2. Telegram báo ca cần người thật thì trả lời khách ngay ([bảng bên dưới](#telegram-bao-gi-thi-lam-gi)).
 3. Lướt **🕘 Trợ lý vừa làm gì**, câu nào trả lời chưa đúng ý thì dạy lại ([Việc 5](#viec-5-xem-tro-ly-vua-lam-gi-va-day-tro-ly)).
+4. Dán bài vào nhóm Facebook **Sống khỏe cùng thực dưỡng lành mạnh** ([Việc 6](#viec-6-dan-bai-vao-nhom-facebook)). Mỗi tuần làm 1 lần, hẹn giờ cho cả tuần là đủ.
 
 ## Telegram báo gì thì làm gì
 
@@ -104,6 +105,18 @@ Nhật ký ở mục **🕘 Trợ lý vừa làm gì** chia theo từng ngày, c
 - Tin đã gửi cho khách trên Facebook **không đổi**. Trợ lý chỉ ghi nhớ để lần sau gặp câu hỏi giống thì trả lời theo cách của bạn.
 - Trợ lý trả lời ở nhóm Zalo, Zalo riêng, Fanpage và chat trên web đều học chung từ các câu bạn sửa.
 - Dòng đã dạy hiện nút **✍️ Đã dạy trợ lý · sửa lại**.
+
+## Việc 6: Dán bài vào nhóm Facebook
+
+Facebook **không cho trợ lý tự đăng vào nhóm** (Meta bỏ quyền này từ 22/04/2024 với mọi ứng dụng). Vì vậy trợ lý soạn sẵn, bạn chỉ dán vào nhóm và hẹn giờ.
+
+- Bài lấy từ **bài nhóm Zalo đã ✅ Duyệt** (sáng và tối, từ hôm qua tới 3 ngày tới). Muốn sửa nội dung thì sửa ở tab **🤖 Trợ lý Zalo**, bài bên Facebook tự đổi theo.
+- Link trong bài đã đổi mã theo dõi sang Facebook, nên đơn khách đặt từ nhóm Facebook được đếm riêng (thẻ bài hiện **🛒 số đơn**).
+- Bấm **✅ Đã đăng vào nhóm** sau khi đăng hoặc hẹn giờ, để cả đội biết bài đã lên.
+
+[[steps:fp-nhom]]
+
+**Làm 1 lần cho nhóm:** mời fanpage Thực Dưỡng Lành vào nhóm và cho làm **quản trị viên**, để bài đăng bằng tên trang. Trong nhóm bấm ⚙️ **Hỗ trợ quản trị viên** để Facebook tự duyệt bài và tự chào thành viên mới.
 
 ## Chọn trang theo dõi (Quản trị)
 

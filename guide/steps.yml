@@ -636,6 +636,36 @@ fp-viet:
         - ["note", "Kiểm tra: giá đúng web, không chữ chữa bệnh"]
       hi: 0
       text: "Đọc lại lần cuối rồi bấm <b>Đăng</b>."
+fp-nhom:
+  title: Dán bài vào nhóm Facebook
+  steps:
+    - title: Trợ lý Fanpage
+      els:
+        - ["h", "👥 Bài cho nhóm Facebook"]
+        - ["card", "Ngày mai · 07:30 · Bài sáng", "⏳ Chưa đăng vào nhóm", "y"]
+        - ["btn2", "📋 Copy bài", "⬇️ Lưu ảnh", "g"]
+      hi: 2
+      text: "Tab <b>📘 Fanpage</b> → thẻ <b>👥 Nhóm Facebook</b>. Ở bài cần đăng, bấm <b>📋 Copy bài</b>, rồi bấm <b>⬇️ Lưu ảnh</b> (nếu bài có ảnh)."
+    - title: Nhóm Sống khỏe cùng thực dưỡng lành mạnh
+      els:
+        - ["h", "👥 Mở nhóm"]
+        - ["in", "Bạn viết gì đi…", "Dán chữ vừa copy (Ctrl+V)"]
+        - ["btn", "🖼 Ảnh/video", "g"]
+      hi: 1
+      text: "Bấm <b>👥 Mở nhóm</b> → bấm ô <b>Bạn viết gì đi…</b> → dán chữ. Bấm <b>🖼 Ảnh/video</b> để thêm ảnh vừa lưu. Muốn đăng bằng tên trang Thực Dưỡng Lành thì bấm ảnh đại diện ở ô viết để đổi."
+    - title: Lên lịch bài viết
+      els:
+        - ["btn", "🕐 Lên lịch", "g"]
+        - ["in", "Ngày và giờ", "Ngày mai · 07:30"]
+        - ["btn", "Lên lịch", "g"]
+      hi: 0
+      text: "Bấm biểu tượng <b>🕐 Lên lịch</b> cạnh nút Đăng → chọn đúng ngày giờ ghi trên thẻ trong CRM → <b>Lên lịch</b>. Bài quá giờ thì bấm <b>Đăng</b> luôn."
+    - title: Trợ lý Fanpage
+      els:
+        - ["card", "Ngày mai · 07:30 · Bài sáng", "✅ Đã đăng · tên bạn", "g"]
+        - ["btn", "✅ Đã đăng vào nhóm", "g"]
+      hi: 1
+      text: "Quay lại CRM, bấm <b>✅ Đã đăng vào nhóm</b> để cả đội biết bài đã lên, không ai đăng trùng."
 zl-kh:
   title: Duyệt kế hoạch chủ đề nhóm Zalo
   steps:

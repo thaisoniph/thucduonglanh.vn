@@ -11410,10 +11410,10 @@
     ['📊 Xem kết quả', 'mỗi tuần 1 lần', [['stat', '📊', 'Kết quả', '7 ngày, giờ đăng tốt']]],
     ['🛠 Chuẩn bị', 'khi cần', [['set', '⚙️', 'Cài đặt', 'bật tắt, giờ đăng']]]]; // 27/11/2026: 📋 Kế hoạch gộp vào 📝 Bài sắp đăng (thẻ cũ 'plan' tự về 'posts' trong aiTab)
   var ZB_GO = { zbPosts: 'posts', zbLog: 'log', zbStat: 'stat', zbPlan: 'posts', zbSet: 'set' };
-  var FP_G = [['📝 Mỗi ngày', 'duyệt bài, trả lời ca khó', [['posts', '📝', 'Bài sắp đăng', 'duyệt trước giờ đăng'], ['log', '🕘', 'Trợ lý vừa làm gì', 'ca khó, lỗi']]],
+  var FP_G = [['📝 Mỗi ngày', 'duyệt bài, trả lời ca khó', [['posts', '📝', 'Bài sắp đăng', 'duyệt trước giờ đăng'], ['grp', '👥', 'Nhóm Facebook', 'dán bài, hẹn giờ'], ['log', '🕘', 'Trợ lý vừa làm gì', 'ca khó, lỗi']]],
     ['📊 Xem kết quả', 'mỗi tuần 1 lần', [['stat', '📊', 'Kết quả', '7 ngày qua']]],
     ['🛠 Chuẩn bị', 'khi cần', [['pages', '📄', 'Fanpage & cài đặt', 'bật trợ lý từng trang']]]];
-  var FP_GO = { fpPosts: 'posts', fpLog: 'log', fpStat: 'stat', fpPages: 'pages' };
+  var FP_GO = { fpPosts: 'posts', fpGrp: 'grp', fpLog: 'log', fpStat: 'stat', fpPages: 'pages' };
   function aiTab(o, k, G) {
     if (!o.tab) o.tab = store(k) || 'posts';
     if (!G.some(function (g) { return g[2].some(function (x) { return x[0] === o.tab; }); })) o.tab = 'posts';
@@ -11985,6 +11985,7 @@
     if (opN) TD.push('🙋 <b>' + opN + ' khách đang chờ người thật trả lời</b>. Trả lời trong hộp thư trang, xong bấm ✅ Đã xử lý. <button class="link" data-fp="go|fpLog|need">Xem</button>');
     if (nP) TD.push('📝 <b>Duyệt ' + nP + ' bài sắp đăng</b>. Chưa duyệt thì tới giờ bài không được đăng. <button class="link" data-fp="go|fpPosts">Xem</button>');
     if (g('error')) TD.push('⚠️ <b>' + g('error') + ' lỗi</b> trong 7 ngày qua: xem trợ lý vướng gì. <button class="link" data-fp="go|fpLog|err">Xem</button>');
+    var gN = fbgTodo(j).length; if (gN) TD.push('👥 <b>Dán ' + gN + ' bài vào nhóm Facebook</b> (bài nhóm Zalo đã duyệt, hẹn giờ sẵn trong nhóm). <button class="link" data-fp="go|fpGrp">Xem</button>');
     if (pmPostLine()) TD.push(pmPostLine()); // 27/11/2026: bài Phòng AI đã duyệt có thể đăng lên fanpage
     h += flowStrip([['①', 'Trợ lý soạn bài', 'trước 1 ngày, theo lịch chủ đề', '<button class="link" data-fp="go|fpPosts">Xem bài ›</button>'],
       ['②', 'Duyệt bài', 'chưa duyệt thì tới giờ không đăng', '<button class="link" data-fp="go|fpPosts">' + (nP ? nP + ' bài chờ duyệt ›' : 'Mở ›') + '</button>', nP],
@@ -12022,9 +12023,29 @@
     var FPG = h, ft = aiTab(FP, 'fp_tab', FP_G);
     h = F0 + grpMenu(FP_G, ft, function (k) { return 'data-fpt="' + k + '"'; });
     if (ft === 'posts') h += inTabi('Bài trợ lý sẽ đăng lên từng fanpage. <b>Bài chờ duyệt mà chưa bấm ✅ Duyệt thì tới giờ không được đăng.</b>', ['Đọc bài, cần thì <b>✏️ Sửa chữ</b>', 'Ưng rồi bấm <b>✅ Duyệt</b>', 'Muốn đăng thêm: bấm <b>✍️ Viết bài đăng</b> trên cùng']) + FPO;
+    if (ft === 'grp') h += inTabi('Đăng bài chăm sóc vào nhóm Facebook <b>Sống khỏe cùng thực dưỡng lành mạnh</b>. Facebook không cho trợ lý tự đăng vào nhóm, nên trợ lý soạn sẵn, bạn dán vào.', ['Bấm <b>📋 Copy bài</b> và <b>⬇️ Lưu ảnh</b>', 'Bấm <b>👥 Mở nhóm</b> → Viết bài → dán chữ, thêm ảnh', 'Bấm 🕐 <b>Lên lịch</b> đúng giờ ghi trên thẻ (hoặc đăng luôn)', 'Xong bấm <b>✅ Đã đăng vào nhóm</b>'], 'Mỗi tuần làm 1 lần cho cả tuần là đủ. Muốn sửa nội dung thì sửa ở tab 🤖 Trợ lý Zalo.') + fbgHtml(j);
     if (ft === 'log') h += inTabi('Mọi bình luận, tin nhắn trợ lý vừa trả lời. <b>Ca 🙋 cần người thật</b> ghim trên cùng.', ['Trả lời khách trong hộp thư trang', 'Xong bấm <b>✅ Đã xử lý</b>', 'Trợ lý trả lời chưa đúng: bấm <b>✍️ Dạy trợ lý trả lời</b>']) + '<h2 class="zb-h" id="fpLog">🕘 Trợ lý vừa làm gì</h2>' + fpLogHtml(j);
     if (ft === 'stat') h += inTabi('7 ngày qua trợ lý trả lời bao nhiêu bình luận, tin nhắn, xin được bao nhiêu số; bài đăng được tương tác thế nào.', ['Mỗi tuần xem 1 lần']) + ST7;
     if (ft === 'pages') h += inTabi('Các fanpage đang theo dõi: bật / tắt trợ lý, chờ duyệt hay tự đăng, giờ đăng của từng trang. <b>Ít khi phải sửa.</b>', ['Bấm tên trang để mở cài đặt trang đó', 'Đổi xong bấm <b>Lưu</b>']) + FPG;
+    return h;
+  }
+  /* 👥 Bài cho nhóm Facebook (28/11/2026, api/src/fb.js fbgList): bài nhóm Zalo đã duyệt, link đã đổi mã theo dõi sang Facebook */
+  function fbgT(p) { return new Date(p.day.slice(0, 4) + '-' + p.day.slice(4, 6) + '-' + p.day.slice(6, 8) + 'T' + (p.at || '12:00') + ':00+07:00').getTime(); }
+  function fbgTodo(j) { var d0 = today(); return ((j.grp && j.grp.posts) || []).filter(function (p) { return !p.done && fbgT(p) >= d0 && fbgT(p) < d0 + 3 * DAY; }); }
+  function fbgHtml(j) {
+    var G = j.grp || { posts: [] }, ps = G.posts || [];
+    var h = '<div class="zb-done-h"><h2 class="zb-h" id="fpGrp">👥 Bài cho nhóm Facebook</h2><a class="btn pri" href="' + esc(G.url || '') + '" target="_blank" rel="noopener">👥 Mở nhóm</a></div>' +
+      '<details class="zb-info small"><summary>ⓘ Để bài đăng bằng tên trang Thực Dưỡng Lành</summary><p>Trong nhóm → <b>Thành viên</b> → mời fanpage Thực Dưỡng Lành vào nhóm và cho làm <b>quản trị viên</b>. Khi viết bài, bấm ảnh đại diện ở ô viết để chọn đăng bằng tên trang. Trong nhóm bấm ⚙️ <b>Hỗ trợ quản trị viên</b> để Facebook tự duyệt bài và chào thành viên mới.</p></details>';
+    if (!ps.length) return h + '<div class="box"><p class="muted">Chưa có bài. Bài hiện ở đây khi bài nhóm Zalo được ✅ Duyệt (tab 🤖 Trợ lý Zalo).</p></div>';
+    ps.slice().sort(function (a, b) { return (!!a.done - !!b.done) || (fbgT(a) - fbgT(b)); }).forEach(function (p) {
+      var img = spfAbs(p.img), past = fbgT(p) < Date.now();
+      h += '<div class="box zb-post' + (p.done ? ' zb-sent' : ' zb-need') + '"><div class="zb-ph"><b>' + zbDay(p.day) + ' · ' + esc(p.at) + ' · ' + (p.slot === 'toi' ? 'Bài tối' : 'Bài sáng') + '</b><span class="zb-due">' +
+        (p.done ? '✅ Đã đăng' + (p.done.by ? ' · ' + esc(p.done.by) : '') : past ? '⌛ Quá giờ, vẫn đăng được' : '⏳ Chưa đăng vào nhóm') + (p.orders ? ' · 🛒 ' + p.orders + ' đơn' : '') + '</span></div>' +
+        (p.topic ? '<p class="small muted" style="margin:0 0 6px">' + esc(p.topic) + '</p>' : '') +
+        '<div class="fp-card">' + (img ? '<img src="' + esc(img) + '" alt="" style="max-height:180px;max-width:100%;border-radius:8px;display:block;margin:0 0 8px">' : '') + '<div class="fp-tx" style="max-height:240px;overflow:auto">' + fpRender(p.text) + '</div></div>' +
+        '<div class="lq-btns" style="margin-top:8px"><button class="btn sm pri" data-fp="gcp|' + esc(p.id) + '">📋 Copy bài</button>' + (img ? '<button class="btn sm" data-fp="gimg|' + esc(p.id) + '">⬇️ Lưu ảnh</button>' : '') +
+        (p.done ? '<button class="btn sm ghost" data-fp="gundo|' + esc(p.id) + '">↩️ Chưa đăng</button>' : '<button class="btn sm" data-fp="gdone|' + esc(p.id) + '">✅ Đã đăng vào nhóm</button>') + '</div></div>';
+    });
     return h;
   }
   function fpNeed(p) { return p && !p.none && p.status !== 'ok' && p.status !== 'err' && fpPageOf(p.page).cfg.mode !== 'auto' ? 1 : 0; }
@@ -12181,6 +12202,10 @@
     if (v[0] === 'send') return fpSendOpen();
     if (v[0] === 'cp') return copy(id).then(function () { toast('Đã chép ✓'); });
     var after = function (msg) { return function () { toast(msg); fpFetch(); }; }, fail = function (e) { t.disabled = false; toast(e.message, true); };
+    var gp = /^g(cp|img|done|undo)$/.test(v[0]) && ((FP.d.grp && FP.d.grp.posts) || []).filter(function (p) { return p.id === id; })[0];
+    if (v[0] === 'gcp' && gp) return copy(gp.text).then(function () { toast('Đã chép bài ✓ Mở nhóm, bấm Viết bài rồi dán (Ctrl+V)'); });
+    if (v[0] === 'gimg' && gp) return spfImgSave({ id: 'fbg_' + gp.id, img: gp.img });
+    if ((v[0] === 'gdone' || v[0] === 'gundo') && gp) { t.disabled = true; return api('fp_gdone', { id: id, undo: v[0] === 'gundo' }).then(after(v[0] === 'gdone' ? 'Đã ghi: bài đã đăng vào nhóm ✓' : 'Đã bỏ đánh dấu'), fail); }
     if (v[0] === 'pf') { FP.pf = id; return render(); }
     if (v[0] === 'track') return fpTrackOpen();
     if (v[0] === 'go') { if (v[2]) FP.lf = v[2]; return aiTabGo(FP, 'fp_tab', FP_GO[v[1]], v[1]); }

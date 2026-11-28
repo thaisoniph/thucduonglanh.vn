@@ -12,14 +12,14 @@
  * Luật Facebook: chỉ nhắn trong 24 giờ kể từ tin cuối của khách; quá 24 giờ bot không nhắn (chăm sóc tiếp qua Zalo / CRM). */
 import Anthropic from '@anthropic-ai/sdk';
 import { aiFetch } from './airelay.js';
-import { esc, run, all, first, kvGet, kvSet, kvDel, kvJson, normPhone, nrm, fmtDate, randHex, CRM_URL, TZ_MS, DAY } from './lib.js';
+import { esc, run, all, first, kvGet, kvSet, kvDel, kvJson, normPhone, nrm, fmtDate, randHex, isVoid, CRM_URL, TZ_MS, DAY } from './lib.js';
 import { telegram } from './google.js';
 import { addLead, telegramUser } from './crm.js';
 import { insPick, insBlock, insParse, insLog, insBank, insRisk, insViet, insStyle, INS_HEAD, FUN } from './insight.js';
 import { mkAdRef } from './mkcamp.js';
 import { kb, safe, workNow, TRUTH_RULES, REF_RULES, REF_TXT, PHONE_RE } from './chat.js';
 import { botRef } from './partner.js';
-import { prodMap, zbotLead } from './zbot.js';
+import { prodMap, zbotLead, zCfg } from './zbot.js';
 import { edAdd, edBlock, edCount } from './edlearn.js';
 import { gate } from './gate.js';
 import { flHook } from './fblead.js'; // 📋 biểu mẫu Facebook → CRM (18/11/2026)
@@ -609,6 +609,24 @@ async function fpWrite(x, p, day, slot, hint, by, grp) {
   return { id, topic };
 }
 
+/* ---------------------------------------------------------------- 👥 Bài cho nhóm Facebook "Sống khỏe cùng thực dưỡng lành mạnh" (28/11/2026, anh Sơn)
+ * Meta bỏ quyền cho ứng dụng đăng vào nhóm từ 22/04/2024 → không tự đăng được. Dùng lại bài nhóm Zalo ĐÃ DUYỆT (zb_posts sáng / tối),
+ * đổi mã theo dõi link sang facebook / nhom / <mã bài> (đơn từ nhóm FB tính riêng), nhân sự Copy + Lưu ảnh → dán vào nhóm, hẹn giờ, bấm ✅ (KV fbg_done). */
+const FBG_URL = 'https://www.facebook.com/groups/1385891525992405';
+export const fbgText = t => String(t || '')
+  .replace(/(^|[\s(])\*([^*\n]+)\*(?=[\s).,!?]|$)/gm, '$1$2').replace(/(^|[\s(])_([^_\n]+)_(?=[\s).,!?]|$)/gm, '$1$2') // Facebook không có chữ đậm / nghiêng kiểu Zalo
+  .replace(/nhóm Zalo này/gi, 'nhóm này').replace(/trong nhóm Zalo/gi, 'trong nhóm')
+  .replace(/utm_source=zalo&utm_medium=nhom/g, 'utm_source=facebook&utm_medium=nhom');
+async function fbgList(x, now) {
+  const at = Object.fromEntries(((await zCfg(x)).slots || []).map(s => [s.id, s.at])), done = await kvJson(x.db, 'fbg_done', {});
+  const rows = await all(x.db, "SELECT id, day, slot, topic, text, img, at_time, funnel FROM zb_posts WHERE day >= ? AND day <= ? AND slot IN ('sang', 'toi') AND status IN ('ok', 'sent') ORDER BY day, slot", fmtDate(now - DAY, 'yyyyMMdd'), fmtDate(now + 3 * DAY, 'yyyyMMdd'));
+  const n = {};
+  for (const o of await all(x.db, "SELECT source, first_source, status FROM orders WHERE time >= ? AND (source LIKE 'facebook / nhom / %' OR first_source LIKE 'facebook / nhom / %')", now - 30 * DAY)) {
+    const m = !isVoid(o.status) && (String(o.source).match(/^facebook \/ nhom \/ (\S+)/) || String(o.first_source).match(/^facebook \/ nhom \/ (\S+)/)); if (m) n[m[1]] = (n[m[1]] || 0) + 1;
+  }
+  return { url: FBG_URL, posts: rows.map(p => ({ id: p.id, day: p.day, slot: p.slot, at: p.at_time || at[p.slot] || '', topic: p.topic, funnel: p.funnel, img: p.img, text: fbgText(p.text), done: done[p.id] || null, orders: n[p.id] || 0 })) };
+}
+
 /* ---------------------------------------------------------------- CRM → tab 📘 Fanpage (Quản lý, Quản trị, Marketing; kết nối ứng dụng: Quản trị) */
 export async function crmFp(x, u, d, crmLog) {
   useEnv(x);
@@ -626,7 +644,16 @@ export async function crmFp(x, u, d, crmLog) {
     const talk = await first(x.db, "SELECT count(*) AS n FROM fp_users WHERE last_in > ?", now - 7 * DAY);
     const insG = (await insBank(x)).map(g => ({ id: g.id, name: g.name, on: g.on }));
     return { ok: true, learnEd: await edCount(x, 'fb'), edR: (await edCount(x, 'reply')).ids, insG, app: { id: app.id, secret: !!app.secret, verify: admin ? app.verify : '', config: app.config, hook: HOOK_URL, cb: CB_URL, verified: Number(await kvGet(x.db, 'fp_verified')) || 0 },
-      pages, trackSet, posts, log, open, stats, talk: talk ? talk.n : 0, err: await kvGet(x.db, 'fp_write_err'), aiOn: !!x.env.ANTHROPIC_API_KEY, admin, now };
+      pages, trackSet, posts, grp: await fbgList(x, now), log, open, stats, talk: talk ? talk.n : 0, err: await kvGet(x.db, 'fp_write_err'), aiOn: !!x.env.ANTHROPIC_API_KEY, admin, now };
+  }
+  if (a === 'fp_gdone') { // 👥 đánh dấu đã đăng bài vào nhóm Facebook (giữ 14 ngày)
+    const id = String(d.id || ''); if (!/^\d{8}_(sang|toi)$/.test(id)) return { ok: false, error: 'Không tìm thấy bài.' };
+    const m = await kvJson(x.db, 'fbg_done', {}), lim = fmtDate(now - 14 * DAY, 'yyyyMMdd');
+    for (const k of Object.keys(m)) if (k.slice(0, 8) < lim) delete m[k];
+    if (d.undo) delete m[id]; else m[id] = { at: now, by: u.name };
+    await kvSet(x.db, 'fbg_done', JSON.stringify(m));
+    await crmLog(x, u, 'Bài nhóm Facebook', id, '', d.undo ? 'Bỏ đánh dấu đã đăng' : 'Đã đăng vào nhóm', '');
+    return { ok: true };
   }
   if (a === 'fp_app') {
     const app = await appCfg(x), id = String(d.appId || '').replace(/\D/g, ''), sec = String(d.secret || '').trim();
