@@ -4,7 +4,7 @@ nav: Fanpage
 group: marketing
 short: Trợ lý trả lời Facebook, Messenger
 order: 7
-updated: 2026-11-28
+updated: 2026-11-29
 description: Trợ lý An Lành trả lời bình luận, nhắn Messenger, tặng quà, xin số Zalo và soạn bài cho các fanpage. Bạn duyệt bài và lo ca khó. Mỗi việc có hình.
 roles: [mkt, ql]
 ---
@@ -76,10 +76,12 @@ AI soạn sẵn bài cho **hôm nay** và **ngày mai**, mỗi trang một bài 
 3. Muốn đăng luôn: bấm **📤 Đăng ngay**.
 4. Muốn AI viết bài khác: bấm **🔄 Viết lại**, gõ ý muốn (ví dụ "nói về mè đen", "ngắn hơn") và chọn **🎯 nhóm khách** bài nhắm tới nếu muốn đổi. Chờ khoảng 30 giây.
 5. Không muốn đăng: bấm **⏸ Bỏ bài này**.
+6. Đổi ảnh: bấm **🖼 Đổi ảnh** (hoặc **🖼 Thêm ảnh**), chọn 1 ảnh trong kho ảnh thật trên web hoặc **📷 Tải ảnh từ máy**. Không muốn kèm ảnh thì bấm **🚫 Không kèm ảnh**.
+7. Đổi giờ đăng bài này: bấm **🕐 Đổi giờ đăng**, chọn giờ mới rồi **Lưu giờ**. Giờ mặc định mỗi ngày (sáng 11:30, tối 19:30) đổi ở thẻ **📄 Fanpage & cài đặt** → bấm tên trang → ô **Giờ đăng**.
 
 Bài đã đăng thu gọn thành 1 dòng ở mục **📤 Đã đăng gần đây**. Bấm vào dòng để xem lại, hoặc bấm **👁 Xem trên Facebook**.
 
-Kiểm tra kỹ trước khi duyệt: giá và ưu đãi phải đúng với web, và bài **không có** chữ "chữa", "điều trị", "khỏi bệnh". Facebook không hiện chữ đậm, nên bài chỉ có chữ thường và emoji. Bài nói về sản phẩm sẽ kèm link sản phẩm (có ảnh xem trước).
+Kiểm tra kỹ trước khi duyệt: giá và ưu đãi phải đúng với web, và bài **không có** chữ "chữa", "điều trị", "khỏi bệnh". Facebook không hiện chữ đậm, nên bài chỉ có chữ thường và emoji. Bài có ảnh như bài nhóm Zalo: AI tự chọn ảnh sản phẩm hoặc ảnh thật trên web khớp nội dung. Bài nói về sản phẩm có thêm dòng **👉 Xem chi tiết** kèm link sản phẩm ở cuối bài.
 
 ## Việc 2: Ca cần người thật
 
@@ -163,7 +165,7 @@ Mục **📄 Fanpage đang theo dõi** có mỗi trang 1 dòng: tên trang, đan
 - **Chỉ trả lời bình luận có từ khoá**: để trống thì trợ lý trả lời mọi bình luận. Chỉ điền khi muốn trợ lý trả lời ít lại, ví dụ `quà, giá, tư vấn`.
 - **Câu trả lời công khai**: mỗi dòng một câu. `{ten}` sẽ được thay bằng tên khách.
 - **Tin gửi quà**: `{link}` là link cẩm nang, `{nhom}` là link nhóm Zalo.
-- **Bài đăng**: bật "AI soạn bài đăng", chọn giờ đăng (ví dụ `11:30, 20:00`), chọn **Chờ duyệt** hoặc **Tự đăng**. Điền ô **"Trang này dành cho ai"** (ví dụ "mẹ bỉm sau sinh, giọng chị em tâm sự") để AI viết đúng giọng của trang.
+- **Bài đăng**: bật "AI soạn bài đăng", chọn giờ đăng (ví dụ `11:30, 19:30`), chọn **Chờ duyệt** hoặc **Tự đăng**. Điền ô **"Trang này dành cho ai"** (ví dụ "mẹ bỉm sau sinh, giọng chị em tâm sự") để AI viết đúng giọng của trang.
 - **🎯 Nhóm khách trang này nhắm tới**: tích 1 vài nhóm (ví dụ trang cho mẹ bỉm chỉ tích "Mẹ bỉm, mẹ sau sinh"). Không tích = mọi nhóm, xoay vòng.
 
 **Bài đăng theo phễu và insight.** Mỗi tuần AI soạn 4 bài 🔵 thu hút (kiến thức, bếp lành, thói quen, tâm an), 2 bài ⚪ tạo niềm tin (nguyên liệu, hỏi đáp), 1 bài 🟠 bán (góc sản phẩm, có link). Trước khi viết, AI chọn 1 nhóm khách + 1 tension (điều họ mong ↔ điều đang cản họ) rồi mới viết; thẻ bài có dòng **🎯** để bạn kiểm tra. Sửa nhóm khách ở tab **🎯 Insight & nội dung** ([xem hướng dẫn](/huong-dan/content/)).

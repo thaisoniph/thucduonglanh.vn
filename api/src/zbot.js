@@ -1084,7 +1084,7 @@ async function quizWarn(x, p) {
 }
 
 /** Ảnh kèm bài / tin: link trong kho ảnh web (SITE/…), ảnh đã tải (API_URL/zb-img/…) hoặc data:image… mới tải từ máy (lưu zb_imgs). '' = không ảnh. */
-async function zImgSave(x, v, now) {
+export async function zImgSave(x, v, now) {
   let img = String(v || '');
   if (img.startsWith('data:image/')) {
     if (img.length > 1.5e6) return { error: 'Ảnh lớn quá, bạn chọn ảnh khác giúp nhé.' };

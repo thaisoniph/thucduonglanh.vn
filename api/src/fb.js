@@ -19,7 +19,7 @@ import { insPick, insBlock, insParse, insLog, insBank, insRisk, insViet, insStyl
 import { mkAdRef } from './mkcamp.js';
 import { kb, safe, workNow, TRUTH_RULES, REF_RULES, REF_TXT, PHONE_RE } from './chat.js';
 import { botRef } from './partner.js';
-import { prodMap, zbotLead, zCfg } from './zbot.js';
+import { prodMap, zbotLead, zCfg, imgLib, zImgSave } from './zbot.js';
 import { edAdd, edBlock, edCount } from './edlearn.js';
 import { gate } from './gate.js';
 import { flHook } from './fblead.js';
@@ -78,7 +78,7 @@ export async function fbSchema(db) {
   await run(db, 'CREATE INDEX IF NOT EXISTS fp_cmts_uid ON fp_cmts(page, uid, at)');
   await run(db, `CREATE TABLE IF NOT EXISTS fp_posts (id TEXT PRIMARY KEY, page TEXT, day TEXT, slot TEXT, topic TEXT DEFAULT '', text TEXT DEFAULT '', link TEXT DEFAULT '', prod TEXT DEFAULT '',
     status TEXT DEFAULT 'draft', by_name TEXT DEFAULT '', at INTEGER, sent_at INTEGER, fb_id TEXT DEFAULT '', err TEXT DEFAULT '')`); // id = trang_yyyyMMdd_HHmm
-  for (const c of ["funnel TEXT DEFAULT ''", "ins TEXT DEFAULT ''", 'eng_react INTEGER DEFAULT 0', 'eng_cmt INTEGER DEFAULT 0', 'eng_share INTEGER DEFAULT 0', 'eng_at INTEGER DEFAULT 0', 'eng_reach INTEGER DEFAULT 0', 'eng_fan INTEGER DEFAULT 0']) { try { await run(db, 'ALTER TABLE fp_posts ADD COLUMN ' + c); } catch (e) { } } // 10/11/2026: tầng phễu + nhóm khách / tension (insight.js, JSON)
+  for (const c of ["img TEXT DEFAULT ''", "funnel TEXT DEFAULT ''", "ins TEXT DEFAULT ''", 'eng_react INTEGER DEFAULT 0', 'eng_cmt INTEGER DEFAULT 0', 'eng_share INTEGER DEFAULT 0', 'eng_at INTEGER DEFAULT 0', 'eng_reach INTEGER DEFAULT 0', 'eng_fan INTEGER DEFAULT 0']) { try { await run(db, 'ALTER TABLE fp_posts ADD COLUMN ' + c); } catch (e) { } } // 10/11/2026: tầng phễu + nhóm khách / tension (insight.js, JSON)
   await run(db, 'CREATE INDEX IF NOT EXISTS fp_posts_day ON fp_posts(day)');
   await run(db, `CREATE TABLE IF NOT EXISTS fp_log (rid INTEGER PRIMARY KEY AUTOINCREMENT, at INTEGER, page TEXT DEFAULT '', kind TEXT, name TEXT DEFAULT '', text TEXT DEFAULT '', reply TEXT DEFAULT '')`);
   await run(db, 'CREATE INDEX IF NOT EXISTS fp_log_at ON fp_log(at)');
@@ -591,8 +591,10 @@ async function publish(x, p, r) {
   const now = Date.now();
   await run(x.db, "UPDATE fp_posts SET status = 'sending', sent_at = ? WHERE id = ? AND status = ?", now, r.id, r.status); // chặn đăng trùng
   try {
-    const body = { message: plain(r.text) }; if (r.link) body.link = r.link;
-    const j = await graph(p.id + '/feed', p.token, body);
+    // 🖼 có ảnh → đăng bài ảnh (/photos), link sản phẩm để cuối chữ (bài ảnh không có thẻ link); không ảnh → bài chữ kèm thẻ link như cũ
+    const j = r.img ? await graph(p.id + '/photos', p.token, { url: r.img, message: plain(r.text) + (r.link ? '\n\n👉 Xem chi tiết: ' + r.link : '') })
+      : await graph(p.id + '/feed', p.token, Object.assign({ message: plain(r.text) }, r.link ? { link: r.link } : {}));
+    if (j.post_id) j.id = j.post_id; // /photos trả mã ảnh (id) + mã bài (post_id): lưu mã bài để xem / chia sẻ / đếm tương tác
     await run(x.db, "UPDATE fp_posts SET status = 'sent', fb_id = ?, err = '' WHERE id = ?", String(j.id || ''), r.id);
     await flog(x, p.id, 'post', { name: p.name, text: r.topic || String(r.text).slice(0, 120), reply: j.id ? 'https://facebook.com/' + j.id : '' });
   } catch (e) {
@@ -604,13 +606,15 @@ async function publish(x, p, r) {
 }
 
 /** AI soạn 1 bài cho 1 trang (hint: ý nhân sự gõ khi bấm "Viết lại"; grp: nhóm khách nhân sự chọn, '' = giữ nhóm cũ khi có ý kiến / xoay vòng) */
-async function fpWrite(x, p, day, slot, hint, by, grp) {
+const absImg = u => !u ? '' : /^https?:/.test(u) ? u : 'https://thucduonglanh.vn' + u; // Facebook tải ảnh theo link đầy đủ
+async function fpWrite(x, p, day, slot, hint, by, grp, fid) { // fid: viết lại bài đã đổi giờ thì giữ mã bài cũ
   const know = await kb(), prods = prodMap(know), wd = new Date(slotTime(day, '12:00') + TZ_MS).getUTCDay(), c = p.cfg;
-  const si = Math.max(0, c.slots.indexOf(slot)), theme = FP_THEME[(wd + si * 3) % 7], id = p.id + '_' + day + '_' + slot.replace(':', '');
+  const si = Math.max(0, c.slots.indexOf(slot)), theme = FP_THEME[(wd + si * 3) % 7], id = fid || p.id + '_' + day + '_' + slot.replace(':', '');
   // 🎯 nhóm khách + tension (insight.js): chỉ trong nhóm trang nhắm tới (cfg.aud), viết lại theo ý kiến thì giữ nhóm cũ
   const old = await first(x.db, 'SELECT ins FROM fp_posts WHERE id = ?', id); let og = ''; try { og = hint && old && old.ins ? JSON.parse(old.ins).g || '' : ''; } catch (e) { }
   const ip = await insPick(x, 'fb', grp || og, { only: c.aud, f: theme.f });
-  const recent = await all(x.db, "SELECT page, day, topic FROM fp_posts WHERE topic != '' AND day >= ? ORDER BY day DESC LIMIT 30", fmtDate(Date.now() - 8 * DAY, 'yyyyMMdd'));
+  const recent = await all(x.db, "SELECT page, day, topic, img FROM fp_posts WHERE topic != '' AND day >= ? ORDER BY day DESC LIMIT 30", fmtDate(Date.now() - 8 * DAY, 'yyyyMMdd'));
+  const used = new Set(recent.map(r => r.img).filter(Boolean)), lib = (await imgLib()).filter(i => !used.has(i.url)); // 🖼 29/11/2026 (anh Sơn): kèm ảnh thật như bài nhóm Zalo, không lặp ảnh đã dùng gần đây
   const ask = [
     'Viết 1 bài đăng cho fanpage Facebook "' + p.name + '" của Thực Dưỡng Lành.',
     c.voice ? 'Trang này: ' + c.voice : 'Người theo dõi phần lớn là cô chú trung niên, mẹ bỉm, người ăn chay, dân văn phòng quan tâm sống khỏe.',
@@ -626,8 +630,9 @@ async function fpWrite(x, p, day, slot, hint, by, grp) {
     'Đúng sự thật: thông tin sản phẩm, thành phần, giá, ưu đãi CHỈ lấy từ TÀI LIỆU. Kiến thức chung chỉ nói điều phổ thông, an toàn, không số liệu nghiên cứu, không trích dẫn chuyên gia, không bịa câu chuyện / cảm nhận khách hàng.',
     'Không dùng các từ "chữa", "điều trị", "khỏi bệnh", "đặc trị", "thay thuốc", "thần dược". Nếu bài nói về sản phẩm: thêm 1 dòng cuối "Sản phẩm là thực phẩm, không phải là thuốc và không có tác dụng thay thế thuốc chữa bệnh."',
     'Không để link, không để số điện thoại trong bài (hệ thống tự gắn link sản phẩm).',
+    lib.length ? 'KHO ẢNH THẬT (số. mô tả ảnh) – nếu bài KHÔNG nói chủ yếu về 1 sản phẩm, chọn 1 ảnh khớp rõ với nội dung bài (đúng món / nguyên liệu / hoạt động); không có ảnh nào khớp thì ghi "không", đừng chọn ảnh chỉ gần giống:\n' + lib.map((i, n) => (n + 1) + '. ' + i.alt).join('\n') : '',
     '',
-    'Trả về đúng định dạng:\nCHỦ ĐỀ: <tóm tắt chủ đề trong 10 chữ, nêu rõ nguyên liệu / món / sản phẩm>\n' + INS_HEAD + '\nSẢN PHẨM: <mã sản phẩm dạng chữ-thường-gạch-ngang nếu bài nói chủ yếu về 1 sản phẩm, không thì ghi "không">\n---\n<nội dung bài>'
+    'Trả về đúng định dạng:\nCHỦ ĐỀ: <tóm tắt chủ đề trong 10 chữ, nêu rõ nguyên liệu / món / sản phẩm>\n' + INS_HEAD + '\nSẢN PHẨM: <mã sản phẩm dạng chữ-thường-gạch-ngang nếu bài nói chủ yếu về 1 sản phẩm, không thì ghi "không">\nẢNH: <số ảnh trong KHO ẢNH THẬT, hoặc "không">\n---\n<nội dung bài>'
   ].filter(s => s !== null).join('\n');
   const req = { model: WRITER, max_tokens: 4000, output_config: { effort: 'medium' },
     system: [{ type: 'text', text: 'Bạn viết bài cho fanpage Facebook của Thực Dưỡng Lành (VitaGreen Nutrition). Tiếng Việt chuẩn, tự nhiên.\n' + TRUTH_RULES },
@@ -641,13 +646,14 @@ async function fpWrite(x, p, day, slot, hint, by, grp) {
   const head = parts.length > 1 ? parts[0] : '', body = insViet(plain(safe((parts.length > 1 ? parts.slice(1).join('\n---\n') : raw).trim())));
   const topic = ((head.match(/CHỦ ĐỀ:\s*(.+)/) || [])[1] || body.split('\n')[0]).replace(/\*/g, '').trim().slice(0, 120);
   const code = ((head.match(/SẢN PHẨM:\s*([a-z0-9-]+)/) || [])[1] || '');
+  const pick = lib[Number((head.match(/ẢNH:\s*(\d+)/) || [])[1]) - 1], img = absImg(prods[code] && prods[code].img ? prods[code].img : pick ? pick.url : '');
   if (!body) throw new Error('AI chưa viết được bài');
   const camp = nrm(p.name).replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40) || 'fanpage';
   const link = prods[code] ? prods[code].url + '?utm_source=facebook&utm_medium=fanpage&utm_campaign=' + camp : '';
   const now = Date.now(), ins = Object.assign(insParse(head, ip.bank, ip.g), { w: insRisk(body), v: insStyle(body), b: ip.big ? ip.big.t : '' }); if (ip.angle) ins.a = ip.angle;
-  await run(x.db, `INSERT INTO fp_posts (id, page, day, slot, topic, text, link, prod, status, by_name, at, funnel, ins) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'draft', ?, ?, ?, ?)
-    ON CONFLICT(id) DO UPDATE SET topic = excluded.topic, text = excluded.text, link = excluded.link, prod = excluded.prod, status = 'draft', by_name = excluded.by_name, at = excluded.at, err = '', funnel = excluded.funnel, ins = excluded.ins`,
-    id, p.id, day, slot, topic, body.slice(0, 5000), link, prods[code] ? code : '', by || 'AI', now, theme.f, JSON.stringify(ins));
+  await run(x.db, `INSERT INTO fp_posts (id, page, day, slot, topic, text, link, prod, status, by_name, at, funnel, ins, img) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'draft', ?, ?, ?, ?, ?)
+    ON CONFLICT(id) DO UPDATE SET topic = excluded.topic, text = excluded.text, link = excluded.link, prod = excluded.prod, img = excluded.img, status = 'draft', by_name = excluded.by_name, at = excluded.at, err = '', funnel = excluded.funnel, ins = excluded.ins`,
+    id, p.id, day, slot, topic, body.slice(0, 5000), link, prods[code] ? code : '', by || 'AI', now, theme.f, JSON.stringify(ins), img);
   await insLog(x, 'fb', { g: ins.g, gn: ins.gn, f: theme.f, t: ins.t, ref: id, sp: prods[code] ? code : '', a: ins.a, b: ins.b });
   if (c.mode !== 'auto' && !by) x.later(telegram(x.env, '📝 <b>Bài fanpage chờ duyệt</b> – ' + esc(p.name) + ' · ' + slot + ' ' + day.slice(6, 8) + '/' + day.slice(4, 6) + ': ' + esc(topic) + '\n👉 Duyệt / sửa: ' + CRM_URL + '/#fanpage'));
   return { id, topic };
@@ -681,14 +687,14 @@ export async function crmFp(x, u, d, crmLog) {
     const app = await appCfg(x), from = fmtDate(now - DAY, 'yyyyMMdd');
     const tk = await fpTracked(x), trackSet = Array.isArray(await kvJson(x.db, 'fp_track', null));
     const pages = (await all(x.db, "SELECT id, name, active, cfg, at, err, last_ev, (token2 != '') AS t2 FROM fp_pages ORDER BY name")).map(r => Object.assign({}, r, { cfg: pageCfg(r.cfg), track: tk.has(String(r.id)) }));
-    const posts = await all(x.db, 'SELECT id, page, day, slot, topic, text, link, prod, status, by_name, at, sent_at, fb_id, err, funnel, ins FROM fp_posts WHERE day >= ? ORDER BY day, slot, page', from);
+    const posts = await all(x.db, 'SELECT id, page, day, slot, topic, text, link, prod, status, by_name, at, sent_at, fb_id, err, funnel, ins, img FROM fp_posts WHERE day >= ? ORDER BY day, slot, page', from);
     const log = await all(x.db, 'SELECT rid, at, page, kind, name, text, reply, done_at, done_by FROM fp_log ORDER BY rid DESC LIMIT 80');
     const open = await all(x.db, "SELECT rid, at, page, kind, name, text, reply, done_at, done_by FROM fp_log WHERE kind = 'handoff' AND done_at IS NULL AND at > ? ORDER BY rid DESC LIMIT 30", now - 7 * DAY); // ca cần người thật chưa xử lý: ghim lên đầu
     const stats = await all(x.db, 'SELECT kind, count(*) AS n FROM fp_log WHERE at > ? GROUP BY kind', now - 7 * DAY);
     const talk = await first(x.db, "SELECT count(*) AS n FROM fp_users WHERE last_in > ?", now - 7 * DAY);
     const insG = (await insBank(x)).map(g => ({ id: g.id, name: g.name, on: g.on }));
     return { ok: true, learnEd: await edCount(x, 'fb'), edR: (await edCount(x, 'reply')).ids, insG, app: { id: app.id, secret: !!app.secret, verify: admin ? app.verify : '', config: app.config, hook: HOOK_URL, cb: CB_URL, verified: Number(await kvGet(x.db, 'fp_verified')) || 0 }, app2: await (async () => { const a2 = await app2Cfg(x); return { id: a2.id, secret: !!a2.secret }; })(),
-      pages, trackSet, camps: await fpCamps(x), posts, grp: await fbgList(x, now), log, open, stats, talk: talk ? talk.n : 0, err: await kvGet(x.db, 'fp_write_err'), aiOn: !!x.env.ANTHROPIC_API_KEY, admin, now };
+      pages, trackSet, camps: await fpCamps(x), posts, lib: (await imgLib()).map(i => ({ url: i.url, thumb: i.thumb || i.url, alt: i.alt })), grp: await fbgList(x, now), log, open, stats, talk: talk ? talk.n : 0, err: await kvGet(x.db, 'fp_write_err'), aiOn: !!x.env.ANTHROPIC_API_KEY, admin, now };
   }
   if (a === 'fp_gdone') { // 👥 đánh dấu đã đăng bài vào nhóm Facebook (giữ 14 ngày)
     const id = String(d.id || ''); if (!/^\d{8}_(sang|toi)$/.test(id)) return { ok: false, error: 'Không tìm thấy bài.' };
@@ -830,6 +836,22 @@ export async function crmFp(x, u, d, crmLog) {
     await crmLog(x, u, 'Bài fanpage', p.id, '', { ok: 'Duyệt', skip: 'Bỏ', draft: 'Sửa' }[st] || st, p.topic);
     return { ok: true };
   }
+  if (a === 'fp_img' || a === 'fp_time') { // 🖼 đổi ảnh bài (link kho ảnh / ảnh tải từ máy / '' = bỏ ảnh) · 🕐 đổi giờ đăng 1 bài (29/11/2026)
+    const r = await first(x.db, 'SELECT id, day, slot, status, topic FROM fp_posts WHERE id = ?', String(d.id || '')); if (!r) return { ok: false, error: 'Không tìm thấy bài.' };
+    if (r.status === 'sent' || r.status === 'sending') return { ok: false, error: 'Bài này đã đăng rồi.' };
+    if (a === 'fp_img') {
+      const im = await zImgSave(x, d.img, now); if (im.error) return { ok: false, error: im.error };
+      await run(x.db, 'UPDATE fp_posts SET img = ?, by_name = ?, at = ? WHERE id = ?', im.img, u.name, now, r.id);
+      await crmLog(x, u, 'Bài fanpage', r.id, '', im.img ? 'Đổi ảnh' : 'Bỏ ảnh', r.topic);
+      return { ok: true, img: im.img };
+    }
+    const m = String(d.at || '').trim().match(/^(\d{1,2}):(\d{2})$/); if (!m || +m[1] > 23 || +m[2] > 59) return { ok: false, error: 'Giờ chưa đúng (vd 19:30).' };
+    const at = m[1].padStart(2, '0') + ':' + m[2];
+    if (slotTime(r.day, at) < now + 5 * 60e3) return { ok: false, error: 'Giờ ' + at + ' ngày này đã qua, chọn giờ muộn hơn nhé.' };
+    await run(x.db, 'UPDATE fp_posts SET slot = ? WHERE id = ?', at, r.id); // giữ mã bài: trợ lý không soạn thêm bài cho giờ cũ
+    await crmLog(x, u, 'Bài fanpage', r.id, '', 'Đổi giờ đăng ' + r.slot + ' → ' + at, r.topic);
+    return { ok: true, at };
+  }
   if (a === 'fp_now') { // đăng ngay
     const r = await first(x.db, 'SELECT * FROM fp_posts WHERE id = ?', String(d.id || '')); if (!r) return { ok: false, error: 'Không tìm thấy bài.' };
     if (r.status === 'sent' || r.status === 'sending') return { ok: false, error: 'Bài này đã đăng rồi.' };
@@ -849,7 +871,7 @@ export async function crmFp(x, u, d, crmLog) {
     const dk = 'fp_regen_' + fmtDate(now, 'yyMMdd'), n = Number(await kvGet(x.db, dk) || 0);
     if (n >= 40) return { ok: false, error: 'Hôm nay đã viết lại 40 lần, mai thử tiếp nhé.' };
     await kvSet(x.db, dk, String(n + 1), 2 * DAY);
-    try { const r = await fpWrite(x, p, day, slot, String(d.hint || '').slice(0, 300), u.name, String(d.grp || '').slice(0, 80)); return { ok: true, id: r.id }; }
+    try { const r = await fpWrite(x, p, day, slot, String(d.hint || '').slice(0, 300), u.name, String(d.grp || '').slice(0, 80), old ? String(d.id) : ''); return { ok: true, id: r.id }; }
     catch (e) { return { ok: false, error: 'AI chưa viết được: ' + e.message }; }
   }
   if (a === 'fp_send') { // nhân sự tự viết bài: đăng ngay / hẹn giờ, 1 hoặc nhiều trang

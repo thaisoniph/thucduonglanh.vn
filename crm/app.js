@@ -11914,13 +11914,17 @@
   });
   function zbImgOpen(id) { // 🖼 đổi ảnh bài đăng: chọn trong kho ảnh thật của web / tải từ máy / bỏ ảnh
     var p = ((ZB.d && ZB.d.posts) || []).filter(function (x) { return x.id === id; })[0]; if (!p) return;
-    var lib = (ZB.d && ZB.d.lib) || [];
+    imgPickOpen(p.img, (ZB.d && ZB.d.lib) || [], 'zb_img', id, zbFetch);
+  }
+  /** khung chọn ảnh dùng chung: bài nhóm Zalo (zb_img) và bài fanpage (fp_img, 29/11/2026) */
+  function imgPickOpen(cur, lib, act, id, done) {
+    var p = { img: cur };
     var m = modal('🖼 Ảnh kèm bài', '<p class="small muted">Bấm vào 1 ảnh để chọn. Ảnh đang dùng có viền xanh.</p>' +
       '<div class="lq-btns" style="margin-bottom:10px"><label class="btn pri">📷 Tải ảnh từ máy<input type="file" id="zbImgFile" accept="image/*" hidden></label>' + (p.img ? '<button class="btn ghost" data-zbpick="">🚫 Không kèm ảnh</button>' : '') + '</div>' +
       '<p class="zb-sub"><b>Kho ảnh thật trên web</b> <span class="muted small">(' + lib.length + ' ảnh trong các bài viết)</span></p>' +
       '<div class="zb-lib">' + lib.map(function (i) { return '<button class="zb-libi' + (i.url === p.img ? ' on' : '') + '" data-zbpick="' + esc(i.url) + '" title="' + esc(i.alt) + '"><img src="' + esc(i.thumb || i.url) + '" alt="' + esc(i.alt) + '" loading="lazy"><span>' + esc(i.alt) + '</span></button>'; }).join('') + '</div>',
       '<button class="btn" data-close>Đóng</button>');
-    var put = function (img, msg) { return api('zb_img', { id: id, img: img }).then(function () { closeModal(); toast(msg); zbFetch(); }, function (e) { toast(e.message, true); }); };
+    var put = function (img, msg) { return api(act, { id: id, img: img }).then(function () { closeModal(); toast(msg); done(); }, function (e) { toast(e.message, true); }); };
     m.addEventListener('click', function (e) { var b = e.target.closest('[data-zbpick]'); if (!b) return; var u = b.getAttribute('data-zbpick'); put(u, u ? 'Đã đổi ảnh ✓' : 'Đã bỏ ảnh, bài chỉ đăng chữ ✓'); });
     $('#zbImgFile', m).onchange = function () { var f = this.files && this.files[0]; if (!f) return; toast('Đang tải ảnh lên…'); shrinkImage(f).then(function (src) { return put(src, 'Đã tải ảnh lên ✓'); }, function () { toast('Không đọc được ảnh này, bạn chọn ảnh khác nhé.', true); }); };
   }
@@ -12055,6 +12059,13 @@
     });
     return h;
   }
+  /** 🕐 đổi giờ đăng 1 bài (29/11/2026): giờ mặc định của trang đổi ở 📄 Fanpage & cài đặt */
+  function fpTimeOpen(p) {
+    var m = modal('🕐 Đổi giờ đăng', '<p class="small">Bài <b>' + esc(p.topic) + '</b> · ' + zbDay(p.day) + '</p><label class="f"><span>Giờ đăng mới</span><input type="time" id="fpTimeIn" class="zb-text" value="' + esc(p.slot) + '"></label>' +
+      '<p class="small muted">Chỉ đổi giờ bài này. Muốn đổi giờ mặc định mỗi ngày: thẻ 📄 Fanpage & cài đặt → bấm tên trang → ô Giờ đăng.</p>',
+      '<button class="btn" data-close>Huỷ</button><button class="btn pri" id="fpTimeOk">Lưu giờ</button>');
+    $('#fpTimeOk', m).onclick = function () { var b = this; b.disabled = true; api('fp_time', { id: p.id, at: $('#fpTimeIn', m).value }).then(function (r) { closeModal(); toast('Bài sẽ đăng lúc ' + r.at + ' ✓'); fpFetch(); }, function (e) { b.disabled = false; toast(e.message, true); }); };
+  }
   function fpNeed(p) { return p && !p.none && p.status !== 'ok' && p.status !== 'err' && fpPageOf(p.page).cfg.mode !== 'auto' ? 1 : 0; }
   function fpConnHtml(j, open) {
     var A = j.app, ps = j.pages || [], on = ps.filter(function (p) { return p.active; }), ready = A.id && A.secret && A.verified && ps.length;
@@ -12125,7 +12136,7 @@
       '<div class="zb-mode"><label><input type="radio" name="fpMode_' + esc(p.id) + '" value="approve"' + (c.mode !== 'auto' ? ' checked' : '') + '> ⏳ Chờ duyệt</label>' +
       '<label><input type="radio" name="fpMode_' + esc(p.id) + '" value="auto"' + (c.mode === 'auto' ? ' checked' : '') + '> 🤖 Tự đăng</label></div>' +
       '<p class="small muted" style="margin:4px 0 8px"><b>Chờ duyệt</b> = chỉ đăng bài đã bấm ✅ Duyệt, AI soạn xong báo Telegram · <b>Tự đăng</b> = tới giờ tự đăng (vẫn sửa / bỏ được trước giờ đăng).</p>' +
-      '<label class="f"><span>Giờ đăng <small class="muted">cách nhau dấu phẩy, tối đa 4 bài / ngày, vd: 11:30, 20:00</small></span><input class="zb-text" data-fpt="slots" value="' + esc((c.slots || []).join(', ')) + '"></label>' +
+      '<label class="f"><span>Giờ đăng <small class="muted">cách nhau dấu phẩy, tối đa 4 bài / ngày, vd: 11:30, 19:30</small></span><input class="zb-text" data-fpt="slots" value="' + esc((c.slots || []).join(', ')) + '"></label>' +
       ta('voice', 'Trang này dành cho ai, giọng thế nào', 'vd: mẹ bỉm sau sinh, giọng chị em tâm sự; AI viết theo', 2) +
       '<p class="small" style="margin:8px 0 2px"><b>🎯 Nhóm khách trang này nhắm tới</b> <span class="muted">không tích = mọi nhóm, xoay vòng. Mỗi bài AI chọn 1 nhóm + 1 tension rồi mới viết (sửa ở tab 🎯 Insight & nội dung).</span></p><div class="inx-aud">' +
       (FP.d.insG || []).filter(function (g) { return g.on; }).map(function (g) { return '<label class="zb-ck"><input type="checkbox" data-fpg="' + esc(g.id) + '"' + ((c.aud || []).indexOf(g.id) >= 0 ? ' checked' : '') + '><span>' + esc(g.name) + '</span></label>'; }).join('') + '</div>' +
@@ -12138,8 +12149,9 @@
   function fpPreview(p, pg) {
     var nm = pg.name || '?', lk = String(p.link || ''), dom = lk.replace(/^https?:\/\//, '').split(/[\/?#]/)[0], path = lk.replace(/^https?:\/\/[^\/]+/, '').split(/[?#]/)[0].replace(/\/$/, '');
     return '<div class="fp-card"><div class="fp-hd"><span class="fp-av">' + esc(nm.charAt(0).toUpperCase()) + '</span><span><b>' + esc(nm) + '</b><small>' + (p.sent_at ? fDateTime(p.sent_at) : p.slot + ' ' + zbDay(p.day).toLowerCase()) + ' · 🌐</small></span></div>' +
-      '<div class="fp-tx">' + fpRender(p.text) + '</div>' +
-      (lk ? '<div class="fp-lk"><small>' + esc(dom.toUpperCase()) + '</small><b>' + esc(decodeURIComponent(path.split('/').pop() || dom).replace(/-/g, ' ')) + '</b><span class="small muted">Ảnh xem trước lấy từ trang này</span></div>' : '') +
+      '<div class="fp-tx">' + fpRender(p.text) + (p.img && lk ? '<br><br>👉 Xem chi tiết: <span class="fp-lnk">' + esc(lk) + '</span>' : '') + '</div>' +
+      (p.img ? '<img src="' + esc(spfAbs(p.img)) + '" alt="" style="display:block;width:100%;max-height:360px;object-fit:cover">' : '') +
+      (lk && !p.img ? '<div class="fp-lk"><small>' + esc(dom.toUpperCase()) + '</small><b>' + esc(decodeURIComponent(path.split('/').pop() || dom).replace(/-/g, ' ')) + '</b><span class="small muted">Ảnh xem trước lấy từ trang này</span></div>' : '') +
       '<div class="fp-ft"><span>👍 Thích</span><span>💬 Bình luận</span><span>↗ Chia sẻ</span></div></div>';
   }
   function fpPostBox(p, d) {
@@ -12154,6 +12166,7 @@
       (er ? '<p class="small err">Facebook báo: ' + esc(p.err) + '</p><button class="btn pri zb-act" data-fp="now|' + esc(p.id) + '">📤 Thử đăng lại ngay</button>' : '') +
       (need ? '<button class="btn pri zb-act" data-fp="ok|' + esc(p.id) + '">✅ Duyệt bài này</button>' : '') +
       '<div class="zb-more"><button class="btn sm" data-fp="edit|' + esc(p.id) + '">✏️ Sửa chữ</button>' + (er ? '' : '<button class="btn sm" data-fp="now|' + esc(p.id) + '">📤 Đăng ngay</button>') + '<button class="btn sm" data-fp="regen|' + esc(p.id) + '">🔄 Viết lại</button>' +
+      '<button class="btn sm" data-fp="img|' + esc(p.id) + '">🖼 ' + (p.img ? 'Đổi ảnh' : 'Thêm ảnh') + '</button><button class="btn sm" data-fp="time|' + esc(p.id) + '">🕐 Đổi giờ đăng</button>' +
       (p.status === 'ok' ? '<button class="btn sm ghost" data-fp="draft|' + esc(p.id) + '">↩️ Bỏ duyệt</button>' : '') + '<button class="btn sm ghost" data-fp="skip|' + esc(p.id) + '">⏸ Bỏ bài này</button></div>' +
       '<div class="zb-edit"><textarea class="zb-text" id="fpT_' + esc(p.id) + '" rows="' + Math.min(16, Math.max(5, String(p.text).split('\n').length + 1)) + '">' + esc(p.text) + '</textarea>' +
       '<label class="f"><span>Link kèm bài <small class="muted">hiện ảnh xem trước; để trống = không kèm link</small></span><input class="zb-text" id="fpL_' + esc(p.id) + '" value="' + esc(p.link || '') + '"></label>' +
@@ -12222,6 +12235,9 @@
     if (v[0] === 'gcp' && gp) return copy(gp.text).then(function () { toast('Đã chép bài ✓ Mở nhóm, bấm Viết bài rồi dán (Ctrl+V)'); });
     if (v[0] === 'gimg' && gp) return spfImgSave({ id: 'fbg_' + gp.id, img: gp.img });
     if ((v[0] === 'gdone' || v[0] === 'gundo') && gp) { t.disabled = true; return api('fp_gdone', { id: id, undo: v[0] === 'gundo' }).then(after(v[0] === 'gdone' ? 'Đã ghi: bài đã đăng vào nhóm ✓' : 'Đã bỏ đánh dấu'), fail); }
+    var fpp = /^(img|time)$/.test(v[0]) && (FP.d.posts || []).filter(function (p) { return p.id === id; })[0];
+    if (v[0] === 'img' && fpp) return imgPickOpen(fpp.img, FP.d.lib || [], 'fp_img', id, fpFetch);
+    if (v[0] === 'time' && fpp) return fpTimeOpen(fpp);
     if (v[0] === 'pf') { FP.pf = id; return render(); }
     if (v[0] === 'track') return fpTrackOpen();
     if (v[0] === 'go') { if (v[2]) FP.lf = v[2]; return aiTabGo(FP, 'fp_tab', FP_GO[v[1]], v[1]); }
