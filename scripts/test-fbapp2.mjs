@@ -55,15 +55,28 @@ await (await import('file://' + ROOT + '/api/src/mkcamp.js')).mkCampSchema(DB);
 const T = Date.now(), dd = t => new Date(t + 7 * 3600e3).toISOString().slice(0, 10);
 raw.prepare("INSERT INTO kv (k, v) VALUES ('mkt_offers', ?)").run(JSON.stringify([
   { id: 'a', title: 'Combo 2 hộp 799k', text: '2 hộp VitaGreen 500g 799.000đ\ntặng bình lắc', bot: true, until: dd(T + 864e5) },
-  { id: 'b', title: 'QC để lại SĐT', text: '1 hộp 450.000đ', bot: true, camp: 'ĐỂ LẠI SĐT' },
+  { id: 'b', title: 'QC để lại SĐT', text: '1 hộp 450.000đ', bot: true, camps: [{ id: '501', n: 'cũ' }] },
+  { id: 'e', title: 'Trang khác', text: 'quà riêng trang 777', bot: true, pages: ['777'] },
   { id: 'c', title: 'Khách thân thiết', text: 'giảm 10%', bot: false },
   { id: 'd', title: 'Hết hạn', text: 'x', bot: true, until: dd(T - 2 * 864e5) }]));
 const pg = { id: '111' };
 let pr = await FB.promosFor(x, pg, 'k1', T);
 assert.ok(pr.txt.includes('Combo 2 hộp 799k') && pr.txt.includes('799.000đ; tặng bình lắc'));
-assert.ok(!pr.txt.includes('450.000') && !pr.txt.includes('giảm 10%') && !pr.txt.includes('Hết hạn'), 'chỉ ưu đãi tích 🤖, còn hạn, không giới hạn chiến dịch');
-raw.prepare("INSERT INTO mk_adref (psid, page, ad, camp, at) VALUES ('k2', '111', '9', '28/11 ĐỂ LẠI SĐT NHẬN ƯU ĐÃI', ?)").run(T);
+assert.ok(!pr.txt.includes('450.000') && !pr.txt.includes('giảm 10%') && !pr.txt.includes('Hết hạn') && !pr.txt.includes('777'), 'chỉ ưu đãi tích 🤖, còn hạn, đúng trang, không gắn QC');
+raw.prepare("INSERT INTO kv (k, v) VALUES ('mkt_live', ?)").run(JSON.stringify({ camps: [{ id: '501', n: '28/11 ĐỂ LẠI SĐT', st: 'ACTIVE', pages: [['111', 'TDL']], ads: [{ id: '9' }] }] }));
+raw.prepare("INSERT INTO mk_adref (psid, page, ad, camp, at) VALUES ('k2', '111', '9', 'tên đã đổi', ?)").run(T);
 pr = await FB.promosFor(x, pg, 'k2', T);
 assert.ok(pr.txt.includes('quảng cáo có chương trình riêng') && pr.txt.includes('450.000đ') && pr.kb.includes('450.000đ'), 'khách từ QC khớp chữ → ưu đãi riêng');
-assert.equal(pr.hit, 'QC để lại SĐT, Combo 2 hộp 799k');
+assert.equal(pr.hit, 'QC để lại SĐT', 'khách QC có ưu đãi riêng → chỉ báo ưu đãi đó (khớp theo mã quảng cáo)');
+assert.ok((await FB.promosFor(x, { id: '777' }, 'k9', T)).txt.includes('quà riêng trang 777'));
+
+// 1 chiến dịch chỉ gắn 1 ưu đãi (salemkt.js offer_save)
+const SM = await import('file://' + ROOT + '/api/src/salemkt.js'), ql = { level: 2, name: 'Thủy', role: 'Quản lý' };
+raw.prepare("UPDATE kv SET v = '[]' WHERE k = 'mkt_offers'").run();
+let o1 = await SM.crmOffers(x, ql, { action: 'offer_save', title: 'A', text: 'a', bot: true, camps: [{ id: '501', n: 'x' }, { id: '502', n: 'y' }] });
+assert.equal(o1.ok, true);
+let o2 = await SM.crmOffers(x, ql, { action: 'offer_save', title: 'B', text: 'b', bot: true, camps: [{ id: '502', n: 'y' }], pages: ['111'] });
+const A = o2.list.find(o => o.title === 'A'), B = o2.list.find(o => o.title === 'B');
+assert.deepEqual(A.camps.map(c => c.id), ['501']); assert.deepEqual(B.camps.map(c => c.id), ['502']); assert.deepEqual(B.pages, ['111']);
+assert.equal((await SM.crmOffers(x, { level: 1, name: 'S', role: 'Sale' }, { action: 'offer_save', title: 'C', text: 'c' })).ok, false);
 console.log('✅ test-fbapp2: OK');

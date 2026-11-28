@@ -276,8 +276,13 @@ export async function crmOffers(x, u, d) {
   if (a === 'offer_save') {
     const title = String(d.title || '').trim().slice(0, 120); if (!title) return { ok: false, error: 'Chưa có tên ưu đãi.' };
     const until = DAY_RE.test(String(d.until || '')) ? d.until : '';
-    const o = { id: d.id || randHex(4), title, prod: String(d.prod || '').trim().slice(0, 60), text: String(d.text || '').trim().slice(0, 800), msg: String(d.msg || '').trim().slice(0, 1000), until, bot: !!d.bot, camp: String(d.camp || '').trim().slice(0, 80), by: u.name, at: Date.now() }; // msg: mẫu tin sale gửi khách ([Tên], [Sản phẩm], [Link])
+    const o = { id: d.id || randHex(4), title, prod: String(d.prod || '').trim().slice(0, 60), text: String(d.text || '').trim().slice(0, 800), msg: String(d.msg || '').trim().slice(0, 1000), until, bot: !!d.bot,
+      camps: (Array.isArray(d.camps) ? d.camps : []).slice(0, 40).map(c => ({ id: String(c && c.id || '').replace(/\D/g, ''), n: String(c && c.n || '').slice(0, 160) })).filter(c => c.id), // 📣 chiến dịch QC gắn ưu đãi này (trợ lý Fanpage)
+      pages: (Array.isArray(d.pages) ? d.pages : []).slice(0, 30).map(v => String(v).replace(/\D/g, '')).filter(Boolean), // 📣 mọi khách nhắn các trang này
+      by: u.name, at: Date.now() }; // msg: mẫu tin sale gửi khách ([Tên], [Sản phẩm], [Link])
     const i = L.findIndex(y => y.id === o.id); if (i >= 0) L[i] = o; else L.unshift(o);
+    const cs = new Set(o.camps.map(c => c.id)), ps = new Set(o.pages); // 1 chiến dịch / 1 trang chỉ gắn 1 ưu đãi: gắn chỗ mới thì gỡ khỏi ưu đãi cũ
+    if (cs.size || ps.size) L = L.map(y => y.id === o.id ? y : Object.assign({}, y, { camps: (y.camps || []).filter(c => !cs.has(c.id)), pages: (y.pages || []).filter(v => !ps.has(v)) }));
     L = L.filter(y => !y.until || dayMs(y.until) >= Date.now() - 60 * DAY).slice(0, 40); // ưu đãi hết hạn quá 60 ngày thì bỏ
     await kvSet(x.db, 'mkt_offers', JSON.stringify(L)); return { ok: true, list: L };
   }

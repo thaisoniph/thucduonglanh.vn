@@ -4104,3 +4104,14 @@ table.dly-caps td:first-child { position: static; }
 .mk-pd { border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; margin: 8px auto; max-width: 780px; background: #fff; }
 .mk-pd summary { cursor: pointer; } .mk-pd summary small { display: block; color: var(--muted); font-size: 12.5px; }
 .mk-pd .pma-res { padding: 10px 4px; font-size: 15.5px; } .mk-pd .steps { justify-content: flex-end; }
+
+/* 📣 Chương trình QC (tab Fanpage): mỗi quảng cáo 1 dòng + nút ghi ưu đãi */
+.fpo-row { display: flex; gap: 10px; align-items: flex-start; padding: 8px 0; border-top: 1px solid var(--line, #e6e6e6); }
+.fpo-row:first-of-type { border-top: 0; }
+.fpo-row img, .fpo-ic { width: 44px; height: 44px; border-radius: 8px; object-fit: cover; flex: none; display: flex; align-items: center; justify-content: center; background: #f3f3f0; font-size: 20px; }
+.fpo-tx { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.fpo-tx > b { overflow-wrap: anywhere; }
+.fpo-of { font-size: .9rem; color: var(--ok, #2f7d4f); }
+.fpo-of small { color: var(--muted, #666); }
+.fpo-no { font-size: .9rem; color: var(--muted, #666); }
+.fpo-row .btn { flex: none; }

@@ -12025,7 +12025,7 @@
     if (ft === 'posts') h += inTabi('Bài trợ lý sẽ đăng lên từng fanpage. <b>Bài chờ duyệt mà chưa bấm ✅ Duyệt thì tới giờ không được đăng.</b>', ['Đọc bài, cần thì <b>✏️ Sửa chữ</b>', 'Ưng rồi bấm <b>✅ Duyệt</b>', 'Muốn đăng thêm: bấm <b>✍️ Viết bài đăng</b> trên cùng']) + FPO;
     if (ft === 'grp') h += inTabi('Đăng bài chăm sóc vào nhóm Facebook <b>Sống khỏe cùng thực dưỡng lành mạnh</b>. Facebook không cho trợ lý tự đăng vào nhóm, nên trợ lý soạn sẵn, bạn dán vào.', ['Bấm <b>📋 Copy bài</b> và <b>⬇️ Lưu ảnh</b>', 'Bấm <b>👥 Mở nhóm</b> → Viết bài → dán chữ, thêm ảnh', 'Bấm 🕐 <b>Lên lịch</b> đúng giờ ghi trên thẻ (hoặc đăng luôn)', 'Xong bấm <b>✅ Đã đăng vào nhóm</b>'], 'Mỗi tuần làm 1 lần cho cả tuần là đủ. Muốn sửa nội dung thì sửa ở tab 🤖 Trợ lý Zalo.') + fbgHtml(j);
     if (ft === 'log') h += inTabi('Mọi bình luận, tin nhắn trợ lý vừa trả lời. <b>Ca 🙋 cần người thật</b> ghim trên cùng.', ['Trả lời khách trong hộp thư trang', 'Xong bấm <b>✅ Đã xử lý</b>', 'Trợ lý trả lời chưa đúng: bấm <b>✍️ Dạy trợ lý trả lời</b>']) + '<h2 class="zb-h" id="fpLog">🕘 Trợ lý vừa làm gì</h2>' + fpLogHtml(j);
-    if (ft === 'offer') h += inTabi('Ưu đãi quảng cáo đang chạy (giá, quà, hạn). <b>Ưu đãi có tích 🤖 thì trợ lý báo đúng nội dung này khi khách hỏi giá</b>, thay vì chỉ báo giá web. Đổi chương trình thì sửa ở đây, trợ lý dùng ngay.', ['Bấm <b>＋ Thêm</b> hoặc <b>Sửa</b>', 'Ghi đúng giá, quà, điều kiện ở ô “Nội dung sale cần nói đúng”', 'Tích <b>🤖 Trợ lý Fanpage báo ưu đãi này</b>', 'Hết chương trình: đặt ngày hết hạn hoặc bỏ tích']) + offerAdmin();
+    if (ft === 'offer') h += inTabi('Khách bấm quảng cáo nào thì trợ lý báo <b>đúng ưu đãi của quảng cáo đó</b>. Quảng cáo chưa ghi ưu đãi thì trợ lý báo giá web.', ['Tìm quảng cáo đang chạy trong trang', 'Bấm <b>＋ Ghi ưu đãi</b>, ghi giá + quà khách thấy trên quảng cáo', 'Quảng cáo khác cùng ưu đãi: bấm <b>＋ Ghi ưu đãi</b> → chọn ưu đãi đã ghi (1 chạm)']) + fpOfferHtml(FP.d);
     if (ft === 'stat') h += inTabi('7 ngày qua trợ lý trả lời bao nhiêu bình luận, tin nhắn, xin được bao nhiêu số; bài đăng được tương tác thế nào.', ['Mỗi tuần xem 1 lần']) + ST7;
     if (ft === 'pages') h += inTabi('Các fanpage đang theo dõi: bật / tắt trợ lý, chờ duyệt hay tự đăng, giờ đăng của từng trang. <b>Ít khi phải sửa.</b>', ['Bấm tên trang để mở cài đặt trang đó', 'Đổi xong bấm <b>Lưu</b>']) + FPG;
     return h;
@@ -12231,6 +12231,7 @@
     if (v[0] === 'teach') return aiTeachOpen('fp', (FP.d.log || []).concat(FP.more || [], FP.d.open || []).filter(function (l) { return String(l.rid) === id; })[0], fpFetch);
     if (v[0] === 'logmore') { var al = (FP.d.log || []).concat(FP.more || []), mn = al.reduce(function (m, l) { return Math.min(m, l.rid || 1e15); }, 1e15); t.disabled = true; t.textContent = '⏳ Đang tải…'; return api('fp_logmore', { before: mn }).then(function (r) { FP.more = (FP.more || []).concat(r.log || []); if ((r.log || []).length < 100) FP.moreEnd = 1; render(); }, fail); }
     if (v[0] === 'app') { t.disabled = true; return api('fp_app', { appId: $('#fpAppId').value.trim(), secret: $('#fpSecret').value.trim(), config: $('#fpConfig').value.trim() }).then(after('Đã lưu ✓ Làm tiếp bước 2.'), fail); }
+    if (v[0] === 'fpo') return fpoEdit(v[1], v.slice(2).join('|'));
     if (v[0] === 'app2') { t.disabled = true; return api('fp_app2', { appId: $('#fpApp2Id').value.trim(), secret: $('#fpApp2Sec').value.trim() }).then(after('Đã lưu app Messenger ✓ Giờ dán mã trang.'), fail); }
     if (v[0] === 'app2off') { if (!confirm('Gỡ app Messenger riêng? Tin nhắn sẽ quay về app chính.')) return; t.disabled = true; return api('fp_app2', { off: 1 }).then(after('Đã gỡ app Messenger riêng'), fail); }
     if (v[0] === 'ptoken2') { t.disabled = true; return api('fp_ptoken2', { ptk: $('#fpPtk2').value.trim() }).then(function (j) { if (j.err || j.miss) alert('Đã lưu mã cho “' + j.name + '”' + (j.err ? '\n⚠️ ' + j.err : '') + (j.miss ? '\n⚠️ Mã chưa có quyền pages_messaging.' : '')); else toast('Đã nối “' + j.name + '” với app Messenger ✓'); fpFetch(); }, fail); }
@@ -14497,7 +14498,7 @@
     if (!L.length) return '<p class="muted">' + (edit ? 'Chưa có ưu đãi nào. Bấm ＋ để thêm, sale sẽ thấy ngay ở tab Khách hỏi.' : 'Marketing chưa ghi ưu đãi nào.') + '</p>';
     return L.map(function (o) {
       var old = o.until && o.until < t0;
-      return '<div class="offer-card' + (old ? ' old' : '') + '"><div class="offer-h"><b>🎁 ' + esc(o.title) + '</b>' + (o.prod ? '<span class="tag">' + esc(o.prod) + '</span>' : '') + (o.bot ? '<span class="tag st-xong">🤖 Trợ lý báo khách' + (o.camp ? ' · QC có chữ “' + esc(o.camp) + '”' : ' · mọi khách') + '</span>' : '') + '</div>' +
+      return '<div class="offer-card' + (old ? ' old' : '') + '"><div class="offer-h"><b>🎁 ' + esc(o.title) + '</b>' + (o.prod ? '<span class="tag">' + esc(o.prod) + '</span>' : '') + (o.bot ? '<span class="tag st-xong">🤖 Trợ lý báo khách' + ((o.camps || []).length + (o.pages || []).length ? ' · ' + ((o.camps || []).length + (o.pages || []).length) + ' quảng cáo / trang' : ' · mọi khách') + '</span>' : '') + '</div>' +
         (o.text ? '<p>' + esc(o.text).replace(/\n/g, '<br>') + '</p>' : '') +
         '<small class="muted">' + (o.until ? (old ? 'Đã hết hạn ' : 'Đến hết ') + o.until.split('-').reverse().join('/') : 'Không ghi hạn') + (o.by ? ' · ' + esc(o.by) : '') + '</small>' +
         (edit && !o.auto ? ' <button class="link" data-offer="' + esc(o.id) + '">Sửa</button>' : edit ? ' <small class="muted">· tự có trong Ngày Đôi, sửa ở /admin → Cài đặt chung</small>' : '') + '</div>';
@@ -14525,20 +14526,83 @@
     return '<div class="box"><div class="offer-h"><h3 style="margin:0">🎁 Ưu đãi / thông điệp đang chạy <small class="muted">(sale xem ở tab Khách hỏi)</small></h3><button class="btn sm pri" data-offer="new">＋ Thêm</button></div>' +
       (L === undefined ? '<p class="muted">⏳ Đang tải…</p>' : L === null ? '<p class="muted">⚠️ Chưa tải được (máy chủ chưa cập nhật?).</p>' : offerList(L, true)) + '</div>';
   }
+  /** Sửa ưu đãi (tab Marketing / Khách hỏi). 28/11/2026 gọn lại: 3 ô chính, phần cho sale cất trong "Thêm cho sale". Gắn quảng cáo nào thì làm ở 📘 Fanpage → 📣 Chương trình QC. */
   function offerEdit(id) {
-    var o = id === 'new' ? {} : ((S.offers && S.offers.list) || []).filter(function (x) { return x.id === id; })[0] || {};
-    var body = '<div class="box"><label class="f"><span>Tên ưu đãi / thông điệp (khách đã thấy trên quảng cáo)</span><input type="text" id="ofT" maxlength="120" value="' + esc(o.title || '') + '" placeholder="vd Mua 2 tặng 1 Gafo Fucoidan"></label>' +
-      '<label class="f"><span>Sản phẩm</span><input type="text" id="ofP" maxlength="60" value="' + esc(o.prod || '') + '" placeholder="vd Gafo Fucoidan"></label>' +
-      '<label class="f"><span>Nội dung sale cần nói đúng (giá, quà, điều kiện, câu quảng cáo chính)</span><textarea id="ofX" rows="5" maxlength="800">' + esc(o.text || '') + '</textarea></label>' +
-      '<label class="f"><span>Mẫu tin sale gửi khách <small class="muted">(📣 Gửi ưu đãi lần lượt chọn ưu đãi này là có sẵn; viết [Tên], [Sản phẩm], [Link] để máy tự điền)</small></span><textarea id="ofM" rows="5" maxlength="1000" placeholder="vd Dạ [Tên] ơi, …  [Tên] bấm link này đặt nhanh: [Link]">' + esc(o.msg || '') + '</textarea></label>' +
-      '<label class="f"><span>Áp dụng đến hết ngày (bỏ trống = chưa có hạn)</span><input type="date" id="ofU" value="' + esc(o.until || '') + '"></label>' +
-      '<label class="zb-ck"><input type="checkbox" id="ofB"' + (o.bot ? ' checked' : '') + '><span><b>🤖 Trợ lý Fanpage báo ưu đãi này cho khách</b><small>Khách hỏi giá / ưu đãi trong Messenger, trợ lý nói đúng nội dung ở ô “Nội dung sale cần nói đúng”. Hết hạn thì tự thôi.</small></span></label>' +
-      '<label class="f"><span>Chỉ báo cho khách đến từ chiến dịch quảng cáo có chữ <small class="muted">(bỏ trống = mọi khách nhắn trang; vd “ĐỂ LẠI SĐT”)</small></span><input type="text" id="ofC" maxlength="80" value="' + esc(o.camp || '') + '"></label><p class="err" id="ofE"></p></div>';
+    var o = id === 'new' ? { bot: true } : ((S.offers && S.offers.list) || []).filter(function (x) { return x.id === id; })[0] || {};
+    var nC = (o.camps || []).length + (o.pages || []).length;
+    var body = '<div class="box"><label class="f"><span>Ưu đãi gì? <small class="muted">(tên ngắn, khách đã thấy trên quảng cáo)</small></span><input type="text" id="ofT" maxlength="120" value="' + esc(o.title || '') + '" placeholder="vd Combo 2 hộp VitaGreen 799k"></label>' +
+      '<label class="f"><span>Nói gì với khách? <small class="muted">(giá, quà, điều kiện)</small></span><textarea id="ofX" rows="4" maxlength="800" placeholder="vd 2 hộp 500g chỉ 799.000đ, tặng bình lắc + ebook thực đơn 7 ngày, freeship">' + esc(o.text || '') + '</textarea></label>' +
+      '<label class="f"><span>Đến hết ngày <small class="muted">(bỏ trống = tới khi sửa)</small></span><input type="date" id="ofU" value="' + esc(o.until || '') + '"></label>' +
+      '<label class="zb-ck"><input type="checkbox" id="ofB"' + (o.bot ? ' checked' : '') + '><span><b>🤖 Trợ lý Fanpage báo ưu đãi này</b><small>' + (nC ? 'Đang gắn ' + nC + ' quảng cáo / trang (sửa ở 📘 Fanpage → 📣 Chương trình QC).' : 'Chưa gắn quảng cáo nào: trợ lý báo cho mọi khách nhắn trang. Gắn từng quảng cáo ở 📘 Fanpage → 📣 Chương trình QC.') + '</small></span></label>' +
+      '<details class="small"' + (o.prod || o.msg ? ' open' : '') + '><summary>Thêm cho sale (không bắt buộc)</summary>' +
+      '<label class="f"><span>Sản phẩm</span><input type="text" id="ofP" maxlength="60" value="' + esc(o.prod || '') + '" placeholder="vd Bữa Ăn Dinh Dưỡng VitaGreen"></label>' +
+      '<label class="f"><span>Mẫu tin sale gửi khách <small class="muted">(viết [Tên], [Sản phẩm], [Link] để máy tự điền)</small></span><textarea id="ofM" rows="4" maxlength="1000" placeholder="vd Dạ [Tên] ơi, …  [Tên] bấm link này đặt nhanh: [Link]">' + esc(o.msg || '') + '</textarea></label></details><p class="err" id="ofE"></p></div>';
     var m = modal(id === 'new' ? '🎁 Thêm ưu đãi' : '🎁 Sửa ưu đãi', body, (id !== 'new' ? '<button class="btn ghost" id="ofDel">Xoá</button>' : '') + '<button class="btn" data-close>Huỷ</button><button class="btn pri" id="ofSave">Lưu</button>');
     var done = function (j) { S.offers = { at: Date.now(), list: j.list }; closeModal(); toast('Đã lưu'); render(); }, fail = function (e) { $('#ofE', m).textContent = e.message; };
-    $('#ofSave', m).onclick = function () { api('offer_save', { id: o.id || '', title: $('#ofT', m).value, prod: $('#ofP', m).value, text: $('#ofX', m).value, msg: $('#ofM', m).value, until: $('#ofU', m).value, bot: $('#ofB', m).checked, camp: $('#ofC', m).value }).then(done, fail); };
+    $('#ofSave', m).onclick = function () { api('offer_save', { id: o.id || '', title: $('#ofT', m).value, prod: $('#ofP', m).value, text: $('#ofX', m).value, msg: $('#ofM', m).value, until: $('#ofU', m).value, bot: $('#ofB', m).checked, camps: o.camps || [], pages: o.pages || [] }).then(done, fail); };
     if ($('#ofDel', m)) $('#ofDel', m).onclick = function () { if (confirm('Xoá ưu đãi này?')) api('offer_del', { id: o.id }).then(done, fail); };
   }
+  /* 📣 Chương trình QC (28/11/2026, anh Sơn: nhiều trang, mỗi trang thử nhiều chiến dịch): danh sách chiến dịch đang chạy theo trang → bấm 1 nút ghi ưu đãi.
+     Dữ liệu: ưu đãi chung kv mkt_offers (o.camps = chiến dịch, o.pages = khách nhắn trang không qua QC); chiến dịch từ kv mkt_live (fp_view.camps). Trợ lý đọc ở api/src/fb.js promosFor. */
+  function fpoLive() { var t0 = isoDate(Date.now()); return (offersGet() || []).filter(function (o) { return !o.auto && o.bot && (!o.until || o.until >= t0); }); }
+  function fpoOf(kind, key) { var L = fpoLive(); return L.filter(function (o) { return kind === 'c' ? (o.camps || []).some(function (c) { return c.id === key; }) : (o.pages || []).indexOf(key) >= 0; })[0] || null; }
+  function fpoName(n) { return String(n || '').replace(/^\d{1,2}\/\d{1,2}(\/\d{2,4})?\s*-\s*/, ''); } // bỏ ngày đầu tên chiến dịch cho gọn
+  function fpoRow(kind, key, label, th, o, sub) {
+    return '<div class="fpo-row' + (o ? ' ok' : '') + '">' + (th ? '<img src="' + esc(th) + '" alt="" loading="lazy">' : '<span class="fpo-ic">' + (kind === 'c' ? '📢' : '💬') + '</span>') +
+      '<div class="fpo-tx"><b>' + esc(label) + '</b>' + (sub ? '<small class="muted">' + sub + '</small>' : '') +
+      (o ? '<span class="fpo-of">🤖 Trợ lý báo: <b>' + esc(o.title) + '</b>' + (o.until ? ' · đến ' + o.until.split('-').reverse().slice(0, 2).join('/') : '') + '<br><small>' + esc(String(o.text).slice(0, 140)) + '</small></span>'
+        : '<span class="fpo-no">' + (kind === 'c' ? '⚠️ Chưa ghi ưu đãi: trợ lý đang báo giá web' : 'Chưa ghi: trợ lý báo giá web') + '</span>') + '</div>' +
+      '<button class="btn sm' + (o ? '' : ' pri') + '" data-fp="fpo|' + kind + '|' + esc(key) + '">' + (o ? '✏️ Sửa' : '＋ Ghi ưu đãi') + '</button></div>';
+  }
+  function fpOfferHtml(j) {
+    if (offersGet() === undefined) return '<div class="box"><p class="muted">⏳ Đang tải…</p></div>';
+    if (!isMkt() && lvl() < 2) return '<div class="box"><p class="muted">Chỉ Marketing, Quản lý và Quản trị ghi được ưu đãi.</p></div>';
+    var ps = (j.pages || []).filter(function (p) { return p.track; }), cs = j.camps || [], used = {}, h = '';
+    var gen = fpoLive().filter(function (o) { return !(o.camps || []).length && !(o.pages || []).length; });
+    if (gen.length) h += '<div class="box small">🌐 Ưu đãi chung mọi trang: ' + gen.map(function (o) { return '<b>' + esc(o.title) + '</b> <button class="link" data-offer="' + esc(o.id) + '">Sửa</button>'; }).join(' · ') + '</div>';
+    ps.forEach(function (p) {
+      var mine = cs.filter(function (c) { return c.pages.indexOf(String(p.id)) >= 0; });
+      if (!mine.length && !fpoOf('p', String(p.id))) return;
+      mine.forEach(function (c) { used[c.id] = 1; });
+      h += '<div class="box fpo-pg"><h3 class="zb-h" style="font-size:1rem;margin:0 0 6px">📄 ' + esc(p.name) + '</h3>' +
+        mine.map(function (c) { return fpoRow('c', c.id, fpoName(c.n), c.th, fpoOf('c', c.id), c.st === 'ACTIVE' ? '🟢 Quảng cáo đang chạy' : '⏸ Đã dừng'); }).join('') +
+        fpoRow('p', String(p.id), 'Khách nhắn trang không qua quảng cáo', '', fpoOf('p', String(p.id)), '') + '</div>';
+    });
+    var rest = cs.filter(function (c) { return !used[c.id]; });
+    if (rest.length) h += '<details class="box"><summary>Quảng cáo của trang khác (' + rest.length + ')</summary>' + rest.map(function (c) { return fpoRow('c', c.id, fpoName(c.n), c.th, fpoOf('c', c.id), ''); }).join('') + '</details>';
+    if (!cs.length) h += '<div class="box"><p class="muted">Chưa thấy quảng cáo nào đang chạy. CRM lấy danh sách từ tab Marketing (tự cập nhật vài giờ / lần).</p></div>';
+    return h;
+  }
+  /** Bấm ＋ Ghi ưu đãi / Sửa ở 1 quảng cáo (kind 'c') hoặc 1 trang (kind 'p'). Dùng lại ưu đãi đã ghi = 1 chạm. */
+  function fpoEdit(kind, key) {
+    var c = kind === 'c' ? ((FP.d.camps || []).filter(function (z) { return z.id === key; })[0] || { id: key, n: '' }) : null;
+    var pg = kind === 'p' ? fpPageOf(key) : null, cur = fpoOf(kind, key), others = fpoLive().filter(function (o) { return !cur || o.id !== cur.id; });
+    var shared = cur ? (cur.camps || []).length + (cur.pages || []).length : 0, until = cur ? cur.until || '' : '';
+    var dIn = function (n) { return isoDate(Date.now() + n * DAY); }, eom = (function () { var d = new Date(); return isoDate(new Date(d.getFullYear(), d.getMonth() + 1, 0).getTime()); })();
+    var body = '<div class="box"><p class="small" style="margin:0 0 8px">' + (c ? '📢 Quảng cáo: <b>' + esc(fpoName(c.n)) + '</b>' : '💬 Khách nhắn <b>' + esc(pg.name) + '</b> không qua quảng cáo') + '</p>' +
+      (others.length ? '<p class="small" style="margin:0 0 4px"><b>Dùng lại ưu đãi đã ghi</b> (1 chạm):</p><div class="chips" style="margin-bottom:10px">' + others.map(function (o) { return '<button class="chip" data-fpou="' + esc(o.id) + '">' + esc(o.title) + '</button>'; }).join('') + '</div><p class="small muted" style="margin:0 0 6px">hoặc ghi ưu đãi mới:</p>' : '') +
+      '<label class="f"><span>Khách thấy ưu đãi gì trên quảng cáo này? <small class="muted">(giá, quà, điều kiện)</small></span><textarea id="fpoX" rows="4" maxlength="800" placeholder="vd Combo 2 hộp 799.000đ, tặng bình lắc + ebook thực đơn 7 ngày, freeship">' + esc(cur ? cur.text : '') + '</textarea></label>' +
+      (shared > 1 ? '<p class="small muted">✏️ Ưu đãi này đang dùng cho ' + shared + ' chỗ, sửa chữ ở đây là đổi cả ' + shared + '.</p>' : '') +
+      '<p class="small" style="margin:6px 0 4px"><b>Đến hết ngày</b></p><div class="chips" id="fpoU">' + [['', 'Tới khi sửa'], [dIn(7), '7 ngày'], [dIn(14), '14 ngày'], [eom, 'Hết tháng']].map(function (z) { return '<button class="chip' + (z[0] === until ? ' on' : '') + '" data-fpod="' + z[0] + '">' + z[1] + '</button>'; }).join('') +
+      '<input type="date" id="fpoD" value="' + esc(until) + '" style="width:auto"></div><p class="err" id="fpoE"></p></div>';
+    var m = modal(cur ? '📣 Sửa ưu đãi' : '📣 Ghi ưu đãi', body, (cur ? '<button class="btn ghost" id="fpoDel">Gỡ</button>' : '') + '<button class="btn" data-close>Huỷ</button><button class="btn pri" id="fpoSave">Lưu</button>');
+    var fail = function (e) { $('#fpoE', m).textContent = e.message; }, done = function (j) { S.offers = { at: Date.now(), list: j.list }; closeModal(); toast('Đã lưu ✓ Trợ lý dùng ngay'); render(); };
+    var tgt = function (o) { var cs = (o.camps || []).slice(), ps = (o.pages || []).slice(); if (c) { if (!cs.some(function (z) { return z.id === c.id; })) cs.push({ id: c.id, n: c.n }); } else if (ps.indexOf(key) < 0) ps.push(key); return { camps: cs, pages: ps }; };
+    var save = function (o, x) { return api('offer_save', Object.assign({ id: o.id || '', title: o.title, prod: o.prod || '', text: o.text, msg: o.msg || '', until: o.until || '', bot: true }, tgt(o), x || {})).then(done, fail); };
+    $$('[data-fpod]', m).forEach(function (b) { b.onclick = function () { $('#fpoD', m).value = b.getAttribute('data-fpod'); $$('[data-fpod]', m).forEach(function (z) { z.classList.toggle('on', z === b); }); }; });
+    $$('[data-fpou]', m).forEach(function (b) { b.onclick = function () { var o = others.filter(function (z) { return z.id === b.getAttribute('data-fpou'); })[0]; if (o) save(o); }; });
+    $('#fpoSave', m).onclick = function () {
+      var t = $('#fpoX', m).value.trim(); if (!t) return fail(new Error('Ghi ưu đãi khách thấy (giá, quà) trước nha.'));
+      var first = t.split(/\n|[.!]\s/)[0].slice(0, 60), u = $('#fpoD', m).value;
+      if (cur) save(cur, { text: t, until: u, title: cur.text === t ? cur.title : first }); else save({ title: first, text: t, until: u });
+    };
+    if ($('#fpoDel', m)) $('#fpoDel', m).onclick = function () {
+      var rest = { camps: (cur.camps || []).filter(function (z) { return !c || z.id !== c.id; }), pages: (cur.pages || []).filter(function (v) { return c || v !== key; }) };
+      if (!rest.camps.length && !rest.pages.length) { if (confirm('Gỡ ưu đãi này? Trợ lý quay về báo giá web.')) api('offer_del', { id: cur.id }).then(done, fail); return; }
+      api('offer_save', { id: cur.id, title: cur.title, prod: cur.prod || '', text: cur.text, msg: cur.msg || '', until: cur.until || '', bot: true, camps: rest.camps, pages: rest.pages }).then(done, fail);
+    };
+  }
+
 
   /* Hiệu quả của 1 sale, viết cho người không rành công nghệ: màn hình đầu chỉ có mục tiêu tháng, 4 ô lớn có đèn 🟢🟠🔴 (so với chính mình kỳ trước),
    * thanh "10 khách hỏi thì đi đâu" và tối đa 5 việc nên làm ngay. Số liệu chi tiết (xu hướng, chăm sóc, lý do, tỉnh) thu gọn, bấm mới mở; mục đang mở nhớ trên máy (localStorage rep_open). */

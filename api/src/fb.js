@@ -101,14 +101,25 @@ async function app2Cfg(x) { return Object.assign({ id: '', secret: '' }, await k
 const mt = p => p.token2 || p.token; // mã dùng cho Messenger
 const MSG_FIELDS = 'messages,messaging_postbacks,message_echoes,messaging_referrals';
 /** 📣 Chương trình đang chạy (28/11/2026, Thủy: QC thử nghiệm, ưu đãi đổi theo ngày / tuần): dùng chung ô 🎁 Ưu đãi đang chạy ở tab Marketing (kv mkt_offers, salemkt.js).
- *  Ưu đãi có tích "🤖 Trợ lý báo khách" (o.bot) + còn hạn (o.until) → bot Fanpage báo đúng nội dung (o.text). o.camp có chữ → chỉ khách đến từ chiến dịch có chữ đó (mk_adref); trống → mọi khách.
+ *  Ưu đãi có tích "🤖 Trợ lý báo khách" (o.bot) + còn hạn (o.until) → bot Fanpage báo đúng nội dung (o.text).
+ *  o.camps = [{ id, n }] chiến dịch đang chạy (kv mkt_live) Thủy chọn ở thẻ 📣 Chương trình QC: khách bấm QC đó (mk_adref) → ưu đãi riêng.
+ *  o.pages = [id trang]: mọi khách khác nhắn trang đó. Không gắn chiến dịch / trang nào → mọi khách mọi trang.
  *  Gác cổng (gate.js) được đưa thêm nội dung ưu đãi để không chặn giá ưu đãi. */
+/** Chiến dịch đang chạy / mới dừng ≤ 7 ngày (kv mkt_live, mkt.js) cho thẻ 📣 Chương trình QC: { id, n, st, pages: [id], th (ảnh QC) } */
+async function fpCamps(x) {
+  const L = await kvJson(x.db, 'mkt_live', null); if (!L || !Array.isArray(L.camps)) return [];
+  return L.camps.filter(c => c.st === 'ACTIVE' || (c.stop && Date.parse(c.stop) > Date.now() - 7 * DAY)).map(c => ({ id: String(c.id), n: String(c.n || ''), st: c.st, pages: (c.pages || []).map(z => String(z[0])), th: ((c.ads || []).find(a => a.th) || {}).th || '' }));
+}
 export async function promosFor(x, p, psid, now) {
   const day = fmtDate(now, 'yyyy-MM-dd');
   const act = ((await kvJson(x.db, 'mkt_offers', [])) || []).filter(o => o && o.bot && o.title && o.text && (!o.until || o.until >= day));
   if (!act.length) return { txt: '', kb: '', hit: '' };
-  let camp = ''; try { const r = await first(x.db, 'SELECT camp, at FROM mk_adref WHERE psid = ?', psid); if (r && now - r.at < 7 * DAY) camp = nrm(r.camp || ''); } catch (e) { }
-  const mine = act.filter(z => z.camp && camp && camp.indexOf(nrm(z.camp)) >= 0), gen = act.filter(z => !z.camp);
+  let cid = '', cn = ''; try { // khách đến từ chiến dịch nào (lần bấm QC trong 7 ngày)
+    const r = await first(x.db, 'SELECT ad, camp, at FROM mk_adref WHERE psid = ?', psid);
+    if (r && now - r.at < 7 * DAY) { cn = String(r.camp || ''); const L = await kvJson(x.db, 'mkt_live', null), c = ((L && L.camps) || []).find(c => (c.ads || []).some(a => String(a.id) === String(r.ad)) || (cn && c.n === cn)); if (c) cid = String(c.id); }
+  } catch (e) { }
+  const mine = act.filter(z => (z.camps || []).some(c => (cid && c.id === cid) || (cn && c.n === cn)));
+  const gen = mine.length ? [] : act.filter(z => !(z.camps || []).length && (!(z.pages || []).length || z.pages.includes(String(p.id)))); // khách QC có ưu đãi riêng → chỉ báo ưu đãi đó
   if (!mine.length && !gen.length) return { txt: '', kb: '', hit: '' };
   const line = z => '- ' + z.title + (z.prod ? ' [' + z.prod + ']' : '') + (z.until ? ' (đến hết ' + z.until.slice(8, 10) + '/' + z.until.slice(5, 7) + ')' : '') + ': ' + String(z.text).replace(/\s*\n\s*/g, '; ');
   const txt = 'CHƯƠNG TRÌNH ƯU ĐÃI ĐANG CHẠY (bộ phận Marketing ghi, mới hơn tài liệu):\n' +
@@ -670,7 +681,7 @@ export async function crmFp(x, u, d, crmLog) {
     const talk = await first(x.db, "SELECT count(*) AS n FROM fp_users WHERE last_in > ?", now - 7 * DAY);
     const insG = (await insBank(x)).map(g => ({ id: g.id, name: g.name, on: g.on }));
     return { ok: true, learnEd: await edCount(x, 'fb'), edR: (await edCount(x, 'reply')).ids, insG, app: { id: app.id, secret: !!app.secret, verify: admin ? app.verify : '', config: app.config, hook: HOOK_URL, cb: CB_URL, verified: Number(await kvGet(x.db, 'fp_verified')) || 0 }, app2: await (async () => { const a2 = await app2Cfg(x); return { id: a2.id, secret: !!a2.secret }; })(),
-      pages, trackSet, posts, grp: await fbgList(x, now), log, open, stats, talk: talk ? talk.n : 0, err: await kvGet(x.db, 'fp_write_err'), aiOn: !!x.env.ANTHROPIC_API_KEY, admin, now };
+      pages, trackSet, camps: await fpCamps(x), posts, grp: await fbgList(x, now), log, open, stats, talk: talk ? talk.n : 0, err: await kvGet(x.db, 'fp_write_err'), aiOn: !!x.env.ANTHROPIC_API_KEY, admin, now };
   }
   if (a === 'fp_gdone') { // 👥 đánh dấu đã đăng bài vào nhóm Facebook (giữ 14 ngày)
     const id = String(d.id || ''); if (!/^\d{8}_(sang|toi)$/.test(id)) return { ok: false, error: 'Không tìm thấy bài.' };
