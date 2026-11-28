@@ -11410,7 +11410,7 @@
     ['📊 Xem kết quả', 'mỗi tuần 1 lần', [['stat', '📊', 'Kết quả', '7 ngày, giờ đăng tốt']]],
     ['🛠 Chuẩn bị', 'khi cần', [['set', '⚙️', 'Cài đặt', 'bật tắt, giờ đăng']]]]; // 27/11/2026: 📋 Kế hoạch gộp vào 📝 Bài sắp đăng (thẻ cũ 'plan' tự về 'posts' trong aiTab)
   var ZB_GO = { zbPosts: 'posts', zbLog: 'log', zbStat: 'stat', zbPlan: 'posts', zbSet: 'set' };
-  var FP_G = [['📝 Mỗi ngày', 'duyệt bài, trả lời ca khó', [['posts', '📝', 'Bài sắp đăng', 'duyệt trước giờ đăng'], ['grp', '👥', 'Nhóm Facebook', 'dán bài, hẹn giờ'], ['log', '🕘', 'Trợ lý vừa làm gì', 'ca khó, lỗi']]],
+  var FP_G = [['📝 Mỗi ngày', 'duyệt bài, trả lời ca khó', [['posts', '📝', 'Bài sắp đăng', 'duyệt trước giờ đăng'], ['grp', '👥', 'Nhóm Facebook', 'dán bài, hẹn giờ'], ['log', '🕘', 'Trợ lý vừa làm gì', 'ca khó, lỗi'], ['offer', '📣', 'Chương trình QC', 'trợ lý báo giá theo']]],
     ['📊 Xem kết quả', 'mỗi tuần 1 lần', [['stat', '📊', 'Kết quả', '7 ngày qua']]],
     ['🛠 Chuẩn bị', 'khi cần', [['pages', '📄', 'Fanpage & cài đặt', 'bật trợ lý từng trang']]]];
   var FP_GO = { fpPosts: 'posts', fpGrp: 'grp', fpLog: 'log', fpStat: 'stat', fpPages: 'pages' };
@@ -12025,6 +12025,7 @@
     if (ft === 'posts') h += inTabi('Bài trợ lý sẽ đăng lên từng fanpage. <b>Bài chờ duyệt mà chưa bấm ✅ Duyệt thì tới giờ không được đăng.</b>', ['Đọc bài, cần thì <b>✏️ Sửa chữ</b>', 'Ưng rồi bấm <b>✅ Duyệt</b>', 'Muốn đăng thêm: bấm <b>✍️ Viết bài đăng</b> trên cùng']) + FPO;
     if (ft === 'grp') h += inTabi('Đăng bài chăm sóc vào nhóm Facebook <b>Sống khỏe cùng thực dưỡng lành mạnh</b>. Facebook không cho trợ lý tự đăng vào nhóm, nên trợ lý soạn sẵn, bạn dán vào.', ['Bấm <b>📋 Copy bài</b> và <b>⬇️ Lưu ảnh</b>', 'Bấm <b>👥 Mở nhóm</b> → Viết bài → dán chữ, thêm ảnh', 'Bấm 🕐 <b>Lên lịch</b> đúng giờ ghi trên thẻ (hoặc đăng luôn)', 'Xong bấm <b>✅ Đã đăng vào nhóm</b>'], 'Mỗi tuần làm 1 lần cho cả tuần là đủ. Muốn sửa nội dung thì sửa ở tab 🤖 Trợ lý Zalo.') + fbgHtml(j);
     if (ft === 'log') h += inTabi('Mọi bình luận, tin nhắn trợ lý vừa trả lời. <b>Ca 🙋 cần người thật</b> ghim trên cùng.', ['Trả lời khách trong hộp thư trang', 'Xong bấm <b>✅ Đã xử lý</b>', 'Trợ lý trả lời chưa đúng: bấm <b>✍️ Dạy trợ lý trả lời</b>']) + '<h2 class="zb-h" id="fpLog">🕘 Trợ lý vừa làm gì</h2>' + fpLogHtml(j);
+    if (ft === 'offer') h += inTabi('Ưu đãi quảng cáo đang chạy (giá, quà, hạn). <b>Ưu đãi có tích 🤖 thì trợ lý báo đúng nội dung này khi khách hỏi giá</b>, thay vì chỉ báo giá web. Đổi chương trình thì sửa ở đây, trợ lý dùng ngay.', ['Bấm <b>＋ Thêm</b> hoặc <b>Sửa</b>', 'Ghi đúng giá, quà, điều kiện ở ô “Nội dung sale cần nói đúng”', 'Tích <b>🤖 Trợ lý Fanpage báo ưu đãi này</b>', 'Hết chương trình: đặt ngày hết hạn hoặc bỏ tích']) + offerAdmin();
     if (ft === 'stat') h += inTabi('7 ngày qua trợ lý trả lời bao nhiêu bình luận, tin nhắn, xin được bao nhiêu số; bài đăng được tương tác thế nào.', ['Mỗi tuần xem 1 lần']) + ST7;
     if (ft === 'pages') h += inTabi('Các fanpage đang theo dõi: bật / tắt trợ lý, chờ duyệt hay tự đăng, giờ đăng của từng trang. <b>Ít khi phải sửa.</b>', ['Bấm tên trang để mở cài đặt trang đó', 'Đổi xong bấm <b>Lưu</b>']) + FPG;
     return h;
@@ -14496,7 +14497,7 @@
     if (!L.length) return '<p class="muted">' + (edit ? 'Chưa có ưu đãi nào. Bấm ＋ để thêm, sale sẽ thấy ngay ở tab Khách hỏi.' : 'Marketing chưa ghi ưu đãi nào.') + '</p>';
     return L.map(function (o) {
       var old = o.until && o.until < t0;
-      return '<div class="offer-card' + (old ? ' old' : '') + '"><div class="offer-h"><b>🎁 ' + esc(o.title) + '</b>' + (o.prod ? '<span class="tag">' + esc(o.prod) + '</span>' : '') + '</div>' +
+      return '<div class="offer-card' + (old ? ' old' : '') + '"><div class="offer-h"><b>🎁 ' + esc(o.title) + '</b>' + (o.prod ? '<span class="tag">' + esc(o.prod) + '</span>' : '') + (o.bot ? '<span class="tag st-xong">🤖 Trợ lý báo khách' + (o.camp ? ' · QC có chữ “' + esc(o.camp) + '”' : ' · mọi khách') + '</span>' : '') + '</div>' +
         (o.text ? '<p>' + esc(o.text).replace(/\n/g, '<br>') + '</p>' : '') +
         '<small class="muted">' + (o.until ? (old ? 'Đã hết hạn ' : 'Đến hết ') + o.until.split('-').reverse().join('/') : 'Không ghi hạn') + (o.by ? ' · ' + esc(o.by) : '') + '</small>' +
         (edit && !o.auto ? ' <button class="link" data-offer="' + esc(o.id) + '">Sửa</button>' : edit ? ' <small class="muted">· tự có trong Ngày Đôi, sửa ở /admin → Cài đặt chung</small>' : '') + '</div>';
@@ -14507,7 +14508,7 @@
     if ((!c || Date.now() - c.at > 600e3) && !S.offersBusy) {
       S.offersBusy = true;
       api('offers', {}).then(function (j) { S.offers = { at: Date.now(), list: j && j.ok ? j.list : null }; }, function () { S.offers = { at: Date.now(), list: null }; })
-        .then(function () { S.offersBusy = false; var v = route().view; if ((v === 'tiem-nang' || v === 'marketing') && !$('.modal')) render(); });
+        .then(function () { S.offersBusy = false; var v = route().view; if ((v === 'tiem-nang' || v === 'marketing' || v === 'fanpage') && !$('.modal')) render(); });
     }
     return c ? c.list : undefined;
   }
@@ -14519,7 +14520,7 @@
   }
   /** Khối quản lý ưu đãi ở tab Marketing. */
   function offerAdmin() {
-    if (!isMkt() && lvl() < 3) return '';
+    if (!isMkt() && lvl() < 2) return '';
     var L = offersGet();
     return '<div class="box"><div class="offer-h"><h3 style="margin:0">🎁 Ưu đãi / thông điệp đang chạy <small class="muted">(sale xem ở tab Khách hỏi)</small></h3><button class="btn sm pri" data-offer="new">＋ Thêm</button></div>' +
       (L === undefined ? '<p class="muted">⏳ Đang tải…</p>' : L === null ? '<p class="muted">⚠️ Chưa tải được (máy chủ chưa cập nhật?).</p>' : offerList(L, true)) + '</div>';
@@ -14530,10 +14531,12 @@
       '<label class="f"><span>Sản phẩm</span><input type="text" id="ofP" maxlength="60" value="' + esc(o.prod || '') + '" placeholder="vd Gafo Fucoidan"></label>' +
       '<label class="f"><span>Nội dung sale cần nói đúng (giá, quà, điều kiện, câu quảng cáo chính)</span><textarea id="ofX" rows="5" maxlength="800">' + esc(o.text || '') + '</textarea></label>' +
       '<label class="f"><span>Mẫu tin sale gửi khách <small class="muted">(📣 Gửi ưu đãi lần lượt chọn ưu đãi này là có sẵn; viết [Tên], [Sản phẩm], [Link] để máy tự điền)</small></span><textarea id="ofM" rows="5" maxlength="1000" placeholder="vd Dạ [Tên] ơi, …  [Tên] bấm link này đặt nhanh: [Link]">' + esc(o.msg || '') + '</textarea></label>' +
-      '<label class="f"><span>Áp dụng đến hết ngày (bỏ trống = chưa có hạn)</span><input type="date" id="ofU" value="' + esc(o.until || '') + '"></label><p class="err" id="ofE"></p></div>';
+      '<label class="f"><span>Áp dụng đến hết ngày (bỏ trống = chưa có hạn)</span><input type="date" id="ofU" value="' + esc(o.until || '') + '"></label>' +
+      '<label class="zb-ck"><input type="checkbox" id="ofB"' + (o.bot ? ' checked' : '') + '><span><b>🤖 Trợ lý Fanpage báo ưu đãi này cho khách</b><small>Khách hỏi giá / ưu đãi trong Messenger, trợ lý nói đúng nội dung ở ô “Nội dung sale cần nói đúng”. Hết hạn thì tự thôi.</small></span></label>' +
+      '<label class="f"><span>Chỉ báo cho khách đến từ chiến dịch quảng cáo có chữ <small class="muted">(bỏ trống = mọi khách nhắn trang; vd “ĐỂ LẠI SĐT”)</small></span><input type="text" id="ofC" maxlength="80" value="' + esc(o.camp || '') + '"></label><p class="err" id="ofE"></p></div>';
     var m = modal(id === 'new' ? '🎁 Thêm ưu đãi' : '🎁 Sửa ưu đãi', body, (id !== 'new' ? '<button class="btn ghost" id="ofDel">Xoá</button>' : '') + '<button class="btn" data-close>Huỷ</button><button class="btn pri" id="ofSave">Lưu</button>');
     var done = function (j) { S.offers = { at: Date.now(), list: j.list }; closeModal(); toast('Đã lưu'); render(); }, fail = function (e) { $('#ofE', m).textContent = e.message; };
-    $('#ofSave', m).onclick = function () { api('offer_save', { id: o.id || '', title: $('#ofT', m).value, prod: $('#ofP', m).value, text: $('#ofX', m).value, msg: $('#ofM', m).value, until: $('#ofU', m).value }).then(done, fail); };
+    $('#ofSave', m).onclick = function () { api('offer_save', { id: o.id || '', title: $('#ofT', m).value, prod: $('#ofP', m).value, text: $('#ofX', m).value, msg: $('#ofM', m).value, until: $('#ofU', m).value, bot: $('#ofB', m).checked, camp: $('#ofC', m).value }).then(done, fail); };
     if ($('#ofDel', m)) $('#ofDel', m).onclick = function () { if (confirm('Xoá ưu đãi này?')) api('offer_del', { id: o.id }).then(done, fail); };
   }
 

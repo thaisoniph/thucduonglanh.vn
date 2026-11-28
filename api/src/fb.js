@@ -100,6 +100,23 @@ async function appCfg(x) { return Object.assign({ id: '', secret: '', verify: ''
 async function app2Cfg(x) { return Object.assign({ id: '', secret: '' }, await kvJson(x.db, 'fp_app2', {})); }
 const mt = p => p.token2 || p.token; // mã dùng cho Messenger
 const MSG_FIELDS = 'messages,messaging_postbacks,message_echoes,messaging_referrals';
+/** 📣 Chương trình đang chạy (28/11/2026, Thủy: QC thử nghiệm, ưu đãi đổi theo ngày / tuần): dùng chung ô 🎁 Ưu đãi đang chạy ở tab Marketing (kv mkt_offers, salemkt.js).
+ *  Ưu đãi có tích "🤖 Trợ lý báo khách" (o.bot) + còn hạn (o.until) → bot Fanpage báo đúng nội dung (o.text). o.camp có chữ → chỉ khách đến từ chiến dịch có chữ đó (mk_adref); trống → mọi khách.
+ *  Gác cổng (gate.js) được đưa thêm nội dung ưu đãi để không chặn giá ưu đãi. */
+export async function promosFor(x, p, psid, now) {
+  const day = fmtDate(now, 'yyyy-MM-dd');
+  const act = ((await kvJson(x.db, 'mkt_offers', [])) || []).filter(o => o && o.bot && o.title && o.text && (!o.until || o.until >= day));
+  if (!act.length) return { txt: '', kb: '', hit: '' };
+  let camp = ''; try { const r = await first(x.db, 'SELECT camp, at FROM mk_adref WHERE psid = ?', psid); if (r && now - r.at < 7 * DAY) camp = nrm(r.camp || ''); } catch (e) { }
+  const mine = act.filter(z => z.camp && camp && camp.indexOf(nrm(z.camp)) >= 0), gen = act.filter(z => !z.camp);
+  if (!mine.length && !gen.length) return { txt: '', kb: '', hit: '' };
+  const line = z => '- ' + z.title + (z.prod ? ' [' + z.prod + ']' : '') + (z.until ? ' (đến hết ' + z.until.slice(8, 10) + '/' + z.until.slice(5, 7) + ')' : '') + ': ' + String(z.text).replace(/\s*\n\s*/g, '; ');
+  const txt = 'CHƯƠNG TRÌNH ƯU ĐÃI ĐANG CHẠY (bộ phận Marketing ghi, mới hơn tài liệu):\n' +
+    (mine.length ? 'Khách này đến từ quảng cáo có chương trình riêng. Khi khách hỏi giá / ưu đãi / cách mua, báo chương trình này TRƯỚC:\n' + mine.map(line).join('\n') + '\n' : '') +
+    (gen.length ? 'Chương trình chung của trang (nhắc khi khách hỏi giá / ưu đãi):\n' + gen.map(line).join('\n') + '\n' : '') +
+    'Quy tắc: nói ĐÚNG nội dung chương trình, không thêm bớt quà / giá / thời hạn. Giá chương trình khác giá web thì nói rõ: giá chương trình áp dụng khi đặt qua tin nhắn này hoặc hotline; giá trên web là giá thường. Khách muốn đặt theo chương trình → xin số điện thoại để chuyên viên lên đơn.';
+  return { txt, kb: mine.concat(gen).map(line).join('\n'), hit: mine.concat(gen).map(z => z.title).join(', ') };
+}
 function pageCfg(raw) { let c = {}; try { c = JSON.parse(raw || '{}'); } catch (e) { } c = Object.assign({}, PCFG0, c); if (!Array.isArray(c.replies) || !c.replies.length) c.replies = PCFG0.replies; if (!Array.isArray(c.slots)) c.slots = PCFG0.slots; return c; }
 const PG = new Map(); // giữ trang trong bộ nhớ 60 giây (mỗi tin nhắn / bình luận đỡ 1 lần đọc D1)
 async function pageGet(x, id) {
@@ -388,7 +405,7 @@ async function onMessage(x, p, m, app, app2) {
   await act(p, psid, 'typing_on');
   const hist = msgs.slice(-16); while (hist.length && hist[0].r !== 'u') hist.shift();
   const lastAsk = hist.filter(z => z.r === 'u').slice(-3).map(z => z.t).join(' | ');
-  const know = await kb(), w = workNow(now); let src = {}; try { src = JSON.parse(u.src || '{}'); } catch (e) { }
+  const know = await kb(), w = workNow(now), pr = await promosFor(x, p, psid, now); let src = {}; try { src = JSON.parse(u.src || '{}'); } catch (e) { }
   const asked = msgs.filter(z => z.r === 'u').length, t1 = Date.now();
   let reply = '', aerr = null;
   for (let tr = 0; tr < 2 && !reply; tr++) try { // lỗi thì thử lại 1 lần, lần sau gửi ít lịch sử hơn
@@ -398,19 +415,20 @@ async function onMessage(x, p, m, app, app2) {
       system: [{ type: 'text', text: MSG_RULES + '\n' + REF_RULES + '\n' + TRUTH_RULES.replace(/mời nhắn Zalo/g, 'thêm [[zalo]] để chuyên viên hỗ trợ') },
         { type: 'text', text: 'TÀI LIỆU (thông tin chính thức của Thực Dưỡng Lành):\n\n' + know, cache_control: { type: 'ephemeral' } },
         { type: 'text', text: (await edBlock(x, 'reply', { n: 5, len: 400 })) || '(chưa có câu trả lời nào được nhân sự sửa)' },
+        ...(pr.txt ? [{ type: 'text', text: pr.txt }] : []),
         { type: 'text', text: 'Fanpage: "' + p.name + '". Bây giờ là ' + w.label + '. Chuyên viên ' + (w.on ? 'đang trực.' : 'ngoài giờ (trực Thứ 2 – Thứ 7, 8h–17h): nhắn lại từ 8h sáng hôm sau.') + (u.name ? ' Tên Facebook của khách: ' + u.name + '.' : '') + (src.text ? ' Khách đến từ bình luận: "' + src.text + '".' : '') + (u.phone ? ' (Ghi chú nội bộ, không nhắc lại với khách: khách đã để số và đã nhận quà, đừng mời nhận quà nữa. Không gọi khách là "khách" khi nói chuyện.)' : u.gift ? ' (Ghi chú nội bộ: đã xin số để gửi quà, khách chưa gửi.)' : '') }],
       messages: merged });
     reply = res.stop_reason === 'refusal' ? 'Câu này em xin phép chưa trả lời được ạ, để chị chuyên viên bên em nhắn lại cho mình nha. [[zalo]]' : textOf(res);
   } catch (e) { aerr = e; console.error('fp ai', e && (e.status || ''), e && e.message); }
   if (!reply) { reply = 'Dạ em xem lại chút rồi nhắn mình ngay nha 🙏'; await flog(x, p.id, 'error', { name: u.name, text: 'AI lỗi khi trả lời: ' + lastAsk.slice(0, 120), reply: aerr ? String(aerr.status || '') + ' ' + String(aerr.message || aerr).slice(0, 300) : 'AI không trả lời' }); }
-  const z = fbText(await gate(x, 'fb', safe(reply), know, { q: lastAsk, ref: psid }), prodMap(know), p); if (!z.text) return; // 🛡 gate.js
+  const z = fbText(await gate(x, 'fb', safe(reply), pr.kb ? know + '\n\nCHƯƠNG TRÌNH ĐANG CHẠY:\n' + pr.kb : know, { q: lastAsk, ref: psid }), prodMap(know), p); if (!z.text) return; // 🛡 gate.js
   const qr = !u.phone && !u.gift && asked >= 2 ? [{ content_type: 'text', title: '🎁 Nhận quà', payload: 'GIFT' }] : null; // từ câu hỏi thứ 2: nút nhận quà dưới câu trả lời
   const pz = prodMap(know);
   await sendHuman(x, p, psid, z.text, z.proof ? null : qr, now, Date.now() - t1);
   const np = z.proof ? await sendProofs(x, p, psid, z.proof, pz, now) : 0; // khách hỏi giấy tờ → gửi thẳng ảnh bản gốc
   msgs = await readMsgs(); await put(z.text + (np ? '\n[Đã gửi ' + np + ' ảnh giấy tờ]' : ''), z.zalo);
   await kvSet(x.db, dk, String(nd + 1), 2 * DAY);
-  await flog(x, p.id, z.zalo ? 'handoff' : 'dm', { name: u.name, text: lastAsk, reply: z.text });
+  await flog(x, p.id, z.zalo ? 'handoff' : 'dm', { name: u.name, text: lastAsk, reply: z.text + (pr.hit ? '\n[📣 ' + pr.hit + ']' : '') });
   if (z.zalo) x.later(handoff(x, p, u, lastAsk, z.text));
 }
 

@@ -270,13 +270,13 @@ export async function offersLive(x, at) {
 export async function crmOffers(x, u, d) {
   const a = d.action;
   if (a === 'offers') { const L = await offersAll(x); try { const dd = await ddOffer(x); if (dd) L.unshift(dd); } catch (e) { } return { ok: true, list: L }; }
-  if (u.level < 3 && u.role !== 'Marketing') return { ok: false, error: 'Chỉ Marketing và Quản trị sửa được ưu đãi.' };
+  if (u.level < 2 && u.role !== 'Marketing') return { ok: false, error: 'Chỉ Marketing, Quản lý và Quản trị sửa được ưu đãi.' }; // 28/11/2026: + Quản lý (Thủy ghi chương trình QC cho trợ lý Fanpage)
   let L = await offersAll(x);
   if (a === 'offer_del') { L = L.filter(o => o.id !== d.id); await kvSet(x.db, 'mkt_offers', JSON.stringify(L)); return { ok: true, list: L }; }
   if (a === 'offer_save') {
     const title = String(d.title || '').trim().slice(0, 120); if (!title) return { ok: false, error: 'Chưa có tên ưu đãi.' };
     const until = DAY_RE.test(String(d.until || '')) ? d.until : '';
-    const o = { id: d.id || randHex(4), title, prod: String(d.prod || '').trim().slice(0, 60), text: String(d.text || '').trim().slice(0, 800), msg: String(d.msg || '').trim().slice(0, 1000), until, by: u.name, at: Date.now() }; // msg: mẫu tin sale gửi khách ([Tên], [Sản phẩm], [Link])
+    const o = { id: d.id || randHex(4), title, prod: String(d.prod || '').trim().slice(0, 60), text: String(d.text || '').trim().slice(0, 800), msg: String(d.msg || '').trim().slice(0, 1000), until, bot: !!d.bot, camp: String(d.camp || '').trim().slice(0, 80), by: u.name, at: Date.now() }; // msg: mẫu tin sale gửi khách ([Tên], [Sản phẩm], [Link])
     const i = L.findIndex(y => y.id === o.id); if (i >= 0) L[i] = o; else L.unshift(o);
     L = L.filter(y => !y.until || dayMs(y.until) >= Date.now() - 60 * DAY).slice(0, 40); // ưu đãi hết hạn quá 60 ngày thì bỏ
     await kvSet(x.db, 'mkt_offers', JSON.stringify(L)); return { ok: true, list: L };

@@ -49,4 +49,21 @@ assert.equal(await post(S2, echo(0, 'p3')), 200); assert.equal(paused('p3'), tru
 assert.equal((await FB.crmFp(x, admin, { action: 'fp_app2', off: 1 }, log)).ok, true);
 assert.equal(await post(S2, echo(0, 'p4')), 403);
 assert.equal(await post(S1, echo(0, 'p5')), 200); assert.equal(paused('p5'), true);
+
+// 📣 ưu đãi đang chạy (kv mkt_offers) → lời dặn trợ lý
+await (await import('file://' + ROOT + '/api/src/mkcamp.js')).mkCampSchema(DB);
+const T = Date.now(), dd = t => new Date(t + 7 * 3600e3).toISOString().slice(0, 10);
+raw.prepare("INSERT INTO kv (k, v) VALUES ('mkt_offers', ?)").run(JSON.stringify([
+  { id: 'a', title: 'Combo 2 hộp 799k', text: '2 hộp VitaGreen 500g 799.000đ\ntặng bình lắc', bot: true, until: dd(T + 864e5) },
+  { id: 'b', title: 'QC để lại SĐT', text: '1 hộp 450.000đ', bot: true, camp: 'ĐỂ LẠI SĐT' },
+  { id: 'c', title: 'Khách thân thiết', text: 'giảm 10%', bot: false },
+  { id: 'd', title: 'Hết hạn', text: 'x', bot: true, until: dd(T - 2 * 864e5) }]));
+const pg = { id: '111' };
+let pr = await FB.promosFor(x, pg, 'k1', T);
+assert.ok(pr.txt.includes('Combo 2 hộp 799k') && pr.txt.includes('799.000đ; tặng bình lắc'));
+assert.ok(!pr.txt.includes('450.000') && !pr.txt.includes('giảm 10%') && !pr.txt.includes('Hết hạn'), 'chỉ ưu đãi tích 🤖, còn hạn, không giới hạn chiến dịch');
+raw.prepare("INSERT INTO mk_adref (psid, page, ad, camp, at) VALUES ('k2', '111', '9', '28/11 ĐỂ LẠI SĐT NHẬN ƯU ĐÃI', ?)").run(T);
+pr = await FB.promosFor(x, pg, 'k2', T);
+assert.ok(pr.txt.includes('quảng cáo có chương trình riêng') && pr.txt.includes('450.000đ') && pr.kb.includes('450.000đ'), 'khách từ QC khớp chữ → ưu đãi riêng');
+assert.equal(pr.hit, 'QC để lại SĐT, Combo 2 hộp 799k');
 console.log('✅ test-fbapp2: OK');

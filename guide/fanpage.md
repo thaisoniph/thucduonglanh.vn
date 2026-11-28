@@ -120,6 +120,25 @@ Facebook **không cho trợ lý tự đăng vào nhóm** (Meta bỏ quyền này
 
 **Làm 1 lần cho nhóm:** mời fanpage Thực Dưỡng Lành vào nhóm và cho làm **quản trị viên**, để bài đăng bằng tên trang. Trong nhóm bấm ⚙️ **Hỗ trợ quản trị viên** để Facebook tự duyệt bài và tự chào thành viên mới.
 
+## Việc 7: Chương trình quảng cáo đang chạy (để trợ lý báo đúng giá ưu đãi)
+
+**Câu dễ nhớ:** quảng cáo đổi ưu đãi thì ghi vào CRM, trợ lý báo theo ngay.
+
+Không ghi thì trợ lý chỉ biết **giá trên web**. Khách bấm quảng cáo thấy ưu đãi khác (combo, quà tặng) sẽ bị báo 2 giá.
+
+1. Tab **📘 Fanpage** → thẻ **📣 Chương trình QC** (Marketing xem được cả ở tab Marketing, cùng 1 danh sách).
+2. Bấm **＋ Thêm** (hoặc **Sửa** chương trình cũ):
+   - **Tên ưu đãi**: đúng như khách thấy trên quảng cáo, vd "Combo 2 hộp VitaGreen 799k".
+   - **Nội dung sale cần nói đúng**: giá, quà, điều kiện, vd "2 hộp 500g 799.000đ, tặng bình lắc + ebook thực đơn 7 ngày, freeship".
+   - **Áp dụng đến hết ngày**: ngày kết thúc. Qua ngày đó trợ lý tự thôi báo.
+   - Tích **🤖 Trợ lý Fanpage báo ưu đãi này cho khách**.
+   - **Chỉ báo cho khách đến từ chiến dịch có chữ…**: bỏ trống nếu áp dụng cho mọi khách. Nếu ưu đãi chỉ dành cho 1 quảng cáo, gõ 1 cụm chữ có trong **tên chiến dịch**, vd `ĐỂ LẠI SĐT`.
+3. Bấm **Lưu**. Trợ lý dùng ngay ở tin nhắn sau.
+
+Trợ lý chỉ nói đúng chữ bạn ghi, không tự thêm quà hay giá. Nếu giá chương trình khác giá web, trợ lý nói rõ giá chương trình áp dụng khi đặt qua tin nhắn / hotline. Trong **🕘 Trợ lý vừa làm gì**, câu trả lời có dùng ưu đãi sẽ có dòng **📣 tên ưu đãi**.
+
+Lưu ý: giá trong **mẫu tin nhắn của quảng cáo** (câu chào, câu hỏi bấm sẵn) do người chạy quảng cáo cài trong Trình quản lý quảng cáo. Ghi giá ở đó khớp với ưu đãi ở đây để khách không thấy 2 giá.
+
 ## Chọn trang theo dõi (Quản trị)
 
 Tài khoản Facebook kết nối thường quản lý cả trang không liên quan (bất động sản, trang cá nhân…). Mục **📄 Fanpage đang theo dõi** chỉ hiện trang được chọn; các trang còn lại nằm trong dòng thu gọn **⏸ … trang không theo dõi**.
